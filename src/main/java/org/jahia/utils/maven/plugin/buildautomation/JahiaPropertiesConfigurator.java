@@ -108,11 +108,12 @@ public class JahiaPropertiesConfigurator {
 
     private void addClusterNodes(List<String> clusterNodes) {
 
-        properties.setProperty("cluster.tcp.start.ip_address", jahiaPropertiesBean.getLocalIp());
-        String clusterTtcpServiceNodesIp_address = "";
-        String clustertcpidgeneratornodesip_address = "";
-        String clustertcpesicontentidsnodesip_address = "";
-        String clustertcphibernatenodesip_address = "";
+        final String propvalue = jahiaPropertiesBean.getLocalIp();
+        properties.setProperty("cluster.tcp.start.ip_address", propvalue);
+        String clusterTtcpServiceNodesIp_address = propvalue+"[7840],";
+        String clustertcpidgeneratornodesip_address = propvalue+"[7850],";
+        String clustertcpesicontentidsnodesip_address = propvalue+"[7860],";
+        String clustertcphibernatenodesip_address = propvalue+"[7870],";
         for (int i = 0; i < clusterNodes.size(); i++) {
 
             if (i == clusterNodes.size() - 1) {
@@ -130,11 +131,18 @@ public class JahiaPropertiesConfigurator {
 
 
         }
-
         properties.setProperty("cluster.tcp.service.nodes.ip_address", clusterTtcpServiceNodesIp_address);
-        properties.setProperty("cluster.tcp.idgenerator.nodes.ip_address", clustertcpidgeneratornodesip_address);
-        properties.setProperty("cluster.tcp.esicontentids.nodes.ip_address", clustertcpesicontentidsnodesip_address);
-        properties.setProperty("cluster.tcp.hibernate.nodes.ip_address", clustertcphibernatenodesip_address);
+        if(properties.getProperty("cluster.tcp.esicontentids.nodes.ip_address") != null){
+            properties.setProperty("cluster.tcp.idgenerator.nodes.ip_address", clustertcpidgeneratornodesip_address);
+            properties.setProperty("cluster.tcp.esicontentids.nodes.ip_address", clustertcpesicontentidsnodesip_address);
+            properties.setProperty("cluster.tcp.hibernate.nodes.ip_address", clustertcphibernatenodesip_address);
+        } else if(properties.getProperty("ehcache.hibernate.file") != null){
+            properties.setProperty("cluster.tcp.ehcache.hibernate.nodes.ip_address", clustertcpesicontentidsnodesip_address);
+            properties.setProperty("cluster.tcp.ehcache.jahia.nodes.ip_address", clustertcphibernatenodesip_address);
+            properties.setProperty("ehcache.hibernate.file","ehcache-hibernate_cluster.xml");
+            properties.setProperty("ehcache.jahia.file","ehcache-jahia_cluster.xml");
+        }
+        properties.setProperty("cluster.tcp.num_initial_members",clusterNodes.size()+1>=3?"3":"2");
         properties.setProperty("processingServer", jahiaPropertiesBean.getProcessingServer());
     }
 
