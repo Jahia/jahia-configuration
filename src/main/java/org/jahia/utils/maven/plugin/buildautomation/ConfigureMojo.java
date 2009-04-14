@@ -34,6 +34,7 @@
 package org.jahia.utils.maven.plugin.buildautomation;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.jahia.utils.maven.plugin.AbstractManagementMojo;
@@ -41,6 +42,7 @@ import org.jahia.utils.maven.plugin.AbstractManagementMojo;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -48,11 +50,10 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * Created by IntelliJ IDEA.
+ * Implementation of the Jahia's configuration Mojo. 
  * User: islam
  * Date: Jul 28, 2008
  * Time: 3:40:32 PM
- * To change this template use File | Settings | File Templates.
  *
  * @goal configure
  * @requiresDependencyResolution runtime
@@ -531,43 +532,51 @@ public class ConfigureMojo extends AbstractManagementMojo
     }
 
 
+    private void cleanDirectory(File toDelete) {
+        if (toDelete.exists()) {
+            try {
+                FileUtils.cleanDirectory(toDelete);
+            } catch (IOException e) {
+                getLog().error(
+                        "Error deleting content of the folder '" + toDelete
+                                + "'. Cause: " + e.getMessage(), e);
+            }
+        }
+    }
+    
     private void deleteTomcatFiles() {
 
-        boolean delete1 = deleteDir(new File(targetServerDirectory + "/temp"));
-        boolean delete2 = deleteDir(new File(targetServerDirectory + "/work"));
-        boolean delete3 = deleteDir(new File(webappDir + "/WEB-INF/var/repository"));
-        boolean delete4 = deleteDir(new File(webappDir + "/WEB-INF/var/search_indexes"));
-        if (delete1 && delete2 && delete3 && delete4) {
-            getLog().info("finished deleting tomcat /temp /work and /var/repository files");
-            (new File(targetServerDirectory + "/temp")).mkdir();
-            (new File(targetServerDirectory + "/work")).mkdir();
-            (new File(webappDir + "/WEB-INF/var/repository")).mkdir();
-            (new File(webappDir + "/WEB-INF/var/search_indexes")).mkdir();
-        }
-    }
+        cleanDirectory(new File(targetServerDirectory + "/temp"));
 
-    private boolean deleteDir(File dir) {
+        cleanDirectory(new File(targetServerDirectory + "/work"));
 
-        //There is only one file in var/repository that we do not want to delete which is  indexing_configuration.xml
-        if (dir.isDirectory()) {
-            String[] children = dir.list();
-            //getLog().info("name is "+dir.getName());
-            for (int i = 0; i < children.length; i++) {
-                boolean success = deleteDir(new File(dir, children[i]));
-                if (!success) {
-                    getLog().info("no sucess in deleting" + children[i]);
-                    return false;
+        try {
+            File[] files = new File(webappDir + "/WEB-INF/var/repository")
+                    .listFiles(new FilenameFilter() {
+                        public boolean accept(File dir, String name) {
+                            return !"indexing_configuration.xml".equals(name);
+                        }
+                    });
+            if (files != null) {
+                for (File file : files) {
+                    FileUtils.forceDelete(file);
                 }
             }
-
-
+        } catch (IOException e) {
+            getLog().error(
+                    "Error deleting content of the Jahia's /repository folder. Cause: "
+                            + e.getMessage(), e);
         }
 
-        return dir.delete();
+        cleanDirectory(new File(webappDir + "/WEB-INF/var/search_indexes"));
 
+        getLog()
+                .info(
+                        "finished deleting content of Tomcat's /temp and /work folders"
+                                + " as long as /var/repository files and /var/search_indexes");
     }
 
-    //copy method for the licence for instance
+    //copy method for the license for instance
     private void copyLicense(String fromFileName, String toFileName)
             throws IOException {
         File fromFile = new File(fromFileName);
