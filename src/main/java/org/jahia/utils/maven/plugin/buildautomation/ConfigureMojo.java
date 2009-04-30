@@ -573,7 +573,7 @@ public class ConfigureMojo extends AbstractManagementMojo
         getLog()
                 .info(
                         "finished deleting content of Tomcat's /temp and /work folders"
-                                + " as long as /var/repository files and /var/search_indexes");
+                                + " as well as /var/repository files and /var/search_indexes");
     }
 
     //copy method for the license for instance
