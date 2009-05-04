@@ -708,6 +708,8 @@ public class ConfigureMojo extends AbstractManagementMojo
                     throw e;
                 } else if (upperCaseLine.startsWith("CREATE INDEX")) {
                     getLog().warn("Error while trying to execute query : " + line, e);
+                } else {
+                    // getLog().warn("Ignoring error " + e.getMessage() + " on line " + line);
                 }
             }
         }

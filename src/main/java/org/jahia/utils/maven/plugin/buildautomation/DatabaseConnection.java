@@ -291,11 +291,16 @@ public class DatabaseConnection {
 
     public void queryPreparedStatement(String sqlCode, Object[] params)
         throws Exception {
+        try {
         PreparedStatement ps = theConnection.prepareStatement(sqlCode);
         for (int i = 0; i < params.length; i++) {
             ps.setObject(i+1,params[i]);
         }
         ps.execute();
+        } catch (SQLException sqle) {
+            System.err.println("Error while executing statement : " + sqlCode);
+            throw sqle;
+        }
     } // end query
 
     /**
