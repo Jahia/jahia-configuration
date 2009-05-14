@@ -360,7 +360,7 @@ public class ConfigureMojo extends AbstractManagementMojo
 
 
     JahiaPropertiesBean jahiaPropertiesBean;
-    DatabaseConnection db = new DatabaseConnection();
+    DatabaseConnection db;
     File webappDir;
     Properties dbProps;
     File databaseScript;
@@ -369,6 +369,8 @@ public class ConfigureMojo extends AbstractManagementMojo
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         if (active) {
             try {
+                db = new DatabaseConnection();
+
                 setProperties();
                 if (cluster_activated.equals("true")) {
                     deployOnCluster();
@@ -376,6 +378,15 @@ public class ConfigureMojo extends AbstractManagementMojo
                     getLog().info("Deployed in standalone for server in " + webappDir);
                 }
                 jahiaPropertiesConfigurator.generateJahiaProperties();
+
+                if (databaseType.equals("hypersonic")) {
+                    try {
+                        db.query("SHUTDOWN");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        //
+                    }
+                }
             } catch (IOException ioe) {
                 throw new MojoExecutionException("Error while configuring Jahia", ioe);
             }
@@ -477,10 +488,10 @@ public class ConfigureMojo extends AbstractManagementMojo
         }
         if (!databaseType.equals("hypersonic")) {
             db_starthsqlserver = "false";
-            jahiaPropertiesBean.setDb_StartHsqlServer(db_starthsqlserver);
-            //create dbdata folder as this one is created by hypersonic at launch
-
         }
+
+        jahiaPropertiesBean.setDb_StartHsqlServer(db_starthsqlserver);
+        
         jahiaPropertiesConfigurator = new JahiaPropertiesConfigurator(sourceWebappPath, webappDir.getPath(), jahiaPropertiesBean);
 
         getLog().info("updating Jackrabbit, Spring and Quartz configuration files");
