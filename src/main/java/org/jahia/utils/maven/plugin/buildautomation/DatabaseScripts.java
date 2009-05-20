@@ -156,12 +156,14 @@ public class DatabaseScripts {
             if(sqlFile.getName().endsWith("index.sql")) {
                 indexFiles.add(sqlFile);
             } else {
+                System.out.println("Loading statements from script file " + sqlFile);
                 List<String> curFileSQL = getScriptFileStatements(sqlFile);
                 result.addAll(curFileSQL);
             }
         }
         for (int i = 0; i < indexFiles.size(); i++) {
             File indexFile = indexFiles.get(i);
+            System.out.println("Loading statements from index script file " + indexFile);
             List<String> curFileSQL = getScriptFileStatements(indexFile);
             result.addAll(curFileSQL);
         }
