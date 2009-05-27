@@ -120,7 +120,7 @@ public class DeployMojo extends AbstractManagementMojo {
         if (project.getPackaging().equals("ear")) {
             deployEarProject();
         } else if (project.getPackaging().equals("war")) {
-            if (project.getGroupId().equals("org.jahia.server")) {
+            if (project.getGroupId().equals("org.jahia.server") || project.getGroupId().equals("org.jahia.extensions")) {
                 deployWarProject();
             } else if (project.getGroupId().equals("org.jahia.templates")) {
                 deployTemplateProject();
