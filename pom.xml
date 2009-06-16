@@ -4,7 +4,7 @@
     <groupId>org.jahia.server</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>maven-jahia-plugin</artifactId>
-    <version>1.7</version>
+    <version>1.8</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Jahia Installer Plugin</name>
 
@@ -95,19 +95,20 @@
         <dependency>
             <groupId>microsoft</groupId>
             <artifactId>sqljdbc</artifactId>
-            <version>1.0</version>
+            <version>1.2</version>
         </dependency>
         <!-- Oracle Db Server -->
         <dependency>
-            <groupId>oracle</groupId>
-            <artifactId>ojdbc14</artifactId>
-            <version>10.2.0.1.0</version>
+            <groupId>com.oracle</groupId>
+            <artifactId>ojdbc5</artifactId>
+            <version>11.1.0.7.0</version>
         </dependency>
-        <dependency>
-            <groupId>oracle</groupId>
+           <dependency>
+            <groupId>com.oracle</groupId>
             <artifactId>orai18n</artifactId>
-            <version>10.2.0.1.0</version>
+            <version>11.1.0.7.0</version>
         </dependency>
+
 
         <dependency>
             <groupId>org.apache.derby</groupId>
