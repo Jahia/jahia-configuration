@@ -38,7 +38,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
+ * Server deployer interface. 
  * User: Serge Huber
  * Date: 26 d�c. 2007
  * Time: 14:03:56
@@ -47,7 +47,7 @@ import java.util.List;
 public interface ServerDeploymentInterface {
 
     /**
-     * Returns true if the specified directory indeeed contains a valid installation of the application server
+     * Returns true if the specified directory indeed contains a valid installation of the application server
      * @param targetServerDirectory
      * @return
      */
@@ -67,4 +67,12 @@ public interface ServerDeploymentInterface {
 
     public String getDeploymentFilePath(String name, String type);
 
+    /**
+     * Returns <code>true</code> if the server supports deployment as an EAR
+     * package.
+     * 
+     * @return <code>true</code> if the server supports deployment as an EAR
+     *         package
+     */
+    boolean isEarDeploymentSupported();
 }

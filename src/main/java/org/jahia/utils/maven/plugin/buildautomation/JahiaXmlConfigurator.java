@@ -33,17 +33,16 @@
 
 package org.jahia.utils.maven.plugin.buildautomation;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.*;
 import java.util.Map;
 
 /**
- * Created by IntelliJ IDEA.
  * User: islam
  * Date: 16 juil. 2008
  * Time: 15:42:41
- * To change this template use File | Settings | File Templates.
  */
 public class JahiaXmlConfigurator extends AbstractConfigurator {
 
@@ -55,41 +54,20 @@ public class JahiaXmlConfigurator extends AbstractConfigurator {
         if (sourceConfigFile.exists()) {
             // let's load the file's content in memory, assuming it won't be
             // too big.
-            StringBuffer fileContentBuf = new StringBuffer();
-                FileReader fileReader = new FileReader(sourceConfigFile);
-                BufferedReader bufReader = new BufferedReader(fileReader);
-                int ch = -1;
-                while ((ch = bufReader.read()) != -1) {
-                    fileContentBuf.append((char) ch);
-                }
-                bufReader.close();
-                fileReader.close();
+            String fileContent = FileUtils.readFileToString(sourceConfigFile, "UTF-8");
 
-                String fileContent = fileContentBuf.toString();
+            fileContent = StringUtils.replace(fileContent, "@USERNAME@", username);
+            fileContent = StringUtils.replace(fileContent, "@PASSWORD@", password);
+            fileContent = StringUtils.replace(fileContent, "@DRIVER@", getValue(values, "jahia.database.driver"));
 
-                fileContent = StringUtils.replace(fileContent, "@USERNAME@", username);
-                fileContent = StringUtils.replace(fileContent, "@PASSWORD@", password);
-                fileContent = StringUtils.replace(fileContent, "@DRIVER@", getValue(values, "jahia.database.driver"));
+            fileContent = StringUtils.replace(fileContent, "@URL@", url.replaceAll("&", "&amp;"));
 
-                fileContent = StringUtils.replace(fileContent, "@URL@", url.replaceAll("&", "&amp;"));
+            fileContent = StringUtils.replace(fileContent, "@TYPE_MAPPING@", getValue(values, "jahia.jboss.datasource.typeMapping"));
 
-                // we have finished replacing values, let's save the modified
-                // file.
-                forceDirs(destConfigFile);
-                FileWriter fileWriter = new FileWriter(destConfigFile);
-                fileWriter.write(fileContent);
-                fileWriter.close();
-
+            // we have finished replacing values, let's save the modified
+            // file.
+            FileUtils.writeStringToFile(destConfigFile, fileContent, "UTF-8");
         }
-    }
-
-    private static String getValue(Map values, String key) {
-        String replacement = (String) values.get(key);
-        if (replacement == null) {
-            return "";
-        }
-        replacement = replacement.replaceAll("&", "&amp;");
-        return replacement;
     }
 
 }

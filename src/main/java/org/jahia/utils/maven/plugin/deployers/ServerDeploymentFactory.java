@@ -53,10 +53,9 @@ public class ServerDeploymentFactory {
         ServerDeploymentInterface tomcatImplementation = new Tomcat5ServerDeploymentImpl();
         instance.addImplementation("tomcat5.5", tomcatImplementation);
         instance.addImplementation("tomcat6", tomcatImplementation);
-        ServerDeploymentInterface jbossImplementation = new JBossServerDeploymentImpl("4");
+        ServerDeploymentInterface jbossImplementation = new JBossEarServerDeploymentImpl();
         instance.addImplementation("jboss4.0.x", jbossImplementation);
         instance.addImplementation("jboss4.2.x", jbossImplementation);
-        jbossImplementation = new JBossServerDeploymentImpl("5");        
         instance.addImplementation("jboss5.0.x", jbossImplementation);
         ServerDeploymentInterface websphereImplementation = new WebsphereServerDeploymentImpl();
         instance.addImplementation("websphere6.1.x", websphereImplementation);

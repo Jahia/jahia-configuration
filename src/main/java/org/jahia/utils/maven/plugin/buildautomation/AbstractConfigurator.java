@@ -1,24 +1,24 @@
 package org.jahia.utils.maven.plugin.buildautomation;
 
-import java.io.File;
+import java.util.Map;
 
 /**
- * Created by IntelliJ IDEA.
+ * Base configurator implementation.
  * User: loom
  * Date: Feb 13, 2009
  * Time: 3:29:37 PM
- * To change this template use File | Settings | File Templates.
  */
 public class AbstractConfigurator {
 
 
-    public static boolean forceDirs(File targetFile) {
-        File targetFileFolder = targetFile.getParentFile();
-        boolean result = true;
-        // check if the destination folder exists and create it if needed...
-        if (!targetFileFolder.exists()) {
-            result = targetFileFolder.mkdirs();
+    protected static String getValue(Map values, String key) {
+        String replacement = (String) values.get(key);
+        if (replacement == null) {
+            return "";
         }
-        return result;
+        replacement = replacement.replaceAll("&", "&amp;");
+        replacement = replacement.trim();
+        return replacement;
     }
+
 }

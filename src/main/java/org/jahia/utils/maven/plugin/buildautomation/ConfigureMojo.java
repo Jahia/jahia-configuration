@@ -38,6 +38,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.jahia.utils.maven.plugin.AbstractManagementMojo;
+import org.jahia.utils.maven.plugin.deployers.ServerDeploymentFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -108,12 +109,6 @@ public class ConfigureMojo extends AbstractManagementMojo
      * @parameter default-value="Testing_release"
      */
     protected String release;
-    /**
-     * properties file path
-     *
-     * @parameter default-value="Tomcat"
-     */
-    protected String server;
     /**
      * properties file path
      *
@@ -225,7 +220,7 @@ public class ConfigureMojo extends AbstractManagementMojo
     /**
      * properties file path
      *
-     * @parameter default-value="org.jahia.services.webapps_deployer.JahiaTomcatWebAppsDeployerBaseService"
+     * @parameter expression="${jahia.configure.webAppsDeployerService}" default-value="org.jahia.services.webapps_deployer.JahiaTomcatWebAppsDeployerBaseService"
      */
     protected String Jahia_WebApps_Deployer_Service;
     /**
@@ -319,7 +314,6 @@ public class ConfigureMojo extends AbstractManagementMojo
      */
     protected String databasePassword;
 
-
     /**
      * List of nodes in the cluster.
      *
@@ -347,7 +341,7 @@ public class ConfigureMojo extends AbstractManagementMojo
     /**
      * properties db_starthsqlserver
      *
-     * @parameter default-value="true"
+     * @parameter expression="${jahia.configure.developmentMode}" default-value="false"
      */
     protected String developmentMode;
 
@@ -423,6 +417,10 @@ public class ConfigureMojo extends AbstractManagementMojo
         getLog().info("Store files in database is :" + storeFilesInDB);
         JackrabbitConfigurator.updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml", webappPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml", dbProps, jahiaPropertiesBean.getCluster_activated(), jahiaPropertiesBean.getCluster_node_serverId());
         JahiaXmlConfigurator.updateConfiguration(sourceWebAppPath + "/META-INF/context.xml", webappPath + "/META-INF/context.xml", dbProps, databaseUsername, databasePassword, databaseUrl);
+        if ("jboss".equalsIgnoreCase(targetServerType)) {
+            String datasourcePath = new File(targetServerDirectory, ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion).getDeploymentFilePath("jahia-jboss-config.sar/jahia-ds", "xml")).getPath();
+            JahiaXmlConfigurator.updateConfiguration(datasourcePath, datasourcePath, dbProps, databaseUsername, databasePassword, databaseUrl);
+        }
 
         if (cluster_activated.equals("true")) {
             IndexationPolicyConfigurator.updateConfigurationForCluster(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-indexationpolicy.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-indexationpolicy.xml");
@@ -464,7 +462,7 @@ public class ConfigureMojo extends AbstractManagementMojo
         jahiaPropertiesBean.setOutputContainerCacheActivated(outputContainerCacheActivated);
         jahiaPropertiesBean.setProcessingServer(processingServer);
         jahiaPropertiesBean.setRelease(release);
-        jahiaPropertiesBean.setServer(server);
+        jahiaPropertiesBean.setServer(targetServerType);
         jahiaPropertiesBean.setLocalIp(localIp);
         jahiaPropertiesBean.setDb_script(databaseType + ".script");
         jahiaPropertiesBean.setDevelopmentMode(developmentMode);
@@ -518,9 +516,12 @@ public class ConfigureMojo extends AbstractManagementMojo
             }
 
             if (!configureBeforePackaging) {
-                deleteTomcatFiles();
+                deleteRepositoryAndIndexes();
+                if ("tomcat".equals(targetServerType)) {
+                    deleteTomcatFiles();
+                }
                 if (siteImportLocation != null) {
-                    getLog().info("copying site Export to tomcat's import location from  to " + webappDir + "/WEB-INF/var/imports");
+                    getLog().info("copying site Export to the " + webappDir + "/WEB-INF/var/imports");
                     importSites();
                 } else {
                     getLog().info("no site import found ");
@@ -537,7 +538,7 @@ public class ConfigureMojo extends AbstractManagementMojo
             try {
                 copy(siteImportLocation.get(i), webappDir + "/WEB-INF/var/imports");
             } catch (IOException e) {
-                getLog().error("error in copying sitImport file " + e);
+                getLog().error("error in copying siteImport file " + e);
             }
         }
     }
@@ -558,8 +559,11 @@ public class ConfigureMojo extends AbstractManagementMojo
     private void deleteTomcatFiles() {
 
         cleanDirectory(new File(targetServerDirectory + "/temp"));
-
         cleanDirectory(new File(targetServerDirectory + "/work"));
+        getLog().info("finished deleting content of Tomcat's /temp and /work folders");
+    }
+
+    private void deleteRepositoryAndIndexes() {
 
         try {
             File[] files = new File(webappDir + "/WEB-INF/var/repository")
@@ -581,10 +585,7 @@ public class ConfigureMojo extends AbstractManagementMojo
 
         cleanDirectory(new File(webappDir + "/WEB-INF/var/search_indexes"));
 
-        getLog()
-                .info(
-                        "finished deleting content of Tomcat's /temp and /work folders"
-                                + " as well as /var/repository files and /var/search_indexes");
+        getLog().info("finished deleting content of the /var/repository and /var/search_indexes folders");
     }
 
     //copy method for the license for instance

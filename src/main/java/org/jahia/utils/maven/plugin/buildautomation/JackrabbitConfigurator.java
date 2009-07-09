@@ -36,12 +36,12 @@ package org.jahia.utils.maven.plugin.buildautomation;
 import java.io.*;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
+
 /**
- * Created by IntelliJ IDEA.
  * User: islam
  * Date: 25 juin 2008
  * Time: 11:05:00
- * To change this template use File | Settings | File Templates.
  */
 public class JackrabbitConfigurator extends AbstractConfigurator {
 
@@ -52,17 +52,7 @@ public class JackrabbitConfigurator extends AbstractConfigurator {
         if (sourceConfigFile.exists()) {
             // let's load the file's content in memory, assuming it won't be
             // too big.
-            StringBuffer fileContentBuf = new StringBuffer();
-            FileReader fileReader = new FileReader(sourceConfigFile);
-            BufferedReader bufReader = new BufferedReader(fileReader);
-            int ch = -1;
-            while ((ch = bufReader.read()) != -1) {
-                fileContentBuf.append((char) ch);
-            }
-            bufReader.close();
-            fileReader.close();
-
-            String fileContent = fileContentBuf.toString();
+            String fileContent = FileUtils.readFileToString(sourceConfigFile, "UTF-8");
 
             String storeFilesInDB = getValue(values, "storeFilesInDB");
 
@@ -87,22 +77,8 @@ public class JackrabbitConfigurator extends AbstractConfigurator {
 
             // we have finished replacing values, let's save the modified
             // file.
-            forceDirs(destConfigFile);
-            FileWriter fileWriter = new FileWriter(destConfigFile);
-            fileWriter.write(fileContent);
-            fileWriter.close();
-
+            FileUtils.writeStringToFile(destConfigFile, fileContent, "UTF-8");
         }
-    }
-
-    private static String getValue(Map values, String key) {
-        String replacement = (String) values.get(key);
-        if (replacement == null) {
-            return "";
-        }
-        replacement = replacement.replaceAll("&", "&amp;");
-        replacement = replacement.trim();
-        return replacement;
     }
 
 }

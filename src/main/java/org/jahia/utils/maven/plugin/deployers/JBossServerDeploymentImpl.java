@@ -49,7 +49,7 @@ import java.util.Map;
  * Time: 14:18:34
  * To change this template use File | Settings | File Templates.
  */
-public class JBossServerDeploymentImpl implements ServerDeploymentInterface {
+public class JBossServerDeploymentImpl extends BaseServerDeploymentImpl {
 
     public static final String jboss4SharedLibraryDirectory = "server/default/lib";
     public static final String jboss5SharedLibraryDirectory = "common/lib";    

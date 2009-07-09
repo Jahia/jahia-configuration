@@ -1,7 +1,6 @@
 /**
- *
  * This file is part of Jahia: An integrated WCM, DMS and Portal Solution
- * Copyright (C) 2002-2009 Jahia Limited. All rights reserved.
+ * Copyright (C) 2002-2009 Jahia Solutions Group SA. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,41 +26,25 @@
  * Commercial and Supported Versions of the program
  * Alternatively, commercial and supported versions of the program may be used
  * in accordance with the terms contained in a separate written agreement
- * between you and Jahia Limited. If you are unsure which license is appropriate
+ * between you and Jahia Solutions Group SA. If you are unsure which license is appropriate
  * for your use, please contact the sales department at sales@jahia.com.
  */
+package org.jahia.utils.maven.plugin.deployers;
 
-package org.jahia.utils.maven.plugin.buildautomation;
-
-import java.io.File;
-import java.io.IOException;
-
-import org.apache.commons.io.FileUtils;
 
 /**
- * User: islam
- * Date: 22 oct. 2008
- * Time: 10:23:39
+ * Base server deployer implementation.
+ * 
+ * @author Sergiy Shyrkov
  */
-public class IndexationPolicyConfigurator extends AbstractConfigurator {
+public abstract class BaseServerDeploymentImpl implements ServerDeploymentInterface {
 
-    public static void updateConfigurationForCluster(String sourceFileName, String destFileName) throws IOException {
-
-        File sourceIndexationPolicyFile = new File(sourceFileName);
-        File destIndexationPolicyFile = new File(destFileName);
-        if (sourceIndexationPolicyFile.exists()) {
-
-            // let's load the file's content in memory, assuming it won't be
-            // too big.
-            String fileContent = FileUtils.readFileToString(sourceIndexationPolicyFile, "UTF-8");
-
-
-            //each node in the cluster will have to do its own indexing in order to avoid having two much traffic
-
-            fileContent = fileContent.replaceAll("<prop key=\"multipleIndexingServer\">0</prop>", "<prop key=\"multipleIndexingServer\">1</prop>");
-
-            FileUtils.writeStringToFile(destIndexationPolicyFile, fileContent, "UTF-8");
-        }
+    /*
+     * (non-Javadoc)
+     * @see org.jahia.utils.maven.plugin.deployers.ServerDeploymentInterface#isEarDeploymentSupported()
+     */
+    public boolean isEarDeploymentSupported() {
+        return false;
     }
 
 }

@@ -33,17 +33,16 @@
 
 package org.jahia.utils.maven.plugin.buildautomation;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.*;
 import java.util.Map;
 
 /**
- * Created by IntelliJ IDEA.
  * User: islam
  * Date: 25 juin 2008
  * Time: 11:03:29
- * To change this template use File | Settings | File Templates.
  */
 public class SpringHibernateConfigurator extends AbstractConfigurator {
 
@@ -54,23 +53,10 @@ public class SpringHibernateConfigurator extends AbstractConfigurator {
         if (sourceConfigFile.exists()) {
             // let's load the file's content in memory, assuming it won't be
             // too big.
-            StringBuffer fileContentBuf = new StringBuffer();
-            // FileReader fileReader = new FileReader(jahiaConfigFile);
-            FileInputStream fileInputStream = new FileInputStream(sourceConfigFile);
-            InputStreamReader fileReader = new InputStreamReader(fileInputStream, "UTF-8");
-            BufferedReader bufReader = new BufferedReader(fileReader);
-            int ch = -1;
-            while ((ch = bufReader.read()) != -1) {
-                fileContentBuf.append((char) ch);
-            }
-            bufReader.close();
-            fileReader.close();
-            fileInputStream.close();
-
-            String fileContent = fileContentBuf.toString();
+            String fileContent = FileUtils.readFileToString(sourceConfigFile, "UTF-8");
 
             String hibernateDialect = getValue(values, "jahia.database.hibernate.dialect");
-            if ((hibernateDialect != null) && (!"".equals(hibernateDialect))) {
+            if (StringUtils.isNotEmpty(hibernateDialect)) {
                 fileContent = StringUtils.replace(fileContent, "@HIBERNATE_DIALECT@", hibernateDialect);
             }
 
@@ -82,24 +68,7 @@ public class SpringHibernateConfigurator extends AbstractConfigurator {
 
             // we have finished replacing values, let's save the modified
             // file.
-            forceDirs(destConfigFile);
-            FileOutputStream fileOutputStream = new FileOutputStream(destConfigFile);
-            OutputStreamWriter fileWriter = new OutputStreamWriter(fileOutputStream, "UTF-8");
-            fileWriter.write(fileContent);
-            fileWriter.close();
-            fileOutputStream.close();
-
-
+            FileUtils.writeStringToFile(destConfigFile, fileContent, "UTF-8");
         }
     }
-
-    private static String getValue(Map values, String key) {
-        String replacement = (String) values.get(key);
-        if (replacement == null) {
-            return "";
-        }
-        replacement = replacement.replaceAll("&", "&amp;");
-        return replacement;
-    }
-
 }
