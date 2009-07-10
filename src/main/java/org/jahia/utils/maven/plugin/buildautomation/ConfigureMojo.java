@@ -714,17 +714,18 @@ public class ConfigureMojo extends AbstractManagementMojo
                 // we will just fail silently.
 
                 String upperCaseLine = line.toUpperCase().trim();
-                if (!upperCaseLine.startsWith("DROP") && !upperCaseLine.startsWith("ALTER TABLE")
-                        && !upperCaseLine.startsWith("CREATE INDEX")) {
-                    getLog().error("Error while trying to execute query : " + line, e);
-// continue to propagate the exception upwards.
-                    throw e;
-                } else if (upperCaseLine.startsWith("CREATE INDEX")) {
-                    getLog().warn("Error while trying to execute query : " + line, e);
-                } else {
-                    if (!e.getMessage().contains("does not exist")) {
-                        getLog().error("Ignoring error " + e.getMessage() + " statement:" + line, e);                        
+                String errorMsg = "Error while trying to execute query: " + line + ". Cause: " + e.getMessage();
+                if (upperCaseLine.startsWith("DROP ") || upperCaseLine.contains(" DROP ") || upperCaseLine.contains("\nDROP ") || upperCaseLine.contains(" DROP\n") || upperCaseLine.contains("\nDROP\n")) {
+                    getLog().debug(errorMsg, e);
+                } else if (upperCaseLine.startsWith("ALTER TABLE") || upperCaseLine.startsWith("CREATE INDEX")){
+                    if (getLog().isDebugEnabled()) {
+                        getLog().warn(errorMsg, e);
+                    } else {
+                        getLog().warn(errorMsg);
                     }
+                } else {
+                    getLog().error(errorMsg, e);
+                    throw e;
                 }
             }
         }
