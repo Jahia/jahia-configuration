@@ -417,6 +417,7 @@ public class ConfigureMojo extends AbstractManagementMojo
         getLog().info("Store files in database is :" + storeFilesInDB);
         JackrabbitConfigurator.updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml", webappPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml", dbProps, jahiaPropertiesBean.getCluster_activated(), jahiaPropertiesBean.getCluster_node_serverId());
         JahiaXmlConfigurator.updateConfiguration(sourceWebAppPath + "/META-INF/context.xml", webappPath + "/META-INF/context.xml", dbProps, databaseUsername, databasePassword, databaseUrl);
+        RootUserConfigurator.updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/repository/root.xml", webappPath + "/WEB-INF/etc/repository/root.xml", encryptPassword(jahiaRootPassword));
         if ("jboss".equalsIgnoreCase(targetServerType)) {
             String datasourcePath = new File(targetServerDirectory, ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion).getDeploymentFilePath("jahia-jboss-config.sar/jahia-ds", "xml")).getPath();
             JahiaXmlConfigurator.updateConfiguration(datasourcePath, datasourcePath, dbProps, databaseUsername, databasePassword, databaseUrl);
