@@ -115,6 +115,10 @@ public class DeployMojo extends AbstractManagementMojo {
     }
 
     private void deployProject() throws Exception {
+        if (skipDeploy()) {
+            getLog().info("jahia.deploy.skip is set to 'true' for the current project. Skip deploying it.");
+            return;
+        }
         if (project.getPackaging().equals("ear")) {
             deployEarProject();
         } else if (project.getPackaging().equals("war")) {
@@ -123,7 +127,7 @@ public class DeployMojo extends AbstractManagementMojo {
             } else if (project.getGroupId().equals("org.jahia.templates")) {
                 deployTemplateProject();
             }
-        } else if (project.getPackaging().equals("sar") || project.getPackaging().equals("rar")) {
+        } else if (project.getPackaging().equals("sar") || project.getPackaging().equals("jboss-sar") || project.getPackaging().equals("rar")) {
             deploySarRarProject();
         } else if (project.getPackaging().equals("jar")) {
             deployJarProject();
@@ -256,14 +260,16 @@ public class DeployMojo extends AbstractManagementMojo {
             for (Iterator iterator = l.iterator(); iterator.hasNext();) {
                 DependencyNode dependencyNode = (DependencyNode) iterator.next();
                 Artifact artifact = dependencyNode.getArtifact();
-                if (artifact.getGroupId().equals("org.jahia.server") && artifact.getArtifactId().equals("jahia-ear")) {
-                    deployEarDependency(dependencyNode);
-                }
-                if (artifact.getGroupId().equals("org.jahia.server") && artifact.getArtifactId().equals("configwizard-ear")) {
-                    deployEarDependency(dependencyNode);
-                }
-                if (artifact.getGroupId().equals("org.jahia.server") && artifact.getArtifactId().equals("configwizard-webapp")) {
-                    deployWarRarSarDependency(dependencyNode);
+                if (artifact.getGroupId().equals("org.jahia.server")) {
+                    if (artifact.getArtifactId().equals("jahia-ear")) {
+                        deployEarDependency(dependencyNode);
+                    }
+                    if (artifact.getArtifactId().equals("configwizard-ear")) {
+                        deployEarDependency(dependencyNode);
+                    }
+                    if (artifact.getArtifactId().equals("configwizard-webapp") || artifact.getArtifactId().equals("jahia-war") || artifact.getArtifactId().equals("jahia-jboss-config")) {
+                        deployWarRarSarDependency(dependencyNode);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -286,88 +292,33 @@ public class DeployMojo extends AbstractManagementMojo {
      * @throws Exception
      */
     protected void deployEarDependency(DependencyNode dependencyNode) throws ArtifactResolutionException, ArtifactNotFoundException {
-        if (ServerDeploymentFactory.getInstance().getImplementation(
-                targetServerType + targetServerVersion)
-                .isEarDeploymentSupported()) {
-            Artifact artifact = dependencyNode.getArtifact();
-            if (artifact.getFile() == null) {
-                artifactResolver.resolve(artifact, project
-                        .getRemoteArtifactRepositories(), localRepository);
-            }
-            getLog().info(
-                    "Target application server (" + targetServerType + " v"
-                            + targetServerVersion + ") supports EAR deployment."
-                            + " Deploying exploded EAR file.");
-            deployEarFile(artifact);
-        } else {
-            List child = dependencyNode.getChildren();
-            for (Iterator iterator1 = child.iterator(); iterator1.hasNext();) {
-                DependencyNode node = (DependencyNode) iterator1.next();
-                Artifact artifact = node.getArtifact();
-    
-                artifactResolver.resolve(artifact,  project.getRemoteArtifactRepositories(), localRepository);
-    
-                if ((artifact.getGroupId().equals("org.jahia.server") && (artifact.getArtifactId().equals("jahia-war") || artifact.getArtifactId().equals("config"))) ||
-                        artifact.getType().equals("rar") ||
-                        artifact.getType().equals("sar")) {
-                    deployWarRarSarDependency(node);
-                } else if (Artifact.SCOPE_COMPILE.equals(artifact.getScope())) {
-                    getLog().info("Copy shared resource " + artifact.getFile().getName());
-                    try {
-                        List<File> sharedLibs = new LinkedList();
-                        sharedLibs.add(artifact.getFile());
-                        ServerDeploymentFactory.getInstance()
-                            .getImplementation(targetServerType + targetServerVersion)
-                                .deploySharedLibraries(targetServerDirectory, targetServerVersion, sharedLibs);
-                    } catch (IOException e) {
-                        getLog().error(e);
-                    }
+        List child = dependencyNode.getChildren();
+        for (Iterator iterator1 = child.iterator(); iterator1.hasNext();) {
+            DependencyNode node = (DependencyNode) iterator1.next();
+            Artifact artifact = node.getArtifact();
+
+            artifactResolver.resolve(artifact,  project.getRemoteArtifactRepositories(), localRepository);
+
+            if ((artifact.getGroupId().equals("org.jahia.server") && (artifact.getArtifactId().equals("jahia-war") || artifact.getArtifactId().equals("config"))) ||
+                    artifact.getType().equals("rar") ||
+                    artifact.getType().equals("sar") ||
+                    artifact.getType().equals("jboss-sar")) {
+                deployWarRarSarDependency(node);
+            } else if (Artifact.SCOPE_COMPILE.equals(artifact.getScope())) {
+                getLog().info("Copy shared resource " + artifact.getFile().getName());
+                try {
+                    List<File> sharedLibs = new LinkedList();
+                    sharedLibs.add(artifact.getFile());
+                    ServerDeploymentFactory.getInstance()
+                        .getImplementation(targetServerType + targetServerVersion)
+                            .deploySharedLibraries(targetServerDirectory, targetServerVersion, sharedLibs);
+                } catch (IOException e) {
+                    getLog().error(e);
                 }
             }
         }
     }
 
-    /**
-     * Deploys the content of the specified EAR file (unpacked).
-     * @param earArtifact the corresponding artifact with EAR packaging
-     */
-    private void deployEarFile(Artifact earArtifact) {
-        expandArchive(earArtifact, new File(targetServerDirectory,
-                ServerDeploymentFactory.getInstance().getImplementation(
-                        targetServerType + targetServerVersion)
-                        .getDeploymentBaseDir()));
-    }
-    
-    private void expandArchive(Artifact artifact, File targetDir) {
-        try {
-            ZipInputStream z = new ZipInputStream(new FileInputStream(artifact
-                    .getFile()));
-            ZipEntry entry;
-            int cnt = 0;
-            while ((entry = z.getNextEntry()) != null) {
-                if (!entry.isDirectory()) {
-                    File target = new File(targetDir, entry.getName());
-                    if (entry.getTime() > target.lastModified()) {
-
-                        target.getParentFile().mkdirs();
-                        FileOutputStream fileOutputStream = new FileOutputStream(
-                                target);
-                        IOUtils.copy(z, fileOutputStream);
-                        fileOutputStream.close();
-                        cnt++;
-                    }
-                } else {
-                    // in the case of empty folders create anyway
-                    (new File(targetDir, entry.getName())).mkdir();
-                }
-            }
-            z.close();
-            getLog().info("Copied " + cnt + " files.");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    
     /**
      * Deploy WAR / SAR / RAR artifact to application server
      * @param dependencyNode
@@ -380,7 +331,34 @@ public class DeployMojo extends AbstractManagementMojo {
                 " resources for " + targetServerType +
                 " v" + targetServerVersion +
                 " in directory " + webappDir);
-        expandArchive(artifact, webappDir);
+        try {
+            ZipInputStream z = new ZipInputStream(
+                    new FileInputStream(artifact.getFile()));
+            ZipEntry entry;
+            int cnt = 0;
+            while ((entry = z.getNextEntry()) != null) {
+                if (!entry.isDirectory()) {
+                    File target = new File(webappDir, entry
+                            .getName());
+                    if (entry.getTime() > target.lastModified()) {
+
+                        target.getParentFile().mkdirs();
+                        FileOutputStream fileOutputStream = new FileOutputStream(
+                                target);
+                        IOUtils.copy(z, fileOutputStream);
+                        fileOutputStream.close();
+                        cnt++;
+                    }
+                }else{
+                    //in the case of empty folders create anyway
+                   (new File(webappDir, entry.getName())).mkdir();
+                 }
+            }
+            z.close();
+            getLog().info("Copied " + cnt + " files.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     // *************** Hotswap
@@ -508,6 +486,10 @@ public class DeployMojo extends AbstractManagementMojo {
         } catch (Exception e) {
             getLog().warn("Cannot reload classes : "+ e.getMessage());
         }
-
+    }
+    
+    private boolean skipDeploy() {
+        return Boolean.valueOf(project.getProperties().getProperty(
+                "jahia.deploy.skip", "false"));
     }
 }

@@ -49,7 +49,7 @@ import java.util.Map;
  * Time: 14:18:34
  * To change this template use File | Settings | File Templates.
  */
-public class Tomcat5ServerDeploymentImpl extends BaseServerDeploymentImpl {
+public class Tomcat5ServerDeploymentImpl implements ServerDeploymentInterface {
 
     public static final String defaultSharedLibraryDirectory = "lib";
     public static final Map<String, String> sharedLibraryDirectory = new HashMap<String, String>() { {

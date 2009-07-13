@@ -67,12 +67,4 @@ public interface ServerDeploymentInterface {
 
     public String getDeploymentFilePath(String name, String type);
 
-    /**
-     * Returns <code>true</code> if the server supports deployment as an EAR
-     * package.
-     * 
-     * @return <code>true</code> if the server supports deployment as an EAR
-     *         package
-     */
-    boolean isEarDeploymentSupported();
 }

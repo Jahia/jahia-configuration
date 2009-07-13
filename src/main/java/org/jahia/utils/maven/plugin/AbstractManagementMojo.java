@@ -226,7 +226,7 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
      */
     protected File getWarSarRarDeploymentDir(Artifact artifact) {
         File dir;
-        if (artifact.getType().equals("rar") || artifact.getType().equals("sar") || artifact.getArtifactId().equals("config")) {
+        if (artifact.getType().equals("rar") || artifact.getType().equals("sar") || artifact.getType().equals("jboss-sar") || artifact.getArtifactId().equals("config")) {
             dir = new File(targetServerDirectory, ServerDeploymentFactory.getInstance()
                     .getImplementation(targetServerType + targetServerVersion).getDeploymentDirPath(artifact.getArtifactId(), artifact.getType()));
         } else {

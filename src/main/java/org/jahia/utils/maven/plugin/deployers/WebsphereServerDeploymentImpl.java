@@ -16,7 +16,7 @@ import java.util.HashMap;
  * Time: 4:33:51 PM
  * To change this template use File | Settings | File Templates.
  */
-public class WebsphereServerDeploymentImpl extends BaseServerDeploymentImpl {
+public class WebsphereServerDeploymentImpl implements ServerDeploymentInterface {
 
     public static final String defaultSharedLibraryDirectory = "";
     public static final Map<String, String> sharedLibraryDirectory = new HashMap<String, String>();
