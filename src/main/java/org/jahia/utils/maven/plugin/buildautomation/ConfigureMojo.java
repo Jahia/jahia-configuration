@@ -39,6 +39,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.jahia.utils.maven.plugin.AbstractManagementMojo;
 import org.jahia.utils.maven.plugin.deployers.ServerDeploymentFactory;
+import org.codehaus.plexus.util.DirectoryScanner;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -68,6 +69,12 @@ public class ConfigureMojo extends AbstractManagementMojo
      * activates the configure goal
      */
     protected boolean active;
+
+    /**
+     * @parameter expression="${jahia.configure.externalConfigPath}"
+     * can be clustered or standalone
+     */
+    protected String externalConfigPath;
 
     // Now for the build automation parameters
 
@@ -363,6 +370,10 @@ public class ConfigureMojo extends AbstractManagementMojo
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         if (active) {
             try {
+
+                if(copyExternalConfig()){
+                    return;
+                }
                 db = new DatabaseConnection();
 
                 setProperties();
@@ -783,6 +794,80 @@ public class ConfigureMojo extends AbstractManagementMojo
 //new Object[] { new Integer(Jahia.getBuildNumber()), Jahia.getReleaseNumber() + "." + Jahia.getPatchNumber(), new Timestamp(System.currentTimeMillis()) } );
     }
 // end insertDBCustomContent()
+
+    /**
+         * Copy the external config
+         *
+         * @throws IOException
+         * @throws MojoExecutionException
+         * @return true if an external config has been found
+
+         */
+        private boolean copyExternalConfig()
+                throws IOException, MojoExecutionException {
+            if (externalConfigPath == null) {
+                getLog().info("External jahia config. not specified.");
+                return false;
+
+            }
+            File externalConfigDirectory = new File(externalConfigPath);
+            if (!externalConfigDirectory.exists()) {
+                getLog().warn("Not copying external jahia config. Directory[" + externalConfigDirectory.getAbsolutePath()
+                        + "] does not exist!");
+                return false;
+            }
+
+            getLog().info("Copying external jahia config. directory [" + externalConfigDirectory.getAbsolutePath() + "] to [" + getWebappDeploymentDir().getAbsolutePath() + "]");
+            String[] fileNames = getFilesToCopy(externalConfigDirectory);
+            for (int i = 0; i < fileNames.length; i++) {
+                copyFile(new File(externalConfigDirectory, fileNames[i]), new File(getWebappDeploymentDir(), fileNames[i]));
+            }
+            return true;
+        }
+
+        /**
+         * Returns a list of filenames that should be copied
+         * over to the destination directory.
+         *
+         * @param directory the parent diretory to be scanned
+         * @return the array of filenames, relative to the sourceDir
+         */
+        private String[] getFilesToCopy(File directory) {
+            DirectoryScanner scanner = new DirectoryScanner();
+            scanner.setBasedir(directory);
+            scanner.addDefaultExcludes();
+            scanner.scan();
+            return scanner.getIncludedFiles();
+        }
+
+
+        /**
+         * Copy file from source to destination
+         *
+         * @param source
+         * @param destination
+         * @return
+         * @throws IOException
+         */
+        private boolean copyFile(File source, File destination) {
+            try {
+                boolean doOverride = destination.exists();
+                FileUtils.copyFile(source.getCanonicalFile(), destination);
+                // preserve timestamp
+                destination.setLastModified(source.lastModified());
+
+                if (!doOverride) {
+                    getLog().debug(" + [" + source.getPath() + "] has been copied to [" + destination.getAbsolutePath()+"]");
+                } else {
+                    getLog().debug(" o [" + destination.getAbsolutePath() + "] has been overrided by " + source.getPath());
+                }
+            } catch (Exception e) {
+                getLog().error(" + Unable to copy" + source.getPath(),e);
+
+            }
+            return true;
+        }
+
 
 
     public String encryptPassword(String password) {
