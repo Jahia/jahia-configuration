@@ -370,10 +370,6 @@ public class ConfigureMojo extends AbstractManagementMojo
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         if (active) {
             try {
-
-                if(copyExternalConfig()){
-                    return;
-                }
                 db = new DatabaseConnection();
 
                 setProperties();
@@ -392,6 +388,10 @@ public class ConfigureMojo extends AbstractManagementMojo
                         //
                     }
                 }
+
+
+                // copying existing config
+                copyExternalConfig();
             } catch (IOException ioe) {
                 throw new MojoExecutionException("Error while configuring Jahia", ioe);
             }
