@@ -415,7 +415,6 @@ public class ConfigureMojo extends AbstractManagementMojo
 
     private void updateConfigurationFiles(String sourceWebAppPath, String webappPath, Properties dbProps) throws IOException {
         SpringHibernateConfigurator.updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-hibernate.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-hibernate.xml", dbProps);
-        SpringHibernateConfigurator.updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-hibernate.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-hibernate.xml", dbProps);
         QuartzConfigurator.updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/config/quartz.properties", webappPath + "/WEB-INF/etc/config/quartz.properties", dbProps);
         getLog().info("Store files in database is :" + storeFilesInDB);
         JackrabbitConfigurator.updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml", webappPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml", dbProps, jahiaPropertiesBean.getCluster_activated(), jahiaPropertiesBean.getCluster_node_serverId());
