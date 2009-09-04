@@ -37,11 +37,10 @@ import java.io.File;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
+ * Holder for the Jahia properties.
  * User: islam
  * Date: 16 juil. 2008
  * Time: 10:33:15
- * To change this template use File | Settings | File Templates.
  */
 public class JahiaPropertiesBean {
     private File outputDirectory;
@@ -79,6 +78,8 @@ public class JahiaPropertiesBean {
     private List<String>  clusterNodes  ;
     private String db_script;
     private String developmentMode;
+    private String hibernateDialect;
+    private String nestedTransactionAllowed;
 
 
     public File getOutputDirectory() {
@@ -359,5 +360,21 @@ public class JahiaPropertiesBean {
 
     public String getDevelopmentMode() {
         return developmentMode;
+    }
+
+	public String getHibernateDialect() {
+    	return hibernateDialect;
+    }
+
+	public void setHibernateDialect(String hibernateDialect) {
+    	this.hibernateDialect = hibernateDialect;
+    }
+
+	public String getNestedTransactionAllowed() {
+    	return nestedTransactionAllowed;
+    }
+
+	public void setNestedTransactionAllowed(String nestedTransactionAllowed) {
+    	this.nestedTransactionAllowed = nestedTransactionAllowed;
     }
 }

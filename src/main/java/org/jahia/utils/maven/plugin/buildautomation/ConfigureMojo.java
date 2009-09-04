@@ -414,8 +414,7 @@ public class ConfigureMojo extends AbstractManagementMojo
     }
 
     private void updateConfigurationFiles(String sourceWebAppPath, String webappPath, Properties dbProps) throws IOException {
-        SpringManagerConfigurator.updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-manager.xml",
-                webappPath + "/WEB-INF/etc/spring/applicationcontext-manager.xml", dbProps);
+        SpringHibernateConfigurator.updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-hibernate.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-hibernate.xml", dbProps);
         SpringHibernateConfigurator.updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-hibernate.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-hibernate.xml", dbProps);
         QuartzConfigurator.updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/config/quartz.properties", webappPath + "/WEB-INF/etc/config/quartz.properties", dbProps);
         getLog().info("Store files in database is :" + storeFilesInDB);
@@ -490,6 +489,9 @@ public class ConfigureMojo extends AbstractManagementMojo
             getLog().error("Error in loading database settings because of " + e);
         }
 
+        jahiaPropertiesBean.setHibernateDialect(dbProps.getProperty("jahia.database.hibernate.dialect"));
+        jahiaPropertiesBean.setNestedTransactionAllowed(dbProps.getProperty("jahia.nested_transaction_allowed"));
+        
         jahiaPropertiesConfigurator = new JahiaPropertiesConfigurator(sourceWebappPath, webappDir.getPath(), jahiaPropertiesBean);
 
         getLog().info("updating Jackrabbit, Spring and Quartz configuration files");

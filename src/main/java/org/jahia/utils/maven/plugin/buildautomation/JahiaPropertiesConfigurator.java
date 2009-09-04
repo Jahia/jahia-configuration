@@ -101,6 +101,9 @@ public class JahiaPropertiesConfigurator {
         properties.setProperty("bigtext.service", jahiaPropertiesBean.getBigtext_service());
         properties.setProperty("cluster.node.serverId", jahiaPropertiesBean.getCluster_node_serverId());
         properties.setProperty("mail_paranoia", "Disabled");
+        
+        properties.setProperty("hibernate.dialect", jahiaPropertiesBean.getHibernateDialect());
+        properties.setProperty("nested.transaction.allowed", jahiaPropertiesBean.getNestedTransactionAllowed());
 
         properties.storeProperties(sourceJahiaPath + "/WEB-INF/etc/config/jahia.skeleton", targetJahiaPath + "/WEB-INF/etc/config/jahia.properties");
     }
