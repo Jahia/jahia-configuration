@@ -339,14 +339,7 @@ public class ConfigureMojo extends AbstractManagementMojo
     protected String overwritedb;
 
     /**
-     * properties db_starthsqlserver
-     *
-     * @parameter default-value="true"
-     */
-    protected String db_starthsqlserver;
-
-    /**
-     * properties db_starthsqlserver
+     * properties developmentMode
      *
      * @parameter expression="${jahia.configure.developmentMode}" default-value="false"
      */
@@ -496,12 +489,7 @@ public class ConfigureMojo extends AbstractManagementMojo
         } catch (IOException e) {
             getLog().error("Error in loading database settings because of " + e);
         }
-        if (!databaseType.equals("hypersonic")) {
-            db_starthsqlserver = "false";
-        }
 
-        jahiaPropertiesBean.setDb_StartHsqlServer(db_starthsqlserver);
-        
         jahiaPropertiesConfigurator = new JahiaPropertiesConfigurator(sourceWebappPath, webappDir.getPath(), jahiaPropertiesBean);
 
         getLog().info("updating Jackrabbit, Spring and Quartz configuration files");

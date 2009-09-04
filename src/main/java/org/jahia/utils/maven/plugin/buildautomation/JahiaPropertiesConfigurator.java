@@ -92,7 +92,6 @@ public class JahiaPropertiesConfigurator {
         properties.setProperty("localIp", jahiaPropertiesBean.getLocalIp());
         properties.setProperty("cluster.node.serverId", jahiaPropertiesBean.getCluster_node_serverId());
         properties.setProperty("db_script", jahiaPropertiesBean.getDb_script());
-        properties.setProperty("db_starthsqlserver", jahiaPropertiesBean.getDb_starthsqlserver());
         properties.setProperty("developmentMode", jahiaPropertiesBean.getDevelopmentMode());
 
         if (jahiaPropertiesBean.getCluster_activated().equals("true")) {

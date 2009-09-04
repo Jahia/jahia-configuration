@@ -78,7 +78,6 @@ public class JahiaPropertiesBean {
     private String   jahiaxmlPath ;
     private List<String>  clusterNodes  ;
     private String db_script;
-    private String db_starthsqlserver;
     private String developmentMode;
 
 
@@ -352,14 +351,6 @@ public class JahiaPropertiesBean {
 
     public void setClusterNodes(List<String> clusterNodes) {
         this.clusterNodes = clusterNodes;
-    }
-
-    public void setDb_StartHsqlServer(String db_starthsqlserver) {
-        this.db_starthsqlserver = db_starthsqlserver;
-    }
-
-    public String getDb_starthsqlserver() {
-        return db_starthsqlserver;
     }
 
     public void setDevelopmentMode(String developmentMode) {
