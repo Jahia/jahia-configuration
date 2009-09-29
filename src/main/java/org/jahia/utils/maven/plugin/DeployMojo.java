@@ -194,8 +194,30 @@ public class DeployMojo extends AbstractManagementMojo {
      */
     private void deployTemplateProject() throws Exception {
         File webappDir = getWebappDeploymentDir();
-        File source = new File(output, project.getArtifactId()+"-"+project.getVersion());
+        float jahiaVersion = 0;
+        for (Iterator<?> iterator = project.getDependencyArtifacts().iterator(); iterator.hasNext();) {
+        	Artifact dependency = (Artifact) iterator.next();
+        	if ("jahia-impl".equals(dependency.getArtifactId())) {
+        		try {
+        			jahiaVersion = Float.parseFloat(dependency.getVersion().contains("-SNAPSHOT") ? dependency.getVersion().substring(0, dependency.getVersion().indexOf("-SNAPSHOT")) : dependency.getVersion());
+        		} catch (NumberFormatException ex) {
+        			getLog().warn("Unable to parse the version of the jahia-impl artifact for '" + dependency.getVersion() + "'");
+        		}
+        		break;
+        	}
+        }
+        getLog().info("Jahia version is " + jahiaVersion);
+        if (jahiaVersion >= 6.5) {
+        	// starting from 6.5 we deploy templates as WAR files into shared_templates
+			File source = new File(output, project.getArtifactId() + "-" + project.getVersion() + "." + project.getPackaging());
+        	File target = new File(webappDir, "WEB-INF/var/shared_templates");
+        	FileUtils.copyFileToDirectory(source, target);
+        	getLog().info("Copied " + source + " into " + target);
+        	return;
+        }
 
+        File source = new File(output, project.getArtifactId()+"-"+project.getVersion());
+        
         String prefix = "templates/";
         File target = new File(getWebappDeploymentDir(),prefix);
         if(!target.exists()) {
