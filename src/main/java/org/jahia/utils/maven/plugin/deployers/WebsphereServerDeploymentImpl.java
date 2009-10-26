@@ -14,15 +14,18 @@ import java.util.HashMap;
  * User: loom
  * Date: Feb 12, 2009
  * Time: 4:33:51 PM
- * To change this template use File | Settings | File Templates.
+ *
  */
 public class WebsphereServerDeploymentImpl implements ServerDeploymentInterface {
 
-    public static final String defaultSharedLibraryDirectory = "";
+    public static final String defaultSharedLibraryDirectory = "/AppServer/lib/ext";
+    public static final String defaultJavaSharedLibraryDirectory = "/AppServer/java/jre/lib/ext";
     public static final Map<String, String> sharedLibraryDirectory = new HashMap<String, String>();
+    public static final Map<String, String> sharedJavaLibraryDirectory = new HashMap<String, String>();
 
     public boolean validateInstallationDirectory(String targetServerDirectory) {
-        return true;  //To change body of implemented methods use File | Settings | File Templates.
+        File serverLibDir = new File(targetServerDirectory, "/AppServer/lib/ext");
+        return serverLibDir.isDirectory();
     }
 
     private String getSharedLibraryDirectory(String serverVersion) {
@@ -31,12 +34,25 @@ public class WebsphereServerDeploymentImpl implements ServerDeploymentInterface 
         return defaultSharedLibraryDirectory;
     }
 
+    private String getSharedJavaLibraryDirectory(String serverVersion) {
+        String result = sharedJavaLibraryDirectory.get(serverVersion);
+        if (result != null) return result;
+        return defaultJavaSharedLibraryDirectory;
+    }
+
+
     public boolean deploySharedLibraries(String targetServerDirectory, String serverVersion, List<File> pathToLibraries) throws IOException {
         Iterator<File> libraryPathIterator = pathToLibraries.iterator();
         File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory(serverVersion));
+        File targetJavaDirectory = new File(targetServerDirectory, getSharedJavaLibraryDirectory(serverVersion));
+
         while (libraryPathIterator.hasNext()) {
             File currentLibraryPath = libraryPathIterator.next();
-            FileUtils.copyFileToDirectory(currentLibraryPath, targetDirectory);
+            if (currentLibraryPath.getName().startsWith("portlet-api-")) {
+                FileUtils.copyFileToDirectory(currentLibraryPath, targetJavaDirectory);
+            } else {
+                FileUtils.copyFileToDirectory(currentLibraryPath, targetDirectory);
+            }
         }
         return true;
     }
@@ -63,4 +79,6 @@ public class WebsphereServerDeploymentImpl implements ServerDeploymentInterface 
     public String getDeploymentFilePath(String name, String type) {
         return getDeploymentBaseDir() + "/" + name;
     }
+
+
 }
