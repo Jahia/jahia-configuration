@@ -750,6 +750,8 @@ public class ConfigureMojo extends AbstractManagementMojo
         final int siteID0 = 0;
         final String rootKey = rootName + ":" + siteID0;
         final String grpKey0 = "administrators" + ":" + siteID0;
+        final String grpKey1 = "users" + ":" + siteID0;
+        final String grpKey2 = "guest" + ":" + siteID0;
 
 // query insert root user...
         db.queryPreparedStatement("INSERT INTO jahia_users(id_jahia_users, name_jahia_users, password_jahia_users, key_jahia_users) VALUES(0,?,?,?)",
@@ -768,8 +770,17 @@ public class ConfigureMojo extends AbstractManagementMojo
                 new Object[]{(String) "", rootKey});
 
 // query insert administrators group...
-        db.queryPreparedStatement("INSERT INTO jahia_grps(id_jahia_grps, name_jahia_grps, key_jahia_grps, siteid_jahia_grps) VALUES(?,?,?,null)",
-                new Object[]{new Integer(siteID0), "administrators", grpKey0});
+        db.queryPreparedStatement("INSERT INTO jahia_grps(id_jahia_grps, name_jahia_grps, key_jahia_grps, siteid_jahia_grps) VALUES(0,?,?,null)",
+                new Object[]{"administrators", grpKey0});
+
+// query insert users group...
+        db.queryPreparedStatement("INSERT INTO jahia_grps(id_jahia_grps, name_jahia_grps, key_jahia_grps, siteid_jahia_grps) VALUES(1,?,?,null)",
+                new Object[]{"users", grpKey1});
+
+// query insert guest group...
+        db.queryPreparedStatement("INSERT INTO jahia_grps(id_jahia_grps, name_jahia_grps, key_jahia_grps, siteid_jahia_grps) VALUES(2,?,?,null)",
+                new Object[]{"guest", grpKey2});
+
 
 // query insert administrators group access...
         db.queryPreparedStatement("INSERT INTO jahia_grp_access(id_jahia_member, id_jahia_grps, membertype_grp_access) VALUES(?,?,1)",
