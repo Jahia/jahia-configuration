@@ -82,6 +82,16 @@ public class CopyTemplatesMojo extends AbstractMojo {
                     getLog().error("Error when copying file");
                 }
             }
+            if (dependencyFile.getGroupId().equals("org.jahia.prepackagedsites")) {
+                try {
+                    FileUtils.copyFile(dependencyFile.getFile(), new File(output,"jahia/WEB-INF/var/prepackagedSites/"+dependencyFile.getArtifactId()+".zip"));
+                    getLog().info("Copy prepackaged site "+dependencyFile.getFile().getName());
+                    dependenciesToRemove.add(dependencyFile);
+                } catch (IOException e) {
+                    getLog().error("Error when copying file");
+                }
+            }
+
         }
         for (Artifact dependencyFile : dependenciesToRemove) {
             dependencyFiles.remove(dependencyFile);

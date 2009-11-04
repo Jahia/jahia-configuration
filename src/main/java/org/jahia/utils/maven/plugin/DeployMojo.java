@@ -251,6 +251,22 @@ public class DeployMojo extends AbstractManagementMojo {
         }
     }
 
+    private void deployPrepackagedSiteProject() throws Exception {
+        if (project.getAttachedArtifacts().size() > 0) {
+            Artifact artifact = (Artifact) project.getAttachedArtifacts().get(project.getAttachedArtifacts().size()-1);
+            try {
+                artifactResolver.resolve(artifact, project.getRemoteArtifactRepositories(), localRepository);
+                File libDir = new File(getWebappDeploymentDir(), "WEB-INF/var/prepackagedSites");
+                libDir.mkdirs();
+                File file = new File(libDir, artifact.getArtifactId()+".zip");
+                getLog().info("Deploying prepackaged site "+artifact.getFile().getName() + " to "+ file);
+                FileUtils.copyFile(artifact.getFile(), file);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     /**
      * Copy JAR file to jahia webapp, tries to hotswap classes
      * @throws Exception
@@ -293,6 +309,9 @@ public class DeployMojo extends AbstractManagementMojo {
                         deployWarRarSarDependency(dependencyNode);
                     }
                 }
+            }
+            if ("prepackagedSites".equals(project.getParent().getArtifactId())) {
+                deployPrepackagedSiteProject();
             }
         } catch (Exception e) {
             getLog().error(e);
