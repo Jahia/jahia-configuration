@@ -43,22 +43,21 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Serge Huber
+ * JBoss Server deployer implementation
+ * @author Serge Huber
  * Date: 26 d�c. 2007
  * Time: 14:18:34
- * To change this template use File | Settings | File Templates.
  */
-public class JBossServerDeploymentImpl implements ServerDeploymentInterface {
+public class JBossServerDeploymentImpl extends AbstractServerDeploymentImpl {
 
     public static final String jboss4SharedLibraryDirectory = "server/default/lib";
     public static final String jboss5SharedLibraryDirectory = "common/lib";    
     public static final Map<String, String> sharedLibraryDirectory = new HashMap<String, String>();
-    
+
     private String serverVersion;
 
-    public JBossServerDeploymentImpl(String serverVersion) {
-        super();
+    public JBossServerDeploymentImpl(String serverVersion, String targetServerDirectory) {
+        super(targetServerDirectory);
         this.serverVersion = serverVersion;
         sharedLibraryDirectory.put("4.0.x", jboss4SharedLibraryDirectory);
         sharedLibraryDirectory.put("4.2.x", jboss4SharedLibraryDirectory);        

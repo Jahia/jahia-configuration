@@ -31,22 +31,61 @@
  * for your use, please contact the sales department at sales@jahia.com.
  */
 
-package org.jahia.utils.maven.plugin.buildautomation;
+package org.jahia.utils.maven.plugin.configurators;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.FileWriter;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.jahia.utils.maven.plugin.buildautomation.JahiaPropertiesBean;
+import org.jdom.input.SAXBuilder;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.output.Format;
+import org.jdom.output.XMLOutputter;
 
 /**
+ * Indexation policy configurator, notably for configuring multiple indexation servers.
  * User: islam
  * Date: 22 oct. 2008
  * Time: 10:23:39
  */
-public class IndexationPolicyConfigurator extends AbstractConfigurator {
+public class IndexationPolicyConfigurator extends AbstractXMLConfigurator {
 
-    public static void updateConfigurationForCluster(String sourceFileName, String destFileName) throws IOException {
+    public IndexationPolicyConfigurator(Map dbProperties, JahiaPropertiesBean jahiaPropertiesBean) {
+        super(dbProperties, jahiaPropertiesBean);
+    }
 
+
+    public void updateConfiguration(String sourceFileName, String destFileName) throws Exception {
+
+        File sourceIndexationPolicyFile = new File(sourceFileName);
+        if (!sourceIndexationPolicyFile.exists()) {
+            return;
+        }
+
+        SAXBuilder saxBuilder = new SAXBuilder();
+        Document jdomDocument = saxBuilder.build(sourceFileName);
+
+        String multipleIndexingServersValue = "0";
+        if (Boolean.valueOf(jahiaPropertiesBean.getCluster_activated())) {
+            multipleIndexingServersValue = "1";
+        }
+
+        Element multipleIndexingServerElement = getElement(jdomDocument.getRootElement(), "/xp:beans/xp:bean[@id=\"indexationConfig\"]/xp:property[@name=\"properties\"]/xp:props/xp:prop[@key=\"multipleIndexingServer\"]");
+        // we need to test if the file is already using a Spring marker, in which case we don't set a value...
+        if (multipleIndexingServerElement != null) {
+            multipleIndexingServerElement.setText(multipleIndexingServersValue);
+        }
+
+        Format customFormat = Format.getPrettyFormat();
+        customFormat.setLineSeparator(System.getProperty("line.separator"));
+        XMLOutputter xmlOutputter = new XMLOutputter(customFormat);
+        xmlOutputter.output(jdomDocument, new FileWriter(destFileName));
+
+        /*
         File sourceIndexationPolicyFile = new File(sourceFileName);
         File destIndexationPolicyFile = new File(destFileName);
         if (sourceIndexationPolicyFile.exists()) {
@@ -55,13 +94,13 @@ public class IndexationPolicyConfigurator extends AbstractConfigurator {
             // too big.
             String fileContent = FileUtils.readFileToString(sourceIndexationPolicyFile, "UTF-8");
 
-
             //each node in the cluster will have to do its own indexing in order to avoid having two much traffic
 
             fileContent = fileContent.replaceAll("<prop key=\"multipleIndexingServer\">0</prop>", "<prop key=\"multipleIndexingServer\">1</prop>");
 
             FileUtils.writeStringToFile(destIndexationPolicyFile, fileContent, "UTF-8");
         }
+        */
     }
 
 }

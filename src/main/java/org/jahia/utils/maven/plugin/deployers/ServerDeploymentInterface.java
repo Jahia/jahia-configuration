@@ -42,7 +42,6 @@ import java.util.List;
  * User: Serge Huber
  * Date: 26 d�c. 2007
  * Time: 14:03:56
- * To change this template use File | Settings | File Templates.
  */
 public interface ServerDeploymentInterface {
 
@@ -66,5 +65,8 @@ public interface ServerDeploymentInterface {
     public String getDeploymentDirPath(String name, String type);
 
     public String getDeploymentFilePath(String name, String type);
+
+    public String getTargetServerDirectory();
+
 
 }

@@ -1,29 +1,29 @@
 /**
- * 
+ *
  * This file is part of Jahia: An integrated WCM, DMS and Portal Solution
  * Copyright (C) 2002-2009 Jahia Limited. All rights reserved.
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * As a special exception to the terms and conditions of version 2.0 of
  * the GPL (or any later version), you may redistribute this Program in connection
  * with Free/Libre and Open Source Software ("FLOSS") applications as described
  * in Jahia's FLOSS exception. You should have received a copy of the text
  * describing the FLOSS exception, and it is also available here:
  * http://www.jahia.com/license
- * 
+ *
  * Commercial and Supported Versions of the program
  * Alternatively, commercial and supported versions of the program may be used
  * in accordance with the terms contained in a separate written agreement
@@ -35,6 +35,7 @@ package org.jahia.utils.maven.plugin.buildautomation;
 
 import java.io.File;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Holder for the Jahia properties.
@@ -42,45 +43,49 @@ import java.util.List;
  * Date: 16 juil. 2008
  * Time: 10:33:15
  */
-public class JahiaPropertiesBean {
+public class JahiaPropertiesBean implements Cloneable {
     private File outputDirectory;
-    private String jahiaFileRepositoryDiskPath;
-    private String  release ;
-    private String  server   ;
-    private String localIp  ;
-    private String jahiaEtcDiskPath ;
-    private String jahiaVarDiskPath ;
-    private String jahiaNewTemplatesDiskPath  ;
-    private String  jahiaNewWebAppsDiskPath ;
-    private String jahiaSharedTemplatesDiskPath ;
-    private String jahiaTemplatesHttpPath ;
-    private String jahiaEnginesHttpPath  ;
-    private String jahiaJavaScriptHttpPath  ;
-    private String jahiaWebAppsDeployerBaseURL ;
-    private String datasource_name ;
-    private String outputCacheActivated  ;
-    private String outputCacheDefaultExpirationDelay ;
-    private String outputCacheExpirationOnly   ;
-    private String outputContainerCacheActivated  ;
-    private String  containerCacheDefaultExpirationDelay  ;
-    private String containerCacheLiveModeOnly  ;
-    private String esiCacheActivated    ;
-    private String Jahia_WebApps_Deployer_Service ;
-    private String defautSite  ;
-    private String cluster_activated  ;
-    private String  cluster_node_serverId   ;
-    private String  processingServer;
-    private String  jahiaFilesTemplatesDiskPath  ;
-    private String jahiaImportsDiskPath ;
-    private String    jahiaFilesBigTextDiskPath;
-    private String bigtext_service  ;
-    private String   jahiaxmlPath ;
-    private List<String>  clusterNodes  ;
-    private String db_script;
-    private String developmentMode;
+    private String jahiaFileRepositoryDiskPath = "$context/WEB-INF/var/content/filemanager/";
+    private String release = "Testing_release";
+    private String server = "tomcat";
+    private String localIp = "localhost";
+    private String localPort = "8080";
+    private String jahiaEtcDiskPath = "$context/WEB-INF/etc/";
+    private String jahiaVarDiskPath = "$context/WEB-INF/var/";
+    private String jahiaNewTemplatesDiskPath = "$context/WEB-INF/var/new_templates/";
+    private String jahiaNewWebAppsDiskPath = "$context/WEB-INF/var/new_webapps/";
+    private String jahiaSharedTemplatesDiskPath = "$context/WEB-INF/var/shared_templates/";
+    private String jahiaTemplatesHttpPath = "$webContext/templates/";
+    private String jahiaEnginesHttpPath = "$webContext/engines/";
+    private String jahiaJavaScriptHttpPath = "$webContext/javascript/jahia.js";
+    private String jahiaWebAppsDeployerBaseURL = "http\\://localhost\\:8080/manager";
+    private String datasource_name = "java\\:comp/env/jdbc/jahia";
+    private String outputCacheActivated = "false";
+    private String outputCacheDefaultExpirationDelay = "-1";
+    private String outputCacheExpirationOnly = "false";
+    private String outputContainerCacheActivated = "true";
+    private String containerCacheDefaultExpirationDelay = "14400";
+    private String containerCacheLiveModeOnly = "false";
+    private String esiCacheActivated = "false";
+    private String Jahia_WebApps_Deployer_Service = "org.jahia.services.webapps_deployer.JahiaTomcatWebAppsDeployerBaseService";
+    private String defautSite = "mySite";
+    private String cluster_activated = "false";
+    private String cluster_node_serverId = "Jahia1";
+    private String processingServer = "true";
+    private String jahiaFilesTemplatesDiskPath = "$context/WEB-INF/var/templates/";
+    private String jahiaImportsDiskPath = "$context/WEB-INF/var/imports/";
+    private String jahiaFilesBigTextDiskPath = "$context/WEB-INF/var/content/bigtext/";
+    private String bigtext_service = "DBJahiaText";
+    private String jahiaxmlPath;
+    private List<String> clusterNodes = new ArrayList<String>();
+    private String db_script = "hypersonic.script";
+    private String developmentMode = "false";
     private String hibernateDialect;
     private String nestedTransactionAllowed;
 
+    public JahiaPropertiesBean clone() throws CloneNotSupportedException {
+        return (JahiaPropertiesBean) super.clone();
+    }
 
     public File getOutputDirectory() {
         return outputDirectory;
@@ -120,6 +125,14 @@ public class JahiaPropertiesBean {
 
     public void setLocalIp(String localIp) {
         this.localIp = localIp;
+    }
+
+    public String getLocalPort() {
+        return localPort;
+    }
+
+    public void setLocalPort(String localPort) {
+        this.localPort = localPort;
     }
 
     public String getDb_script() {
@@ -362,19 +375,19 @@ public class JahiaPropertiesBean {
         return developmentMode;
     }
 
-	public String getHibernateDialect() {
-    	return hibernateDialect;
+    public String getHibernateDialect() {
+        return hibernateDialect;
     }
 
-	public void setHibernateDialect(String hibernateDialect) {
-    	this.hibernateDialect = hibernateDialect;
+    public void setHibernateDialect(String hibernateDialect) {
+        this.hibernateDialect = hibernateDialect;
     }
 
-	public String getNestedTransactionAllowed() {
-    	return nestedTransactionAllowed;
+    public String getNestedTransactionAllowed() {
+        return nestedTransactionAllowed;
     }
 
-	public void setNestedTransactionAllowed(String nestedTransactionAllowed) {
-    	this.nestedTransactionAllowed = nestedTransactionAllowed;
+    public void setNestedTransactionAllowed(String nestedTransactionAllowed) {
+        this.nestedTransactionAllowed = nestedTransactionAllowed;
     }
 }

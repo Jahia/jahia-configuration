@@ -65,12 +65,11 @@ public class PropertiesManager {
     public Properties properties = new Properties();
     public String sourcePropertiesFilePath;
     public String destPropertiesFilePath;
-
+    public Set<String> removedPropertyNames = new HashSet<String>();
 
     /**
      * Default constructor.
      *
-     * @author Alexandre Kraft
      */
     public PropertiesManager() {
         // do nothing :o)
@@ -82,12 +81,12 @@ public class PropertiesManager {
      *
      * @param sourcePropertiesFilePath The filesystem path from the file is loaded.
      * @param destPropertiesFilePath   The filesystem path where the file is saved.
-     * @author Alexandre Kraft
+     * @throws java.io.IOException thrown if there was a problem loading the properties file from the sourcePropertiesFilePath
      */
     public PropertiesManager(String sourcePropertiesFilePath, String destPropertiesFilePath) throws IOException {
         this.sourcePropertiesFilePath = sourcePropertiesFilePath;
         this.destPropertiesFilePath = destPropertiesFilePath;
-        this.loadProperties();
+        this.loadProperties(sourcePropertiesFilePath);
     } // end constructor
 
 
@@ -95,7 +94,6 @@ public class PropertiesManager {
      * Default constructor.
      *
      * @param properties The properties object used to define base properties.
-     * @author Alexandre Kraft
      */
     public PropertiesManager(Properties properties) {
         this.properties = properties;
@@ -105,9 +103,8 @@ public class PropertiesManager {
     /**
      * Load a complete properties file in memory by its filename.
      *
-     * @author Alexandre Kraft
      */
-    private void loadProperties() throws IOException {
+    private void loadProperties(String sourcePropertiesFilePath) throws IOException {
         FileInputStream inputStream = null;
         inputStream = new FileInputStream(sourcePropertiesFilePath);
         properties = new Properties();
@@ -121,7 +118,6 @@ public class PropertiesManager {
      *
      * @param propertyName The property name to get its value.
      * @return Returns a String containing the value of the property name.
-     * @author Alexandre Kraft
      */
     public String getProperty(String propertyName) {
         return properties.getProperty(propertyName);
@@ -133,7 +129,6 @@ public class PropertiesManager {
      *
      * @param propertyName The property name to set.
      * @param propvalue    The property value to set.
-     * @author Alexandre Kraft
      */
     public void setProperty(String propertyName,
                             String propvalue) {
@@ -149,6 +144,8 @@ public class PropertiesManager {
      */
     public void removeProperty(String propertyName) {
         properties.remove(propertyName);
+        removedPropertyNames.add(propertyName);
+
     } // end removeProperty
 
 
@@ -175,8 +172,8 @@ public class PropertiesManager {
     public void storeProperties(String sourcePropertiesFilePath, String destPropertiesFilePath)
             throws IOException {
         boolean baseObjectExists = true;
-        List bufferList = new ArrayList();
-        String lineReaded = null;
+        List outputLineList = new ArrayList();
+        String currentLine = null;
 
         File propertiesFileObject = new File(destPropertiesFilePath);
         File propertiesFileFolder = propertiesFileObject.getParentFile();
@@ -191,6 +188,7 @@ public class PropertiesManager {
         File propertiesFileObjectBase = null;
         try {
             propertiesFileObjectBase = new File(sourcePropertiesFilePath);
+            baseObjectExists = propertiesFileObjectBase.exists();
 
         } catch (NullPointerException npe) {
             baseObjectExists = false;
@@ -202,45 +200,30 @@ public class PropertiesManager {
             BufferedReader buffered = new BufferedReader(new FileReader(sourcePropertiesFilePath));
             int position = 0;
 
-            // compose all properties List, used to find the new properties...
-            List allProperties = new ArrayList();
-            Enumeration allPropertiesEnumeration = properties.propertyNames();
-            while (allPropertiesEnumeration.hasMoreElements()) {
-                allProperties.add((String) allPropertiesEnumeration.nextElement());
-            }
+            Set remainingPropertyNames = new HashSet(properties.keySet());
 
             // parse the file...
-            while ((lineReaded = buffered.readLine()) != null) {
+            while ((currentLine = buffered.readLine()) != null) {
                 try {
-                    lineReaded = lineReaded.replaceAll("\\t", "    "); //now supports Tab characters in lines
-                    if (!lineReaded.trim().equals("") && !lineReaded.trim().substring(0, 1).equals("#")) {
-                        boolean propertyFound = false;
-                        int countThisLine = 0;
-                        Iterator propertyNames = allProperties.iterator();
+                    currentLine = currentLine.replaceAll("\\t", "    "); //now supports Tab characters in lines
+                    int equalPosition = currentLine.indexOf("=");
+                    if (!currentLine.trim().equals("") && !currentLine.trim().startsWith("#") && (equalPosition >= 0)) {
+                        String currentPropertyName = currentLine.substring(0, equalPosition).trim();
+                        if (remainingPropertyNames.contains(currentPropertyName)) {
+                            String propvalue = properties.getProperty(currentPropertyName);
+                            remainingPropertyNames.remove(currentPropertyName);
 
-                        while (propertyNames.hasNext() && !propertyFound) {
-                            String propertyName = (String) propertyNames.next();
-                            String propvalue = properties.getProperty(propertyName);
-                            //System.out.println("getting property: "+propertyName+" with value "+propvalue);
-                            if (lineReaded.indexOf(propertyName + " ") == 0) {
-                                position = lineReaded.indexOf("=");
-                                if (position >= 0) {
-                                    propertyFound = true;
-
-                                    StringBuffer thisLineBuffer = new StringBuffer();
-                                    thisLineBuffer.append(lineReaded.substring(0, position + 1));
-                                    thisLineBuffer.append("   ");
-                                    thisLineBuffer.append(propvalue);
-                                    bufferList.add(thisLineBuffer.toString());
-
-                                    // remove this line from allProperties to affine the search and to find new properties...
-                                    allProperties.remove(propertyName);
-                                }
-                            }
+                            StringBuffer thisLineBuffer = new StringBuffer();
+                            thisLineBuffer.append(currentLine.substring(0, equalPosition + 1));
+                            thisLineBuffer.append(" ");
+                            thisLineBuffer.append(propvalue);
+                            outputLineList.add(thisLineBuffer.toString());
+                        } else if (removedPropertyNames.contains(currentPropertyName)) {
+                            // the property must be removed from the file, we do not add it to the output.                            
                         }
                     } else {
                         // this is a special line only for layout, like a comment or a blank line...
-                        bufferList.add(lineReaded.trim());
+                        outputLineList.add(currentLine.trim());
                     }
                 } catch (IndexOutOfBoundsException ioobe) {
                 } catch (PatternSyntaxException ex1) {
@@ -251,9 +234,9 @@ public class PropertiesManager {
             }
 
             // add not found properties at the end of the file (and the jahia.properties layout is keeping)...
-            Iterator restantPropertyNames = allProperties.iterator();
-            while (restantPropertyNames.hasNext()) {
-                String restantPropertyName = (String) restantPropertyNames.next();
+            Iterator remainingPropNameIterator = remainingPropertyNames.iterator();
+            while (remainingPropNameIterator.hasNext()) {
+                String restantPropertyName = (String) remainingPropNameIterator.next();
                 StringBuffer specialLineBuffer = new StringBuffer();
                 specialLineBuffer.append(restantPropertyName);
                 for (int i = 0; i < 55 - restantPropertyName.length(); i++) {
@@ -261,14 +244,14 @@ public class PropertiesManager {
                 }
                 specialLineBuffer.append("=   ");
                 specialLineBuffer.append(properties.getProperty(restantPropertyName));
-                bufferList.add(specialLineBuffer.toString());
+                outputLineList.add(specialLineBuffer.toString());
             }
 
             // close the buffered filereader...
             buffered.close();
 
             // write the file...
-            writeTheFile(destPropertiesFilePath, bufferList);
+            writeTheFile(destPropertiesFilePath, outputLineList);
         } else {
             FileOutputStream outputStream = new FileOutputStream(destPropertiesFilePath);
             properties.store(outputStream, "This file has been written by Jahia.");

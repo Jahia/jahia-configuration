@@ -4,28 +4,43 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.jar.JarFile;
+import java.util.jar.Attributes;
+import javax.enterprise.deploy.shared.factories.DeploymentFactoryManager;
+import javax.enterprise.deploy.spi.DeploymentManager;
+import javax.enterprise.deploy.spi.Target;
+import javax.enterprise.deploy.spi.status.ProgressObject;
+import javax.enterprise.deploy.spi.exceptions.DeploymentManagerCreationException;
+import javax.enterprise.deploy.spi.factories.DeploymentFactory;
 
 /**
- * Created by IntelliJ IDEA.
+ * Websphere server deployer implementation.
+ * TODO This is currently not used, we use a Maven sub-project with Ant commands to do the deployment, but we should
+ * really implement this instead, it would be much cleaner and easier to re-use. 
  * User: loom
  * Date: Feb 12, 2009
  * Time: 4:33:51 PM
- *
  */
-public class WebsphereServerDeploymentImpl implements ServerDeploymentInterface {
+public class WebsphereServerDeploymentImpl extends AbstractServerDeploymentImpl {
 
     public static final String defaultSharedLibraryDirectory = "/AppServer/lib/ext";
     public static final String defaultJavaSharedLibraryDirectory = "/AppServer/java/jre/lib/ext";
     public static final Map<String, String> sharedLibraryDirectory = new HashMap<String, String>();
     public static final Map<String, String> sharedJavaLibraryDirectory = new HashMap<String, String>();
 
+    public WebsphereServerDeploymentImpl(String targetServerDirectory) {
+        super(targetServerDirectory);
+    }
+
     public boolean validateInstallationDirectory(String targetServerDirectory) {
-        File serverLibDir = new File(targetServerDirectory, "/AppServer/lib/ext");
-        return serverLibDir.isDirectory();
+        //File serverLibDir = new File(targetServerDirectory, "/AppServer/lib/ext");
+        //return serverLibDir.isDirectory();
+        return true;
     }
 
     private String getSharedLibraryDirectory(String serverVersion) {
@@ -79,6 +94,5 @@ public class WebsphereServerDeploymentImpl implements ServerDeploymentInterface 
     public String getDeploymentFilePath(String name, String type) {
         return getDeploymentBaseDir() + "/" + name;
     }
-
 
 }

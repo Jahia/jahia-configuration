@@ -49,7 +49,7 @@ import java.util.Map;
  * Time: 14:18:34
  * To change this template use File | Settings | File Templates.
  */
-public class Tomcat5ServerDeploymentImpl implements ServerDeploymentInterface {
+public class TomcatServerDeploymentImpl extends AbstractServerDeploymentImpl {
 
     public static final String defaultSharedLibraryDirectory = "lib";
     public static final Map<String, String> sharedLibraryDirectory = new HashMap<String, String>() { {
@@ -61,6 +61,9 @@ public class Tomcat5ServerDeploymentImpl implements ServerDeploymentInterface {
            put("5.5", "common/endorsed");
            put("6", "endorsed"); }};
 
+    public TomcatServerDeploymentImpl(String targetServerDirectory) {
+        super(targetServerDirectory);
+    }
 
     private String getEndorsedLibraryDirectory(String serverVersion) {
         String result = endorsedLibraryDirectory.get(serverVersion);
@@ -127,4 +130,5 @@ public class Tomcat5ServerDeploymentImpl implements ServerDeploymentInterface {
     public String getDeploymentFilePath(String name, String type) {
         return getDeploymentBaseDir() + "/" + name + "." + type;
     }
+
 }

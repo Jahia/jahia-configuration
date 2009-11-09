@@ -52,11 +52,10 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * Created by IntelliJ IDEA.
+ * Abstract class that is shared between some of plugin's goals.
  * User: Serge Huber
  * Date: 26 d�c. 2007
  * Time: 11:55:57
- * To change this template use File | Settings | File Templates.
  */
 public abstract class AbstractManagementMojo extends AbstractMojo {
 
@@ -130,7 +129,12 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
     }
 
     public void doValidate() throws MojoExecutionException, MojoFailureException {
-        serverDeployer = ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion);
+        ServerDeploymentFactory.setTargetServerDirectory(targetServerDirectory);
+        try {
+            serverDeployer = ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion);
+        } catch (Exception e) {
+            throw new MojoExecutionException("Error while validating deployers", e);
+        }
         if (serverDeployer == null) {
             throw new MojoFailureException("Server " + targetServerType + " v" + targetServerVersion + " not (yet) supported by this plugin.");
         }
@@ -215,7 +219,7 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
     /**
      * Get the folder on the application server where the jahia webapp is unpacked
      */
-    protected File getWebappDeploymentDir() {
+    protected File getWebappDeploymentDir() throws Exception {
         return new File(targetServerDirectory, ServerDeploymentFactory.getInstance()
                 .getImplementation(targetServerType + targetServerVersion).getDeploymentDirPath(getWebappDeploymentDirName(), "war"));
     }
@@ -224,7 +228,7 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
      * Get the folder on the application server where the given artifact is unpacked ( war, rar or sar )
      * @param artifact
      */
-    protected File getWarSarRarDeploymentDir(Artifact artifact) {
+    protected File getWarSarRarDeploymentDir(Artifact artifact) throws Exception {
         File dir;
         if (artifact.getType().equals("rar") || artifact.getType().equals("sar") || artifact.getType().equals("jboss-sar") || artifact.getArtifactId().equals("config")) {
             dir = new File(targetServerDirectory, ServerDeploymentFactory.getInstance()

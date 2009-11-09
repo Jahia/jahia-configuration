@@ -16,14 +16,19 @@ import java.util.Iterator;
  * Time: 15:13:25
  * To change this template use File | Settings | File Templates.
  */
-public class WeblogicServerDeploymentImpl implements ServerDeploymentInterface{
+public class WeblogicServerDeploymentImpl extends AbstractServerDeploymentImpl {
     public static final String defaultSharedLibraryDirectory = "lib";
     public static final Map<String, String> sharedLibraryDirectory = new HashMap<String, String>();
+
+    public WeblogicServerDeploymentImpl(String targetServerDirectory) {
+        super(targetServerDirectory);
+    }
+
     /**
      * Returns true if the specified directory indeeed contains a valid installation of the application server
      *
-     * @param targetServerDirectory
-     * @return
+     * @param targetServerDirectory the server directory that should be validated.
+     * @return true if the directory is indeed a valid server installation directory, false otherwise.
      */
     public boolean validateInstallationDirectory(String targetServerDirectory) {
         return true;
@@ -67,4 +72,5 @@ public class WeblogicServerDeploymentImpl implements ServerDeploymentInterface{
     public String getDeploymentFilePath(String name, String type) {
         return getDeploymentBaseDir() + "/" + name + "." + type;
     }
+
 }

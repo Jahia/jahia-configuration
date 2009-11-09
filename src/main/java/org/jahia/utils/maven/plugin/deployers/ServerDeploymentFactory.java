@@ -37,7 +37,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by IntelliJ IDEA.
+ * Factory that sets up all the different server deployer implementations, and links them to supported versions of
+ * the various application servers.
  * User: Serge Huber
  * Date: 26 d�c. 2007
  * Time: 14:04:51
@@ -45,26 +46,39 @@ import java.util.Map;
  */
 public class ServerDeploymentFactory {
 
-    public static final ServerDeploymentFactory instance = new ServerDeploymentFactory();
+    private static ServerDeploymentFactory instance;
 
     private Map<String, ServerDeploymentInterface> implementations = new HashMap<String, ServerDeploymentInterface>();
 
-    static {
-        ServerDeploymentInterface tomcatImplementation = new Tomcat5ServerDeploymentImpl();
-        instance.addImplementation("tomcat5.5", tomcatImplementation);
-        instance.addImplementation("tomcat6", tomcatImplementation);
-        ServerDeploymentInterface jbossImplementation = new JBossServerDeploymentImpl("4");
-        instance.addImplementation("jboss4.0.x", jbossImplementation);
-        instance.addImplementation("jboss4.2.x", jbossImplementation);
-        jbossImplementation = new JBossServerDeploymentImpl("5");        
-        instance.addImplementation("jboss5.0.x", jbossImplementation);
-        ServerDeploymentInterface websphereImplementation = new WebsphereServerDeploymentImpl();
-        instance.addImplementation("websphere6.1.x", websphereImplementation);
-        instance.addImplementation("weblogic10", new WeblogicServerDeploymentImpl());
+    private static String targetServerDirectory;
+
+    public ServerDeploymentFactory(String targetServerDirectory) {
+        ServerDeploymentInterface tomcatImplementation = new TomcatServerDeploymentImpl(targetServerDirectory);
+        addImplementation("tomcat5.5", tomcatImplementation);
+        addImplementation("tomcat6", tomcatImplementation);
+        ServerDeploymentInterface jbossImplementation = new JBossServerDeploymentImpl("4", targetServerDirectory);
+        addImplementation("jboss4.0.x", jbossImplementation);
+        addImplementation("jboss4.2.x", jbossImplementation);
+        jbossImplementation = new JBossServerDeploymentImpl("5", targetServerDirectory);
+        addImplementation("jboss5.0.x", jbossImplementation);
+        ServerDeploymentInterface websphereImplementation = new WebsphereServerDeploymentImpl(targetServerDirectory);
+        addImplementation("was6.1.0.25", websphereImplementation);
+        addImplementation("weblogic10", new WeblogicServerDeploymentImpl(targetServerDirectory));
     }
 
-    public static ServerDeploymentFactory getInstance() {
+    public static ServerDeploymentFactory getInstance() throws Exception {
+        if (instance != null) {
+            return instance;
+        }
+        if (targetServerDirectory == null) {
+            throw new Exception("Factory not initialized properly, you must set the targetServerDirectory variable before calling getInstance !");
+        }
+        instance = new ServerDeploymentFactory(targetServerDirectory);
         return instance;
+    }
+
+    public static void setTargetServerDirectory(String targetServerDirectory) {
+        ServerDeploymentFactory.targetServerDirectory = targetServerDirectory;
     }
 
     public ServerDeploymentFactory() {}

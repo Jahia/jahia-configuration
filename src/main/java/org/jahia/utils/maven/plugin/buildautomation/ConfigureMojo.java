@@ -38,6 +38,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.jahia.utils.maven.plugin.AbstractManagementMojo;
+import org.jahia.utils.maven.plugin.configurators.*;
 import org.jahia.utils.maven.plugin.deployers.ServerDeploymentFactory;
 import org.codehaus.plexus.util.DirectoryScanner;
 
@@ -50,6 +51,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Properties;
+import java.util.ArrayList;
 
 /**
  * Implementation of the Jahia's configuration Mojo. 
@@ -72,7 +74,7 @@ public class ConfigureMojo extends AbstractManagementMojo
 
     /**
      * @parameter expression="${jahia.configure.externalConfigPath}"
-     * can be clustered or standalone
+     * if included, points to a directory that will be merged with the deployed Jahia to allow for custom deployment of configuration and/or extensions
      */
     protected String externalConfigPath;
 
@@ -122,6 +124,12 @@ public class ConfigureMojo extends AbstractManagementMojo
      * @parameter default-value="${jahia.configure.localIp}"
      */
     protected String localIp;
+    /**
+     * properties file path
+     *
+     * @parameter expression="${jahia.configure.localPort}" default-value="8080"
+     */
+    protected String localPort;
     /**
      * properties file path
      *
@@ -352,26 +360,36 @@ public class ConfigureMojo extends AbstractManagementMojo
      */
     protected String storeFilesInDB;
 
+    /**
+     * The directory that will be used to store the configured Jahia in. Defaults to the
+     * ${jahia.deploy.targetServerDirectory} value.  
+     *
+     * @parameter expression="${jahia.deploy.targetServerDirectory}"
+     */
+    protected String targetConfigurationDirectory;
 
     JahiaPropertiesBean jahiaPropertiesBean;
     DatabaseConnection db;
     File webappDir;
     Properties dbProps;
     File databaseScript;
-    JahiaPropertiesConfigurator jahiaPropertiesConfigurator;
+    List<AbstractConfigurator> configurators = new ArrayList<AbstractConfigurator>();
 
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         if (active) {
+            if (targetConfigurationDirectory == null) {
+                targetConfigurationDirectory = targetServerDirectory;
+            } else if (!targetConfigurationDirectory.equals(targetServerDirectory)) {
+                // Configuration directory and target server directory are not equal, we will use the configuration
+                // directory for the configurators.
+                ServerDeploymentFactory.setTargetServerDirectory(targetConfigurationDirectory);
+            }
             try {
                 db = new DatabaseConnection();
 
+                getLog().info ("Configuring for server " + targetServerType + " version " + targetServerVersion + " with database type " + databaseType);
+
                 setProperties();
-                if (cluster_activated.equals("true")) {
-                    deployOnCluster();
-                } else {
-                    getLog().info("Deployed in standalone for server in " + webappDir);
-                }
-                jahiaPropertiesConfigurator.generateJahiaProperties();
 
                 if (databaseType.equals("hypersonic")) {
                     try {
@@ -385,8 +403,8 @@ public class ConfigureMojo extends AbstractManagementMojo
 
                 // copying existing config
                 copyExternalConfig();
-            } catch (IOException ioe) {
-                throw new MojoExecutionException("Error while configuring Jahia", ioe);
+            } catch (Exception e) {
+                throw new MojoExecutionException("Error while configuring Jahia", e);
             }
         }
     }
@@ -413,24 +431,27 @@ public class ConfigureMojo extends AbstractManagementMojo
         }
     }
 
-    private void updateConfigurationFiles(String sourceWebAppPath, String webappPath, Properties dbProps) throws IOException {
-        SpringHibernateConfigurator.updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-hibernate.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-hibernate.xml", dbProps);
-        QuartzConfigurator.updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/config/quartz.properties", webappPath + "/WEB-INF/etc/config/quartz.properties", dbProps);
+    private void updateConfigurationFiles(String sourceWebAppPath, String webappPath, Properties dbProps, JahiaPropertiesBean jahiaPropertiesBean) throws Exception {
+        getLog().info("Configuring file using source " + sourceWebAppPath + " to target " + webappPath);
         getLog().info("Store files in database is :" + storeFilesInDB);
-        JackrabbitConfigurator.updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml", webappPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml", dbProps, jahiaPropertiesBean.getCluster_activated(), jahiaPropertiesBean.getCluster_node_serverId());
-        JahiaXmlConfigurator.updateConfiguration(sourceWebAppPath + "/META-INF/context.xml", webappPath + "/META-INF/context.xml", dbProps, databaseUsername, databasePassword, databaseUrl);
-        RootUserConfigurator.updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/repository/root.xml", webappPath + "/WEB-INF/etc/repository/root.xml", encryptPassword(jahiaRootPassword));
+        new SpringHibernateConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-hibernate.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-hibernate.xml");
+        new QuartzConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/config/quartz.properties", webappPath + "/WEB-INF/etc/config/quartz.properties");
+        new JackrabbitConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml", webappPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml");
+        new TomcatContextXmlConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(sourceWebAppPath + "/META-INF/context.xml", webappPath + "/META-INF/context.xml");
+        new RootUserConfigurator(dbProps, jahiaPropertiesBean, encryptPassword(jahiaRootPassword)).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/repository/root.xml", webappPath + "/WEB-INF/etc/repository/root.xml");
+        new WebXmlConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(sourceWebAppPath + "/WEB-INF/web.xml", webappPath + "/WEB-INF/web.xml");
+        new SpringServicesConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-services.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-services.xml");
         if ("jboss".equalsIgnoreCase(targetServerType)) {
             String datasourcePath = new File(targetServerDirectory, ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion).getDeploymentFilePath("jahia-jboss-config.sar/jahia-ds", "xml")).getPath();
-            JahiaXmlConfigurator.updateConfiguration(datasourcePath, datasourcePath, dbProps, databaseUsername, databasePassword, databaseUrl);
+            new TomcatContextXmlConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(datasourcePath, datasourcePath);
         }
 
-        if (cluster_activated.equals("true")) {
-            IndexationPolicyConfigurator.updateConfigurationForCluster(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-indexationpolicy.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-indexationpolicy.xml");
-        }
+        new IndexationPolicyConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-indexationpolicy.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-indexationpolicy.xml");
+        new JahiaPropertiesConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.skeleton", webappPath + "/WEB-INF/etc/config/jahia.properties");
+
     }
 
-    private void setProperties() throws IOException {
+    private void setProperties() throws Exception {
 
         //create the bean that will contain all the necessary information for the building of the Jahia.properties file
         jahiaPropertiesBean = new JahiaPropertiesBean();
@@ -467,11 +488,19 @@ public class ConfigureMojo extends AbstractManagementMojo
         jahiaPropertiesBean.setRelease(release);
         jahiaPropertiesBean.setServer(targetServerType);
         jahiaPropertiesBean.setLocalIp(localIp);
+        jahiaPropertiesBean.setLocalPort(localPort);
         jahiaPropertiesBean.setDb_script(databaseType + ".script");
         jahiaPropertiesBean.setDevelopmentMode(developmentMode);
 
+        if (cluster_activated.equals("true")) {
+            deployOnCluster();
+        } else {
+            getLog().info("Deployed in standalone for server in " + webappDir);
+        }
+
         //now set the common properties to both a clustered environment and a standalone one
-        webappDir = getWebappDeploymentDir();
+
+        webappDir = getWebAppTargetConfigurationDir();
         String sourceWebappPath = webappDir.toString();
         if (configureBeforePackaging) {
             sourceWebappPath = sourceWebAppDir;
@@ -484,6 +513,9 @@ public class ConfigureMojo extends AbstractManagementMojo
         try {
             dbProps.load(new FileInputStream(databaseScript));
             dbProps.put("storeFilesInDB", storeFilesInDB);
+            dbProps.put("jahia.database.url", databaseUrl);
+            dbProps.put("jahia.database.username", databaseUsername);
+            dbProps.put("jahia.database.password", databasePassword);
         } catch (IOException e) {
             getLog().error("Error in loading database settings because of " + e);
         }
@@ -491,12 +523,10 @@ public class ConfigureMojo extends AbstractManagementMojo
         jahiaPropertiesBean.setHibernateDialect(dbProps.getProperty("jahia.database.hibernate.dialect"));
         jahiaPropertiesBean.setNestedTransactionAllowed(dbProps.getProperty("jahia.nested_transaction_allowed"));
         
-        jahiaPropertiesConfigurator = new JahiaPropertiesConfigurator(sourceWebappPath, webappDir.getPath(), jahiaPropertiesBean);
-
-        getLog().info("updating Jackrabbit, Spring and Quartz configuration files");
+        getLog().info("Updating configuration files...");
 
         //updates jackrabbit, quartz and spring files
-        updateConfigurationFiles(sourceWebappPath, webappDir.getPath(), dbProps);
+        updateConfigurationFiles(sourceWebappPath, webappDir.getPath(), dbProps, jahiaPropertiesBean);
         getLog().info("creating database tables and copying license file");
         try {
             copyLicense(sourceWebappPath + "/WEB-INF/etc/config/licenses/license-free.xml", webappDir.getPath() + "/WEB-INF/etc/config/license.xml");
@@ -804,7 +834,7 @@ public class ConfigureMojo extends AbstractManagementMojo
 
          */
         private boolean copyExternalConfig()
-                throws IOException, MojoExecutionException {
+                throws Exception {
             if (externalConfigPath == null) {
                 getLog().info("External jahia config. not specified.");
                 return false;
@@ -903,6 +933,22 @@ public class ConfigureMojo extends AbstractManagementMojo
 
     public void setJahia_WebApps_Deployer_Service(String jahia_WebApps_Deployer_Service) {
         Jahia_WebApps_Deployer_Service = jahia_WebApps_Deployer_Service;
+    }
+
+    /**
+     * We override this method so that we can have, in the same project, both a targetServerDirectory and a
+     * targetConfigurationDirectory that are not the same, so that we can configure in a directory, and then deploy
+     * to another directory.
+     * @return if the target server directory and configuration directory are the same, the targetServerDirectory value
+     * is returned, otherwise the targetConfigurationDirectory value is return.
+     * @throws Exception can be raised if there is a problem initializing the deployer classes.
+     */
+    public File getWebAppTargetConfigurationDir () throws Exception {
+        if (targetServerDirectory.equals(targetConfigurationDirectory)) {
+            return getWebappDeploymentDir();
+        } else {
+            return new File(targetConfigurationDirectory);
+        }
     }
 
 }

@@ -31,34 +31,31 @@
  * for your use, please contact the sales department at sales@jahia.com.
  */
 
-package org.jahia.utils.maven.plugin.buildautomation;
+package org.jahia.utils.maven.plugin.configurators;
+
+import org.jahia.utils.maven.plugin.buildautomation.PropertiesManager;
+import org.jahia.utils.maven.plugin.buildautomation.JahiaPropertiesBean;
 
 import java.util.List;
+import java.util.Map;
 import java.io.IOException;
 
 /**
- * Created by IntelliJ IDEA.
+ * Property configuration for the jahia.properties file.
  * User: islam
  * Date: 16 juil. 2008
  * Time: 10:09:49
- * To change this template use File | Settings | File Templates.
  */
-public class JahiaPropertiesConfigurator {
-
+public class JahiaPropertiesConfigurator extends AbstractConfigurator {
 
     private PropertiesManager properties;
-    String sourceJahiaPath;
-    String targetJahiaPath;
-    JahiaPropertiesBean jahiaPropertiesBean;
 
-    public JahiaPropertiesConfigurator(String sourceJahiaPath, String targetJahiaPath, JahiaPropertiesBean jahiaPropertiesBean) {
-        this.sourceJahiaPath = sourceJahiaPath;
-        this.targetJahiaPath = targetJahiaPath;
-        this.jahiaPropertiesBean = jahiaPropertiesBean;
+    public JahiaPropertiesConfigurator(Map dbProperties, JahiaPropertiesBean jahiaPropertiesBean) {
+        super(dbProperties, jahiaPropertiesBean);
     }
 
-    public void generateJahiaProperties() throws IOException {
-        properties = new PropertiesManager(sourceJahiaPath + "/WEB-INF/etc/config/jahia.skeleton", targetJahiaPath + "/WEB-INF/etc/config/jahia.skeleton");
+    public void updateConfiguration(String sourceJahiaPath, String targetJahiaPath) throws IOException {
+        properties = new PropertiesManager(sourceJahiaPath, targetJahiaPath);
         properties.setProperty("release", jahiaPropertiesBean.getRelease());
         properties.setProperty("server", jahiaPropertiesBean.getServer());
 //        properties.setProperty("serverHomeDiskPath", targetServerDirectory);
@@ -90,6 +87,14 @@ public class JahiaPropertiesConfigurator {
         properties.setProperty("defautSite", jahiaPropertiesBean.getDefautSite());
         properties.setProperty("cluster.activated", jahiaPropertiesBean.getCluster_activated());
         properties.setProperty("localIp", jahiaPropertiesBean.getLocalIp());
+        properties.setProperty("localPort", jahiaPropertiesBean.getLocalPort());
+        if (!"8080".equals(jahiaPropertiesBean.getLocalPort())) {
+            properties.setProperty("localAccessUri", "http://" + jahiaPropertiesBean.getLocalIp() + ":" + jahiaPropertiesBean.getLocalPort());
+        } else {
+            if ("localhost".equals(jahiaPropertiesBean.getLocalIp())) {
+                properties.removeProperty("localAccessUri");
+            }
+        }
         properties.setProperty("cluster.node.serverId", jahiaPropertiesBean.getCluster_node_serverId());
         properties.setProperty("db_script", jahiaPropertiesBean.getDb_script());
         properties.setProperty("developmentMode", jahiaPropertiesBean.getDevelopmentMode());
@@ -105,7 +110,7 @@ public class JahiaPropertiesConfigurator {
         properties.setProperty("hibernate.dialect", jahiaPropertiesBean.getHibernateDialect());
         properties.setProperty("nested.transaction.allowed", jahiaPropertiesBean.getNestedTransactionAllowed());
 
-        properties.storeProperties(sourceJahiaPath + "/WEB-INF/etc/config/jahia.skeleton", targetJahiaPath + "/WEB-INF/etc/config/jahia.properties");
+        properties.storeProperties(sourceJahiaPath, targetJahiaPath);
     }
 
     private void addClusterNodes(List<String> clusterNodes) {
