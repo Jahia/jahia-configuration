@@ -512,10 +512,11 @@ public class ConfigureMojo extends AbstractManagementMojo
         databaseScript = new File(sourceWebappPath + "/WEB-INF/var/db/" + databaseType + ".script");
         try {
             dbProps.load(new FileInputStream(databaseScript));
+            // we override these just as the configuration wizard does
             dbProps.put("storeFilesInDB", storeFilesInDB);
             dbProps.put("jahia.database.url", databaseUrl);
-            dbProps.put("jahia.database.username", databaseUsername);
-            dbProps.put("jahia.database.password", databasePassword);
+            dbProps.put("jahia.database.user", databaseUsername);
+            dbProps.put("jahia.database.pass", databasePassword);
         } catch (IOException e) {
             getLog().error("Error in loading database settings because of " + e);
         }
