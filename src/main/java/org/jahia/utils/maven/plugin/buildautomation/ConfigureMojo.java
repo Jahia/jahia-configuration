@@ -443,7 +443,7 @@ public class ConfigureMojo extends AbstractManagementMojo
         new SpringServicesConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-services.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-services.xml");
         if ("jboss".equalsIgnoreCase(targetServerType)) {
             String datasourcePath = new File(targetServerDirectory, ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion).getDeploymentFilePath("jahia-jboss-config.sar/jahia-ds", "xml")).getPath();
-            new TomcatContextXmlConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(datasourcePath, datasourcePath);
+            new JBossDatasourceConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(datasourcePath, datasourcePath);
         }
 
         new IndexationPolicyConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-indexationpolicy.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-indexationpolicy.xml");
