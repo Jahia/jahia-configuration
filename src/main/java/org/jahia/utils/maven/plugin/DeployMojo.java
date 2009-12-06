@@ -327,7 +327,8 @@ public class DeployMojo extends AbstractManagementMojo {
                     }
                 }
             }
-            if ("prepackagedSites".equals(project.getParent().getArtifactId())) {
+            if ((project.getParent() != null) &&
+                    ("prepackagedSites".equals(project.getParent().getArtifactId()))) {
                 deployPrepackagedSiteProject();
             }
         } catch (Exception e) {
