@@ -66,6 +66,9 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             }
 
             SAXBuilder saxBuilder = new SAXBuilder();
+            saxBuilder.setFeature(
+                    "http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+
             FileReader fileReader = new FileReader(sourceFileName);
             org.jdom.Document jdomDocument = saxBuilder.build(fileReader);
             Element webAppElement = jdomDocument.getRootElement();
