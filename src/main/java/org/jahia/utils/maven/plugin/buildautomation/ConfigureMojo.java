@@ -617,6 +617,8 @@ public class ConfigureMojo extends AbstractManagementMojo
 
         cleanDirectory(new File(webappDir + "/WEB-INF/var/search_indexes"));
 
+        cleanDirectory(new File(webappDir + "/templates"));
+
         getLog().info("finished deleting content of the /var/repository and /var/search_indexes folders");
     }
 
