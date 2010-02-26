@@ -35,6 +35,10 @@ package org.jahia.utils.maven.plugin.buildautomation;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.AndFileFilter;
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.io.filefilter.NameFileFilter;
+import org.apache.commons.io.filefilter.NotFileFilter;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.jahia.utils.maven.plugin.AbstractManagementMojo;
@@ -616,8 +620,18 @@ public class ConfigureMojo extends AbstractManagementMojo
         }
 
         cleanDirectory(new File(webappDir + "/WEB-INF/var/search_indexes"));
-
-        cleanDirectory(new File(webappDir + "/templates"));
+        
+        File[] templateDirs = new File(webappDir + "/templates")
+                .listFiles(getJahiaVersion() < 6.5 ? (FilenameFilter) new AndFileFilter(
+                        new NotFileFilter(new NameFileFilter("default")),
+                        DirectoryFileFilter.DIRECTORY)
+                        : DirectoryFileFilter.DIRECTORY);
+        if (templateDirs != null) {
+            for (File templateDir : templateDirs) {
+                cleanDirectory(templateDir);
+                templateDir.delete();
+            }
+        }
 
         getLog().info("finished deleting content of the /var/repository and /var/search_indexes folders");
     }
