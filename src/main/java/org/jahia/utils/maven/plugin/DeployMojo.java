@@ -215,6 +215,15 @@ public class DeployMojo extends AbstractManagementMojo {
         	File target = new File(webappDir, "WEB-INF/var/shared_templates");
         	FileUtils.copyFileToDirectory(source, target);
         	getLog().info("Copied " + source + " into " + target);
+        	File libs = new File(new File(output, project.getBuild().getFinalName()), "WEB-INF/lib");
+        	if (libs.isDirectory()) {
+        	    File targetLibs = new File(webappDir, "WEB-INF");
+        	    if (!targetLibs.isDirectory()) {
+        	        targetLibs.mkdirs();
+        	    }
+                getLog().info("Copying module libraries from " + libs + " into " + targetLibs);
+        	    FileUtils.copyDirectoryToDirectory(libs, targetLibs);
+        	}
         	return;
         }
 
