@@ -34,11 +34,17 @@
 package org.jahia.utils.maven.plugin;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -46,11 +52,10 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 
 /**
- * Created by IntelliJ IDEA.
+ * Mojo for copying Jahia modules and pre-packaged sites into Jahia WAR file.
  * User: toto
  * Date: Jul 23, 2008
  * Time: 10:31:17 AM
- * To change this template use File | Settings | File Templates.
  * @goal copy-templates
  * @requiresDependencyResolution runtime
  */
@@ -77,9 +82,10 @@ public class CopyTemplatesMojo extends AbstractMojo {
                 try {
                     FileUtils.copyFileToDirectory(dependencyFile.getFile(), new File(output,"jahia/WEB-INF/var/shared_templates"));
                     getLog().info("Copy templates jar "+dependencyFile.getFile().getName() + " to shared templates");
+                    copyJars(dependencyFile.getFile(), new File(output,"jahia"));
                     dependenciesToRemove.add(dependencyFile);
                 } catch (IOException e) {
-                    getLog().error("Error when copying file");
+                    getLog().error("Error when copying file " + dependencyFile.getFile(), e);
                 }
             }
             if (dependencyFile.getGroupId().equals("org.jahia.prepackagedsites")) {
@@ -88,13 +94,40 @@ public class CopyTemplatesMojo extends AbstractMojo {
                     getLog().info("Copy prepackaged site "+dependencyFile.getFile().getName());
                     dependenciesToRemove.add(dependencyFile);
                 } catch (IOException e) {
-                    getLog().error("Error when copying file");
+                    getLog().error("Error when copying file " + dependencyFile.getFile(), e);
                 }
             }
 
         }
         for (Artifact dependencyFile : dependenciesToRemove) {
             dependencyFiles.remove(dependencyFile);
+        }
+    }
+
+    private void copyJars(File warFile, File targetDir) {
+        try {
+            JarFile war = new JarFile(warFile);
+            int deployed = 0;
+            if (war.getJarEntry("WEB-INF/lib") != null) {
+                Enumeration<JarEntry> entries = war.entries();
+                while (entries.hasMoreElements()) {
+                    JarEntry entry = entries.nextElement();
+                    if (entry.getName().startsWith("WEB-INF/lib/") && entry.getName().endsWith(".jar")) {
+                        deployed++;
+                        InputStream source = war.getInputStream(entry);
+                        FileOutputStream target = new FileOutputStream(new File(targetDir, entry.getName()));
+                        IOUtils.copy(source, target);
+                        IOUtils.closeQuietly(source);
+                        target.flush();
+                        IOUtils.closeQuietly(target);
+                    }
+                }
+            }
+            if (deployed > 0) {
+                getLog().info("Copied " + deployed + " JARs from " + warFile.getName() + " to jahia/WEB-INF/lib");
+            }
+        } catch (IOException e) {
+            getLog().error("Error copying JAR files for module " + warFile, e);
         }
     }
 }
