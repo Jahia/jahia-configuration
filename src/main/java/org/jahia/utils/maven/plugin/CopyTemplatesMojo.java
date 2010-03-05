@@ -115,6 +115,9 @@ public class CopyTemplatesMojo extends AbstractMojo {
                     if (entry.getName().startsWith("WEB-INF/lib/") && entry.getName().endsWith(".jar")) {
                         deployed++;
                         InputStream source = war.getInputStream(entry);
+                        if (!targetDir.exists()) {
+                            targetDir.mkdirs();
+                        }
                         FileOutputStream target = new FileOutputStream(new File(targetDir, entry.getName()));
                         IOUtils.copy(source, target);
                         IOUtils.closeQuietly(source);
