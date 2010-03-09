@@ -119,11 +119,15 @@ public class CopyTemplatesMojo extends AbstractMojo {
                         if (!libsDir.exists()) {
                             libsDir.mkdirs();
                         }
-                        FileOutputStream target = new FileOutputStream(new File(targetDir, entry.getName()));
+                        File targetFile = new File(targetDir, entry.getName());
+                        FileOutputStream target = new FileOutputStream(targetFile);
                         IOUtils.copy(source, target);
                         IOUtils.closeQuietly(source);
                         target.flush();
                         IOUtils.closeQuietly(target);
+                        if (entry.getTime() > 0) {
+                            targetFile.setLastModified(entry.getTime());
+                        }
                     }
                 }
             }
