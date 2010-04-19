@@ -786,6 +786,8 @@ public class ConfigureMojo extends AbstractManagementMojo
      * Insert database custom data, like root user and properties.
      */
     private void insertDBCustomContent() throws Exception {
+        
+        if (getJahiaVersion() >= 6.5) return;
 
         getLog().debug("Inserting customized settings into database...");
 
