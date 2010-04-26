@@ -55,7 +55,7 @@ public class JackrabbitConfiguratorTest extends AbstractXMLConfiguratorTestCase 
         assertAllTextEquals(jdomDocument, "//param[@name=\"driver\"]/@value", prefix, "javax.naming.InitialContext");
         assertAllTextEquals(jdomDocument, "//param[@name=\"url\"]/@value", prefix, "java:comp/env/jdbc/jahia");
         assertAllTextEquals(jdomDocument, "//param[@name=\"schema\"]/@value", prefix, mysqlDBProperties.getProperty("jahia.jackrabbit.schema"));
-        assertNull(getNode(jdomDocument, "//Cluster/Journal", prefix));
+        assertNotNull(getNode(jdomDocument, "//Cluster/Journal", prefix));
 
         assertAllTextEquals(jdomDocument, "//param[@name=\"externalBLOBs\"]/@value", prefix, "true");
 

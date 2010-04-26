@@ -79,28 +79,13 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             XPath clusterXPath = XPath.newInstance("//Cluster");
             Element clusterElement = (Element) clusterXPath.selectSingleNode(jdomDocument);
             Element journalElement;
-            if (Boolean.valueOf(jahiaPropertiesBean.getCluster_activated())) {
-                if (clusterElement == null) {
-                    int workspaceIndex = webAppElement.indexOf(webAppElement.getChild("Workspace"));
-                    clusterElement = new Element("Cluster", namespace);
-                    journalElement = new Element("Journal", namespace);
-                    journalElement.addContent(new Element("param", namespace).setAttribute("name", "driver").setAttribute("value", "javax.naming.InitialContext"));
-                    journalElement.addContent(new Element("param", namespace).setAttribute("name", "schema").setAttribute("value", "@SCHEMA@"));
-                    journalElement.addContent(new Element("param", namespace).setAttribute("name", "url").setAttribute("value", "java:comp/env/jdbc/jahia"));
-                    journalElement.addContent(new Element("param", namespace).setAttribute("name", "revision").setAttribute("value", "${rep.home}/revisionNode"));
-                    journalElement.addContent(new Element("param", namespace).setAttribute("name", "janitorEnabled").setAttribute("value", "true"));
-                    clusterElement.addContent(journalElement);
-                    webAppElement.getContent().add(workspaceIndex+2, clusterElement);
-                } else {
-                    journalElement = clusterElement.getChild("Journal");
-                }
+//            if (Boolean.valueOf(jahiaPropertiesBean.getCluster_activated())) {
+                journalElement = clusterElement.getChild("Journal");
                 clusterElement.setAttribute("id", jahiaPropertiesBean.getCluster_node_serverId());
                 journalElement.setAttribute("class", getValue(dbProperties, "jahia.jackrabbit.journal"));
-            } else {
-                if (clusterElement != null) {
-                    clusterElement.getParent().removeContent(clusterElement);
-                }
-            }
+//            } else {
+//                clusterElement.getParent().removeContent(clusterElement);
+//            }
 
             setupDatabaseConnection(jdomDocument, "/Repository/FileSystem", dbProperties, directConnectionToDB, namespace);
             setupDatabaseConnection(jdomDocument, "/Repository/Workspace/FileSystem", dbProperties, directConnectionToDB, namespace);
