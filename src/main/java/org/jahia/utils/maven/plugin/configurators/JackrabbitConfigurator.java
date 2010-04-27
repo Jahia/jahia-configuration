@@ -79,14 +79,14 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             XPath clusterXPath = XPath.newInstance("//Cluster");
             Element clusterElement = (Element) clusterXPath.selectSingleNode(jdomDocument);
             Element journalElement;
-//            if (Boolean.valueOf(jahiaPropertiesBean.getCluster_activated())) {
+            if (clusterElement != null) {
                 journalElement = clusterElement.getChild("Journal");
                 clusterElement.setAttribute("id", jahiaPropertiesBean.getCluster_node_serverId());
                 journalElement.setAttribute("class", getValue(dbProperties, "jahia.jackrabbit.journal"));
 //            } else {
 //                clusterElement.getParent().removeContent(clusterElement);
 //            }
-
+            }
             setupDatabaseConnection(jdomDocument, "/Repository/FileSystem", dbProperties, directConnectionToDB, namespace);
             setupDatabaseConnection(jdomDocument, "/Repository/Workspace/FileSystem", dbProperties, directConnectionToDB, namespace);
             setupDatabaseConnection(jdomDocument, "/Repository/Workspace/PersistenceManager", dbProperties, directConnectionToDB, namespace);
