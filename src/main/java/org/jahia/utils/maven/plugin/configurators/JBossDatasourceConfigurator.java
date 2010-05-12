@@ -37,7 +37,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.Map;
 
-import org.jahia.utils.maven.plugin.buildautomation.JahiaPropertiesBean;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
@@ -52,8 +51,8 @@ import org.jdom.output.XMLOutputter;
 public class JBossDatasourceConfigurator extends AbstractXMLConfigurator {
 
     public JBossDatasourceConfigurator(Map dbProperties,
-            JahiaPropertiesBean jahiaPropertiesBean) {
-        super(dbProperties, jahiaPropertiesBean);
+            JahiaConfigInterface jahiaConfigInterface) {
+        super(dbProperties, jahiaConfigInterface);
     }
 
     public void updateConfiguration(String sourceFileName, String destFileName)

@@ -20,11 +20,11 @@ public class JahiaPropertiesConfiguratorTest extends AbstractConfiguratorTestCas
         File jahiaSkeletonFile = new File(jahiaSkeletonURL.getFile());
         String jahiaSkeletonFileParentPath = jahiaSkeletonFile.getParentFile().getPath() + File.separator;
 
-        JahiaPropertiesConfigurator websphereOracleConfigurator = new JahiaPropertiesConfigurator(oracleDBProperties, websphereOraclePropertiesBean);
+        JahiaPropertiesConfigurator websphereOracleConfigurator = new JahiaPropertiesConfigurator(oracleDBProperties, websphereOracleConfigBean);
         websphereOracleConfigurator.updateConfiguration(jahiaSkeletonFile.toString(), jahiaSkeletonFileParentPath + "jahia.properties");
         Properties websphereOracleProperties = new Properties();
         websphereOracleProperties.load(new FileInputStream(jahiaSkeletonFileParentPath + "jahia.properties"));
-        assertEquals("http://" + websphereOraclePropertiesBean.getLocalIp() + ":" + websphereOraclePropertiesBean.getLocalPort(), websphereOracleProperties.getProperty("localAccessUri"));
+        assertEquals("http://" + websphereOracleConfigBean.getLocalIp() + ":" + websphereOracleConfigBean.getLocalPort(), websphereOracleProperties.getProperty("localAccessUri"));
         assertEquals("was", websphereOracleProperties.getProperty("server"));
         assertEquals("1.2.3.4", websphereOracleProperties.getProperty("localIp"));
         assertEquals("9080", websphereOracleProperties.getProperty("localPort"));
@@ -32,7 +32,7 @@ public class JahiaPropertiesConfiguratorTest extends AbstractConfiguratorTestCas
         assertEquals("3", websphereOracleProperties.getProperty("cluster.tcp.num_initial_members"));
         assertEquals("1.2.3.4[7840],2.3.4.5[7840],3.4.5.6[7840],4.5.6.7[7840]", websphereOracleProperties.getProperty("cluster.tcp.service.nodes.ip_address"));
         
-        JahiaPropertiesConfigurator tomcatMySQLConfigurator = new JahiaPropertiesConfigurator(mysqlDBProperties, tomcatMySQLPropertiesBean);
+        JahiaPropertiesConfigurator tomcatMySQLConfigurator = new JahiaPropertiesConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);
         tomcatMySQLConfigurator.updateConfiguration(jahiaSkeletonFileParentPath + "jahia.properties", jahiaSkeletonFileParentPath + "jahia2.properties");
         Properties tomcatMySQLProperties = new Properties();
         tomcatMySQLProperties.load(new FileInputStream(jahiaSkeletonFileParentPath + "jahia2.properties"));

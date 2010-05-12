@@ -31,7 +31,7 @@
  * for your use, please contact the sales department at sales@jahia.com.
  */
 
-package org.jahia.utils.maven.plugin.buildautomation;
+package org.jahia.utils.maven.plugin.configurators;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;

@@ -38,7 +38,6 @@ import org.jdom.output.XMLOutputter;
 import org.jdom.output.Format;
 import org.jdom.xpath.XPath;
 import org.jdom.input.SAXBuilder;
-import org.jahia.utils.maven.plugin.buildautomation.JahiaPropertiesBean;
 
 import java.io.FileWriter;
 import java.io.FileReader;
@@ -54,14 +53,14 @@ import java.util.List;
  */
 public class JackrabbitConfigurator extends AbstractXMLConfigurator {
 
-    public JackrabbitConfigurator(Map dbProperties, JahiaPropertiesBean jahiaPropertiesBean) {
-        super(dbProperties, jahiaPropertiesBean);
+    public JackrabbitConfigurator(Map dbProperties, JahiaConfigInterface jahiaConfigInterface) {
+        super(dbProperties, jahiaConfigInterface);
     }
    
     public void updateConfiguration(String sourceFileName, String destFileName) throws Exception {
         try {
             boolean directConnectionToDB = false;
-            if ("was".equals(jahiaPropertiesBean.getServer())) {
+            if ("was".equals(jahiaConfigInterface.getTargetServerType())) {
                 directConnectionToDB = true;
             }
 
@@ -81,7 +80,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             Element journalElement;
             if (clusterElement != null) {
                 journalElement = clusterElement.getChild("Journal");
-                clusterElement.setAttribute("id", jahiaPropertiesBean.getCluster_node_serverId());
+                clusterElement.setAttribute("id", jahiaConfigInterface.getCluster_node_serverId());
                 journalElement.setAttribute("class", getValue(dbProperties, "jahia.jackrabbit.journal"));
 //            } else {
 //                clusterElement.getParent().removeContent(clusterElement);

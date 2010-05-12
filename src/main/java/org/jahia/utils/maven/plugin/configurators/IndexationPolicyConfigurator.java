@@ -34,12 +34,9 @@
 package org.jahia.utils.maven.plugin.configurators;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.FileWriter;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
-import org.jahia.utils.maven.plugin.buildautomation.JahiaPropertiesBean;
 import org.jdom.input.SAXBuilder;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -54,8 +51,8 @@ import org.jdom.output.XMLOutputter;
  */
 public class IndexationPolicyConfigurator extends AbstractXMLConfigurator {
 
-    public IndexationPolicyConfigurator(Map dbProperties, JahiaPropertiesBean jahiaPropertiesBean) {
-        super(dbProperties, jahiaPropertiesBean);
+    public IndexationPolicyConfigurator(Map dbProperties, JahiaConfigInterface jahiaConfigInterface) {
+        super(dbProperties, jahiaConfigInterface);
     }
 
 
@@ -70,7 +67,7 @@ public class IndexationPolicyConfigurator extends AbstractXMLConfigurator {
         Document jdomDocument = saxBuilder.build(sourceFileName);
 
         String multipleIndexingServersValue = "0";
-        if (Boolean.valueOf(jahiaPropertiesBean.getCluster_activated())) {
+        if (Boolean.valueOf(jahiaConfigInterface.getCluster_activated())) {
             multipleIndexingServersValue = "1";
         }
 

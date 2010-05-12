@@ -33,7 +33,6 @@
 
 package org.jahia.utils.maven.plugin.configurators;
 
-import org.jahia.utils.maven.plugin.buildautomation.JahiaPropertiesBean;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
@@ -52,8 +51,8 @@ import java.util.Map;
  */
 public class SpringHibernateConfigurator extends AbstractXMLConfigurator {
 
-    public SpringHibernateConfigurator(Map dbProperties, JahiaPropertiesBean jahiaPropertiesBean) {
-        super(dbProperties, jahiaPropertiesBean);
+    public SpringHibernateConfigurator(Map dbProperties, JahiaConfigInterface jahiaConfigInterface) {
+        super(dbProperties, jahiaConfigInterface);
     }
 
     public void updateConfiguration(String sourceFileName, String destFileName) throws Exception {

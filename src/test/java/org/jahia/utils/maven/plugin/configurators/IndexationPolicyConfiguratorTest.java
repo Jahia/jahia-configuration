@@ -2,7 +2,6 @@ package org.jahia.utils.maven.plugin.configurators;
 
 import org.jdom.input.SAXBuilder;
 import org.jdom.Document;
-import org.jdom.Attribute;
 import org.jdom.Element;
 
 import java.net.URL;
@@ -21,7 +20,7 @@ public class IndexationPolicyConfiguratorTest extends AbstractXMLConfiguratorTes
         File indexationPolicyFile = new File(indexationPolicyURL.getFile());
         String indexationPolicyFileParentPath = indexationPolicyFile.getParentFile().getPath() + File.separator;
 
-        IndexationPolicyConfigurator websphereOracleConfigurator = new IndexationPolicyConfigurator(oracleDBProperties, websphereOraclePropertiesBean);
+        IndexationPolicyConfigurator websphereOracleConfigurator = new IndexationPolicyConfigurator(oracleDBProperties, websphereOracleConfigBean);
         websphereOracleConfigurator.updateConfiguration(indexationPolicyFile.toString(), indexationPolicyFileParentPath + "applicationcontext-indexationpolicy2.xml");
 
         SAXBuilder saxBuilder = new SAXBuilder();
@@ -30,7 +29,7 @@ public class IndexationPolicyConfiguratorTest extends AbstractXMLConfiguratorTes
 
         assertEquals("1", ((Element) getNode(jdomDocument, "/xp:beans/xp:bean[@id=\"indexationConfig\"]/xp:property[@name=\"properties\"]/xp:props/xp:prop[@key=\"multipleIndexingServer\"]", prefix)).getText());
 
-        IndexationPolicyConfigurator tomcatMySQLConfigurator = new IndexationPolicyConfigurator(mysqlDBProperties, tomcatMySQLPropertiesBean);
+        IndexationPolicyConfigurator tomcatMySQLConfigurator = new IndexationPolicyConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);
         tomcatMySQLConfigurator.updateConfiguration(indexationPolicyFileParentPath + "applicationcontext-indexationpolicy2.xml", indexationPolicyFileParentPath + "applicationcontext-indexationpolicy3.xml");
 
         jdomDocument = saxBuilder.build(indexationPolicyFileParentPath + "applicationcontext-indexationpolicy3.xml");

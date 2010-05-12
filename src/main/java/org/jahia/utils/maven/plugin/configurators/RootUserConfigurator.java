@@ -32,7 +32,6 @@
  */
 package org.jahia.utils.maven.plugin.configurators;
 
-import org.jahia.utils.maven.plugin.buildautomation.JahiaPropertiesBean;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.Namespace;
@@ -55,8 +54,8 @@ public class RootUserConfigurator extends AbstractXMLConfigurator {
 
     private String rootPassword;
 
-    public RootUserConfigurator(Map dbProperties, JahiaPropertiesBean jahiaPropertiesBean, String rootPassword) {
-        super(dbProperties, jahiaPropertiesBean);
+    public RootUserConfigurator(Map dbProperties, JahiaConfigInterface jahiaConfigInterface, String rootPassword) {
+        super(dbProperties, jahiaConfigInterface);
         this.rootPassword = rootPassword;
     }
 

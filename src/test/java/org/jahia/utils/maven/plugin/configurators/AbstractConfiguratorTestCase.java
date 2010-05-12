@@ -2,11 +2,11 @@ package org.jahia.utils.maven.plugin.configurators;
 
 import junit.framework.TestCase;
 
+import java.io.File;
+import java.net.URL;
 import java.util.Properties;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.jahia.utils.maven.plugin.buildautomation.JahiaPropertiesBean;
 
 /**
  * Common abstract class for setting up all the stuff that is needed to test configurators, such as resource paths,
@@ -21,8 +21,8 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
     Properties oracleDBProperties = new Properties();
     Properties mysqlDBProperties = new Properties();
 
-    JahiaPropertiesBean websphereOraclePropertiesBean;
-    JahiaPropertiesBean tomcatMySQLPropertiesBean;
+    JahiaConfigBean websphereOracleConfigBean;
+    JahiaConfigBean tomcatMySQLConfigBean;
 
     @Override
     protected void setUp() throws Exception {
@@ -33,30 +33,37 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
         mysqlDBProperties = new Properties();
         mysqlDBProperties.load(this.getClass().getClassLoader().getResourceAsStream("configurators/WEB-INF/var/db/mysql.script"));
 
-        websphereOraclePropertiesBean = new JahiaPropertiesBean();
-        websphereOraclePropertiesBean.setServer("was");
-        websphereOraclePropertiesBean.setCluster_activated("true");
-        websphereOraclePropertiesBean.setCluster_node_serverId("jahiaServer1");
-        websphereOraclePropertiesBean.setLocalIp("1.2.3.4");
-        websphereOraclePropertiesBean.setLocalPort("9080");
-        websphereOraclePropertiesBean.setProcessingServer("true");
-        websphereOraclePropertiesBean.setHibernateDialect(oracleDBProperties.getProperty("jahia.database.hibernate.dialect"));
-        websphereOraclePropertiesBean.setNestedTransactionAllowed(oracleDBProperties.getProperty("jahia.nested_transaction_allowed"));
+        URL configuratorsResourceURL = this.getClass().getClassLoader().getResource("configurators");
+        File configuratorsFile = new File(configuratorsResourceURL.toURI());
+
+        websphereOracleConfigBean = new JahiaConfigBean();
+        websphereOracleConfigBean.setDatabaseType("oracle");
+        websphereOracleConfigBean.setTargetServerType("was");
+        websphereOracleConfigBean.setTargetServerVersion("6.1.0.25");
+        websphereOracleConfigBean.setTargetConfigurationDirectory(configuratorsFile.toString());
+        websphereOracleConfigBean.setSourceWebAppDir(configuratorsFile.toString());
+        websphereOracleConfigBean.setCluster_activated("true");
+        websphereOracleConfigBean.setCluster_node_serverId("jahiaServer1");
+        websphereOracleConfigBean.setLocalIp("1.2.3.4");
+        websphereOracleConfigBean.setLocalPort("9080");
+        websphereOracleConfigBean.setProcessingServer("true");
         List<String> clusterNodes = new ArrayList<String>();
         clusterNodes.add("2.3.4.5");
         clusterNodes.add("3.4.5.6");
         clusterNodes.add("4.5.6.7");
-        websphereOraclePropertiesBean.setClusterNodes(clusterNodes);
+        websphereOracleConfigBean.setClusterNodes(clusterNodes);
 
-        tomcatMySQLPropertiesBean = new JahiaPropertiesBean();
-        tomcatMySQLPropertiesBean.setServer("tomcat");
-        tomcatMySQLPropertiesBean.setCluster_activated("false");
-        tomcatMySQLPropertiesBean.setCluster_node_serverId("jahiaServer1");
-        tomcatMySQLPropertiesBean.setLocalIp("localhost");
-        tomcatMySQLPropertiesBean.setLocalPort("8080");
-        tomcatMySQLPropertiesBean.setProcessingServer("true");
-        tomcatMySQLPropertiesBean.setHibernateDialect(mysqlDBProperties.getProperty("jahia.database.hibernate.dialect"));
-        tomcatMySQLPropertiesBean.setNestedTransactionAllowed(mysqlDBProperties.getProperty("jahia.nested_transaction_allowed"));        
+        tomcatMySQLConfigBean = new JahiaConfigBean();
+        tomcatMySQLConfigBean.setDatabaseType("mysql");
+        tomcatMySQLConfigBean.setTargetServerType("tomcat");
+        tomcatMySQLConfigBean.setTargetServerVersion("5.5");
+        tomcatMySQLConfigBean.setTargetConfigurationDirectory(configuratorsFile.toString());
+        tomcatMySQLConfigBean.setSourceWebAppDir(configuratorsFile.toString());
+        tomcatMySQLConfigBean.setCluster_activated("false");
+        tomcatMySQLConfigBean.setCluster_node_serverId("jahiaServer1");
+        tomcatMySQLConfigBean.setLocalIp("localhost");
+        tomcatMySQLConfigBean.setLocalPort("8080");
+        tomcatMySQLConfigBean.setProcessingServer("true");
     }
 
     @Override

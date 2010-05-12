@@ -1,7 +1,5 @@
 package org.jahia.utils.maven.plugin.configurators;
 
-import org.jahia.utils.maven.plugin.buildautomation.JahiaPropertiesBean;
-
 import java.util.Map;
 
 /**
@@ -17,11 +15,11 @@ import java.util.Map;
 public abstract class AbstractConfigurator {
 
     protected Map dbProperties;
-    protected JahiaPropertiesBean jahiaPropertiesBean;
+    protected JahiaConfigInterface jahiaConfigInterface;
 
-    public AbstractConfigurator(Map dbProps, JahiaPropertiesBean jahiaPropertiesBean) {
+    public AbstractConfigurator(Map dbProps, JahiaConfigInterface jahiaConfigInterface) {
         this.dbProperties = dbProps;
-        this.jahiaPropertiesBean = jahiaPropertiesBean;
+        this.jahiaConfigInterface = jahiaConfigInterface;
     }
 
     public abstract void updateConfiguration(String sourceFileName, String destFileName) throws Exception;
@@ -33,6 +31,10 @@ public abstract class AbstractConfigurator {
         }
         replacement = replacement.trim();
         return replacement;
+    }
+
+    protected String getDBProperty(String key) {
+        return getValue(dbProperties, key);
     }
 
 }

@@ -247,7 +247,7 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
     /**
      * Get the currently built Jahia version
      */    
-    protected float getJahiaVersion() {
+    public float getJahiaVersion() {
         float jahiaVersion = 0;
         String version = null;
         if ("jahia-root".equals(project.getArtifactId())) {

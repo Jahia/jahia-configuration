@@ -1,6 +1,5 @@
 package org.jahia.utils.maven.plugin.configurators;
 
-import org.jahia.utils.maven.plugin.buildautomation.JahiaPropertiesBean;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -17,8 +16,8 @@ import java.util.List;
  *         Time: 3:28:04 PM
  */
 public abstract class AbstractXMLConfigurator extends AbstractConfigurator {
-    public AbstractXMLConfigurator(Map dbProps, JahiaPropertiesBean jahiaPropertiesBean) {
-        super(dbProps, jahiaPropertiesBean);
+    public AbstractXMLConfigurator(Map dbProps, JahiaConfigInterface jahiaConfigInterface) {
+        super(dbProps, jahiaConfigInterface);
     }
 
     /**

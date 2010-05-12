@@ -39,7 +39,7 @@
 //  01.04.2001  AK  change the package.
 //
 
-package org.jahia.utils.maven.plugin.buildautomation;
+package org.jahia.utils.maven.plugin.configurators;
 
 import java.io.BufferedReader;
 import java.io.File;

@@ -20,7 +20,7 @@ public class TomcatContextXmlConfiguratorTest extends AbstractXMLConfiguratorTes
         File contextXmlFile = new File(contextXmlUrl.getFile());
         String contextXmlParentPath = contextXmlFile.getParentFile().getPath() + File.separator;
 
-        TomcatContextXmlConfigurator tomcatOracleConfigurator = new TomcatContextXmlConfigurator(oracleDBProperties, tomcatMySQLPropertiesBean);
+        TomcatContextXmlConfigurator tomcatOracleConfigurator = new TomcatContextXmlConfigurator(oracleDBProperties, tomcatMySQLConfigBean);
         tomcatOracleConfigurator.updateConfiguration(contextXmlFile.toString(), contextXmlParentPath + "context-modified.xml");
 
         // The following tests are NOT exhaustive
@@ -33,7 +33,7 @@ public class TomcatContextXmlConfiguratorTest extends AbstractXMLConfiguratorTes
         assertAllTextEquals(jdomDocument, "//Resource/@url", prefix, oracleDBProperties.getProperty("jahia.database.url"));
         assertAllTextEquals(jdomDocument, "//Resource/@driverClassName", prefix, oracleDBProperties.getProperty("jahia.database.driver"));
 
-        TomcatContextXmlConfigurator tomcatMySQLContextXmlConfigurator = new TomcatContextXmlConfigurator(mysqlDBProperties, tomcatMySQLPropertiesBean);
+        TomcatContextXmlConfigurator tomcatMySQLContextXmlConfigurator = new TomcatContextXmlConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);
         tomcatMySQLContextXmlConfigurator.updateConfiguration(contextXmlParentPath + "context-modified.xml", contextXmlParentPath + "context-modified2.xml");
 
         // The following tests are NOT exhaustive

@@ -31,7 +31,7 @@
  * for your use, please contact the sales department at sales@jahia.com.
  */
 
-package org.jahia.utils.maven.plugin.buildautomation;
+package org.jahia.utils.maven.plugin.configurators;
 
 import java.io.File;
 import java.util.List;
@@ -43,11 +43,10 @@ import java.util.ArrayList;
  * Date: 16 juil. 2008
  * Time: 10:33:15
  */
-public class JahiaPropertiesBean implements Cloneable {
+public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private File outputDirectory;
     private String jahiaFileRepositoryDiskPath = "$context/WEB-INF/var/content/filemanager/";
     private String release = "Testing_release";
-    private String server = "tomcat";
     private String localIp = "localhost";
     private String localPort = "8080";
     private String jahiaEtcDiskPath = "$context/WEB-INF/etc/";
@@ -80,11 +79,32 @@ public class JahiaPropertiesBean implements Cloneable {
     private List<String> clusterNodes = new ArrayList<String>();
     private String db_script = "hypersonic.script";
     private String developmentMode = "false";
-    private String hibernateDialect;
-    private String nestedTransactionAllowed;
+    private String targetServerType = "tomcat";
+    private String targetServerVersion = "5.5";
+    private String targetServerDirectory = "";
+    private String databaseType = "derby";
+    private String databaseUrl = "jdbc:derby:target/jahiadb;create=true";
+    private String databaseUsername = "";
+    private String databasePassword = "";
+    private List<String> siteImportLocation;
 
-    public JahiaPropertiesBean clone() throws CloneNotSupportedException {
-        return (JahiaPropertiesBean) super.clone();
+    private String externalConfigPath = null;
+    private String jahiaRootPassword = "root1234";
+    private float jahiaVersion = 6.0f;
+    private String webAppDirName = "";
+    private boolean configureBeforePackaging = true;
+    private String sourceWebAppDir = "";
+
+    /**
+     * This property is here for instance when we are in a clustered mode we don not want the database scripts to be
+     * executed for every node
+     */
+    private String overwritedb = "true";
+    private String storeFilesInDB = "false";
+    private String targetConfigurationDirectory = "";
+    
+    public JahiaConfigInterface clone() throws CloneNotSupportedException {
+        return (JahiaConfigInterface) super.clone();
     }
 
     public File getOutputDirectory() {
@@ -109,14 +129,6 @@ public class JahiaPropertiesBean implements Cloneable {
 
     public void setRelease(String release) {
         this.release = release;
-    }
-
-    public String getServer() {
-        return server;
-    }
-
-    public void setServer(String server) {
-        this.server = server;
     }
 
     public String getLocalIp() {
@@ -375,19 +387,139 @@ public class JahiaPropertiesBean implements Cloneable {
         return developmentMode;
     }
 
-    public String getHibernateDialect() {
-        return hibernateDialect;
+    public String getTargetServerDirectory() {
+        return targetServerDirectory;
     }
 
-    public void setHibernateDialect(String hibernateDialect) {
-        this.hibernateDialect = hibernateDialect;
+    public void setTargetServerDirectory(String targetServerDirectory) {
+        this.targetServerDirectory = targetServerDirectory;
     }
 
-    public String getNestedTransactionAllowed() {
-        return nestedTransactionAllowed;
+    public String getTargetServerType() {
+        return targetServerType;
     }
 
-    public void setNestedTransactionAllowed(String nestedTransactionAllowed) {
-        this.nestedTransactionAllowed = nestedTransactionAllowed;
+    public void setTargetServerType(String targetServerType) {
+        this.targetServerType = targetServerType;
+    }
+
+    public String getTargetServerVersion() {
+        return targetServerVersion;
+    }
+
+    public void setTargetServerVersion(String targetServerVersion) {
+        this.targetServerVersion = targetServerVersion;
+    }
+
+    public String getDatabaseType() {
+        return databaseType;
+    }
+
+    public void setDatabaseType(String databaseType) {
+        this.databaseType = databaseType;
+    }
+
+    public String getDatabasePassword() {
+        return databasePassword;
+    }
+
+    public void setDatabasePassword(String databasePassword) {
+        this.databasePassword = databasePassword;
+    }
+
+    public String getDatabaseUrl() {
+        return databaseUrl;
+    }
+
+    public void setDatabaseUrl(String databaseUrl) {
+        this.databaseUrl = databaseUrl;
+    }
+
+    public String getDatabaseUsername() {
+        return databaseUsername;
+    }
+
+    public void setDatabaseUsername(String databaseUsername) {
+        this.databaseUsername = databaseUsername;
+    }
+
+    public String getOverwritedb() {
+        return overwritedb;
+    }
+
+    public void setOverwritedb(String overwritedb) {
+        this.overwritedb = overwritedb;
+    }
+
+    public List<String> getSiteImportLocation() {
+        return siteImportLocation;
+    }
+
+    public void setSiteImportLocation(List<String> siteImportLocation) {
+        this.siteImportLocation = siteImportLocation;
+    }
+
+    public String getStoreFilesInDB() {
+        return storeFilesInDB;
+    }
+
+    public void setStoreFilesInDB(String storeFilesInDB) {
+        this.storeFilesInDB = storeFilesInDB;
+    }
+
+    public String getTargetConfigurationDirectory() {
+        return targetConfigurationDirectory;
+    }
+
+    public void setTargetConfigurationDirectory(String targetConfigurationDirectory) {
+        this.targetConfigurationDirectory = targetConfigurationDirectory;
+    }
+
+    public boolean isConfigureBeforePackaging() {
+        return configureBeforePackaging;
+    }
+
+    public String getExternalConfigPath() {
+        return externalConfigPath;
+    }
+
+    public String getJahiaRootPassword() {
+        return jahiaRootPassword;
+    }
+
+    public float getJahiaVersion() {
+        return jahiaVersion;
+    }
+
+    public String getWebAppDirName() {
+        return webAppDirName;
+    }
+
+    public String getSourceWebAppDir() {
+        return sourceWebAppDir;
+    }
+
+    public void setConfigureBeforePackaging(boolean configureBeforePackaging) {
+        this.configureBeforePackaging = configureBeforePackaging;
+    }
+
+    public void setExternalConfigPath(String externalConfigPath) {
+        this.externalConfigPath = externalConfigPath;
+    }
+
+    public void setJahiaRootPassword(String jahiaRootPassword) {
+        this.jahiaRootPassword = jahiaRootPassword;
+    }
+
+    public void setJahiaVersion(float jahiaVersion) {
+        this.jahiaVersion = jahiaVersion;
+    }
+
+    public void setSourceWebAppDir(String sourceWebAppDir) {
+        this.sourceWebAppDir = sourceWebAppDir;
+    }
+
+    public void setWebAppDirName(String webAppDirName) {
+        this.webAppDirName = webAppDirName;
     }
 }

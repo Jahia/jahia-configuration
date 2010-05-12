@@ -21,7 +21,7 @@ public class WebXmlConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         String webXmlParentPath = webXmlFile.getParentFile().getPath() + File.separator;
 
         // the following tests the modifications required to the web.xml file when deploying under Websphere.
-        WebXmlConfigurator oracleWebsphereWebXmlConfigurator = new WebXmlConfigurator(oracleDBProperties, websphereOraclePropertiesBean);
+        WebXmlConfigurator oracleWebsphereWebXmlConfigurator = new WebXmlConfigurator(oracleDBProperties, websphereOracleConfigBean);
         oracleWebsphereWebXmlConfigurator.updateConfiguration(webXmlFile.toString(), webXmlParentPath + "web-modified.xml");
 
         // ok the file is modified now, let's validate it.
@@ -35,7 +35,7 @@ public class WebXmlConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         assertNull(getNode(jdomDocument, "/"+tagPre+"web-app//"+tagPre+"servlet-mapping[contains("+tagPre+"servlet-name,\"Test\")]", prefix));
         checkOnlyOneElement(jdomDocument, "/"+tagPre+"web-app//"+tagPre+"context-param[contains("+tagPre+"param-name,\"com.ibm.websphere.portletcontainer.PortletDeploymentEnabled\")]", prefix );
 
-        WebXmlConfigurator tomcatMySQLWebXmlConfigurator = new WebXmlConfigurator(mysqlDBProperties, tomcatMySQLPropertiesBean);
+        WebXmlConfigurator tomcatMySQLWebXmlConfigurator = new WebXmlConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);
         tomcatMySQLWebXmlConfigurator.updateConfiguration(webXmlParentPath + "web-modified.xml", webXmlParentPath + "web-modified2.xml");
 
         saxBuilder = new SAXBuilder();

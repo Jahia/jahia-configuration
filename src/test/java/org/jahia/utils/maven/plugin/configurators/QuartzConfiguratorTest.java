@@ -20,7 +20,7 @@ public class QuartzConfiguratorTest extends AbstractConfiguratorTestCase {
         File quartzConfigurationFile = new File(quartzConfigurationURL.getFile());
         String quartzConfigurationFileParentPath = quartzConfigurationFile.getParentFile().getPath() + File.separator;
 
-        QuartzConfigurator websphereOracleQuartzConfigurator = new QuartzConfigurator(oracleDBProperties, websphereOraclePropertiesBean);
+        QuartzConfigurator websphereOracleQuartzConfigurator = new QuartzConfigurator(oracleDBProperties, websphereOracleConfigBean);
         websphereOracleQuartzConfigurator.updateConfiguration(quartzConfigurationFile.toString(), quartzConfigurationFileParentPath + "quartz-modified.properties");
 
         Properties websphereProperties = new Properties();
@@ -33,7 +33,7 @@ public class QuartzConfiguratorTest extends AbstractConfiguratorTestCase {
         }
         // TODO complete validation checks.
 
-        QuartzConfigurator  tomcatMySQLQuartzConfigurator = new QuartzConfigurator(mysqlDBProperties, tomcatMySQLPropertiesBean);
+        QuartzConfigurator  tomcatMySQLQuartzConfigurator = new QuartzConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);
         tomcatMySQLQuartzConfigurator.updateConfiguration(quartzConfigurationFileParentPath + "quartz-modified.properties", quartzConfigurationFileParentPath + "quartz-modified2.properties");
 
         // TODO implement validation checks.

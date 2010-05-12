@@ -24,7 +24,7 @@ public class SpringHibernateConfiguratorTest extends AbstractXMLConfiguratorTest
         File applicationContextHibernateJahia6File = new File(applicationContextJahia6HibernateURL.getFile());
         String applicationContextHibernateFileParentPath = applicationContextHibernateJahia65File.getParentFile().getPath() + File.separator;
 
-        SpringHibernateConfigurator websphereOracleJahia65Configurator = new SpringHibernateConfigurator(oracleDBProperties, websphereOraclePropertiesBean);
+        SpringHibernateConfigurator websphereOracleJahia65Configurator = new SpringHibernateConfigurator(oracleDBProperties, websphereOracleConfigBean);
         websphereOracleJahia65Configurator.updateConfiguration(applicationContextHibernateJahia65File.toString(), applicationContextHibernateFileParentPath + "applicationcontext-hibernate-jahia65-2.xml");
 
         SAXBuilder saxBuilder = new SAXBuilder();
@@ -36,7 +36,7 @@ public class SpringHibernateConfiguratorTest extends AbstractXMLConfiguratorTest
 
         // Now let's test with Jahia 6's configuration format....
 
-        SpringHibernateConfigurator websphereOracleJahia6Configurator = new SpringHibernateConfigurator(oracleDBProperties, websphereOraclePropertiesBean);
+        SpringHibernateConfigurator websphereOracleJahia6Configurator = new SpringHibernateConfigurator(oracleDBProperties, websphereOracleConfigBean);
         websphereOracleJahia6Configurator.updateConfiguration(applicationContextHibernateJahia6File.toString(), applicationContextHibernateFileParentPath + "applicationcontext-hibernate-jahia6-2.xml");
 
         jdomDocument = saxBuilder.build(applicationContextHibernateFileParentPath + "applicationcontext-hibernate-jahia6-2.xml");
@@ -48,7 +48,7 @@ public class SpringHibernateConfiguratorTest extends AbstractXMLConfiguratorTest
         }
         assertEquals(transactionIsolationLevel, ((Attribute)getNode(jdomDocument, "/xp:beans/xp:bean[@id=\"transactionManager\"]/xp:property[@name=\"nestedTransactionAllowed\"]/@value", prefix)).getValue());
         
-        SpringHibernateConfigurator tomcatMySQLJahia6Configurator = new SpringHibernateConfigurator(mysqlDBProperties, tomcatMySQLPropertiesBean);
+        SpringHibernateConfigurator tomcatMySQLJahia6Configurator = new SpringHibernateConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);
         tomcatMySQLJahia6Configurator.updateConfiguration(applicationContextHibernateFileParentPath + "applicationcontext-hibernate-jahia6-2.xml", applicationContextHibernateFileParentPath + "applicationcontext-hibernate-jahia6-3.xml");
 
         jdomDocument = saxBuilder.build(applicationContextHibernateFileParentPath + "applicationcontext-hibernate-jahia6-3.xml");

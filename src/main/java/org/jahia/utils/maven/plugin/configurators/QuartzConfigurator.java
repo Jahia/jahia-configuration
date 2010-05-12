@@ -34,9 +34,6 @@
 package org.jahia.utils.maven.plugin.configurators;
 
 
-import org.jahia.utils.maven.plugin.buildautomation.JahiaPropertiesBean;
-import org.jahia.utils.maven.plugin.buildautomation.PropertiesManager;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -49,14 +46,14 @@ import java.util.Map;
  */
 public class QuartzConfigurator extends AbstractConfigurator {
 
-    public QuartzConfigurator(Map dbProperties, JahiaPropertiesBean jahiaPropertiesBean) {
-        super(dbProperties, jahiaPropertiesBean);
+    public QuartzConfigurator(Map dbProperties, JahiaConfigInterface jahiaConfigInterface) {
+        super(dbProperties, jahiaConfigInterface);
     }
 
     public void updateConfiguration(String sourceFileName, String destFileName) throws IOException {
 
         boolean useJTA = false;
-        if ("was".equals(jahiaPropertiesBean.getServer())) {
+        if ("was".equals(jahiaConfigInterface.getTargetServerType())) {
             useJTA = true;
         }
 

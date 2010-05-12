@@ -21,7 +21,7 @@ public class SpringServicesConfiguratorTest extends AbstractXMLConfiguratorTestC
         File applicationContextServicesFile = new File(applicationContextServicesURL.getFile());
         String applicationContextServicesFileParentPath = applicationContextServicesFile.getParentFile().getPath() + File.separator;
 
-        SpringServicesConfigurator websphereOracleConfigurator = new SpringServicesConfigurator(oracleDBProperties, websphereOraclePropertiesBean);
+        SpringServicesConfigurator websphereOracleConfigurator = new SpringServicesConfigurator(oracleDBProperties, websphereOracleConfigBean);
         websphereOracleConfigurator.updateConfiguration(applicationContextServicesFile.toString(), applicationContextServicesFileParentPath + "applicationcontext-services2.xml");
 
         SAXBuilder saxBuilder = new SAXBuilder();
@@ -30,7 +30,7 @@ public class SpringServicesConfiguratorTest extends AbstractXMLConfiguratorTestC
 
         assertEquals("http://${localIp}:9080", ((Attribute) getNode(jdomDocument, "/xp:beans/xp:bean[@id=\"FileListSync\"]/xp:property[@name=\"syncUrl\"]/@value", prefix)).getValue());
 
-        SpringServicesConfigurator tomcatMySQLConfigurator = new SpringServicesConfigurator(mysqlDBProperties, tomcatMySQLPropertiesBean);
+        SpringServicesConfigurator tomcatMySQLConfigurator = new SpringServicesConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);
         tomcatMySQLConfigurator.updateConfiguration(applicationContextServicesFileParentPath + "applicationcontext-services2.xml", applicationContextServicesFileParentPath + "applicationcontext-services3.xml");
 
         saxBuilder = new SAXBuilder();

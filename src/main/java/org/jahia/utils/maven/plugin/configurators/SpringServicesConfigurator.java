@@ -1,6 +1,5 @@
 package org.jahia.utils.maven.plugin.configurators;
 
-import org.jahia.utils.maven.plugin.buildautomation.JahiaPropertiesBean;
 import org.jdom.input.SAXBuilder;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -19,8 +18,8 @@ import java.io.FileWriter;
  */
 public class SpringServicesConfigurator extends AbstractXMLConfigurator {
 
-    public SpringServicesConfigurator(Map dbProps, JahiaPropertiesBean jahiaPropertiesBean) {
-        super(dbProps, jahiaPropertiesBean);
+    public SpringServicesConfigurator(Map dbProps, JahiaConfigInterface jahiaConfigInterface) {
+        super(dbProps, jahiaConfigInterface);
     }
 
     public void updateConfiguration(String sourceFileName, String destFileName) throws Exception {
@@ -32,7 +31,7 @@ public class SpringServicesConfigurator extends AbstractXMLConfigurator {
         Element syncURLPropertyElement = getElement(beansElement, "/xp:beans/xp:bean[@id=\"FileListSync\"]/xp:property[@name=\"syncUrl\"]");
         if ((syncURLPropertyElement != null) && (syncURLPropertyElement.getAttributeValue("value").indexOf(":${localPort}") < 0)) {
             // port was found in setting, let's change it !
-            setElementAttribute(beansElement, "/xp:beans/xp:bean[@id=\"FileListSync\"]/xp:property[@name=\"syncUrl\"]", "value", "http://${localIp}:" + jahiaPropertiesBean.getLocalPort());
+            setElementAttribute(beansElement, "/xp:beans/xp:bean[@id=\"FileListSync\"]/xp:property[@name=\"syncUrl\"]", "value", "http://${localIp}:" + jahiaConfigInterface.getLocalPort());
         }
 
         Format customFormat = Format.getPrettyFormat();

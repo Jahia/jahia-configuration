@@ -33,7 +33,6 @@
 
 package org.jahia.utils.maven.plugin.configurators;
 
-import org.jahia.utils.maven.plugin.buildautomation.JahiaPropertiesBean;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
@@ -51,8 +50,8 @@ import java.util.Map;
  */
 public class TomcatContextXmlConfigurator extends AbstractXMLConfigurator {
 
-    public TomcatContextXmlConfigurator(Map dbProperties, JahiaPropertiesBean jahiaPropertiesBean) {
-        super(dbProperties, jahiaPropertiesBean);
+    public TomcatContextXmlConfigurator(Map dbProperties, JahiaConfigInterface jahiaConfigInterface) {
+        super(dbProperties, jahiaConfigInterface);
     }
 
     public void updateConfiguration(String sourceFileName, String destFileName) throws Exception {

@@ -21,7 +21,7 @@ public class RootUserConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         File rootJahia6XmlFile = new File(rootJahia6XmlUrl.getFile());
         String rootJahia6XmlFileParentPath = rootJahia6XmlFile.getParentFile().getPath() + File.separator;
 
-        RootUserConfigurator jahia6RootUserConfigurator = new RootUserConfigurator(oracleDBProperties, websphereOraclePropertiesBean, "root1234");
+        RootUserConfigurator jahia6RootUserConfigurator = new RootUserConfigurator(oracleDBProperties, websphereOracleConfigBean, "root1234");
         jahia6RootUserConfigurator.updateConfiguration(rootJahia6XmlFile.toString(), rootJahia6XmlFileParentPath + "root-jahia6-modified.xml");
 
         SAXBuilder saxBuilder = new SAXBuilder();
@@ -33,7 +33,7 @@ public class RootUserConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         File rootXmlFile = new File(rootXmlUrl.getFile());
         String rootXmlFileParentPath = rootXmlFile.getParentFile().getPath() + File.separator;
 
-        RootUserConfigurator websphereOracleConfigurator = new RootUserConfigurator(oracleDBProperties, websphereOraclePropertiesBean, "root1234");
+        RootUserConfigurator websphereOracleConfigurator = new RootUserConfigurator(oracleDBProperties, websphereOracleConfigBean, "root1234");
         websphereOracleConfigurator.updateConfiguration(rootXmlFile.toString(), rootXmlFileParentPath + "root-jahia65-modified.xml");
 
         jdomDocument = saxBuilder.build(rootXmlFileParentPath + "root-jahia65-modified.xml");
@@ -41,7 +41,7 @@ public class RootUserConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         assertEquals("root", ((Element) getNode(jdomDocument, "/content/users/*", prefix)).getName());
         assertEquals("root1234", ((Attribute) getNode(jdomDocument, "/content/users/root/@j:password", prefix)).getValue());
 
-        RootUserConfigurator tomcatMySQLConfigurator = new RootUserConfigurator(mysqlDBProperties, tomcatMySQLPropertiesBean, "1234root");
+        RootUserConfigurator tomcatMySQLConfigurator = new RootUserConfigurator(mysqlDBProperties, tomcatMySQLConfigBean, "1234root");
         tomcatMySQLConfigurator.updateConfiguration(rootXmlFileParentPath + "root-jahia65-modified.xml", rootXmlFileParentPath + "root-jahia65-modified2.xml");
 
         jdomDocument = saxBuilder.build(rootXmlFileParentPath + "root-jahia65-modified2.xml");

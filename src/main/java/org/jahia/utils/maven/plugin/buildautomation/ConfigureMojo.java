@@ -42,6 +42,7 @@ import org.apache.commons.io.filefilter.NotFileFilter;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.jahia.utils.maven.plugin.AbstractManagementMojo;
+import org.jahia.utils.maven.plugin.MojoLogger;
 import org.jahia.utils.maven.plugin.configurators.*;
 import org.jahia.utils.maven.plugin.deployers.ServerDeploymentFactory;
 import org.codehaus.plexus.util.DirectoryScanner;
@@ -67,9 +68,7 @@ import java.util.ArrayList;
  * @requiresDependencyResolution runtime
  * @requiresProject false
  */
-public class ConfigureMojo extends AbstractManagementMojo
-
-{
+public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfigInterface {
     /**
      * @parameter expression="${jahia.configure.active}" default-value="false"
      * activates the configure goal
@@ -372,7 +371,7 @@ public class ConfigureMojo extends AbstractManagementMojo
      */
     protected String targetConfigurationDirectory;
 
-    JahiaPropertiesBean jahiaPropertiesBean;
+    // JahiaConfigBean jahiaPropertiesBean;
     DatabaseConnection db;
     File webappDir;
     Properties dbProps;
@@ -381,569 +380,13 @@ public class ConfigureMojo extends AbstractManagementMojo
 
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         if (active) {
-            if (targetConfigurationDirectory == null) {
-                targetConfigurationDirectory = targetServerDirectory;
-            } else if (!targetConfigurationDirectory.equals(targetServerDirectory)) {
-                // Configuration directory and target server directory are not equal, we will use the configuration
-                // directory for the configurators.
-                ServerDeploymentFactory.setTargetServerDirectory(targetConfigurationDirectory);
-            }
             try {
-                db = new DatabaseConnection();
-
-                getLog().info ("Configuring for server " + targetServerType + " version " + targetServerVersion + " with database type " + databaseType);
-
-                setProperties();
-
-                if (databaseType.equals("hypersonic")) {
-                    try {
-                        db.query("SHUTDOWN");
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        //
-                    }
-                }
-
-
-                // copying existing config
-                copyExternalConfig();
+                JahiaGlobalConfigurator jahiaGlobalConfigurator = new JahiaGlobalConfigurator(new MojoLogger(getLog()), this);
+                jahiaGlobalConfigurator.execute();
             } catch (Exception e) {
                 throw new MojoExecutionException("Error while configuring Jahia", e);
             }
         }
-    }
-
-    private void deployOnCluster() throws MojoExecutionException, MojoFailureException {
-        getLog().info(" Deploying in cluster for server in " + webappDir);
-        jahiaPropertiesBean.setClusterNodes(clusterNodes);
-        jahiaPropertiesBean.setProcessingServer(processingServer);
-    }
-
-    private void cleanDatabase() {
-        //if it is a mysql, try to drop the database and create a new one  your user must have full rights on this database
-        int begindatabasename = databaseUrl.indexOf("/", 13);
-        int enddatabaseName = databaseUrl.indexOf("?", begindatabasename);
-        String databaseName = "`" + databaseUrl.substring(begindatabasename + 1, enddatabaseName) + "`";  //because of the last '/' we added +1
-        try {
-
-            db.query("drop  database if exists " + databaseName);
-            db.query("create database " + databaseName);
-            db.query("alter database " + databaseName + " charset utf8");
-        } catch (Throwable t) {
-            // ignore because if this fails it's ok
-            getLog().info("error in " + databaseName + " because of" + t);
-        }
-    }
-
-    private void updateConfigurationFiles(String sourceWebAppPath, String webappPath, Properties dbProps, JahiaPropertiesBean jahiaPropertiesBean) throws Exception {
-        getLog().info("Configuring file using source " + sourceWebAppPath + " to target " + webappPath);
-        getLog().info("Store files in database is :" + storeFilesInDB);
-        new SpringHibernateConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-hibernate.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-hibernate.xml");
-        new QuartzConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/config/quartz.properties", webappPath + "/WEB-INF/etc/config/quartz.properties");
-        new JackrabbitConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml", webappPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml");
-        new TomcatContextXmlConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(sourceWebAppPath + "/META-INF/context.xml", webappPath + "/META-INF/context.xml");
-        new RootUserConfigurator(dbProps, jahiaPropertiesBean, encryptPassword(jahiaRootPassword)).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/repository/root.xml", webappPath + "/WEB-INF/etc/repository/root.xml");
-        new WebXmlConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(sourceWebAppPath + "/WEB-INF/web.xml", webappPath + "/WEB-INF/web.xml");
-        new SpringServicesConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-services.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-services.xml");
-        if ("jboss".equalsIgnoreCase(targetServerType)) {
-            String datasourcePath = new File(targetServerDirectory, ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion).getDeploymentFilePath("jahia-jboss-config.sar/jahia-ds", "xml")).getPath();
-            new JBossDatasourceConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(datasourcePath, datasourcePath);
-        }
-
-        new IndexationPolicyConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-indexationpolicy.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-indexationpolicy.xml");
-        new JahiaPropertiesConfigurator(dbProps, jahiaPropertiesBean).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.skeleton", webappPath + "/WEB-INF/etc/config/jahia.properties");
-
-    }
-
-    private void setProperties() throws Exception {
-
-        //create the bean that will contain all the necessary information for the building of the Jahia.properties file
-        jahiaPropertiesBean = new JahiaPropertiesBean();
-        jahiaPropertiesBean.setBigtext_service(bigtext_service);
-        jahiaPropertiesBean.setCluster_activated(cluster_activated);
-        jahiaPropertiesBean.setCluster_node_serverId(cluster_node_serverId);
-        jahiaPropertiesBean.setClusterNodes(null);
-        jahiaPropertiesBean.setContainerCacheDefaultExpirationDelay(containerCacheDefaultExpirationDelay);
-        jahiaPropertiesBean.setContainerCacheLiveModeOnly(containerCacheLiveModeOnly);
-        jahiaPropertiesBean.setDatasource_name(datasource_name);
-        jahiaPropertiesBean.setDefautSite(defautSite);
-        jahiaPropertiesBean.setEsiCacheActivated(esiCacheActivated);
-        jahiaPropertiesBean.setJahia_WebApps_Deployer_Service(getJahia_WebApps_Deployer_Service());
-        jahiaPropertiesBean.setJahiaEnginesHttpPath(jahiaEnginesHttpPath);
-        jahiaPropertiesBean.setJahiaEtcDiskPath(jahiaEtcDiskPath);
-        jahiaPropertiesBean.setJahiaFileRepositoryDiskPath(jahiaFileRepositoryDiskPath);
-        jahiaPropertiesBean.setJahiaFilesBigTextDiskPath(jahiaFilesBigTextDiskPath);
-        jahiaPropertiesBean.setJahiaFilesTemplatesDiskPath(jahiaFilesTemplatesDiskPath);
-        jahiaPropertiesBean.setJahiaImportsDiskPath(jahiaImportsDiskPath);
-        jahiaPropertiesBean.setJahiaJavaScriptHttpPath(jahiaJavaScriptHttpPath);
-        jahiaPropertiesBean.setJahiaNewTemplatesDiskPath(jahiaNewTemplatesDiskPath);
-        jahiaPropertiesBean.setJahiaNewWebAppsDiskPath(jahiaNewWebAppsDiskPath);
-        jahiaPropertiesBean.setJahiaSharedTemplatesDiskPath(jahiaSharedTemplatesDiskPath);
-        jahiaPropertiesBean.setJahiaTemplatesHttpPath(jahiaTemplatesHttpPath);
-        jahiaPropertiesBean.setJahiaVarDiskPath(jahiaVarDiskPath);
-        jahiaPropertiesBean.setJahiaWebAppsDeployerBaseURL(jahiaWebAppsDeployerBaseURL);
-        jahiaPropertiesBean.setLocalIp(localIp);
-        jahiaPropertiesBean.setOutputCacheActivated(outputCacheActivated);
-        jahiaPropertiesBean.setOutputCacheDefaultExpirationDelay(outputCacheDefaultExpirationDelay);
-        jahiaPropertiesBean.setOutputCacheExpirationOnly(outputCacheExpirationOnly);
-        jahiaPropertiesBean.setOutputContainerCacheActivated(outputContainerCacheActivated);
-        jahiaPropertiesBean.setOutputContainerCacheActivated(outputContainerCacheActivated);
-        jahiaPropertiesBean.setProcessingServer(processingServer);
-        jahiaPropertiesBean.setRelease(release);
-        jahiaPropertiesBean.setServer(targetServerType);
-        jahiaPropertiesBean.setLocalIp(localIp);
-        jahiaPropertiesBean.setLocalPort(localPort);
-        jahiaPropertiesBean.setDb_script(databaseType + ".script");
-        jahiaPropertiesBean.setDevelopmentMode(developmentMode);
-
-        if (cluster_activated.equals("true")) {
-            deployOnCluster();
-        } else {
-            getLog().info("Deployed in standalone for server in " + webappDir);
-        }
-
-        //now set the common properties to both a clustered environment and a standalone one
-
-        webappDir = getWebAppTargetConfigurationDir();
-        String sourceWebappPath = webappDir.toString();
-        if (configureBeforePackaging) {
-            sourceWebappPath = sourceWebAppDir;
-            getLog().info("Configuration before WAR packaging is active, will look for configuration files in directory " + sourceWebappPath + " and store the modified files in " + webappDir);
-        }
-
-        dbProps = new Properties();
-        //database script always ends with a .script
-        databaseScript = new File(sourceWebappPath + "/WEB-INF/var/db/" + databaseType + ".script");
-        try {
-            dbProps.load(new FileInputStream(databaseScript));
-            // we override these just as the configuration wizard does
-            dbProps.put("storeFilesInDB", storeFilesInDB);
-            dbProps.put("jahia.database.url", databaseUrl);
-            dbProps.put("jahia.database.user", databaseUsername);
-            dbProps.put("jahia.database.pass", databasePassword);
-        } catch (IOException e) {
-            getLog().error("Error in loading database settings because of " + e);
-        }
-
-        jahiaPropertiesBean.setHibernateDialect(dbProps.getProperty("jahia.database.hibernate.dialect"));
-        jahiaPropertiesBean.setNestedTransactionAllowed(dbProps.getProperty("jahia.nested_transaction_allowed"));
-        
-        getLog().info("Updating configuration files...");
-
-        //updates jackrabbit, quartz and spring files
-        updateConfigurationFiles(sourceWebappPath, webappDir.getPath(), dbProps, jahiaPropertiesBean);
-        getLog().info("creating database tables and copying license file");
-        try {
-            copyLicense(sourceWebappPath + "/WEB-INF/etc/config/licenses/license-free.xml", webappDir.getPath() + "/WEB-INF/etc/config/license.xml");
-            if (overwritedb.equals("true")) {
-                if (!databaseScript.exists()) {
-                    getLog().info("cannot find script in " + databaseScript.getPath());
-                    throw new MojoExecutionException("Cannot find script for database " + databaseType);
-                }
-                db.databaseOpen(dbProps.getProperty("jahia.database.driver"), databaseUrl, databaseUsername, databasePassword);
-                if (databaseType.equals("mysql")) {
-                    getLog().info("database is mysql trying to drop it and create a new one");
-                    cleanDatabase();
-                    //you have to reopen the database connection as before you just dropped the database
-                    db.databaseOpen(dbProps.getProperty("jahia.database.driver"), databaseUrl, databaseUsername, databasePassword);
-                }
-                createDBTables(databaseScript);
-                insertDBCustomContent();
-            }
-
-            if (!configureBeforePackaging) {
-                deleteRepositoryAndIndexes();
-                if ("tomcat".equals(targetServerType)) {
-                    deleteTomcatFiles();
-                }
-                if (siteImportLocation != null) {
-                    getLog().info("copying site Export to the " + webappDir + "/WEB-INF/var/imports");
-                    importSites();
-                } else {
-                    getLog().info("no site import found ");
-                }
-            }
-
-        } catch (Exception e) {
-            getLog().error("exception in setting the properties because of " + e, e);
-        }
-    }
-
-    private void importSites() {
-        for (int i = 0; i < siteImportLocation.size(); i++) {
-            try {
-                copy(siteImportLocation.get(i), webappDir + "/WEB-INF/var/imports");
-            } catch (IOException e) {
-                getLog().error("error in copying siteImport file " + e);
-            }
-        }
-    }
-
-
-    private void cleanDirectory(File toDelete) {
-        if (toDelete.exists()) {
-            try {
-                FileUtils.cleanDirectory(toDelete);
-            } catch (IOException e) {
-                getLog().error(
-                        "Error deleting content of the folder '" + toDelete
-                                + "'. Cause: " + e.getMessage(), e);
-            }
-        }
-    }
-    
-    private void deleteTomcatFiles() {
-
-        cleanDirectory(new File(targetServerDirectory + "/temp"));
-        cleanDirectory(new File(targetServerDirectory + "/work"));
-        getLog().info("finished deleting content of Tomcat's /temp and /work folders");
-    }
-
-    private void deleteRepositoryAndIndexes() {
-
-        try {
-            File[] files = new File(webappDir + "/WEB-INF/var/repository")
-                    .listFiles(new FilenameFilter() {
-                        public boolean accept(File dir, String name) {
-                            return !"indexing_configuration.xml".equals(name);
-                        }
-                    });
-            if (files != null) {
-                for (File file : files) {
-                    FileUtils.forceDelete(file);
-                }
-            }
-        } catch (IOException e) {
-            getLog().error(
-                    "Error deleting content of the Jahia's /repository folder. Cause: "
-                            + e.getMessage(), e);
-        }
-
-        cleanDirectory(new File(webappDir + "/WEB-INF/var/search_indexes"));
-        
-        File[] templateDirs = new File(webappDir + "/templates")
-                .listFiles(getJahiaVersion() < 6.5 ? (FilenameFilter) new AndFileFilter(
-                        new NotFileFilter(new NameFileFilter("default")),
-                        DirectoryFileFilter.DIRECTORY)
-                        : DirectoryFileFilter.DIRECTORY);
-        if (templateDirs != null) {
-            for (File templateDir : templateDirs) {
-                cleanDirectory(templateDir);
-                templateDir.delete();
-            }
-        }
-
-        getLog().info("finished deleting content of the /var/repository and /var/search_indexes folders");
-    }
-
-    //copy method for the license for instance
-    private void copyLicense(String fromFileName, String toFileName)
-            throws IOException {
-        File fromFile = new File(fromFileName);
-        File toFile = new File(toFileName);
-
-        if (!fromFile.exists())
-            throw new IOException("FileCopy: " + "no such source file: "
-                    + fromFileName);
-        if (!fromFile.isFile())
-            throw new IOException("FileCopy: " + "can't copy directory: "
-                    + fromFileName);
-        if (!fromFile.canRead())
-            throw new IOException("FileCopy: " + "source file is unreadable: "
-                    + fromFileName);
-
-        if (toFile.isDirectory()) {
-            toFile = new File(toFile, fromFile.getName());
-
-        }
-
-        FileInputStream from = null;
-        FileOutputStream to = null;
-        try {
-            from = new FileInputStream(fromFile);
-            to = new FileOutputStream(toFile);
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-
-            while ((bytesRead = from.read(buffer)) != -1)
-                to.write(buffer, 0, bytesRead); // write
-        } finally {
-            if (from != null)
-                try {
-                    from.close();
-                } catch (IOException e) {
-                }
-            if (to != null)
-                try {
-                    to.close();
-                } catch (IOException e) {
-                }
-        }
-    }
-
-
-    private void copy(String fromFileName, String toFileName)
-            throws IOException {
-        File fromFile = new File(fromFileName);
-        File toFile = new File(toFileName);
-
-        if (!fromFile.exists())
-            throw new IOException("FileCopy: " + "no such source file: "
-                    + fromFileName);
-        if (!fromFile.isFile())
-            throw new IOException("FileCopy: " + "can't copy directory: "
-                    + fromFileName);
-        if (!fromFile.canRead())
-            throw new IOException("FileCopy: " + "source file is unreadable: "
-                    + fromFileName);
-        toFile.mkdir();
-        if (toFile.isDirectory()) {
-            toFile = new File(toFile, fromFile.getName());
-
-        }
-
-        FileInputStream from = null;
-        FileOutputStream to = null;
-        try {
-            from = new FileInputStream(fromFile);
-            to = new FileOutputStream(toFile);
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-
-            while ((bytesRead = from.read(buffer)) != -1)
-                to.write(buffer, 0, bytesRead); // write
-        } finally {
-            if (from != null)
-                try {
-                    from.close();
-                } catch (IOException e) {
-                }
-            if (to != null)
-                try {
-                    to.close();
-                } catch (IOException e) {
-                }
-        }
-    }
-
-    private void createDBTables(File dbScript) throws Exception {
-
-        List<String> sqlStatements;
-
-        DatabaseScripts scripts = new DatabaseScripts();
-
-// get script runtime...
-        try {
-            sqlStatements = scripts.getSchemaSQL(dbScript);
-        } catch (Exception e) {
-            throw e;
-        }
-// drop each tables (if present) and (re-)create it after...
-        for (String line : sqlStatements) {
-            final String lowerCaseLine = line.toLowerCase();
-            final int tableNamePos = lowerCaseLine.indexOf("create table");
-            if (tableNamePos != -1) {
-                final String tableName = line.substring("create table".length() +
-                        tableNamePos,
-                        line.indexOf("(")).trim();
-//getLog().info("Creating table [" + tableName + "] ...");
-                try {
-                    db.query("DROP TABLE " + tableName);
-                } catch (Throwable t) {
-                    // ignore because if this fails it's ok
-                    getLog().debug("Drop failed on " + tableName + " because of " + t + " but that's acceptable...");
-                }
-            }
-            try {
-                db.query(line);
-            } catch (Exception e) {
-                // first let's check if it is a DROP TABLE query, if it is,
-                // we will just fail silently.
-
-                String upperCaseLine = line.toUpperCase().trim();
-                String errorMsg = "Error while trying to execute query: " + line + ". Cause: " + e.getMessage();
-                if (upperCaseLine.startsWith("DROP ") || upperCaseLine.contains(" DROP ") || upperCaseLine.contains("\nDROP ") || upperCaseLine.contains(" DROP\n") || upperCaseLine.contains("\nDROP\n")) {
-                    getLog().debug(errorMsg, e);
-                } else if (upperCaseLine.startsWith("ALTER TABLE") || upperCaseLine.startsWith("CREATE INDEX")){
-                    if (getLog().isDebugEnabled()) {
-                        getLog().warn(errorMsg, e);
-                    } else {
-                        getLog().warn(errorMsg);
-                    }
-                } else {
-                    getLog().error(errorMsg, e);
-                    throw e;
-                }
-            }
-        }
-
-
-    }
-// end createDBTables()
-
-
-    /**
-     * Insert database custom data, like root user and properties.
-     */
-    private void insertDBCustomContent() throws Exception {
-        
-        if (getJahiaVersion() >= 6.5) return;
-
-        getLog().debug("Inserting customized settings into database...");
-
-// get two keys...
-        final String rootName = "root";
-
-        final String password = encryptPassword(jahiaRootPassword);   //root1234
-        getLog().info("Encrypted root password for jahia is " + jahiaRootPassword);
-        final int siteID0 = 0;
-        final String rootKey = rootName + ":" + siteID0;
-        final String grpKey0 = "administrators" + ":" + siteID0;
-        final String grpKey1 = "users" + ":" + siteID0;
-        final String grpKey2 = "guest" + ":" + siteID0;
-
-// query insert root user...
-        db.queryPreparedStatement("INSERT INTO jahia_users(id_jahia_users, name_jahia_users, password_jahia_users, key_jahia_users) VALUES(0,?,?,?)",
-                new Object[]{rootName, password, rootKey});
-
-// query insert root first name...
-        db.queryPreparedStatement("INSERT INTO jahia_user_prop(id_jahia_users, name_jahia_user_prop, value_jahia_user_prop, provider_jahia_user_prop, userkey_jahia_user_prop) VALUES(0, 'firstname', ?, 'jahia',?)",
-                new Object[]{"root", rootKey});
-
-// query insert root last name...
-        db.queryPreparedStatement("INSERT INTO jahia_user_prop(id_jahia_users, name_jahia_user_prop, value_jahia_user_prop, provider_jahia_user_prop, userkey_jahia_user_prop) VALUES(0, 'lastname', ?, 'jahia',?)",
-                new Object[]{"", rootKey});
-
-// query insert root e-mail address...
-        db.queryPreparedStatement("INSERT INTO jahia_user_prop(id_jahia_users, name_jahia_user_prop, value_jahia_user_prop, provider_jahia_user_prop, userkey_jahia_user_prop) VALUES(0, 'email', ?, 'jahia',?)",
-                new Object[]{(String) "", rootKey});
-
-// query insert administrators group...
-        db.queryPreparedStatement("INSERT INTO jahia_grps(id_jahia_grps, name_jahia_grps, key_jahia_grps, siteid_jahia_grps) VALUES(0,?,?,null)",
-                new Object[]{"administrators", grpKey0});
-
-// query insert users group...
-        db.queryPreparedStatement("INSERT INTO jahia_grps(id_jahia_grps, name_jahia_grps, key_jahia_grps, siteid_jahia_grps) VALUES(1,?,?,null)",
-                new Object[]{"users", grpKey1});
-
-// query insert guest group...
-        db.queryPreparedStatement("INSERT INTO jahia_grps(id_jahia_grps, name_jahia_grps, key_jahia_grps, siteid_jahia_grps) VALUES(2,?,?,null)",
-                new Object[]{"guest", grpKey2});
-
-
-// query insert administrators group access...
-        db.queryPreparedStatement("INSERT INTO jahia_grp_access(id_jahia_member, id_jahia_grps, membertype_grp_access) VALUES(?,?,1)",
-                new Object[]{rootKey, grpKey0});
-
-// create guest user
-        db.queryPreparedStatement("INSERT INTO jahia_users(id_jahia_users, name_jahia_users, password_jahia_users, key_jahia_users) VALUES(1,?,?,?)",
-                new Object[]{"guest", "*", "guest:0"});
-
-//db.queryPreparedStatement("INSERT INTO jahia_version(install_number, build, release_number, install_date) VALUES(0, ?,?,?)",
-//new Object[] { new Integer(Jahia.getBuildNumber()), Jahia.getReleaseNumber() + "." + Jahia.getPatchNumber(), new Timestamp(System.currentTimeMillis()) } );
-    }
-// end insertDBCustomContent()
-
-    /**
-         * Copy the external config
-         *
-         * @throws IOException
-         * @throws MojoExecutionException
-         * @return true if an external config has been found
-
-         */
-        private boolean copyExternalConfig()
-                throws Exception {
-            if (externalConfigPath == null) {
-                getLog().info("External jahia config. not specified.");
-                return false;
-
-            }
-            File externalConfigDirectory = new File(externalConfigPath);
-            if (!externalConfigDirectory.exists()) {
-                getLog().warn("Not copying external jahia config. Directory[" + externalConfigDirectory.getAbsolutePath()
-                        + "] does not exist!");
-                return false;
-            }
-
-            getLog().info("Copying external jahia config. directory [" + externalConfigDirectory.getAbsolutePath() + "] to [" + getWebappDeploymentDir().getAbsolutePath() + "]");
-            String[] fileNames = getFilesToCopy(externalConfigDirectory);
-            for (int i = 0; i < fileNames.length; i++) {
-                copyFile(new File(externalConfigDirectory, fileNames[i]), new File(getWebappDeploymentDir(), fileNames[i]));
-            }
-            return true;
-        }
-
-        /**
-         * Returns a list of filenames that should be copied
-         * over to the destination directory.
-         *
-         * @param directory the parent diretory to be scanned
-         * @return the array of filenames, relative to the sourceDir
-         */
-        private String[] getFilesToCopy(File directory) {
-            DirectoryScanner scanner = new DirectoryScanner();
-            scanner.setBasedir(directory);
-            scanner.addDefaultExcludes();
-            scanner.scan();
-            return scanner.getIncludedFiles();
-        }
-
-
-        /**
-         * Copy file from source to destination
-         *
-         * @param source
-         * @param destination
-         * @return
-         * @throws IOException
-         */
-        private boolean copyFile(File source, File destination) {
-            try {
-                boolean doOverride = destination.exists();
-                FileUtils.copyFile(source.getCanonicalFile(), destination);
-                // preserve timestamp
-                destination.setLastModified(source.lastModified());
-
-                if (!doOverride) {
-                    getLog().debug(" + [" + source.getPath() + "] has been copied to [" + destination.getAbsolutePath()+"]");
-                } else {
-                    getLog().debug(" o [" + destination.getAbsolutePath() + "] has been overrided by " + source.getPath());
-                }
-            } catch (Exception e) {
-                getLog().error(" + Unable to copy" + source.getPath(),e);
-
-            }
-            return true;
-        }
-
-
-
-    public String encryptPassword(String password) {
-        if (password == null) {
-            return null;
-        }
-
-        if (password.length() == 0) {
-            return null;
-        }
-
-        String result = null;
-
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-1");
-            if (md != null) {
-                md.reset();
-                md.update(password.getBytes());
-                result = new String(Base64.encodeBase64(md.digest()));
-            }
-            md = null;
-        } catch (NoSuchAlgorithmException ex) {
-
-            result = null;
-        }
-
-        return result;
     }
 
     public String getJahia_WebApps_Deployer_Service() {
@@ -969,5 +412,218 @@ public class ConfigureMojo extends AbstractManagementMojo
             return new File(targetConfigurationDirectory);
         }
     }
+
+    public String getBigtext_service() {
+        return bigtext_service;
+    }
+
+    public String getCluster_activated() {
+        return cluster_activated;
+    }
+
+    public String getCluster_node_serverId() {
+        return cluster_node_serverId;
+    }
+
+    public List<String> getClusterNodes() {
+        return clusterNodes;
+    }
+
+    public List<AbstractConfigurator> getConfigurators() {
+        return configurators;
+    }
+
+    public boolean isConfigureBeforePackaging() {
+        return configureBeforePackaging;
+    }
+
+    public String getContainerCacheDefaultExpirationDelay() {
+        return containerCacheDefaultExpirationDelay;
+    }
+
+    public String getContainerCacheLiveModeOnly() {
+        return containerCacheLiveModeOnly;
+    }
+
+    public String getDatabasePassword() {
+        return databasePassword;
+    }
+
+    public File getDatabaseScript() {
+        return databaseScript;
+    }
+
+    public String getDatabaseType() {
+        return databaseType;
+    }
+
+    public String getDatabaseUsername() {
+        return databaseUsername;
+    }
+
+    public String getDatabaseUrl() {
+        return databaseUrl;
+    }
+
+    public String getDatasource_name() {
+        return datasource_name;
+    }
+
+    public String getDeploymentMode() {
+        return deploymentMode;
+    }
+
+    public String getDefautSite() {
+        return defautSite;
+    }
+
+    public String getDevelopmentMode() {
+        return developmentMode;
+    }
+
+    public String getTargetServerDirectory() {
+        return targetServerDirectory;
+    }
+
+    public String getTargetServerType() {
+        return targetServerType;
+    }
+
+    public String getTargetServerVersion() {
+        return targetServerVersion;
+    }
+
+    public String getEsiCacheActivated() {
+        return esiCacheActivated;
+    }
+
+    public String getExternalConfigPath() {
+        return externalConfigPath;
+    }
+
+    public String getWebAppDirName() {
+        return webAppDirName;
+    }
+
+    public String getJahiaEnginesHttpPath() {
+        return jahiaEnginesHttpPath;
+    }
+
+    public String getJahiaEtcDiskPath() {
+        return jahiaEtcDiskPath;
+    }
+
+    public String getJahiaFileRepositoryDiskPath() {
+        return jahiaFileRepositoryDiskPath;
+    }
+
+    public String getJahiaFilesBigTextDiskPath() {
+        return jahiaFilesBigTextDiskPath;
+    }
+
+    public String getJahiaFilesTemplatesDiskPath() {
+        return jahiaFilesTemplatesDiskPath;
+    }
+
+    public String getJahiaImportsDiskPath() {
+        return jahiaImportsDiskPath;
+    }
+
+    public String getJahiaJavaScriptHttpPath() {
+        return jahiaJavaScriptHttpPath;
+    }
+
+    public String getJahiaWebAppsDeployerBaseURL() {
+        return jahiaWebAppsDeployerBaseURL;
+    }
+
+    public String getJahiaNewTemplatesDiskPath() {
+        return jahiaNewTemplatesDiskPath;
+    }
+
+    public String getJahiaNewWebAppsDiskPath() {
+        return jahiaNewWebAppsDiskPath;
+    }
+
+    public String getJahiaRootPassword() {
+        return jahiaRootPassword;
+    }
+
+    public String getJahiaSharedTemplatesDiskPath() {
+        return jahiaSharedTemplatesDiskPath;
+    }
+
+    public String getJahiaTemplatesHttpPath() {
+        return jahiaTemplatesHttpPath;
+    }
+
+    public String getJahiaVarDiskPath() {
+        return jahiaVarDiskPath;
+    }
+
+    public String getLocalIp() {
+        return localIp;
+    }
+
+    public String getLocalPort() {
+        return localPort;
+    }
+
+    public String getDb_script() {
+        return getDatabaseType() + ".script";
+    }
+
+    public String getOutputCacheActivated() {
+        return outputCacheActivated;
+    }
+
+    public String getOutputCacheDefaultExpirationDelay() {
+        return outputCacheDefaultExpirationDelay;
+    }
+
+    public String getOutputCacheExpirationOnly() {
+        return outputCacheExpirationOnly;
+    }
+
+    public String getOutputContainerCacheActivated() {
+        return outputContainerCacheActivated;
+    }
+
+    public String getOverwritedb() {
+        return overwritedb;
+    }
+
+    public String getProcessingServer() {
+        return processingServer;
+    }
+
+    public String getRelease() {
+        return release;
+    }
+
+    public String getServer() {
+        return targetServerType;
+    }
+
+    public List<String> getSiteImportLocation() {
+        return siteImportLocation;
+    }
+
+    public String getSourceWebAppDir() {
+        return sourceWebAppDir;
+    }
+
+    public String getStoreFilesInDB() {
+        return storeFilesInDB;
+    }
+
+    public String getTargetConfigurationDirectory() {
+        return targetConfigurationDirectory;
+    }
+
+    public void setTargetConfigurationDirectory(String targetConfigurationDirectory) {
+        this.targetConfigurationDirectory = targetConfigurationDirectory;
+    }
+
 
 }

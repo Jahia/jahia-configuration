@@ -5,7 +5,6 @@ import org.jdom.*;
 import org.jdom.xpath.XPath;
 import org.jdom.output.XMLOutputter;
 import org.jdom.output.Format;
-import org.jahia.utils.maven.plugin.buildautomation.JahiaPropertiesBean;
 
 import java.util.Map;
 import java.util.List;
@@ -22,8 +21,8 @@ import java.io.FileWriter;
  */
 public class WebXmlConfigurator extends AbstractXMLConfigurator {
 
-    public WebXmlConfigurator(Map dbProperties, JahiaPropertiesBean jahiaPropertiesBean) {
-        super(dbProperties, jahiaPropertiesBean);
+    public WebXmlConfigurator(Map dbProperties, JahiaConfigInterface jahiaConfigInterface) {
+        super(dbProperties, jahiaConfigInterface);
     }
 
     public void updateConfiguration(String sourceFileName, String destFileName) throws Exception {
@@ -36,7 +35,7 @@ public class WebXmlConfigurator extends AbstractXMLConfigurator {
 
             boolean removeTestServlet = false;
             boolean usingWebsphere = false;
-            if ("was".equals(jahiaPropertiesBean.getServer())) {
+            if ("was".equals(jahiaConfigInterface.getTargetServerType())) {
                 removeTestServlet = true;
                 usingWebsphere = true;
             }

@@ -33,9 +33,6 @@
 
 package org.jahia.utils.maven.plugin.configurators;
 
-import org.jahia.utils.maven.plugin.buildautomation.PropertiesManager;
-import org.jahia.utils.maven.plugin.buildautomation.JahiaPropertiesBean;
-
 import java.util.List;
 import java.util.Map;
 import java.io.IOException;
@@ -50,72 +47,72 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
 
     private PropertiesManager properties;
 
-    public JahiaPropertiesConfigurator(Map dbProperties, JahiaPropertiesBean jahiaPropertiesBean) {
-        super(dbProperties, jahiaPropertiesBean);
+    public JahiaPropertiesConfigurator(Map dbProperties, JahiaConfigInterface jahiaConfigInterface) {
+        super(dbProperties, jahiaConfigInterface);
     }
 
     public void updateConfiguration(String sourceJahiaPath, String targetJahiaPath) throws IOException {
         properties = new PropertiesManager(sourceJahiaPath, targetJahiaPath);
-        properties.setProperty("release", jahiaPropertiesBean.getRelease());
-        properties.setProperty("server", jahiaPropertiesBean.getServer());
+        properties.setProperty("release", jahiaConfigInterface.getRelease());
+        properties.setProperty("server", jahiaConfigInterface.getTargetServerType());
 //        properties.setProperty("serverHomeDiskPath", targetServerDirectory);
-        properties.setProperty("jahiaEtcDiskPath", jahiaPropertiesBean.getJahiaEtcDiskPath());
-        properties.setProperty("jahiaVarDiskPath", jahiaPropertiesBean.getJahiaVarDiskPath());
-        properties.setProperty("jahiaNewTemplatesDiskPath", jahiaPropertiesBean.getJahiaNewTemplatesDiskPath());
-        properties.setProperty("jahiaSharedTemplatesDiskPath", jahiaPropertiesBean.getJahiaSharedTemplatesDiskPath());
-        properties.setProperty("jahiaNewWebAppsDiskPath", jahiaPropertiesBean.getJahiaNewWebAppsDiskPath());
-        properties.setProperty("jahiaFileRepositoryDiskPath", jahiaPropertiesBean.getJahiaFileRepositoryDiskPath());
-        properties.setProperty("jahiaFilesBigTextDiskPath", jahiaPropertiesBean.getJahiaFilesBigTextDiskPath());
-        properties.setProperty("jahiaFilesTemplatesDiskPath", jahiaPropertiesBean.getJahiaFilesTemplatesDiskPath());
-        properties.setProperty("jahiaTemplatesHttpPath", jahiaPropertiesBean.getJahiaTemplatesHttpPath());
-        properties.setProperty("jahiaEnginesHttpPath", jahiaPropertiesBean.getJahiaEnginesHttpPath());
-        properties.setProperty("jahiaJavaScriptHttpPath", jahiaPropertiesBean.getJahiaJavaScriptHttpPath());
-        properties.setProperty("jahiaWebAppsDeployerBaseURL", jahiaPropertiesBean.getJahiaWebAppsDeployerBaseURL());
-        properties.setProperty("datasource_name", jahiaPropertiesBean.getDatasource_name());
-        properties.setProperty("outputCacheActivated", jahiaPropertiesBean.getOutputCacheActivated());
-        properties.setProperty("outputCacheDefaultExpirationDelay", jahiaPropertiesBean.getOutputCacheDefaultExpirationDelay());
-        properties.setProperty("outputCacheExpirationOnly", jahiaPropertiesBean.getOutputCacheExpirationOnly());
-        properties.setProperty("outputContainerCacheActivated", jahiaPropertiesBean.getOutputContainerCacheActivated());
-        properties.setProperty("containerCacheDefaultExpirationDelay", jahiaPropertiesBean.getContainerCacheDefaultExpirationDelay());
-        properties.setProperty("outputContainerCacheActivated", jahiaPropertiesBean.getOutputContainerCacheActivated());
-        properties.setProperty("jahiaImportsDiskPath", jahiaPropertiesBean.getJahiaImportsDiskPath());
-        properties.setProperty("containerCacheDefaultExpirationDelay", jahiaPropertiesBean.getContainerCacheDefaultExpirationDelay());
-        properties.setProperty("containerCacheLiveModeOnly", jahiaPropertiesBean.getContainerCacheLiveModeOnly());
-        properties.setProperty("esiCacheActivated", jahiaPropertiesBean.getEsiCacheActivated());
-        properties.setProperty("datasource.name", jahiaPropertiesBean.getDatasource_name());
-        properties.setProperty("JahiaWebAppsDeployerService", jahiaPropertiesBean.getJahia_WebApps_Deployer_Service());
-        properties.setProperty("defautSite", jahiaPropertiesBean.getDefautSite());
-        properties.setProperty("cluster.activated", jahiaPropertiesBean.getCluster_activated());
-        properties.setProperty("localIp", jahiaPropertiesBean.getLocalIp());
-        properties.setProperty("localPort", jahiaPropertiesBean.getLocalPort());
-        if (!"8080".equals(jahiaPropertiesBean.getLocalPort())) {
-            properties.setProperty("localAccessUri", "http://" + jahiaPropertiesBean.getLocalIp() + ":" + jahiaPropertiesBean.getLocalPort());
+        properties.setProperty("jahiaEtcDiskPath", jahiaConfigInterface.getJahiaEtcDiskPath());
+        properties.setProperty("jahiaVarDiskPath", jahiaConfigInterface.getJahiaVarDiskPath());
+        properties.setProperty("jahiaNewTemplatesDiskPath", jahiaConfigInterface.getJahiaNewTemplatesDiskPath());
+        properties.setProperty("jahiaSharedTemplatesDiskPath", jahiaConfigInterface.getJahiaSharedTemplatesDiskPath());
+        properties.setProperty("jahiaNewWebAppsDiskPath", jahiaConfigInterface.getJahiaNewWebAppsDiskPath());
+        properties.setProperty("jahiaFileRepositoryDiskPath", jahiaConfigInterface.getJahiaFileRepositoryDiskPath());
+        properties.setProperty("jahiaFilesBigTextDiskPath", jahiaConfigInterface.getJahiaFilesBigTextDiskPath());
+        properties.setProperty("jahiaFilesTemplatesDiskPath", jahiaConfigInterface.getJahiaFilesTemplatesDiskPath());
+        properties.setProperty("jahiaTemplatesHttpPath", jahiaConfigInterface.getJahiaTemplatesHttpPath());
+        properties.setProperty("jahiaEnginesHttpPath", jahiaConfigInterface.getJahiaEnginesHttpPath());
+        properties.setProperty("jahiaJavaScriptHttpPath", jahiaConfigInterface.getJahiaJavaScriptHttpPath());
+        properties.setProperty("jahiaWebAppsDeployerBaseURL", jahiaConfigInterface.getJahiaWebAppsDeployerBaseURL());
+        properties.setProperty("datasource_name", jahiaConfigInterface.getDatasource_name());
+        properties.setProperty("outputCacheActivated", jahiaConfigInterface.getOutputCacheActivated());
+        properties.setProperty("outputCacheDefaultExpirationDelay", jahiaConfigInterface.getOutputCacheDefaultExpirationDelay());
+        properties.setProperty("outputCacheExpirationOnly", jahiaConfigInterface.getOutputCacheExpirationOnly());
+        properties.setProperty("outputContainerCacheActivated", jahiaConfigInterface.getOutputContainerCacheActivated());
+        properties.setProperty("containerCacheDefaultExpirationDelay", jahiaConfigInterface.getContainerCacheDefaultExpirationDelay());
+        properties.setProperty("outputContainerCacheActivated", jahiaConfigInterface.getOutputContainerCacheActivated());
+        properties.setProperty("jahiaImportsDiskPath", jahiaConfigInterface.getJahiaImportsDiskPath());
+        properties.setProperty("containerCacheDefaultExpirationDelay", jahiaConfigInterface.getContainerCacheDefaultExpirationDelay());
+        properties.setProperty("containerCacheLiveModeOnly", jahiaConfigInterface.getContainerCacheLiveModeOnly());
+        properties.setProperty("esiCacheActivated", jahiaConfigInterface.getEsiCacheActivated());
+        properties.setProperty("datasource.name", jahiaConfigInterface.getDatasource_name());
+        properties.setProperty("JahiaWebAppsDeployerService", jahiaConfigInterface.getJahia_WebApps_Deployer_Service());
+        properties.setProperty("defautSite", jahiaConfigInterface.getDefautSite());
+        properties.setProperty("cluster.activated", jahiaConfigInterface.getCluster_activated());
+        properties.setProperty("localIp", jahiaConfigInterface.getLocalIp());
+        properties.setProperty("localPort", jahiaConfigInterface.getLocalPort());
+        if (!"8080".equals(jahiaConfigInterface.getLocalPort())) {
+            properties.setProperty("localAccessUri", "http://" + jahiaConfigInterface.getLocalIp() + ":" + jahiaConfigInterface.getLocalPort());
         } else {
-            if ("localhost".equals(jahiaPropertiesBean.getLocalIp())) {
+            if ("localhost".equals(jahiaConfigInterface.getLocalIp())) {
                 properties.removeProperty("localAccessUri");
             }
         }
-        properties.setProperty("cluster.node.serverId", jahiaPropertiesBean.getCluster_node_serverId());
-        properties.setProperty("db_script", jahiaPropertiesBean.getDb_script());
-        properties.setProperty("developmentMode", jahiaPropertiesBean.getDevelopmentMode());
+        properties.setProperty("cluster.node.serverId", jahiaConfigInterface.getCluster_node_serverId());
+        properties.setProperty("db_script", jahiaConfigInterface.getDb_script());
+        properties.setProperty("developmentMode", jahiaConfigInterface.getDevelopmentMode());
 
-        if (jahiaPropertiesBean.getCluster_activated().equals("true")) {
-            addClusterNodes(jahiaPropertiesBean.getClusterNodes());
+        if (jahiaConfigInterface.getCluster_activated().equals("true")) {
+            addClusterNodes(jahiaConfigInterface.getClusterNodes());
 
         }
-        properties.setProperty("bigtext.service", jahiaPropertiesBean.getBigtext_service());
-        properties.setProperty("cluster.node.serverId", jahiaPropertiesBean.getCluster_node_serverId());
+        properties.setProperty("bigtext.service", jahiaConfigInterface.getBigtext_service());
+        properties.setProperty("cluster.node.serverId", jahiaConfigInterface.getCluster_node_serverId());
         properties.setProperty("mail_paranoia", "Disabled");
         
-        properties.setProperty("hibernate.dialect", jahiaPropertiesBean.getHibernateDialect());
-        properties.setProperty("nested.transaction.allowed", jahiaPropertiesBean.getNestedTransactionAllowed());
+        properties.setProperty("hibernate.dialect", getDBProperty("jahia.database.hibernate.dialect"));
+        properties.setProperty("nested.transaction.allowed", getDBProperty("jahia.nested_transaction_allowed"));
 
         properties.storeProperties(sourceJahiaPath, targetJahiaPath);
     }
 
     private void addClusterNodes(List<String> clusterNodes) {
 
-        final String propvalue = jahiaPropertiesBean.getLocalIp();
+        final String propvalue = jahiaConfigInterface.getLocalIp();
         properties.setProperty("cluster.tcp.start.ip_address", propvalue);
         String clusterTtcpServiceNodesIp_address = propvalue+"[7840],";
         String clustertcpidgeneratornodesip_address = propvalue+"[7850],";
@@ -150,7 +147,7 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
             properties.setProperty("ehcache.jahia.file","ehcache-jahia_cluster.xml");
         }
         properties.setProperty("cluster.tcp.num_initial_members",clusterNodes.size()+1>=3?"3":"2");
-        properties.setProperty("processingServer", jahiaPropertiesBean.getProcessingServer());
+        properties.setProperty("processingServer", jahiaConfigInterface.getProcessingServer());
     }
 
 }
