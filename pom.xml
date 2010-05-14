@@ -4,7 +4,7 @@
     <groupId>org.jahia.server</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>maven-jahia-plugin</artifactId>
-    <version>1.40</version>
+    <version>1.41</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Jahia Installer Plugin</name>
 
@@ -122,8 +122,13 @@
         <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derbyclient</artifactId>
-            <version>10.4.2.0</version>
+            <version>10.5.3.0_1</version>
         </dependency>
+        <dependency>
+           <groupId>org.apache.derby</groupId>
+           <artifactId>derby</artifactId>
+           <version>10.5.3.0_1</version>
+        </dependency>        
 
         <dependency>
             <groupId>org.jdom</groupId>
@@ -180,13 +185,6 @@
            <version>1.5.8</version>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-           <groupId>org.apache.derby</groupId>
-           <artifactId>derby</artifactId>
-           <version>10.5.3.0_1</version>
-           <scope>test</scope>
-        </dependency>        
 
     </dependencies>
 
