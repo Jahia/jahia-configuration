@@ -1,10 +1,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <parent>
+        <groupId>org.jahia.server</groupId>
+        <artifactId>jahia-configuration-root</artifactId>
+        <version>1.1</version>
+    </parent>
+    
     <groupId>org.jahia.server</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>maven-jahia-plugin</artifactId>
-    <version>1.42</version>
+    <version>${jahia.plugin.version}</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Jahia Installer Plugin</name>
 
@@ -23,9 +30,30 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>jahiaRepository</id>
+            <name>Jahia's Maven Repository</name>
+            <url>http://maven.jahia.org/maven2</url>
+        </repository>
     </repositories>
 
     <dependencies>
+        <dependency>
+            <groupId>org.jahia.server</groupId>
+            <artifactId>deployers</artifactId>
+            <version>${jahia.deployers.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jahia.server</groupId>
+            <artifactId>configurators</artifactId>
+            <version>${jahia.configurators.version}</version>
+        </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
@@ -105,7 +133,7 @@
         <dependency>
             <groupId>microsoft</groupId>
             <artifactId>sqljdbc</artifactId>
-            <version>1.2</version>
+            <version>1.2-fixed</version>
         </dependency>
         <!-- Oracle Db Server -->
         <dependency>
@@ -130,21 +158,6 @@
            <version>10.5.3.0_1</version>
         </dependency>        
 
-        <dependency>
-            <groupId>org.jdom</groupId>
-            <artifactId>jdom</artifactId>
-            <version>1.1</version>
-        </dependency>
-
-        <!-- JDOM optional dependencies -->
-        <dependency>
-          <groupId>jaxen</groupId>
-          <artifactId>jaxen</artifactId>
-          <version>1.1.1</version>
-          <optional>true</optional>
-        </dependency>        
-        <!-- End of JDOM optional dependencies -->        
-
         <!-- Do not remove this dep: See MNG-1178 -->
         <dependency>
             <groupId>junit</groupId>
@@ -158,14 +171,6 @@
             <artifactId>tools</artifactId>
             <version>1.5.0</version>
         </dependency>
-
-        <!-- Next dependency is needed for JSR-88 deployment -->
-        <dependency>
-            <groupId>geronimo-spec</groupId>
-            <artifactId>geronimo-spec-j2ee</artifactId>
-            <version>1.4-rc4</version>
-        </dependency>
-        
 
 		<dependency>
 			<groupId>taglibrarydoc</groupId>
