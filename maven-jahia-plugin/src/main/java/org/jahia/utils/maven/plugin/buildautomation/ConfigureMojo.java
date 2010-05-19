@@ -33,30 +33,19 @@
 
 package org.jahia.utils.maven.plugin.buildautomation;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.AndFileFilter;
-import org.apache.commons.io.filefilter.DirectoryFileFilter;
-import org.apache.commons.io.filefilter.NameFileFilter;
-import org.apache.commons.io.filefilter.NotFileFilter;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.jahia.utils.maven.plugin.AbstractManagementMojo;
 import org.jahia.utils.maven.plugin.MojoLogger;
-import org.jahia.utils.maven.plugin.configurators.*;
-import org.jahia.utils.maven.plugin.deployers.ServerDeploymentFactory;
-import org.codehaus.plexus.util.DirectoryScanner;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.List;
-import java.util.Properties;
-import java.util.ArrayList;
+import org.jahia.utils.maven.plugin.configurators.AbstractConfigurator;
+import org.jahia.utils.maven.plugin.configurators.DatabaseConnection;
+import org.jahia.utils.maven.plugin.configurators.JahiaConfigInterface;
+import org.jahia.utils.maven.plugin.configurators.JahiaGlobalConfigurator;
 
 /**
  * Implementation of the Jahia's configuration Mojo. 

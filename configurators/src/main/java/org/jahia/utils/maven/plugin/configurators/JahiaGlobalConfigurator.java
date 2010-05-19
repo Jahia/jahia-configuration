@@ -1,16 +1,20 @@
 package org.jahia.utils.maven.plugin.configurators;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.AndFileFilter;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.NameFileFilter;
 import org.apache.commons.io.filefilter.NotFileFilter;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.jahia.utils.maven.plugin.AbstractLogger;
+import org.jahia.utils.maven.plugin.ConsoleLogger;
 import org.jahia.utils.maven.plugin.deployers.ServerDeploymentFactory;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -18,7 +22,7 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * TODO Comment me
+ * Global Jahia configuration utility.
  *
  * @author loom
  *         Date: May 11, 2010
@@ -133,8 +137,10 @@ public class JahiaGlobalConfigurator {
         dbProps = new Properties();
         //database script always ends with a .script
         databaseScript = new File(sourceWebappPath + "/WEB-INF/var/db/" + jahiaConfig.getDatabaseType() + ".script");
+        FileInputStream is = null;
         try {
-            dbProps.load(new FileInputStream(databaseScript));
+            is = new FileInputStream(databaseScript);
+            dbProps.load(is);
             // we override these just as the configuration wizard does
             dbProps.put("storeFilesInDB", jahiaConfig.getStoreFilesInDB());
             dbProps.put("jahia.database.url", jahiaConfig.getDatabaseUrl());
@@ -142,6 +148,8 @@ public class JahiaGlobalConfigurator {
             dbProps.put("jahia.database.pass", jahiaConfig.getDatabasePassword());
         } catch (IOException e) {
             getLogger().error("Error in loading database settings because of " + e);
+        } finally {
+            IOUtils.closeQuietly(is);
         }
 
         getLogger().info("Updating configuration files...");
@@ -589,4 +597,34 @@ public class JahiaGlobalConfigurator {
         }
     }
 
+    public static void main(String[] args) {
+        AbstractLogger logger = new ConsoleLogger(ConsoleLogger.LEVEL_INFO);
+        logger.info("Started Jahia global configurator");
+        try {
+            new JahiaGlobalConfigurator(logger, getConfiguration(args.length > 0 ? new File(args[0]) : null)).execute();
+        } catch (Exception e) {
+            logger.error("Error during execution of a configurator. Cause: " + e.getMessage(), e);
+        }
+        logger.info("... finished job of Jahia global configurator.");
+    }
+
+    protected static JahiaConfigInterface getConfiguration(File configFile) throws IOException, IllegalAccessException,
+            InvocationTargetException {
+        JahiaConfigBean config = new JahiaConfigBean();
+        Properties props = null;
+        if (configFile != null) {
+            FileInputStream is = null;
+            try {
+                is = new FileInputStream(configFile);
+                props = new Properties();
+                props.load(is);
+            } finally {
+                IOUtils.closeQuietly(is);
+            }
+        }
+        if (props != null && !props.isEmpty()) {
+            BeanUtils.populate(config, props);
+        }
+        return config;
+    }
 }
