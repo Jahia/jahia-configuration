@@ -21,7 +21,7 @@ public class RootUserConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         File rootJahia6XmlFile = new File(rootJahia6XmlUrl.getFile());
         String rootJahia6XmlFileParentPath = rootJahia6XmlFile.getParentFile().getPath() + File.separator;
 
-        RootUserConfigurator jahia6RootUserConfigurator = new RootUserConfigurator(oracleDBProperties, websphereOracleConfigBean, "root1234");
+        RootUserConfigurator jahia6RootUserConfigurator = new RootUserConfigurator(oracleDBProperties, websphereOracleConfigBean, "password");
         jahia6RootUserConfigurator.updateConfiguration(rootJahia6XmlFile.toString(), rootJahia6XmlFileParentPath + "root-jahia6-modified.xml");
 
         SAXBuilder saxBuilder = new SAXBuilder();
@@ -33,16 +33,24 @@ public class RootUserConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         File rootXmlFile = new File(rootXmlUrl.getFile());
         String rootXmlFileParentPath = rootXmlFile.getParentFile().getPath() + File.separator;
 
-        RootUserConfigurator websphereOracleConfigurator = new RootUserConfigurator(oracleDBProperties, websphereOracleConfigBean, "root1234");
+        RootUserConfigurator websphereOracleConfigurator = new RootUserConfigurator(oracleDBProperties, websphereOracleConfigBean, "password");
         websphereOracleConfigurator.updateConfiguration(rootXmlFile.toString(), rootXmlFileParentPath + "root-jahia65-modified.xml");
 
         jdomDocument = saxBuilder.build(rootXmlFileParentPath + "root-jahia65-modified.xml");
 
-        assertEquals("root", ((Element) getNode(jdomDocument, "/content/users/*", prefix)).getName());
-        assertEquals("root1234", ((Attribute) getNode(jdomDocument, "/content/users/root/@j:password", prefix)).getValue());
+        Element el = (Element) getNode(jdomDocument, "/content/users/*", prefix);
+        assertEquals(websphereOracleConfigBean.getJahiaRootUsername(), el.getName());
+        assertEquals("password", ((Attribute) getNode(jdomDocument, "/content/users/"
+                + websphereOracleConfigBean.getJahiaRootUsername() + "/@j:password", prefix)).getValue());
+        assertEquals(websphereOracleConfigBean.getJahiaRootFirstname(), ((Attribute) getNode(jdomDocument, "/content/users/"
+                + websphereOracleConfigBean.getJahiaRootUsername() + "/@j:firstName", prefix)).getValue());
+        assertEquals(websphereOracleConfigBean.getJahiaRootLastname(), ((Attribute) getNode(jdomDocument, "/content/users/"
+                + websphereOracleConfigBean.getJahiaRootUsername() + "/@j:lastName", prefix)).getValue());
+        assertEquals(websphereOracleConfigBean.getJahiaRootEmail(), ((Attribute) getNode(jdomDocument, "/content/users/"
+                + websphereOracleConfigBean.getJahiaRootUsername() + "/@j:email", prefix)).getValue());
 
         RootUserConfigurator tomcatMySQLConfigurator = new RootUserConfigurator(mysqlDBProperties, tomcatMySQLConfigBean, "1234root");
-        tomcatMySQLConfigurator.updateConfiguration(rootXmlFileParentPath + "root-jahia65-modified.xml", rootXmlFileParentPath + "root-jahia65-modified2.xml");
+        tomcatMySQLConfigurator.updateConfiguration(rootXmlFileParentPath + "root-jahia65.xml", rootXmlFileParentPath + "root-jahia65-modified2.xml");
 
         jdomDocument = saxBuilder.build(rootXmlFileParentPath + "root-jahia65-modified2.xml");
 

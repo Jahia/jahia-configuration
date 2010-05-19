@@ -52,6 +52,12 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
         clusterNodes.add("3.4.5.6");
         clusterNodes.add("4.5.6.7");
         websphereOracleConfigBean.setClusterNodes(clusterNodes);
+        
+        websphereOracleConfigBean.setJahiaRootUsername("superUser");
+        websphereOracleConfigBean.setJahiaRootPassword("password");
+        websphereOracleConfigBean.setJahiaRootFirstname("Jahia");
+        websphereOracleConfigBean.setJahiaRootLastname("Root");
+        websphereOracleConfigBean.setJahiaRootEmail("root@jahia.org");
 
         tomcatMySQLConfigBean = new JahiaConfigBean();
         tomcatMySQLConfigBean.setDatabaseType("mysql");

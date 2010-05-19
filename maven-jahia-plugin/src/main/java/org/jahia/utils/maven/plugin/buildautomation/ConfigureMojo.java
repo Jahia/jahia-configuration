@@ -249,11 +249,27 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      */
     protected String cluster_node_serverId;
     /**
+     * @parameter expression="${jahia.configure.jahiaRootUsername}" default-value="root"
+     */
+    protected String jahiaRootUsername;
+    /**
      * properties jahiaRootPassword
      *
      * @parameter expression="${jahia.configure.jahiaRootPassword}" default-value="root1234"
      */
     protected String jahiaRootPassword;
+    /**
+     * @parameter expression="${jahia.configure.jahiaRootFirstname}" default-value=""
+     */
+    protected String jahiaRootFirstname;
+    /**
+     * @parameter expression="${jahia.configure.jahiaRootLastname}" default-value=""
+     */
+    protected String jahiaRootLastname;
+    /**
+     * @parameter expression="${jahia.configure.jahiaRootEmail}" default-value=""
+     */
+    protected String jahiaRootEmail;
     /**
      * properties file path
      *
@@ -612,6 +628,26 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public void setTargetConfigurationDirectory(String targetConfigurationDirectory) {
         this.targetConfigurationDirectory = targetConfigurationDirectory;
+    }
+
+    public String getJahiaRootEmail() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public String getJahiaRootFirstname() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public String getJahiaRootLastname() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public String getJahiaRootUsername() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 

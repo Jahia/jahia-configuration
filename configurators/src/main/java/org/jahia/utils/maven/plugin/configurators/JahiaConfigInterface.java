@@ -1,6 +1,5 @@
 package org.jahia.utils.maven.plugin.configurators;
 
-import java.io.File;
 import java.util.List;
 
 /**
@@ -102,8 +101,16 @@ public interface JahiaConfigInterface {
 
     void setTargetConfigurationDirectory(String targetConfigurationDirectory);
 
+    String getJahiaRootUsername();
+    
     String getJahiaRootPassword();
 
+    String getJahiaRootFirstname();
+    
+    String getJahiaRootLastname();
+    
+    String getJahiaRootEmail();
+    
     float getJahiaVersion();
 
     boolean isConfigureBeforePackaging();
