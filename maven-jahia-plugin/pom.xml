@@ -5,13 +5,13 @@
     <parent>
         <groupId>org.jahia.server</groupId>
         <artifactId>jahia-configuration-root</artifactId>
-        <version>1.1</version>
+        <version>1.2</version>
     </parent>
     
     <groupId>org.jahia.server</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>maven-jahia-plugin</artifactId>
-    <version>${jahia.plugin.version}</version>
+    <version>1.52</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Jahia Installer Plugin</name>
 
@@ -47,12 +47,12 @@
         <dependency>
             <groupId>org.jahia.server</groupId>
             <artifactId>deployers</artifactId>
-            <version>${jahia.deployers.version}</version>
+            <version>1.2</version>
         </dependency>
         <dependency>
             <groupId>org.jahia.server</groupId>
             <artifactId>configurators</artifactId>
-            <version>${jahia.configurators.version}</version>
+            <version>1.2</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
