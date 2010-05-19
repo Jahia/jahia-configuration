@@ -89,7 +89,11 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private List<String> siteImportLocation;
 
     private String externalConfigPath = null;
+    private String jahiaRootUsername = "root";
     private String jahiaRootPassword = "root1234";
+    private String jahiaRootFirstname = "";
+    private String jahiaRootLastname = "";
+    private String jahiaRootEmail = "";
     private float jahiaVersion = 6.0f;
     private String webAppDirName = "";
     private boolean configureBeforePackaging = true;
@@ -521,5 +525,61 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public void setWebAppDirName(String webAppDirName) {
         this.webAppDirName = webAppDirName;
+    }
+
+    /**
+     * @return the jahiaRootUsername
+     */
+    public String getJahiaRootUsername() {
+        return jahiaRootUsername;
+    }
+
+    /**
+     * @param jahiaRootUsername the jahiaRootUsername to set
+     */
+    public void setJahiaRootUsername(String jahiaRootUsername) {
+        this.jahiaRootUsername = jahiaRootUsername;
+    }
+
+    /**
+     * @return the jahiaRootFirstname
+     */
+    public String getJahiaRootFirstname() {
+        return jahiaRootFirstname;
+    }
+
+    /**
+     * @param jahiaRootFirstname the jahiaRootFirstname to set
+     */
+    public void setJahiaRootFirstname(String jahiaRootFirstname) {
+        this.jahiaRootFirstname = jahiaRootFirstname;
+    }
+
+    /**
+     * @return the jahiaRootLastname
+     */
+    public String getJahiaRootLastname() {
+        return jahiaRootLastname;
+    }
+
+    /**
+     * @param jahiaRootLastname the jahiaRootLastname to set
+     */
+    public void setJahiaRootLastname(String jahiaRootLastname) {
+        this.jahiaRootLastname = jahiaRootLastname;
+    }
+
+    /**
+     * @return the jahiaRootEmail
+     */
+    public String getJahiaRootEmail() {
+        return jahiaRootEmail;
+    }
+
+    /**
+     * @param jahiaRootEmail the jahiaRootEmail to set
+     */
+    public void setJahiaRootEmail(String jahiaRootEmail) {
+        this.jahiaRootEmail = jahiaRootEmail;
     }
 }

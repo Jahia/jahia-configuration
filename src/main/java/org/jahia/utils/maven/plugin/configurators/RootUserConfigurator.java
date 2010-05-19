@@ -53,10 +53,12 @@ import java.util.Map;
 public class RootUserConfigurator extends AbstractXMLConfigurator {
 
     private String rootPassword;
+    private JahiaConfigInterface cfg;
 
     public RootUserConfigurator(Map dbProperties, JahiaConfigInterface jahiaConfigInterface, String rootPassword) {
         super(dbProperties, jahiaConfigInterface);
         this.rootPassword = rootPassword;
+        cfg = jahiaConfigInterface;
     }
 
     public void updateConfiguration(String sourceFileName, String destFileName) throws Exception {
@@ -69,13 +71,15 @@ public class RootUserConfigurator extends AbstractXMLConfigurator {
         SAXBuilder saxBuilder = new SAXBuilder();
         Document jdomDocument = saxBuilder.build(sourceFileName);
         Element beansElement = jdomDocument.getRootElement();
-        Element rootNameElement = getElement(beansElement, "/content/users/*");
+        Element rootNameElement = getElement(beansElement, "/content/users/ROOT_NAME_PLACEHOLDER");
 
         if (rootNameElement != null) {
-            rootNameElement.setName("root");
+            rootNameElement.setName(cfg.getJahiaRootUsername());
             Namespace jahiaNamespace = rootNameElement.getNamespace("j");
             rootNameElement.setAttribute("password", rootPassword, jahiaNamespace);
-            rootNameElement.removeAttribute("root_user_properties");
+            rootNameElement.setAttribute("firstName", cfg.getJahiaRootFirstname(), jahiaNamespace);
+            rootNameElement.setAttribute("lastName", cfg.getJahiaRootLastname(), jahiaNamespace);
+            rootNameElement.setAttribute("email", cfg.getJahiaRootEmail(), jahiaNamespace);
         }
 
         Format customFormat = Format.getPrettyFormat();
