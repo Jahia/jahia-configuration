@@ -3,7 +3,7 @@
     <groupId>org.jahia.server</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jahia-configuration-root</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
     <packaging>pom</packaging>
     <name>Jahia Configuration Root Plugin</name>
     <organization>
@@ -11,11 +11,6 @@
         <url>http://www.jahia.org</url>
     </organization>
     <url>http://www.jahia.org</url>
-    <properties>
-        <jahia.configurators.version>1.1</jahia.configurators.version>
-        <jahia.deployers.version>1.1</jahia.deployers.version>
-        <jahia.plugin.version>1.51</jahia.plugin.version>
-    </properties>
 
     <scm>
         <connection>scm:svn:http://10.8.37.111/svn/jahia/trunk/</connection>
