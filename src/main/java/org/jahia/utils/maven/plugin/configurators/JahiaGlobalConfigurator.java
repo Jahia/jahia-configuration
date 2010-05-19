@@ -9,6 +9,7 @@ import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.NameFileFilter;
 import org.apache.commons.io.filefilter.NotFileFilter;
 import org.codehaus.plexus.util.DirectoryScanner;
+import org.codehaus.plexus.util.StringUtils;
 import org.jahia.utils.maven.plugin.AbstractLogger;
 import org.jahia.utils.maven.plugin.ConsoleLogger;
 import org.jahia.utils.maven.plugin.deployers.ServerDeploymentFactory;
@@ -134,6 +135,11 @@ public class JahiaGlobalConfigurator {
             getLogger().info("Deployed in standalone for server in " + webappDir);
         }
         
+        String dbUrl = jahiaConfig.getDatabaseUrl();
+        if (jahiaConfig.getDatabaseType().equals("derby_embedded") && jahiaConfig.getDatabaseUrl().contains("$context")) {
+            dbUrl = StringUtils.replace(dbUrl, "$context", StringUtils.replace(sourceWebappPath, "\\", "/"));
+        }
+        
         dbProps = new Properties();
         //database script always ends with a .script
         databaseScript = new File(sourceWebappPath + "/WEB-INF/var/db/" + jahiaConfig.getDatabaseType() + ".script");
@@ -143,7 +149,7 @@ public class JahiaGlobalConfigurator {
             dbProps.load(is);
             // we override these just as the configuration wizard does
             dbProps.put("storeFilesInDB", jahiaConfig.getStoreFilesInDB());
-            dbProps.put("jahia.database.url", jahiaConfig.getDatabaseUrl());
+            dbProps.put("jahia.database.url", dbUrl);
             dbProps.put("jahia.database.user", jahiaConfig.getDatabaseUsername());
             dbProps.put("jahia.database.pass", jahiaConfig.getDatabasePassword());
         } catch (IOException e) {
@@ -164,7 +170,7 @@ public class JahiaGlobalConfigurator {
                     getLogger().info("cannot find script in " + databaseScript.getPath());
                     throw new Exception("Cannot find script for database " + jahiaConfig.getDatabaseType());
                 }
-                db.databaseOpen(dbProps.getProperty("jahia.database.driver"), jahiaConfig.getDatabaseUrl(), jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
+                db.databaseOpen(dbProps.getProperty("jahia.database.driver"), dbUrl, jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
                 if (jahiaConfig.getDatabaseType().equals("mysql")) {
                     getLogger().info("database is mysql trying to drop it and create a new one");
                     cleanDatabase();
