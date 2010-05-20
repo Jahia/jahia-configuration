@@ -120,4 +120,13 @@ public interface JahiaConfigInterface {
     String getExternalConfigPath();
 
     String getWebAppDirName();
+    
+    String getMailServer();
+    
+    String getMailFrom();
+    
+    String getMailAdministrator();
+    
+    String getMailParanoia();
+        
 }
