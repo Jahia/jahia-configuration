@@ -47,6 +47,12 @@
            <version>1.5.8</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-archiver</artifactId>
+            <version>1.0-alpha-12</version>
+        </dependency>
     </dependencies>
 
     <build>
