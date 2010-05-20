@@ -31,6 +31,7 @@ public class MainArchiver {
     public static void main(String[] args) {
         if (args.length < 3) {
             System.out.println("Usage is : serverType targetArchiveFileName sourceDirectory. For example : was jahia.war jahia-directory. Valid values for serverType are : tomcat, was, weblogic, jboss");
+            return;
         }
         try {
             new MainArchiver(args[0], args[1], args[2]).execute();
