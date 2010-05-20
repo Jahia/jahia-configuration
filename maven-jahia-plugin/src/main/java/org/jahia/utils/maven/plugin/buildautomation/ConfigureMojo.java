@@ -631,23 +631,19 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     }
 
     public String getJahiaRootEmail() {
-        // TODO Auto-generated method stub
-        return null;
+        return jahiaRootEmail;
     }
 
     public String getJahiaRootFirstname() {
-        // TODO Auto-generated method stub
-        return null;
+        return jahiaRootFirstname;
     }
 
     public String getJahiaRootLastname() {
-        // TODO Auto-generated method stub
-        return null;
+        return jahiaRootLastname;
     }
 
     public String getJahiaRootUsername() {
-        // TODO Auto-generated method stub
-        return null;
+        return jahiaRootUsername;
     }
 
 
