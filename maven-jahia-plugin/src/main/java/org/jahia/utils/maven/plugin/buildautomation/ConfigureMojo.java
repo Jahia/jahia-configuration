@@ -376,6 +376,26 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      */
     protected String targetConfigurationDirectory;
 
+    /**
+     * @parameter expression="${jahia.configure.mailServer}" default-value=""
+     */
+    protected String mailServer;
+    
+    /**
+     * @parameter expression="${jahia.configure.mailAdministrator}" default-value=""
+     */
+    protected String mailAdministrator;
+    
+    /**
+     * @parameter expression="${jahia.configure.mailFrom}" default-value=""
+     */
+    protected String mailFrom;
+    
+    /**
+     * @parameter expression="${jahia.configure.mailParanoia}" default-value="Disabled"
+     */
+    protected String mailParanoia;
+    
     // JahiaConfigBean jahiaPropertiesBean;
     DatabaseConnection db;
     File webappDir;
@@ -644,6 +664,22 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public String getJahiaRootUsername() {
         return jahiaRootUsername;
+    }
+
+    public String getMailAdministrator() {
+        return mailAdministrator;
+    }
+
+    public String getMailFrom() {
+        return mailFrom;
+    }
+
+    public String getMailParanoia() {
+        return mailParanoia;
+    }
+
+    public String getMailServer() {
+        return mailServer;
     }
 
 

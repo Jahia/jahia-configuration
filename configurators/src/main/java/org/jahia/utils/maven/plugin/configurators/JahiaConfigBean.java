@@ -98,6 +98,11 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String webAppDirName = "";
     private boolean configureBeforePackaging = true;
     private String sourceWebAppDir = "";
+    
+    private String mailServer = "";
+    private String mailFrom = "";
+    private String mailAdministrator = "";
+    private String mailParanoia = "Disabled";
 
     /**
      * This property is here for instance when we are in a clustered mode we don not want the database scripts to be
@@ -581,5 +586,61 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
      */
     public void setJahiaRootEmail(String jahiaRootEmail) {
         this.jahiaRootEmail = jahiaRootEmail;
+    }
+
+    /**
+     * @return the mailServer
+     */
+    public String getMailServer() {
+        return mailServer;
+    }
+
+    /**
+     * @param mailServer the mailServer to set
+     */
+    public void setMailServer(String mailServer) {
+        this.mailServer = mailServer;
+    }
+
+    /**
+     * @return the mailFrom
+     */
+    public String getMailFrom() {
+        return mailFrom;
+    }
+
+    /**
+     * @param mailFrom the mailFrom to set
+     */
+    public void setMailFrom(String mailFrom) {
+        this.mailFrom = mailFrom;
+    }
+
+    /**
+     * @return the mailAdministrator
+     */
+    public String getMailAdministrator() {
+        return mailAdministrator;
+    }
+
+    /**
+     * @param mailAdministrator the mailAdministrator to set
+     */
+    public void setMailAdministrator(String mailAdministrator) {
+        this.mailAdministrator = mailAdministrator;
+    }
+
+    /**
+     * @return the mailParanoia
+     */
+    public String getMailParanoia() {
+        return mailParanoia;
+    }
+
+    /**
+     * @param mailParanoia the mailParanoia to set
+     */
+    public void setMailParanoia(String mailParanoia) {
+        this.mailParanoia = mailParanoia;
     }
 }
