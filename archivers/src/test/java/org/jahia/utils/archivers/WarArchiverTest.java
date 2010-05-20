@@ -24,11 +24,25 @@ public class WarArchiverTest extends TestCase {
 
     private static final Logger logger = LoggerFactory.getLogger(WarArchiverTest.class);
 
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();    //To change body of overridden methods use File | Settings | File Templates.
+    }
+
     public void testCreateJarArchive() throws IOException, URISyntaxException {
         WarArchiver warArchiver = new WarArchiver();
 
         boolean succeeded = true;
+
+        File targetDirectory = new File("target");
+        if (!targetDirectory.exists()) {
+            targetDirectory.mkdirs();
+        }
+
         File newWar = new File("target/directoryArchive.war");
+        if (newWar.exists()) {
+            newWar.delete();
+        }
 
         URL packagersURL = this.getClass().getClassLoader().getResource("packagers");
         File packagersFile = new File(packagersURL.toURI());
@@ -46,13 +60,23 @@ public class WarArchiverTest extends TestCase {
                 
         warArchiver.createJarArchive(newWar, packagersFile);
 
+        validateJarArchive(newWar, packagersFile);
+
+        newWar.delete();
+
     }
 
     private void validateJarArchive(File archive, File directory) throws IOException {
         JarInputStream jarInputStream = new JarInputStream(new FileInputStream(archive));
         JarEntry jarEntry = null;
         while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
-            logger.debug("Testing entry " + jarEntry.getName());
+            logger.info("Testing entry " + jarEntry.getName());
+            File testFile = new File(directory, jarEntry.getName());
+            assertTrue("File " + testFile.toString() + " could not be found in location " + testFile.getAbsolutePath(), testFile.exists());
+            assertEquals("File " + testFile.toString() + " and JAR entry type differs (isDirectory) ", testFile.isDirectory(), jarEntry.isDirectory());
+            if (!jarEntry.isDirectory()) {
+                // assertEquals("File " + testFile.toString() + " and JAR entry differ in size", testFile.length(), jarEntry.getSize());
+            }
         }
     }
 }

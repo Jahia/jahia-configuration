@@ -14,6 +14,20 @@
     <version>1.2</version>
     <name>Jahia Server Archivers</name>
 
+    <pluginRepositories>
+        <pluginRepository>
+            <id>onejar-maven-plugin.googlecode.com</id>
+            <url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <distributionManagement>
+        <repository>
+            <id>jahiaRepository</id>
+            <url>scpexe://maven.jahia.org/var/www/vhosts/maven.jahia.org/html/maven2</url>
+        </repository>
+    </distributionManagement>
+    
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -45,6 +59,26 @@
               <target>1.5</target>
             </configuration>
           </plugin>
+            <plugin>
+                <groupId>org.dstovall</groupId>
+                <artifactId>onejar-maven-plugin</artifactId>
+                <version>1.4.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>one-jar</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>org.jahia.utils.archivers.MainArchiver</mainClass>
+                            <!-- Optional, default is false -->
+                            <attachToBuild>true</attachToBuild>
+                            <!-- Optional, default is "onejar" -->
+                            <filename>${project.build.finalName}-standalone.jar</filename>
+                            <classifier>standalone</classifier>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

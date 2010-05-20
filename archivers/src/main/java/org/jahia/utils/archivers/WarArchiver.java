@@ -30,6 +30,7 @@ public class WarArchiver {
             // Add archive entry
             JarEntry jarAdd = new JarEntry(tobeJared[i].getName());
             jarAdd.setTime(tobeJared[i].lastModified());
+            jarAdd.setSize(tobeJared[i].length());
             out.putNextEntry(jarAdd);
 
             // Write file to archive
@@ -47,8 +48,38 @@ public class WarArchiver {
         stream.close();
     }
 
-    public void createJarArchive(File archiveFile, File directoryToJar) throws IOException {
+    public void putDirectoryInJarOutputStream(JarOutputStream jarOutputStream, File directory, File baseDirectory) throws IOException {
+
         byte buffer[] = new byte[BUFFER_SIZE];
+
+        File[] directoryContents = directory.listFiles();
+        for (File curDirectoryChild : directoryContents) {
+
+            // Add archive entry
+            String relativePath = baseDirectory.toURI().relativize(new File(curDirectoryChild.getPath()).toURI()).getPath();
+            JarEntry jarAdd = new JarEntry(relativePath);
+            jarAdd.setTime(curDirectoryChild.lastModified());
+            jarAdd.setSize(curDirectoryChild.length());
+            jarOutputStream.putNextEntry(jarAdd);
+
+            if (!curDirectoryChild.isDirectory()) {
+                // Write file to archive
+                InputStream in = new BufferedInputStream(new FileInputStream(curDirectoryChild));
+                while (true) {
+                    int nRead = in.read(buffer, 0, buffer.length);
+                    if (nRead <= 0)
+                        break;
+                    jarOutputStream.write(buffer, 0, nRead);
+                }
+                in.close();
+            } else {
+                putDirectoryInJarOutputStream(jarOutputStream, curDirectoryChild, baseDirectory);
+            }
+        }
+
+    }
+
+    public void createJarArchive(File archiveFile, File directoryToJar) throws IOException {
 
         if (!directoryToJar.isDirectory()) {
             return;
@@ -60,27 +91,7 @@ public class WarArchiver {
         FileOutputStream stream = new FileOutputStream(archiveFile);
         JarOutputStream out = new JarOutputStream(new BufferedOutputStream(stream));
 
-        File[] directoryContents = directoryToJar.listFiles();
-        for (File curDirectoryChild : directoryContents) {
-
-            // Add archive entry
-            String relativePath = directoryToJar.toURI().relativize(new File(curDirectoryChild.getPath()).toURI()).getPath();
-            JarEntry jarAdd = new JarEntry(relativePath);
-            jarAdd.setTime(curDirectoryChild.lastModified());
-            out.putNextEntry(jarAdd);
-
-            if (!curDirectoryChild.isDirectory()) {
-                // Write file to archive
-                InputStream in = new BufferedInputStream(new FileInputStream(curDirectoryChild));
-                while (true) {
-                    int nRead = in.read(buffer, 0, buffer.length);
-                    if (nRead <= 0)
-                        break;
-                    out.write(buffer, 0, nRead);
-                }
-                in.close();
-            }
-        }
+        putDirectoryInJarOutputStream(out, directoryToJar, directoryToJar);
 
         out.close();
         stream.close();
