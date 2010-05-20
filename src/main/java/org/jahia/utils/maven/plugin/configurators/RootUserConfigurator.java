@@ -77,9 +77,15 @@ public class RootUserConfigurator extends AbstractXMLConfigurator {
             rootNameElement.setName(cfg.getJahiaRootUsername());
             Namespace jahiaNamespace = rootNameElement.getNamespace("j");
             rootNameElement.setAttribute("password", rootPassword, jahiaNamespace);
-            rootNameElement.setAttribute("firstName", cfg.getJahiaRootFirstname(), jahiaNamespace);
-            rootNameElement.setAttribute("lastName", cfg.getJahiaRootLastname(), jahiaNamespace);
-            rootNameElement.setAttribute("email", cfg.getJahiaRootEmail(), jahiaNamespace);
+            if (cfg.getJahiaRootFirstname() != null && cfg.getJahiaRootFirstname().length() > 0) {
+                rootNameElement.setAttribute("firstName", cfg.getJahiaRootFirstname(), jahiaNamespace);
+            }
+            if (cfg.getJahiaRootLastname() != null && cfg.getJahiaRootLastname().length() > 0) {
+                rootNameElement.setAttribute("lastName", cfg.getJahiaRootLastname(), jahiaNamespace);
+            }
+            if (cfg.getJahiaRootEmail() != null && cfg.getJahiaRootEmail().length() > 0) {
+                rootNameElement.setAttribute("email", cfg.getJahiaRootEmail(), jahiaNamespace);
+            }
         }
 
         Format customFormat = Format.getPrettyFormat();
