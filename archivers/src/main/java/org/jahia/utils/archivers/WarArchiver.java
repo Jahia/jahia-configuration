@@ -20,7 +20,7 @@ public class WarArchiver {
         byte buffer[] = new byte[BUFFER_SIZE];
         // Open archive file
         FileOutputStream stream = new FileOutputStream(archiveFile);
-        JarOutputStream out = new JarOutputStream(stream, new Manifest());
+        JarOutputStream out = new JarOutputStream(stream);
 
         for (int i = 0; i < tobeJared.length; i++) {
             if (tobeJared[i] == null || !tobeJared[i].exists()
@@ -58,7 +58,7 @@ public class WarArchiver {
 
         // Open archive file
         FileOutputStream stream = new FileOutputStream(archiveFile);
-        JarOutputStream out = new JarOutputStream(new BufferedOutputStream(stream), new Manifest());
+        JarOutputStream out = new JarOutputStream(new BufferedOutputStream(stream));
 
         File[] directoryContents = directoryToJar.listFiles();
         for (File curDirectoryChild : directoryContents) {

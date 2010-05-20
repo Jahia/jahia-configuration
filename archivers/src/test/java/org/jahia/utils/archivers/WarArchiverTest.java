@@ -1,11 +1,17 @@
 package org.jahia.utils.archivers;
 
 import junit.framework.TestCase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 
 /**
  * Test unit for the WAR archiver
@@ -15,6 +21,8 @@ import java.net.URL;
  *         Time: 3:08:58 PM
  */
 public class WarArchiverTest extends TestCase {
+
+    private static final Logger logger = LoggerFactory.getLogger(WarArchiverTest.class);
 
     public void testCreateJarArchive() throws IOException, URISyntaxException {
         WarArchiver warArchiver = new WarArchiver();
@@ -38,5 +46,13 @@ public class WarArchiverTest extends TestCase {
                 
         warArchiver.createJarArchive(newWar, packagersFile);
 
+    }
+
+    private void validateJarArchive(File archive, File directory) throws IOException {
+        JarInputStream jarInputStream = new JarInputStream(new FileInputStream(archive));
+        JarEntry jarEntry = null;
+        while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
+            logger.debug("Testing entry " + jarEntry.getName());
+        }
     }
 }
