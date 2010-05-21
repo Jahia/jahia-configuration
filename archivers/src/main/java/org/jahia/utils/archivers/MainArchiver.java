@@ -2,6 +2,7 @@ package org.jahia.utils.archivers;
 
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
+import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,18 +33,25 @@ public class MainArchiver {
         archiver.setDestFile( absoluteDestFile );
         archiver.addDirectory( new File(sourceDirectory) );
         archiver.createArchive();
-        
     }
 
     public static void main(String[] args) {
         if (args.length < 3) {
-            System.out.println("Usage is : serverType targetArchiveFileName sourceDirectory. For example : was jahia.war jahia-directory. Valid values for serverType are : tomcat, was, weblogic, jboss");
+            System.out.println("Usage is : serverType targetArchiveFileName sourceDirectory [moveFileToArchive]. For example : was jahia.war jahia-directory true. Valid values for serverType are : tomcat, was, weblogic, jboss");
             return;
         }
         try {
             new MainArchiver(args[0], args[1], args[2]).execute();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        if (args.length > 3 && Boolean.valueOf(args[3])) {
+            // need to delete the original directory
+            try {
+                FileUtils.deleteDirectory(new File(args[2]));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
