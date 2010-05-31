@@ -175,7 +175,8 @@ public class DeployMojo extends AbstractManagementMojo {
             File origSource = new File(baseDir, "src/main/webapp");
             File source = new File(output, project.getBuild().getFinalName());
             try {
-                int cnt = updateFiles(source, origSource, webappDir, new HashSet());
+                int cnt = updateFiles(source, origSource, webappDir, ServerDeploymentFactory.getInstance()
+                        .getImplementation(targetServerType + targetServerVersion).getWarExcludes());
                 getLog().info("Copied "+cnt+" files.");
             } catch (IOException e) {
                 getLog().error("Error while deploying WAR project", e);
@@ -237,7 +238,7 @@ public class DeployMojo extends AbstractManagementMojo {
 
         File templateXml = new File(source, "WEB-INF/templates.xml");
         if (!templateXml.exists()) {
-            getLog().info("No template.xml file, bypassing template deployement");
+            getLog().info("No template.xml file, bypassing template deployment");
             return;
         }
         try {
@@ -252,7 +253,7 @@ public class DeployMojo extends AbstractManagementMojo {
 
             target = new File(getWebappDeploymentDir(),prefix+outputDir);
             getLog().info("Updated template war resources for " + targetServerType + " v" + targetServerVersion + " in directory " + target);
-            int cnt = updateFiles(source, target, Collections.singleton(new File(source,"WEB-INF")));
+            int cnt = updateFiles(source, target, "**/WEB-INF,**/WEB-INF/**");
             cnt += updateFiles(new File(source, "WEB-INF/classes"), new File(webappDir,"WEB-INF/classes"));
             getLog().info("Copied "+cnt+" files.");
             FileUtils.copyFileToDirectory(templateXml, target);
@@ -363,11 +364,11 @@ public class DeployMojo extends AbstractManagementMojo {
                     deployWarRarSarDependency(node);
                 } else if (Artifact.SCOPE_COMPILE.equals(artifact.getScope())) {
                     getLog().info("Copy shared resource " + artifact.getFile().getName());
-                        List<File> sharedLibs = new LinkedList();
+                        List<File> sharedLibs = new LinkedList<File>();
                         sharedLibs.add(artifact.getFile());
                         ServerDeploymentFactory.getInstance()
                             .getImplementation(targetServerType + targetServerVersion)
-                                .deploySharedLibraries(targetServerDirectory, targetServerVersion, sharedLibs);
+                                .deploySharedLibraries(targetServerDirectory, sharedLibs);
                 }
             } catch (Exception e) {
                 getLog().error("Error while deploying EAR dependency", e);

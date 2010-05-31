@@ -6,8 +6,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.HashMap;
 
 /**
  * Websphere server deployer implementation.
@@ -19,11 +17,6 @@ import java.util.HashMap;
  */
 public class WebsphereServerDeploymentImpl extends AbstractServerDeploymentImpl {
 
-    public static final String defaultSharedLibraryDirectory = "/AppServer/lib/ext";
-    public static final String defaultJavaSharedLibraryDirectory = "/AppServer/java/jre/lib/ext";
-    public static final Map<String, String> sharedLibraryDirectory = new HashMap<String, String>();
-    public static final Map<String, String> sharedJavaLibraryDirectory = new HashMap<String, String>();
-
     public WebsphereServerDeploymentImpl(String targetServerDirectory) {
         super(targetServerDirectory);
     }
@@ -34,23 +27,19 @@ public class WebsphereServerDeploymentImpl extends AbstractServerDeploymentImpl 
         return true;
     }
 
-    private String getSharedLibraryDirectory(String serverVersion) {
-        String result = sharedLibraryDirectory.get(serverVersion);
-        if (result != null) return result;
-        return defaultSharedLibraryDirectory;
+    private String getSharedLibraryDirectory() {
+        return "/AppServer/lib/ext";
     }
 
-    private String getSharedJavaLibraryDirectory(String serverVersion) {
-        String result = sharedJavaLibraryDirectory.get(serverVersion);
-        if (result != null) return result;
-        return defaultJavaSharedLibraryDirectory;
+    private String getSharedJavaLibraryDirectory() {
+        return "/AppServer/java/jre/lib/ext";
     }
 
 
-    public boolean deploySharedLibraries(String targetServerDirectory, String serverVersion, List<File> pathToLibraries) throws IOException {
+    public boolean deploySharedLibraries(String targetServerDirectory, List<File> pathToLibraries) throws IOException {
         Iterator<File> libraryPathIterator = pathToLibraries.iterator();
-        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory(serverVersion));
-        File targetJavaDirectory = new File(targetServerDirectory, getSharedJavaLibraryDirectory(serverVersion));
+        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory());
+        File targetJavaDirectory = new File(targetServerDirectory, getSharedJavaLibraryDirectory());
 
         while (libraryPathIterator.hasNext()) {
             File currentLibraryPath = libraryPathIterator.next();
@@ -63,9 +52,9 @@ public class WebsphereServerDeploymentImpl extends AbstractServerDeploymentImpl 
         return true;
     }
 
-    public boolean undeploySharedLibraries(String targetServerDirectory, String serverVersion, List<File> pathToLibraries) throws IOException {
+    public boolean undeploySharedLibraries(String targetServerDirectory, List<File> pathToLibraries) throws IOException {
         Iterator<File> libraryPathIterator = pathToLibraries.iterator();
-        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory(serverVersion));
+        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory());
         while (libraryPathIterator.hasNext()) {
             File currentLibraryPath = libraryPathIterator.next();
             File targetFile = new File(targetDirectory, currentLibraryPath.getName());

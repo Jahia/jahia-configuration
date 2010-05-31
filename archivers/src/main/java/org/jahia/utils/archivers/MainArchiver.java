@@ -13,42 +13,60 @@ import java.io.IOException;
  * User: loom
  * Date: May 20, 2010
  * Time: 2:41:01 PM
- * To change this template use File | Settings | File Templates.
  */
 public class MainArchiver {
 
-    public String serverType;
-    public String targetArchiveName;
-    public String sourceDirectory;
+    private String targetArchiveName;
+    private String sourceDirectory;
+    private String excludes;
 
-    public MainArchiver(String serverType, String targetArchiveName, String sourceDirectory) {
-        this.serverType = serverType;
+    public MainArchiver(String targetArchiveName, String sourceDirectory, String excludes) {
         this.targetArchiveName = targetArchiveName;
         this.sourceDirectory = sourceDirectory;
+        this.excludes = excludes;
     }
 
     public void execute() throws IOException, ArchiverException {
         ZipArchiver archiver = new ZipArchiver();
         File absoluteDestFile = new File( new File(targetArchiveName). getAbsolutePath()); // little trick to get File.getParentFile() to work properly in the setDestFile call.
         archiver.setDestFile( absoluteDestFile );
-        archiver.addDirectory( new File(sourceDirectory) );
+        archiver.addDirectory(new File(sourceDirectory), null, excludes != null ? excludes.split(",") : null);
         archiver.createArchive();
     }
 
     public static void main(String[] args) {
-        if (args.length < 3) {
-            System.out.println("Usage is : serverType targetArchiveFileName sourceDirectory [moveFileToArchive]. For example : was jahia.war jahia-directory true. Valid values for serverType are : tomcat, was, weblogic, jboss");
+        if (args.length < 2 || args[0].equals("-m") && args.length < 3) {
+            System.out
+                    .println("Usage is:\n\t[-m] targetArchiveFileName sourceDirectory [excludes]. For example: -m jahia.war"
+                            + " jahia-directory **/WEB-INF/lib/jstl-*.jar,**/WEB-INF/lib/standard-*.jar");
+            System.out
+                    .println("\tOption -m performs \"move\" operation for the source folder"
+                            + " into the archive, i.e. the source folder is actually deleted after making the specified archive.");
             return;
         }
+        String target = null;
+        String source = null;
+        String excludes = null;
+        boolean performMove = args[0].equals("-m");
+        if (performMove) {
+            target = args[1];
+            source = args[2];
+            excludes = args.length > 3 ? args[3] : null;
+        } else {
+            target = args[0];
+            source = args[1];
+            excludes = args.length > 2 ? args[2] : null;
+        }
+        
         try {
-            new MainArchiver(args[0], args[1], args[2]).execute();
+            new MainArchiver(target, source, excludes).execute();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (args.length > 3 && Boolean.valueOf(args[3])) {
+        if (performMove) {
             // need to delete the original directory
             try {
-                FileUtils.deleteDirectory(new File(args[2]));
+                FileUtils.deleteDirectory(new File(source));
             } catch (IOException e) {
                 e.printStackTrace();
             }

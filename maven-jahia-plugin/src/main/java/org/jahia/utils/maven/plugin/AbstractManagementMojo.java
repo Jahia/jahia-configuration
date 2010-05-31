@@ -177,42 +177,37 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
     }
 
     protected int updateFiles(File sourceFolder, File destFolder) throws IOException {
-        return updateFiles(sourceFolder, destFolder, new HashSet());
+        return updateFiles(sourceFolder, destFolder, null);
     }
 
-    protected int updateFiles(File sourceFolder, File destFolder, Set excluded) throws IOException {
+    protected int updateFiles(File sourceFolder, File destFolder, String excluded) throws IOException {
         return updateFiles(sourceFolder, sourceFolder, destFolder, excluded);
     }
 
-    protected int updateFiles(File sourceFolder, File originalSourceFolder, File destFolder, Set excluded) throws IOException {
-        File[] l = sourceFolder.listFiles();
+    @SuppressWarnings("unchecked")
+    protected int updateFiles(File sourceFolder, File originalSourceFolder, File destFolder, String excluded) throws IOException {
+        long timer = System.currentTimeMillis();
+        List<String> filesToUpdate = org.codehaus.plexus.util.FileUtils.getFileNames(sourceFolder, "**", excluded, false);
         int cnt = 0;
-        if (l != null) {
-            for (int i = 0; i < l.length; i++) {
-                File sourceFile = l[i];
-                if (excluded.contains(sourceFile)) {
-                    continue;
-                }
-                File destFile = new File(destFolder,sourceFile.getName());
-                File origFile = new File(originalSourceFolder, sourceFile.getName());
-                if (sourceFile.isFile()) {
-                    long date = sourceFile.lastModified();
-                    if (origFile.exists()) {
-                        date = origFile.lastModified();
-                    }
-                    if (!destFile.exists() || destFile.lastModified()<date) {
-                        getLog().debug("Copy "+sourceFile + " to " + destFile);
-                        FileUtils.copyFile(sourceFile,destFile);
-                        cnt ++;
-                    }
-                } else if (sourceFile.isDirectory()) {
-                    if (!destFile.exists()) {
-                        destFile.mkdir();
-                    }
-                    cnt += updateFiles(sourceFile,origFile,destFile,excluded);
-                }
+        for (String sourceFile : filesToUpdate) {
+            File destFile = new File(destFolder, sourceFile);
+            File origFile = new File(sourceFolder, sourceFile);
+            File origSourceFile = new File(originalSourceFolder, sourceFile);
+            long date = origFile.lastModified();
+            if (origSourceFile.exists()) {
+                date = origSourceFile.lastModified();
+            }
+            if (!destFile.exists() || destFile.lastModified() < date) {
+                getLog().debug("Copy " + origFile + " to " + destFile);
+                FileUtils.copyFile(origFile, destFile);
+                cnt++;
             }
         }
+        getLog().debug("Copy took " + (System.currentTimeMillis() - timer));
+        timer = System.currentTimeMillis();
+        // copy dir layout to force creation of empty folders
+        org.codehaus.plexus.util.FileUtils.copyDirectoryLayout(sourceFolder, destFolder, null, null);
+        getLog().debug("Dir layout took " + (System.currentTimeMillis() - timer));
         return cnt;
     }
 

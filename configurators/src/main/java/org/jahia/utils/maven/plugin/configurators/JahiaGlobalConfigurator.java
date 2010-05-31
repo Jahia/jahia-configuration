@@ -107,8 +107,14 @@ public class JahiaGlobalConfigurator {
         new WebXmlConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(sourceWebAppPath + "/WEB-INF/web.xml", webappPath + "/WEB-INF/web.xml");
         new SpringServicesConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-services.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-services.xml");
         if ("jboss".equalsIgnoreCase(jahiaConfigInterface.getTargetServerType())) {
-            String datasourcePath = new File(jahiaConfigInterface.getTargetServerDirectory(), ServerDeploymentFactory.getInstance().getImplementation(jahiaConfigInterface.getTargetServerType() + jahiaConfigInterface.getTargetServerVersion()).getDeploymentFilePath("jahia-jboss-config.sar/jahia-ds", "xml")).getPath();
-            new JBossDatasourceConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(datasourcePath, datasourcePath);
+            File datasourcePath = new File(jahiaConfigInterface.getTargetServerDirectory(), ServerDeploymentFactory.getInstance().getImplementation(jahiaConfigInterface.getTargetServerType() + jahiaConfigInterface.getTargetServerVersion()).getDeploymentFilePath("jahia-jboss-config.sar/jahia-ds", "xml"));
+            if (datasourcePath.exists()) {
+                new JBossDatasourceConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(datasourcePath.getPath(), datasourcePath.getPath());
+            }
+            datasourcePath = new File(sourceWebAppPath, "../jahia-jboss-config/jahia-ds.xml");
+            if (datasourcePath.exists()) {
+                new JBossDatasourceConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(datasourcePath.getPath(), datasourcePath.getPath());
+            }
         }
 
         new IndexationPolicyConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-indexationpolicy.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-indexationpolicy.xml");

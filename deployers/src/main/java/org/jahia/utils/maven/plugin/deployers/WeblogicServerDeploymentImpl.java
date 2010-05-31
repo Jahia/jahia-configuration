@@ -5,27 +5,22 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 import java.util.Iterator;
 
 /**
- * Created by IntelliJ IDEA.
+ * WebLogic deployer.
  * User: rincevent
  * Date: 10 févr. 2009
  * Time: 15:13:25
- * To change this template use File | Settings | File Templates.
  */
 public class WeblogicServerDeploymentImpl extends AbstractServerDeploymentImpl {
-    public static final String defaultSharedLibraryDirectory = "lib";
-    public static final Map<String, String> sharedLibraryDirectory = new HashMap<String, String>();
 
     public WeblogicServerDeploymentImpl(String targetServerDirectory) {
         super(targetServerDirectory);
     }
 
     /**
-     * Returns true if the specified directory indeeed contains a valid installation of the application server
+     * Returns true if the specified directory indeed contains a valid installation of the application server
      *
      * @param targetServerDirectory the server directory that should be validated.
      * @return true if the directory is indeed a valid server installation directory, false otherwise.
@@ -34,15 +29,13 @@ public class WeblogicServerDeploymentImpl extends AbstractServerDeploymentImpl {
         return true;
     }
 
-     private String getSharedLibraryDirectory(String serverVersion) {
-        String result = sharedLibraryDirectory.get(serverVersion);
-        if (result != null) return result;
-        return defaultSharedLibraryDirectory;
+     private String getSharedLibraryDirectory() {
+        return "lib";
     }
 
-    public boolean deploySharedLibraries(String targetServerDirectory, String serverVersion, List<File> pathToLibraries) throws IOException {
+    public boolean deploySharedLibraries(String targetServerDirectory, List<File> pathToLibraries) throws IOException {
         Iterator<File> libraryPathIterator = pathToLibraries.iterator();
-        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory(serverVersion));
+        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory());
         while (libraryPathIterator.hasNext()) {
             File currentLibraryPath = libraryPathIterator.next();
             FileUtils.copyFileToDirectory(currentLibraryPath, targetDirectory);
@@ -50,9 +43,9 @@ public class WeblogicServerDeploymentImpl extends AbstractServerDeploymentImpl {
         return true;
     }
 
-    public boolean undeploySharedLibraries(String targetServerDirectory, String serverVersion, List<File> pathToLibraries) throws IOException {
+    public boolean undeploySharedLibraries(String targetServerDirectory, List<File> pathToLibraries) throws IOException {
         Iterator<File> libraryPathIterator = pathToLibraries.iterator();
-        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory(serverVersion));
+        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory());
         while (libraryPathIterator.hasNext()) {
             File currentLibraryPath = libraryPathIterator.next();
             File targetFile = new File(targetDirectory, currentLibraryPath.getName());

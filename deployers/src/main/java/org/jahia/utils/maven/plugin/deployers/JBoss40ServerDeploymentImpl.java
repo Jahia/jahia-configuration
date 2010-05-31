@@ -34,44 +34,21 @@
 package org.jahia.utils.maven.plugin.deployers;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.List;
 
 /**
- * Server deployer interface. 
+ * JBoss 4.0.x server deployer implementation.
  * @author Serge Huber
  * Date: 26 d�c. 2007
- * Time: 14:03:56
+ * Time: 14:18:34
  */
-public interface ServerDeploymentInterface {
+public class JBoss40ServerDeploymentImpl extends JBossServerDeploymentImpl {
 
-    /**
-     * Returns true if the specified directory indeed contains a valid installation of the application server
-     * @param targetServerDirectory
-     * @return
-     */
-    public boolean validateInstallationDirectory(String targetServerDirectory);
+    public JBoss40ServerDeploymentImpl(String targetServerDirectory) {
+        super(targetServerDirectory);
+    }
 
-    public boolean deploySharedLibraries(String targetServerDirectory,
-                                         List<File> pathToLibraries) throws IOException;
+    public boolean validateInstallationDirectory(String targetServerDirectory) {
+        return new File(targetServerDirectory, "server/default/deploy/jbossweb-tomcat55.sar/server.xml").exists();
+    }
 
-    public boolean undeploySharedLibraries(String targetServerDirectory,
-                                           List<File> pathToLibraries) throws IOException;
-    
-    public String getDeploymentBaseDir();
-
-    public String getDeploymentDirPath(String name, String type);
-
-    public String getDeploymentFilePath(String name, String type);
-
-    public String getTargetServerDirectory();
-
-    /**
-     * Returns the excludes pattern for the Jahia WAR artifact, comma separated.
-     * Can return null to indicate that nothing should be excluded.
-     * 
-     * @return the excludes pattern for the Jahia WAR artifact, comma separated;
-     *         can return null to indicate that nothing should be excluded
-     */
-    public String getWarExcludes();
 }

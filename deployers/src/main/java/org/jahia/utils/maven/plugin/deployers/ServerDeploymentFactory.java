@@ -39,10 +39,9 @@ import java.util.Map;
 /**
  * Factory that sets up all the different server deployer implementations, and links them to supported versions of
  * the various application servers.
- * User: Serge Huber
+ * @author Serge Huber
  * Date: 26 d�c. 2007
  * Time: 14:04:51
- * To change this template use File | Settings | File Templates.
  */
 public class ServerDeploymentFactory {
 
@@ -53,17 +52,17 @@ public class ServerDeploymentFactory {
     private static String targetServerDirectory;
 
     public ServerDeploymentFactory(String targetServerDirectory) {
-        ServerDeploymentInterface tomcatImplementation = new TomcatServerDeploymentImpl(targetServerDirectory);
-        addImplementation("tomcat5.5", tomcatImplementation);
-        addImplementation("tomcat6", tomcatImplementation);
-        ServerDeploymentInterface jbossImplementation = new JBossServerDeploymentImpl("4", targetServerDirectory);
-        addImplementation("jboss4.0.x", jbossImplementation);
-        addImplementation("jboss4.2.x", jbossImplementation);
-        jbossImplementation = new JBossServerDeploymentImpl("5", targetServerDirectory);
-        addImplementation("jboss5.0.x", jbossImplementation);
-        ServerDeploymentInterface websphereImplementation = new WebsphereServerDeploymentImpl(targetServerDirectory);
-        addImplementation("was6.1.0.25", websphereImplementation);
+        addImplementation("tomcat5.5", new Tomcat55ServerDeploymentImpl(targetServerDirectory));
+        addImplementation("tomcat6", new TomcatServerDeploymentImpl(targetServerDirectory));
+        addImplementation("tomcat", getImplementation("tomcat6"));
+        addImplementation("jboss4.0.x", new JBoss40ServerDeploymentImpl(targetServerDirectory));
+        addImplementation("jboss4.2.x", new JBossServerDeploymentImpl(targetServerDirectory));
+        addImplementation("jboss5.0.x", new JBoss50ServerDeploymentImpl(targetServerDirectory));
+        addImplementation("jboss", getImplementation("jboss4.2.x"));
+        addImplementation("was6.1.0.25", new WebsphereServerDeploymentImpl(targetServerDirectory));
+        addImplementation("was", getImplementation("was6.1.0.25"));
         addImplementation("weblogic10", new WeblogicServerDeploymentImpl(targetServerDirectory));
+        addImplementation("weblogic", getImplementation("weblogic10"));
     }
 
     public static ServerDeploymentFactory getInstance() throws Exception {

@@ -33,69 +33,45 @@
 
 package org.jahia.utils.maven.plugin.deployers;
 
-import org.apache.commons.io.FileUtils;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+
+import org.apache.commons.io.FileUtils;
 
 /**
- * JBoss Server deployer implementation
+ * JBoss 4.2.x server deployer implementation.
  * @author Serge Huber
  * Date: 26 d�c. 2007
  * Time: 14:18:34
  */
 public class JBossServerDeploymentImpl extends AbstractServerDeploymentImpl {
 
-    public static final String jboss4SharedLibraryDirectory = "server/default/lib";
-    public static final String jboss5SharedLibraryDirectory = "common/lib";    
-    public static final Map<String, String> sharedLibraryDirectory = new HashMap<String, String>();
-
-    private String serverVersion;
-
-    public JBossServerDeploymentImpl(String serverVersion, String targetServerDirectory) {
+    public JBossServerDeploymentImpl(String targetServerDirectory) {
         super(targetServerDirectory);
-        this.serverVersion = serverVersion;
-        sharedLibraryDirectory.put("4.0.x", jboss4SharedLibraryDirectory);
-        sharedLibraryDirectory.put("4.2.x", jboss4SharedLibraryDirectory);        
-        sharedLibraryDirectory.put("5.0.x", jboss5SharedLibraryDirectory);        
     }
 
-    private String getSharedLibraryDirectory(String serverVersion) {
-        String result = sharedLibraryDirectory.get(serverVersion);
-        if (result != null) return result;
-        return jboss4SharedLibraryDirectory;
+    protected String getSharedLibraryDirectory() {
+        return "server/default/lib";
     }
 
     public boolean validateInstallationDirectory(String targetServerDirectory) {
-        File serverConfigJBoss50 = new File(targetServerDirectory, "server/default/deploy/jbossweb.sar/server.xml");
-        File serverConfigJBoss42 = new File(targetServerDirectory, "server/default/deploy/jboss-web.deployer/server.xml");
-        File serverConfigJBoss40 = new File(targetServerDirectory, "server/default/deploy/jbossweb-tomcat55.sar/server.xml");
-        return serverConfigJBoss42.exists() || serverConfigJBoss40.exists() || serverConfigJBoss50.exists();
+        return new File(targetServerDirectory, "server/default/deploy/jboss-web.deployer/server.xml").exists();
     }
 
     public boolean deploySharedLibraries(String targetServerDirectory,
-                                         String serverVersion,
                                          List<File> pathToLibraries) throws IOException {
-        Iterator libraryPathIterator = pathToLibraries.iterator();
-        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory(serverVersion));
-        while (libraryPathIterator.hasNext()) {
-            File currentLibraryPath = (File) libraryPathIterator.next();
+        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory());
+        for (File currentLibraryPath : pathToLibraries) {
             FileUtils.copyFileToDirectory(currentLibraryPath, targetDirectory);
         }
         return true;
     }
 
     public boolean undeploySharedLibraries(String targetServerDirectory,
-                                           String serverVersion,
                                            List<File> pathToLibraries) throws IOException {
-        Iterator libraryPathIterator = pathToLibraries.iterator();
-        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory(serverVersion));
-        while (libraryPathIterator.hasNext()) {
-            File currentLibraryPath = (File) libraryPathIterator.next();
+        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory());
+        for (File currentLibraryPath : pathToLibraries) {
             File targetFile = new File(targetDirectory, currentLibraryPath.getName());
             targetFile.delete();
         }
@@ -116,4 +92,8 @@ public class JBossServerDeploymentImpl extends AbstractServerDeploymentImpl {
         return getDeploymentBaseDir() + "/" + name + "." + type;
     }
 
+    @Override
+    public String getWarExcludes() {
+        return (String) getDeployersProperties().get("jboss");
+    }
 }

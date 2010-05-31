@@ -33,45 +33,26 @@
 
 package org.jahia.utils.maven.plugin.deployers;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
 
 /**
- * Server deployer interface. 
- * @author Serge Huber
+ * Tomcat 5.5 specific server deployer.
+ * User: Serge Huber
  * Date: 26 d�c. 2007
- * Time: 14:03:56
+ * Time: 14:18:34
  */
-public interface ServerDeploymentInterface {
+public class Tomcat55ServerDeploymentImpl extends TomcatServerDeploymentImpl {
 
-    /**
-     * Returns true if the specified directory indeed contains a valid installation of the application server
-     * @param targetServerDirectory
-     * @return
-     */
-    public boolean validateInstallationDirectory(String targetServerDirectory);
+    public Tomcat55ServerDeploymentImpl(String targetServerDirectory) {
+        super(targetServerDirectory);
+    }
 
-    public boolean deploySharedLibraries(String targetServerDirectory,
-                                         List<File> pathToLibraries) throws IOException;
-
-    public boolean undeploySharedLibraries(String targetServerDirectory,
-                                           List<File> pathToLibraries) throws IOException;
+    @Override
+    protected String getSharedLibraryDirectory() {
+        return "shared/lib";
+    }
     
-    public String getDeploymentBaseDir();
-
-    public String getDeploymentDirPath(String name, String type);
-
-    public String getDeploymentFilePath(String name, String type);
-
-    public String getTargetServerDirectory();
-
-    /**
-     * Returns the excludes pattern for the Jahia WAR artifact, comma separated.
-     * Can return null to indicate that nothing should be excluded.
-     * 
-     * @return the excludes pattern for the Jahia WAR artifact, comma separated;
-     *         can return null to indicate that nothing should be excluded
-     */
-    public String getWarExcludes();
+    @Override
+    protected String getEndorsedLibraryDirectory() {
+        return "common/endorsed";
+    }
 }

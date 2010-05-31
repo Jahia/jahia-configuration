@@ -37,44 +37,27 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
- * Created by IntelliJ IDEA.
+ * Tomcat 6.0 server deployer implementation.
  * User: Serge Huber
  * Date: 26 d�c. 2007
  * Time: 14:18:34
- * To change this template use File | Settings | File Templates.
  */
 public class TomcatServerDeploymentImpl extends AbstractServerDeploymentImpl {
-
-    public static final String defaultSharedLibraryDirectory = "lib";
-    public static final Map<String, String> sharedLibraryDirectory = new HashMap<String, String>() { {
-           put("5.5", "shared/lib");
-           put("6", "lib"); }};
-
-    public static final String defaultEndorsedLibraryDirectory = "endorsed";
-    public static final Map<String, String> endorsedLibraryDirectory = new HashMap<String, String>() { {
-           put("5.5", "common/endorsed");
-           put("6", "endorsed"); }};
 
     public TomcatServerDeploymentImpl(String targetServerDirectory) {
         super(targetServerDirectory);
     }
 
-    private String getEndorsedLibraryDirectory(String serverVersion) {
-        String result = endorsedLibraryDirectory.get(serverVersion);
-        if (result != null) return result;
-        return defaultEndorsedLibraryDirectory;
+    protected String getEndorsedLibraryDirectory() {
+        return "endorsed";
     }
 
-    private String getSharedLibraryDirectory(String serverVersion) {
-        String result = sharedLibraryDirectory.get(serverVersion);
-        if (result != null) return result;
-        return defaultSharedLibraryDirectory;
+    protected String getSharedLibraryDirectory() {
+        return "lib";
     }
 
     public boolean validateInstallationDirectory(String targetServerDirectory) {
@@ -84,11 +67,10 @@ public class TomcatServerDeploymentImpl extends AbstractServerDeploymentImpl {
     }
 
     public boolean deploySharedLibraries(String targetServerDirectory,
-                                         String serverVersion,
                                          List<File> pathToLibraries) throws IOException {
         Iterator<File> libraryPathIterator = pathToLibraries.iterator();
-        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory(serverVersion));
-        File targetEndorsedDirectory = new File(targetServerDirectory, getEndorsedLibraryDirectory(serverVersion));
+        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory());
+        File targetEndorsedDirectory = new File(targetServerDirectory, getEndorsedLibraryDirectory());
         while (libraryPathIterator.hasNext()) {
             File currentLibraryPath = libraryPathIterator.next();
             if (currentLibraryPath.getName().contains("jaxb-api")) {
@@ -101,11 +83,10 @@ public class TomcatServerDeploymentImpl extends AbstractServerDeploymentImpl {
     }
 
     public boolean undeploySharedLibraries(String targetServerDirectory,
-                                           String serverVersion,
                                            List<File> pathToLibraries) throws IOException {
         Iterator<File> libraryPathIterator = pathToLibraries.iterator();
-        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory(serverVersion));
-        File targetEndorsedDirectory = new File(targetServerDirectory, getEndorsedLibraryDirectory(serverVersion));
+        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory());
+        File targetEndorsedDirectory = new File(targetServerDirectory, getEndorsedLibraryDirectory());
         while (libraryPathIterator.hasNext()) {
             File currentLibraryPath = libraryPathIterator.next();
             if (currentLibraryPath.getName().contains("jaxb-api")) {
