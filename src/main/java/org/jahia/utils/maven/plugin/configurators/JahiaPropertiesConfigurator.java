@@ -53,6 +53,10 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
 
     public void updateConfiguration(String sourceJahiaPath, String targetJahiaPath) throws IOException {
         properties = new PropertiesManager(sourceJahiaPath, targetJahiaPath);
+        // context  path
+        if (properties.getPropertiesObject().containsKey("jahia.contextPath")) {
+            properties.setProperty("jahia.contextPath", jahiaConfigInterface.getContextPath());
+        }
         properties.setProperty("release", jahiaConfigInterface.getRelease());
         properties.setProperty("server", jahiaConfigInterface.getTargetServerType());
 //        properties.setProperty("serverHomeDiskPath", targetServerDirectory);
@@ -111,7 +115,7 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         }
         properties.setProperty("hibernate.dialect", getDBProperty("jahia.database.hibernate.dialect"));
         properties.setProperty("nested.transaction.allowed", getDBProperty("jahia.nested_transaction_allowed"));
-
+        
         properties.storeProperties(sourceJahiaPath, targetJahiaPath);
     }
 
