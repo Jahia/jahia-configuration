@@ -396,6 +396,11 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      */
     protected String mailParanoia;
     
+    /**
+     * @parameter expression="${jahia.deploy.war.contextPath}" default-value=""
+     */
+    protected String contextPath;
+    
     // JahiaConfigBean jahiaPropertiesBean;
     DatabaseConnection db;
     File webappDir;
@@ -680,6 +685,13 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public String getMailServer() {
         return mailServer;
+    }
+
+    /**
+     * @return the contextPath
+     */
+    public String getContextPath() {
+        return contextPath;
     }
 
 

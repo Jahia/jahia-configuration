@@ -103,6 +103,8 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String mailFrom = "";
     private String mailAdministrator = "";
     private String mailParanoia = "Disabled";
+    
+    private String contextPath = "";
 
     /**
      * This property is here for instance when we are in a clustered mode we don not want the database scripts to be
@@ -642,5 +644,16 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
      */
     public void setMailParanoia(String mailParanoia) {
         this.mailParanoia = mailParanoia;
+    }
+
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    /**
+     * @param contextPath the contextPath to set
+     */
+    public void setContextPath(String contextPath) {
+        this.contextPath = contextPath;
     }
 }
