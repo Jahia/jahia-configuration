@@ -96,4 +96,9 @@ public class JBossServerDeploymentImpl extends AbstractServerDeploymentImpl {
     public String getWarExcludes() {
         return (String) getDeployersProperties().get("jboss");
     }
+
+    @Override
+    public boolean isAutoDeploySupported() {
+        return true;
+    }
 }

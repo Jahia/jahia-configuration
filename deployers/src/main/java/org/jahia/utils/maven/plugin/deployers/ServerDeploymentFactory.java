@@ -65,12 +65,12 @@ public class ServerDeploymentFactory {
         addImplementation("weblogic", getImplementation("weblogic10"));
     }
 
-    public static ServerDeploymentFactory getInstance() throws Exception {
+    public static ServerDeploymentFactory getInstance() {
         if (instance != null) {
             return instance;
         }
         if (targetServerDirectory == null) {
-            throw new Exception("Factory not initialized properly, you must set the targetServerDirectory variable before calling getInstance !");
+            throw new RuntimeException("Factory not initialized properly, you must set the targetServerDirectory variable before calling getInstance !");
         }
         instance = new ServerDeploymentFactory(targetServerDirectory);
         return instance;

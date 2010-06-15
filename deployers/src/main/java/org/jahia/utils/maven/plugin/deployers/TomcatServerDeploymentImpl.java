@@ -112,4 +112,8 @@ public class TomcatServerDeploymentImpl extends AbstractServerDeploymentImpl {
         return getDeploymentBaseDir() + "/" + name + "." + type;
     }
 
+    @Override
+    public boolean isAutoDeploySupported() {
+        return true;
+    }
 }

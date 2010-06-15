@@ -50,21 +50,21 @@ public interface ServerDeploymentInterface {
      * @param targetServerDirectory
      * @return
      */
-    public boolean validateInstallationDirectory(String targetServerDirectory);
+    boolean validateInstallationDirectory(String targetServerDirectory);
 
-    public boolean deploySharedLibraries(String targetServerDirectory,
+    boolean deploySharedLibraries(String targetServerDirectory,
                                          List<File> pathToLibraries) throws IOException;
 
-    public boolean undeploySharedLibraries(String targetServerDirectory,
+    boolean undeploySharedLibraries(String targetServerDirectory,
                                            List<File> pathToLibraries) throws IOException;
     
-    public String getDeploymentBaseDir();
+    String getDeploymentBaseDir();
 
-    public String getDeploymentDirPath(String name, String type);
+    String getDeploymentDirPath(String name, String type);
 
-    public String getDeploymentFilePath(String name, String type);
+    String getDeploymentFilePath(String name, String type);
 
-    public String getTargetServerDirectory();
+    String getTargetServerDirectory();
 
     /**
      * Returns the excludes pattern for the Jahia WAR artifact, comma separated.
@@ -73,5 +73,14 @@ public interface ServerDeploymentInterface {
      * @return the excludes pattern for the Jahia WAR artifact, comma separated;
      *         can return null to indicate that nothing should be excluded
      */
-    public String getWarExcludes();
+    String getWarExcludes();
+    
+    /**
+     * Returns <code>true</code> if the server supports auto deployment of
+     * packaged WAR files, required for new portlet deployment.
+     * 
+     * @return <code>true</code> if the server supports auto deployment of
+     *         packaged WAR files, required for new portlet deployment.
+     */
+    boolean isAutoDeploySupported();
 }

@@ -48,4 +48,8 @@ public abstract class AbstractServerDeploymentImpl implements ServerDeploymentIn
         }
         return deployersProperties;
     }
+    
+    public boolean isAutoDeploySupported() {
+        return false;
+    }
 }
