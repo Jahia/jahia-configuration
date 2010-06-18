@@ -11,7 +11,7 @@
     <groupId>org.jahia.server</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>maven-jahia-plugin</artifactId>
-    <version>1.60</version>
+    <version>1.61</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Jahia Installer Plugin</name>
 
@@ -146,6 +146,16 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+          <groupId>org.apache.ant</groupId>
+          <artifactId>ant-nodeps</artifactId>
+          <version>1.7.0</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.ant</groupId>
+          <artifactId>ant</artifactId>
+          <version>1.7.0</version>
+        </dependency>
     </dependencies>
 
     <build>
