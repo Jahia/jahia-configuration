@@ -60,7 +60,7 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         properties.setProperty("release", jahiaConfigInterface.getRelease());
         properties.setProperty("server", jahiaConfigInterface.getTargetServerType());
         properties.setProperty("serverVersion", jahiaConfigInterface.getTargetServerVersion());
-        properties.setProperty("serverHome", jahiaConfigInterface.getTargetServerDirectory());
+        properties.setProperty("serverHome", jahiaConfigInterface.getTargetServerDirectory() != null ? jahiaConfigInterface.getTargetServerDirectory().replace("\\\\", "/").replace("\\", "/") : null);
         properties.setProperty("jahiaEtcDiskPath", jahiaConfigInterface.getJahiaEtcDiskPath());
         properties.setProperty("jahiaVarDiskPath", jahiaConfigInterface.getJahiaVarDiskPath());
         properties.setProperty("jahiaNewTemplatesDiskPath", jahiaConfigInterface.getJahiaNewTemplatesDiskPath());
