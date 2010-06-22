@@ -49,15 +49,6 @@ public class WebXmlConfigurator extends AbstractXMLConfigurator {
                 if (removeTestServlet) {
                     servletElement.getParent().removeContent(servletElement);
                 }
-            } else {
-                if (!removeTestServlet) {
-                    // servlet is missing, we must add it.
-                    servletElement = new Element("servlet", namespace);
-                    servletElement.addContent(new Element("servlet-name", namespace).setText("Test"));
-                    servletElement.addContent(new Element("servlet-class", namespace).setText("org.jahia.bin.TestServlet"));
-                    servletElement.addContent(new Element("load-on-startup", namespace).setText("99"));
-                    insertElementAfter(jdomDocument, "/xp:web-app//xp:servlet[contains(xp:servlet-class,\"org.jahia.bin.FilesServlet\")]", servletElement);
-                }
             }
             XPath servletMappingXPath = XPath.newInstance("/xp:web-app//xp:servlet-mapping[contains(xp:servlet-name,\"Test\")]");
             servletMappingXPath.addNamespace("xp", namespaceURI);
@@ -65,14 +56,6 @@ public class WebXmlConfigurator extends AbstractXMLConfigurator {
             if (servletMappingElement != null) {
                 if (removeTestServlet) {
                     servletMappingElement.getParent().removeContent(servletMappingElement);
-                }
-            } else {
-                if (!removeTestServlet) {
-                    // servlet mapping is missing, let's add it.
-                    servletMappingElement = new Element("servlet-mapping", namespace);
-                    servletMappingElement.addContent(new Element("servlet-name", namespace).setText("Test"));
-                    servletMappingElement.addContent(new Element("url-pattern", namespace).setText("/test/*"));
-                    insertElementAfter(jdomDocument, "/xp:web-app//xp:servlet-mapping[contains(xp:servlet-name,\"Files\")]", servletMappingElement);
                 }
             }
             // Now let's add the context parameter specific to Websphere.

@@ -34,19 +34,6 @@ public class WebXmlConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         assertNull(getNode(jdomDocument, "/"+tagPre+"web-app//"+tagPre+"servlet[contains("+tagPre+"servlet-class,\"org.jahia.bin.TestServlet\")]", prefix));
         assertNull(getNode(jdomDocument, "/"+tagPre+"web-app//"+tagPre+"servlet-mapping[contains("+tagPre+"servlet-name,\"Test\")]", prefix));
         checkOnlyOneElement(jdomDocument, "/"+tagPre+"web-app//"+tagPre+"context-param[contains("+tagPre+"param-name,\"com.ibm.websphere.portletcontainer.PortletDeploymentEnabled\")]", prefix );
-
-        WebXmlConfigurator tomcatMySQLWebXmlConfigurator = new WebXmlConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);
-        tomcatMySQLWebXmlConfigurator.updateConfiguration(webXmlParentPath + "web-modified.xml", webXmlParentPath + "web-modified2.xml");
-
-        saxBuilder = new SAXBuilder();
-        jdomDocument = saxBuilder.build(webXmlParentPath + "web-modified2.xml");
-        // prefix = "xp";
-        // tagPre = ("".equals(prefix) ? "" : prefix + ":");
-
-        assertNull(getNode(jdomDocument, "/"+tagPre+"web-app//"+tagPre+"context-param[contains("+tagPre+"param-name,\"com.ibm.websphere.portletcontainer.PortletDeploymentEnabled\")]", prefix) );
-        checkOnlyOneElement(jdomDocument, "/"+tagPre+"web-app//"+tagPre+"servlet[contains("+tagPre+"servlet-class,\"org.jahia.bin.TestServlet\")]", prefix);
-        checkOnlyOneElement(jdomDocument, "/"+tagPre+"web-app//"+tagPre+"servlet-mapping[contains("+tagPre+"servlet-name,\"Test\")]", prefix);
-
     }
 
 }
