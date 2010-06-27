@@ -124,7 +124,7 @@ public class DeployMojo extends AbstractManagementMojo {
         } else if (project.getPackaging().equals("war")) {
             if (project.getGroupId().equals("org.jahia.server") || project.getGroupId().equals("org.jahia.extensions")) {
                 deployWarProject();
-            } else if (project.getGroupId().equals("org.jahia.templates")) {
+            } else if (project.getGroupId().equals("org.jahia.modules")) {
                 deployTemplateProject();
             }
         } else if (project.getPackaging().equals("sar") || project.getPackaging().equals("jboss-sar") || project.getPackaging().equals("rar")) {
@@ -213,7 +213,7 @@ public class DeployMojo extends AbstractManagementMojo {
         if (getJahiaVersion() >= 6.5) {
         	// starting from 6.5 we deploy templates as WAR files into shared_templates
 			File source = new File(output, project.getArtifactId() + "-" + project.getVersion() + "." + project.getPackaging());
-        	File target = new File(webappDir, "WEB-INF/var/shared_templates");
+        	File target = new File(webappDir, "WEB-INF/var/shared_modules");
         	FileUtils.copyFileToDirectory(source, target);
         	getLog().info("Copied " + source + " into " + target);
         	File libs = new File(new File(output, project.getBuild().getFinalName()), "WEB-INF/lib");
@@ -230,7 +230,7 @@ public class DeployMojo extends AbstractManagementMojo {
 
         File source = new File(output, project.getArtifactId()+"-"+project.getVersion());
 
-        String prefix = "templates/";
+        String prefix = "modules/";
         File target = new File(getWebappDeploymentDir(),prefix);
         if(!target.exists()) {
             prefix = "jsp/jahia/templates/";

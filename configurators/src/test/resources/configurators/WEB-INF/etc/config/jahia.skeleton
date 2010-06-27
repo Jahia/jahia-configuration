@@ -32,7 +32,7 @@ serverHomeDiskPath                                     =
 
 jahiaJspDiskPath                                       =   /
 jahiaEnginesDiskPath                                   =   /engines/
-jahiaTemplatesDiskPath                                 =   /templates/
+jahiaTemplatesDiskPath                                 =   /modules/
 jahiaHtmlEditorsDiskPath                               =   /htmleditors/
 jahiaJavaScriptDiskPath                                =   /javascript/
 

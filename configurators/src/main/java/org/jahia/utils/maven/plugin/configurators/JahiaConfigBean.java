@@ -53,8 +53,8 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String jahiaVarDiskPath = "$context/WEB-INF/var/";
     private String jahiaNewTemplatesDiskPath = "$context/WEB-INF/var/new_templates/";
     private String jahiaNewWebAppsDiskPath = "$context/WEB-INF/var/new_webapps/";
-    private String jahiaSharedTemplatesDiskPath = "$context/WEB-INF/var/shared_templates/";
-    private String jahiaTemplatesHttpPath = "$webContext/templates/";
+    private String jahiaSharedTemplatesDiskPath = "$context/WEB-INF/var/shared_modules/";
+    private String jahiaTemplatesHttpPath = "$webContext/modules/";
     private String jahiaEnginesHttpPath = "$webContext/engines/";
     private String jahiaJavaScriptHttpPath = "$webContext/javascript/jahia.js";
     private String jahiaWebAppsDeployerBaseURL = "http\\://localhost\\:8080/manager";
