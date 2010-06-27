@@ -945,7 +945,7 @@ FRAG2(frag_size=60000)</value>
         <property name="syncUrl" value="http://${localIp}:8080" />
         <property name="pathsToSync">
             <set>
-                <value>/templates</value>
+                <value>/modules</value>
                 <value>/WEB-INF/classes/*.properties</value>
                 <value>/WEB-INF/classes/*.class</value>
             </set>

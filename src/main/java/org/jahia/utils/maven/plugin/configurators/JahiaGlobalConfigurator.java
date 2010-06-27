@@ -257,7 +257,7 @@ public class JahiaGlobalConfigurator {
 
         cleanDirectory(new File(webappDir + "/WEB-INF/var/search_indexes"));
 
-        File[] templateDirs = new File(webappDir + "/templates")
+        File[] templateDirs = new File(webappDir + "/modules")
                 .listFiles(jahiaConfig.getJahiaVersion() < 6.5 ? (FilenameFilter) new AndFileFilter(
                         new NotFileFilter(new NameFileFilter("default")),
                         DirectoryFileFilter.DIRECTORY)
