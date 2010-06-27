@@ -11,7 +11,7 @@
     <groupId>org.jahia.server</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>maven-jahia-plugin</artifactId>
-    <version>1.62</version>
+    <version>1.63</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Jahia Installer Plugin</name>
 
@@ -47,12 +47,12 @@
         <dependency>
             <groupId>org.jahia.server</groupId>
             <artifactId>deployers</artifactId>
-            <version>1.4</version>
+            <version>1.5</version>
         </dependency>
         <dependency>
             <groupId>org.jahia.server</groupId>
             <artifactId>configurators</artifactId>
-            <version>1.11</version>
+            <version>1.12</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
