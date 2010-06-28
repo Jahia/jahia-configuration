@@ -53,7 +53,8 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String jahiaVarDiskPath = "$context/WEB-INF/var/";
     private String jahiaNewTemplatesDiskPath = "$context/WEB-INF/var/new_templates/";
     private String jahiaNewWebAppsDiskPath = "$context/WEB-INF/var/new_webapps/";
-    private String jahiaSharedTemplatesDiskPath = "$context/WEB-INF/var/shared_modules/";
+    private String jahiaSharedTemplatesDiskPath = "$context/WEB-INF/var/shared_templates/";
+    private String jahiaSharedModulesDiskPath = "$context/WEB-INF/var/shared_modules/";
     private String jahiaTemplatesHttpPath = "$webContext/modules/";
     private String jahiaEnginesHttpPath = "$webContext/engines/";
     private String jahiaJavaScriptHttpPath = "$webContext/javascript/jahia.js";
@@ -199,9 +200,8 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     }
 
     public String getJahiaSharedTemplatesDiskPath() {
-        return jahiaSharedTemplatesDiskPath;
+        return jahiaVersion < 6.5 ?jahiaSharedTemplatesDiskPath:jahiaSharedModulesDiskPath;
     }
-
     public void setJahiaSharedTemplatesDiskPath(String jahiaSharedTemplatesDiskPath) {
         this.jahiaSharedTemplatesDiskPath = jahiaSharedTemplatesDiskPath;
     }
