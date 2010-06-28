@@ -210,23 +210,6 @@ public class DeployMojo extends AbstractManagementMojo {
      */
     private void deployTemplateProject() throws Exception {
         File webappDir = getWebappDeploymentDir();
-        if (getJahiaVersion() >= 6.5) {
-        	// starting from 6.5 we deploy templates as WAR files into shared_templates
-			File source = new File(output, project.getArtifactId() + "-" + project.getVersion() + "." + project.getPackaging());
-        	File target = new File(webappDir, "WEB-INF/var/shared_templates");
-        	FileUtils.copyFileToDirectory(source, target);
-        	getLog().info("Copied " + source + " into " + target);
-        	File libs = new File(new File(output, project.getBuild().getFinalName()), "WEB-INF/lib");
-        	if (libs.isDirectory()) {
-        	    File targetLibs = new File(webappDir, "WEB-INF");
-        	    if (!targetLibs.isDirectory()) {
-        	        targetLibs.mkdirs();
-        	    }
-                getLog().info("Copying module libraries from " + libs + " into " + targetLibs);
-        	    FileUtils.copyDirectoryToDirectory(libs, targetLibs);
-        	}
-        	return;
-        }
 
         File source = new File(output, project.getArtifactId()+"-"+project.getVersion());
 

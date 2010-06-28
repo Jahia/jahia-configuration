@@ -258,10 +258,9 @@ public class JahiaGlobalConfigurator {
         cleanDirectory(new File(webappDir + "/WEB-INF/var/search_indexes"));
 
         File[] templateDirs = new File(webappDir + "/templates")
-                .listFiles(jahiaConfig.getJahiaVersion() < 6.5 ? (FilenameFilter) new AndFileFilter(
+                .listFiles((FilenameFilter) new AndFileFilter(
                         new NotFileFilter(new NameFileFilter("default")),
-                        DirectoryFileFilter.DIRECTORY)
-                        : DirectoryFileFilter.DIRECTORY);
+                        DirectoryFileFilter.DIRECTORY));
         if (templateDirs != null) {
             for (File templateDir : templateDirs) {
                 cleanDirectory(templateDir);
@@ -422,8 +421,6 @@ public class JahiaGlobalConfigurator {
      * Insert database custom data, like root user and properties.
      */
     private void insertDBCustomContent() throws Exception {
-
-        if (jahiaConfig.getJahiaVersion() >= 6.5) return;
 
         getLogger().debug("Inserting customized settings into database...");
 

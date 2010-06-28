@@ -94,7 +94,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String jahiaRootFirstname = "";
     private String jahiaRootLastname = "";
     private String jahiaRootEmail = "";
-    private float jahiaVersion = 6.0f;
     private String webAppDirName = "";
     private boolean configureBeforePackaging = true;
     private String sourceWebAppDir = "";
@@ -498,10 +497,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         return jahiaRootPassword;
     }
 
-    public float getJahiaVersion() {
-        return jahiaVersion;
-    }
-
     public String getWebAppDirName() {
         return webAppDirName;
     }
@@ -520,10 +515,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public void setJahiaRootPassword(String jahiaRootPassword) {
         this.jahiaRootPassword = jahiaRootPassword;
-    }
-
-    public void setJahiaVersion(float jahiaVersion) {
-        this.jahiaVersion = jahiaVersion;
     }
 
     public void setSourceWebAppDir(String sourceWebAppDir) {

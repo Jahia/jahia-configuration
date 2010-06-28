@@ -111,8 +111,6 @@ public interface JahiaConfigInterface {
     
     String getJahiaRootEmail();
     
-    float getJahiaVersion();
-
     boolean isConfigureBeforePackaging();
 
     String getSourceWebAppDir();
