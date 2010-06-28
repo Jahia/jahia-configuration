@@ -125,6 +125,8 @@ public class DeployMojo extends AbstractManagementMojo {
             if (project.getGroupId().equals("org.jahia.server") || project.getGroupId().equals("org.jahia.extensions")) {
                 deployWarProject();
             } else if (project.getGroupId().equals("org.jahia.modules")) {
+                deployModuleProject();
+            } else if (project.getGroupId().equals("org.jahia.templates")) {
                 deployTemplateProject();
             }
         } else if (project.getPackaging().equals("sar") || project.getPackaging().equals("jboss-sar") || project.getPackaging().equals("rar")) {
@@ -209,6 +211,65 @@ public class DeployMojo extends AbstractManagementMojo {
      * @throws Exception
      */
     private void deployTemplateProject() throws Exception {
+        File webappDir = getWebappDeploymentDir();
+        if (getJahiaVersion() >= 6.5) {
+        	// starting from 6.5 we deploy templates as WAR files into shared_templates
+			File source = new File(output, project.getArtifactId() + "-" + project.getVersion() + "." + project.getPackaging());
+        	File target = new File(webappDir, "WEB-INF/var/shared_templates");
+        	FileUtils.copyFileToDirectory(source, target);
+        	getLog().info("Copied " + source + " into " + target);
+        	File libs = new File(new File(output, project.getBuild().getFinalName()), "WEB-INF/lib");
+        	if (libs.isDirectory()) {
+        	    File targetLibs = new File(webappDir, "WEB-INF");
+        	    if (!targetLibs.isDirectory()) {
+        	        targetLibs.mkdirs();
+        	    }
+                getLog().info("Copying module libraries from " + libs + " into " + targetLibs);
+        	    FileUtils.copyDirectoryToDirectory(libs, targetLibs);
+        	}
+        	return;
+        }
+
+        File source = new File(output, project.getArtifactId()+"-"+project.getVersion());
+
+        String prefix = "templates/";
+        File target = new File(getWebappDeploymentDir(),prefix);
+        if(!target.exists()) {
+            prefix = "jsp/jahia/templates/";
+        }
+
+        File templateXml = new File(source, "WEB-INF/templates.xml");
+        if (!templateXml.exists()) {
+            getLog().info("No template.xml file, bypassing template deployment");
+            return;
+        }
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(templateXml)));
+            String outputDir = null;
+            while (outputDir == null ) {
+                String line = reader.readLine();
+                if (line.trim().startsWith("<root-folder>")) {
+                    outputDir = line.substring(line.indexOf('>')+1, line.lastIndexOf('<'));
+                }
+            }
+
+            target = new File(getWebappDeploymentDir(),prefix+outputDir);
+            getLog().info("Updated template war resources for " + targetServerType + " v" + targetServerVersion + " in directory " + target);
+            int cnt = updateFiles(source, target, "**/WEB-INF,**/WEB-INF/**");
+            cnt += updateFiles(new File(source, "WEB-INF/classes"), new File(webappDir,"WEB-INF/classes"));
+            getLog().info("Copied "+cnt+" files.");
+            FileUtils.copyFileToDirectory(templateXml, target);
+            getLog().info("Updated template descriptor.");
+        } catch (IOException e) {
+            getLog().error("Error while deploying template project", e);
+        }
+    }
+
+    /**
+     * Copy template resources from output folder to the jsp/templates and WEB-INF/classes of jahia
+     * @throws Exception
+     */
+    private void deployModuleProject() throws Exception {
         File webappDir = getWebappDeploymentDir();
         if (getJahiaVersion() >= 6.5) {
         	// starting from 6.5 we deploy templates as WAR files into shared_templates

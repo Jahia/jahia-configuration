@@ -88,6 +88,16 @@ public class CopyTemplatesMojo extends AbstractMojo {
                     getLog().error("Error when copying file " + dependencyFile.getFile(), e);
                 }
             }
+            if (dependencyFile.getGroupId().equals("org.jahia.templates")) {
+                try {
+                    FileUtils.copyFileToDirectory(dependencyFile.getFile(), new File(output,"jahia/WEB-INF/var/shared_templates"));
+                    getLog().info("Copy templates jar "+dependencyFile.getFile().getName() + " to shared templates");
+                    copyJars(dependencyFile.getFile(), new File(output,"jahia"));
+                    dependenciesToRemove.add(dependencyFile);
+                } catch (IOException e) {
+                    getLog().error("Error when copying file " + dependencyFile.getFile(), e);
+                }
+            }
             if (dependencyFile.getGroupId().equals("org.jahia.prepackagedsites")) {
                 try {
                     FileUtils.copyFile(dependencyFile.getFile(), new File(output,"jahia/WEB-INF/var/prepackagedSites/"+dependencyFile.getArtifactId()+".zip"));

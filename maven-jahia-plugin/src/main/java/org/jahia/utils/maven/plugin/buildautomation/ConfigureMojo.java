@@ -149,9 +149,16 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * properties file path
      *
-     * @parameter default-value="$context/WEB-INF/var/shared_modules/"
+     * @parameter default-value="$context/WEB-INF/var/shared_templates/"
      */
     protected String jahiaSharedTemplatesDiskPath;
+    /**
+     * properties file path
+     *
+     * @parameter default-value="$context/WEB-INF/var/shared_modules/"
+     */
+    protected String jahiaSharedModulesDiskPath;
+
     /**
      * properties file path
      *
@@ -582,6 +589,11 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     public String getJahiaSharedTemplatesDiskPath() {
         return jahiaSharedTemplatesDiskPath;
     }
+
+    public String getJahiaSharedModulesDiskPath() {
+        return jahiaSharedModulesDiskPath;
+    }
+
 
     public String getJahiaTemplatesHttpPath() {
         return jahiaTemplatesHttpPath;
