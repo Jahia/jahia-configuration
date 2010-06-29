@@ -124,7 +124,6 @@
             <id>jahiaRepository</id>
             <name>Jahia's Maven Repository</name>
             <url>http://maven.jahia.org/maven2</url>
-            <uniqueVersion>false</uniqueVersion>
         </pluginRepository>
     </pluginRepositories>
 
