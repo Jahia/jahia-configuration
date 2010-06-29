@@ -24,10 +24,7 @@ public class JahiaPropertiesConfiguratorTest extends AbstractConfiguratorTestCas
         websphereOracleConfigurator.updateConfiguration(jahiaSkeletonFile.toString(), jahiaSkeletonFileParentPath + "jahia.properties");
         Properties websphereOracleProperties = new Properties();
         websphereOracleProperties.load(new FileInputStream(jahiaSkeletonFileParentPath + "jahia.properties"));
-        assertEquals("http://" + websphereOracleConfigBean.getLocalIp() + ":" + websphereOracleConfigBean.getLocalPort(), websphereOracleProperties.getProperty("localAccessUri"));
         assertEquals("was", websphereOracleProperties.getProperty("server"));
-        assertEquals("1.2.3.4", websphereOracleProperties.getProperty("localIp"));
-        assertEquals("9080", websphereOracleProperties.getProperty("localPort"));
         assertEquals("3", websphereOracleProperties.getProperty("cluster.tcp.num_initial_members"));
         assertEquals("3", websphereOracleProperties.getProperty("cluster.tcp.num_initial_members"));
         assertEquals("1.2.3.4[7840],2.3.4.5[7840],3.4.5.6[7840],4.5.6.7[7840]", websphereOracleProperties.getProperty("cluster.tcp.service.nodes.ip_address"));
@@ -36,9 +33,6 @@ public class JahiaPropertiesConfiguratorTest extends AbstractConfiguratorTestCas
         tomcatMySQLConfigurator.updateConfiguration(jahiaSkeletonFileParentPath + "jahia.properties", jahiaSkeletonFileParentPath + "jahia2.properties");
         Properties tomcatMySQLProperties = new Properties();
         tomcatMySQLProperties.load(new FileInputStream(jahiaSkeletonFileParentPath + "jahia2.properties"));
-        assertNull(tomcatMySQLProperties.getProperty("localAccessUri"));
         assertEquals("tomcat", tomcatMySQLProperties.getProperty("server"));
-        assertEquals("localhost", tomcatMySQLProperties.getProperty("localIp"));
-        assertEquals("8080", tomcatMySQLProperties.getProperty("localPort"));
     }
 }

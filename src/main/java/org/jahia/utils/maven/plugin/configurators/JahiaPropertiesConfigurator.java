@@ -54,49 +54,20 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
     public void updateConfiguration(String sourceJahiaPath, String targetJahiaPath) throws IOException {
         properties = new PropertiesManager(sourceJahiaPath, targetJahiaPath);
         // context  path
-        if (properties.getPropertiesObject().containsKey("jahia.contextPath")) {
-            properties.setProperty("jahia.contextPath", jahiaConfigInterface.getContextPath());
-        }
+        properties.setProperty("jahia.contextPath", jahiaConfigInterface.getContextPath());
         properties.setProperty("release", jahiaConfigInterface.getRelease());
         properties.setProperty("server", jahiaConfigInterface.getTargetServerType());
         properties.setProperty("serverVersion", jahiaConfigInterface.getTargetServerVersion());
         properties.setProperty("serverHome", jahiaConfigInterface.getTargetServerDirectory() != null ? jahiaConfigInterface.getTargetServerDirectory().replace("\\\\", "/").replace("\\", "/") : null);
         properties.setProperty("jahiaEtcDiskPath", jahiaConfigInterface.getJahiaEtcDiskPath());
         properties.setProperty("jahiaVarDiskPath", jahiaConfigInterface.getJahiaVarDiskPath());
-        properties.setProperty("jahiaNewTemplatesDiskPath", jahiaConfigInterface.getJahiaNewTemplatesDiskPath());
         properties.setProperty("jahiaSharedTemplatesDiskPath", jahiaConfigInterface.getJahiaSharedTemplatesDiskPath());
-        properties.setProperty("jahiaNewWebAppsDiskPath", jahiaConfigInterface.getJahiaNewWebAppsDiskPath());
-        properties.setProperty("jahiaFileRepositoryDiskPath", jahiaConfigInterface.getJahiaFileRepositoryDiskPath());
-        properties.setProperty("jahiaFilesBigTextDiskPath", jahiaConfigInterface.getJahiaFilesBigTextDiskPath());
-        properties.setProperty("jahiaFilesTemplatesDiskPath", jahiaConfigInterface.getJahiaFilesTemplatesDiskPath());
         properties.setProperty("jahiaTemplatesHttpPath", jahiaConfigInterface.getJahiaTemplatesHttpPath());
         properties.setProperty("jahiaEnginesHttpPath", jahiaConfigInterface.getJahiaEnginesHttpPath());
         properties.setProperty("jahiaJavaScriptHttpPath", jahiaConfigInterface.getJahiaJavaScriptHttpPath());
         properties.setProperty("jahiaWebAppsDeployerBaseURL", jahiaConfigInterface.getJahiaWebAppsDeployerBaseURL());
-        properties.setProperty("datasource_name", jahiaConfigInterface.getDatasource_name());
-        properties.setProperty("outputCacheActivated", jahiaConfigInterface.getOutputCacheActivated());
-        properties.setProperty("outputCacheDefaultExpirationDelay", jahiaConfigInterface.getOutputCacheDefaultExpirationDelay());
-        properties.setProperty("outputCacheExpirationOnly", jahiaConfigInterface.getOutputCacheExpirationOnly());
-        properties.setProperty("outputContainerCacheActivated", jahiaConfigInterface.getOutputContainerCacheActivated());
-        properties.setProperty("containerCacheDefaultExpirationDelay", jahiaConfigInterface.getContainerCacheDefaultExpirationDelay());
-        properties.setProperty("outputContainerCacheActivated", jahiaConfigInterface.getOutputContainerCacheActivated());
         properties.setProperty("jahiaImportsDiskPath", jahiaConfigInterface.getJahiaImportsDiskPath());
-        properties.setProperty("containerCacheDefaultExpirationDelay", jahiaConfigInterface.getContainerCacheDefaultExpirationDelay());
-        properties.setProperty("containerCacheLiveModeOnly", jahiaConfigInterface.getContainerCacheLiveModeOnly());
-        properties.setProperty("esiCacheActivated", jahiaConfigInterface.getEsiCacheActivated());
-        properties.setProperty("datasource.name", jahiaConfigInterface.getDatasource_name());
-        properties.setProperty("JahiaWebAppsDeployerService", jahiaConfigInterface.getJahia_WebApps_Deployer_Service());
-        properties.setProperty("defautSite", jahiaConfigInterface.getDefautSite());
         properties.setProperty("cluster.activated", jahiaConfigInterface.getCluster_activated());
-        properties.setProperty("localIp", jahiaConfigInterface.getLocalIp());
-        properties.setProperty("localPort", jahiaConfigInterface.getLocalPort());
-        if (!"8080".equals(jahiaConfigInterface.getLocalPort())) {
-            properties.setProperty("localAccessUri", "http://" + jahiaConfigInterface.getLocalIp() + ":" + jahiaConfigInterface.getLocalPort());
-        } else {
-            if ("localhost".equals(jahiaConfigInterface.getLocalIp())) {
-                properties.removeProperty("localAccessUri");
-            }
-        }
         properties.setProperty("cluster.node.serverId", jahiaConfigInterface.getCluster_node_serverId());
         properties.setProperty("db_script", jahiaConfigInterface.getDb_script());
         properties.setProperty("developmentMode", jahiaConfigInterface.getDevelopmentMode());
@@ -105,7 +76,6 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
             addClusterNodes(jahiaConfigInterface.getClusterNodes());
 
         }
-        properties.setProperty("bigtext.service", jahiaConfigInterface.getBigtext_service());
         properties.setProperty("cluster.node.serverId", jahiaConfigInterface.getCluster_node_serverId());
         properties.setProperty("mail_paranoia", jahiaConfigInterface.getMailParanoia());
         if (jahiaConfigInterface.getMailServer() != null && jahiaConfigInterface.getMailServer().length() > 0) {
@@ -122,7 +92,7 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
 
     private void addClusterNodes(List<String> clusterNodes) {
 
-        final String propvalue = jahiaConfigInterface.getLocalIp();
+        final String propvalue = jahiaConfigInterface.getClusterStartIpAddress();
         properties.setProperty("cluster.tcp.start.ip_address", propvalue);
         String clusterTtcpServiceNodesIp_address = propvalue+"[7840],";
         String clustertcpidgeneratornodesip_address = propvalue+"[7850],";
@@ -146,11 +116,7 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
 
         }
         properties.setProperty("cluster.tcp.service.nodes.ip_address", clusterTtcpServiceNodesIp_address);
-        if(properties.getProperty("cluster.tcp.esicontentids.nodes.ip_address") != null){
-            properties.setProperty("cluster.tcp.idgenerator.nodes.ip_address", clustertcpidgeneratornodesip_address);
-            properties.setProperty("cluster.tcp.esicontentids.nodes.ip_address", clustertcpesicontentidsnodesip_address);
-            properties.setProperty("cluster.tcp.hibernate.nodes.ip_address", clustertcphibernatenodesip_address);
-        } else if(properties.getProperty("ehcache.hibernate.file") != null){
+        if(properties.getProperty("ehcache.hibernate.file") != null){
             properties.setProperty("cluster.tcp.ehcache.hibernate.nodes.ip_address", clustertcpesicontentidsnodesip_address);
             properties.setProperty("cluster.tcp.ehcache.jahia.nodes.ip_address", clustertcphibernatenodesip_address);
             properties.setProperty("ehcache.hibernate.file","ehcache-hibernate_cluster.xml");

@@ -45,37 +45,19 @@ import java.util.ArrayList;
  */
 public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private File outputDirectory;
-    private String jahiaFileRepositoryDiskPath = "$context/WEB-INF/var/content/filemanager/";
     private String release = "Testing_release";
-    private String localIp = "localhost";
-    private String localPort = "8080";
     private String jahiaEtcDiskPath = "$context/WEB-INF/etc/";
     private String jahiaVarDiskPath = "$context/WEB-INF/var/";
-    private String jahiaNewTemplatesDiskPath = "$context/WEB-INF/var/new_templates/";
-    private String jahiaNewWebAppsDiskPath = "$context/WEB-INF/var/new_webapps/";
-    private String jahiaSharedTemplatesDiskPath = "$context/WEB-INF/var/shared_templates/";
-    private String jahiaSharedModulesDiskPath = "$context/WEB-INF/var/shared_modules/";
+    private String jahiaSharedTemplatesDiskPath = "$context/WEB-INF/var/shared_modules/";
     private String jahiaTemplatesHttpPath = "$webContext/modules/";
     private String jahiaEnginesHttpPath = "$webContext/engines/";
     private String jahiaJavaScriptHttpPath = "$webContext/javascript/jahia.js";
     private String jahiaWebAppsDeployerBaseURL = "http\\://localhost\\:8080/manager";
-    private String datasource_name = "java\\:comp/env/jdbc/jahia";
-    private String outputCacheActivated = "false";
-    private String outputCacheDefaultExpirationDelay = "-1";
-    private String outputCacheExpirationOnly = "false";
-    private String outputContainerCacheActivated = "true";
-    private String containerCacheDefaultExpirationDelay = "14400";
-    private String containerCacheLiveModeOnly = "false";
-    private String esiCacheActivated = "false";
-    private String Jahia_WebApps_Deployer_Service = "org.jahia.services.webapps_deployer.JahiaTomcatWebAppsDeployerBaseService";
-    private String defautSite = "mySite";
     private String cluster_activated = "false";
     private String cluster_node_serverId = "Jahia1";
+    private String clusterStartIpAddress = "192.168.1.100";
     private String processingServer = "true";
-    private String jahiaFilesTemplatesDiskPath = "$context/WEB-INF/var/templates/";
     private String jahiaImportsDiskPath = "$context/WEB-INF/var/imports/";
-    private String jahiaFilesBigTextDiskPath = "$context/WEB-INF/var/content/bigtext/";
-    private String bigtext_service = "DBJahiaText";
     private String jahiaxmlPath;
     private List<String> clusterNodes = new ArrayList<String>();
     private String db_script = "hypersonic.script";
@@ -95,9 +77,7 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String jahiaRootFirstname = "";
     private String jahiaRootLastname = "";
     private String jahiaRootEmail = "";
-    private float jahiaVersion = 6.0f;
     private String webAppDirName = "";
-    private boolean configureBeforePackaging = true;
     private String sourceWebAppDir = "";
     
     private String mailServer = "";
@@ -127,36 +107,12 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.outputDirectory = outputDirectory;
     }
 
-    public String getJahiaFileRepositoryDiskPath() {
-        return jahiaFileRepositoryDiskPath;
-    }
-
-    public void setJahiaFileRepositoryDiskPath(String jahiaFileRepositoryDiskPath) {
-        this.jahiaFileRepositoryDiskPath = jahiaFileRepositoryDiskPath;
-    }
-
     public String getRelease() {
         return release;
     }
 
     public void setRelease(String release) {
         this.release = release;
-    }
-
-    public String getLocalIp() {
-        return localIp;
-    }
-
-    public void setLocalIp(String localIp) {
-        this.localIp = localIp;
-    }
-
-    public String getLocalPort() {
-        return localPort;
-    }
-
-    public void setLocalPort(String localPort) {
-        this.localPort = localPort;
     }
 
     public String getDb_script() {
@@ -183,24 +139,8 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.jahiaVarDiskPath = jahiaVarDiskPath;
     }
 
-    public String getJahiaNewTemplatesDiskPath() {
-        return jahiaNewTemplatesDiskPath;
-    }
-
-    public void setJahiaNewTemplatesDiskPath(String jahiaNewTemplatesDiskPath) {
-        this.jahiaNewTemplatesDiskPath = jahiaNewTemplatesDiskPath;
-    }
-
-    public String getJahiaNewWebAppsDiskPath() {
-        return jahiaNewWebAppsDiskPath;
-    }
-
-    public void setJahiaNewWebAppsDiskPath(String jahiaNewWebAppsDiskPath) {
-        this.jahiaNewWebAppsDiskPath = jahiaNewWebAppsDiskPath;
-    }
-
     public String getJahiaSharedTemplatesDiskPath() {
-        return jahiaVersion < 6.5 ?jahiaSharedTemplatesDiskPath:jahiaSharedModulesDiskPath;
+        return jahiaSharedTemplatesDiskPath;
     }
     public void setJahiaSharedTemplatesDiskPath(String jahiaSharedTemplatesDiskPath) {
         this.jahiaSharedTemplatesDiskPath = jahiaSharedTemplatesDiskPath;
@@ -238,86 +178,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.jahiaWebAppsDeployerBaseURL = jahiaWebAppsDeployerBaseURL;
     }
 
-    public String getDatasource_name() {
-        return datasource_name;
-    }
-
-    public void setDatasource_name(String datasource_name) {
-        this.datasource_name = datasource_name;
-    }
-
-    public String getOutputCacheActivated() {
-        return outputCacheActivated;
-    }
-
-    public void setOutputCacheActivated(String outputCacheActivated) {
-        this.outputCacheActivated = outputCacheActivated;
-    }
-
-    public String getOutputCacheDefaultExpirationDelay() {
-        return outputCacheDefaultExpirationDelay;
-    }
-
-    public void setOutputCacheDefaultExpirationDelay(String outputCacheDefaultExpirationDelay) {
-        this.outputCacheDefaultExpirationDelay = outputCacheDefaultExpirationDelay;
-    }
-
-    public String getOutputCacheExpirationOnly() {
-        return outputCacheExpirationOnly;
-    }
-
-    public void setOutputCacheExpirationOnly(String outputCacheExpirationOnly) {
-        this.outputCacheExpirationOnly = outputCacheExpirationOnly;
-    }
-
-    public String getOutputContainerCacheActivated() {
-        return outputContainerCacheActivated;
-    }
-
-    public void setOutputContainerCacheActivated(String outputContainerCacheActivated) {
-        this.outputContainerCacheActivated = outputContainerCacheActivated;
-    }
-
-    public String getContainerCacheDefaultExpirationDelay() {
-        return containerCacheDefaultExpirationDelay;
-    }
-
-    public void setContainerCacheDefaultExpirationDelay(String containerCacheDefaultExpirationDelay) {
-        this.containerCacheDefaultExpirationDelay = containerCacheDefaultExpirationDelay;
-    }
-
-    public String getContainerCacheLiveModeOnly() {
-        return containerCacheLiveModeOnly;
-    }
-
-    public void setContainerCacheLiveModeOnly(String containerCacheLiveModeOnly) {
-        this.containerCacheLiveModeOnly = containerCacheLiveModeOnly;
-    }
-
-    public String getEsiCacheActivated() {
-        return esiCacheActivated;
-    }
-
-    public void setEsiCacheActivated(String esiCacheActivated) {
-        this.esiCacheActivated = esiCacheActivated;
-    }
-
-    public String getJahia_WebApps_Deployer_Service() {
-        return Jahia_WebApps_Deployer_Service;
-    }
-
-    public void setJahia_WebApps_Deployer_Service(String jahia_WebApps_Deployer_Service) {
-        Jahia_WebApps_Deployer_Service = jahia_WebApps_Deployer_Service;
-    }
-
-    public String getDefautSite() {
-        return defautSite;
-    }
-
-    public void setDefautSite(String defautSite) {
-        this.defautSite = defautSite;
-    }
-
     public String getCluster_activated() {
         return cluster_activated;
     }
@@ -342,36 +202,12 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.processingServer = processingServer;
     }
 
-    public String getBigtext_service() {
-        return bigtext_service;
-    }
-
-    public void setBigtext_service(String bigtext_service) {
-        this.bigtext_service = bigtext_service;
-    }
-
-    public String getJahiaFilesTemplatesDiskPath() {
-        return jahiaFilesTemplatesDiskPath;
-    }
-
-    public void setJahiaFilesTemplatesDiskPath(String jahiaFilesTemplatesDiskPath) {
-        this.jahiaFilesTemplatesDiskPath = jahiaFilesTemplatesDiskPath;
-    }
-
     public String getJahiaImportsDiskPath() {
         return jahiaImportsDiskPath;
     }
 
     public void setJahiaImportsDiskPath(String jahiaImportsDiskPath) {
         this.jahiaImportsDiskPath = jahiaImportsDiskPath;
-    }
-
-    public String getJahiaFilesBigTextDiskPath() {
-        return jahiaFilesBigTextDiskPath;
-    }
-
-    public void setJahiaFilesBigTextDiskPath(String jahiaFilesBigTextDiskPath) {
-        this.jahiaFilesBigTextDiskPath = jahiaFilesBigTextDiskPath;
     }
 
     public String getJahiaxmlPath() {
@@ -486,20 +322,12 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.targetConfigurationDirectory = targetConfigurationDirectory;
     }
 
-    public boolean isConfigureBeforePackaging() {
-        return configureBeforePackaging;
-    }
-
     public String getExternalConfigPath() {
         return externalConfigPath;
     }
 
     public String getJahiaRootPassword() {
         return jahiaRootPassword;
-    }
-
-    public float getJahiaVersion() {
-        return jahiaVersion;
     }
 
     public String getWebAppDirName() {
@@ -510,20 +338,12 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         return sourceWebAppDir;
     }
 
-    public void setConfigureBeforePackaging(boolean configureBeforePackaging) {
-        this.configureBeforePackaging = configureBeforePackaging;
-    }
-
     public void setExternalConfigPath(String externalConfigPath) {
         this.externalConfigPath = externalConfigPath;
     }
 
     public void setJahiaRootPassword(String jahiaRootPassword) {
         this.jahiaRootPassword = jahiaRootPassword;
-    }
-
-    public void setJahiaVersion(float jahiaVersion) {
-        this.jahiaVersion = jahiaVersion;
     }
 
     public void setSourceWebAppDir(String sourceWebAppDir) {
@@ -655,5 +475,16 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
      */
     public void setContextPath(String contextPath) {
         this.contextPath = contextPath;
+    }
+
+    public String getClusterStartIpAddress() {
+        return clusterStartIpAddress;
+    }
+
+    /**
+     * @param clusterStartIpAddress the clusterStartIpAddress to set
+     */
+    public void setClusterStartIpAddress(String clusterStartIpAddress) {
+        this.clusterStartIpAddress = clusterStartIpAddress;
     }
 }

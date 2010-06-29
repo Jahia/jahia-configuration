@@ -9,6 +9,15 @@
 #  cache implementation configuration, Hibernate configuration, etc.
 
 ######################################################################
+### Web application context path #####################################
+######################################################################
+# By default Jahia is deployed into ROOT context (context path is empty
+# in this case). If deployed into another context, e.g. /jahia this value
+# should be adjusted accordingly (in this case the context path starts
+# with a slash).
+jahia.contextPath                                      = 
+
+######################################################################
 ### Server  ##########################################################
 ######################################################################
 # General server information, such as release version, the application
@@ -16,11 +25,8 @@
 # Jahia instance.
 release                                                =
 server                                                 =
-# The server home disk path is application server specific, and is used
-# to deploy and configure new portlets, as well as other specific
-# adjustments such as Tomcat's in-memory realm automatic updating
-# (tomcat-users.xml files).
-serverHomeDiskPath                                     =
+serverVersion                                          =
+serverHome                                             =
 
 
 ######################################################################
@@ -33,21 +39,18 @@ serverHomeDiskPath                                     =
 jahiaJspDiskPath                                       =   /
 jahiaEnginesDiskPath                                   =   /engines/
 jahiaTemplatesDiskPath                                 =   /modules/
-jahiaHtmlEditorsDiskPath                               =   /htmleditors/
 jahiaJavaScriptDiskPath                                =   /javascript/
 
 jahiaFilesDiskPath                                     =   $context/WEB-INF
 jahiaEtcDiskPath                                       =
 jahiaVarDiskPath                                       =
-jahiaFilesBigTextDiskPath                              =
 tmpContentDiskPath                                     =   $context/WEB-INF/var/content/tmp/
 
 jahiaSharedTemplatesDiskPath                           =
 jahiaImportsDiskPath                                   =
 jahiaWebAppsDiskPath                                   =
 
-classDiskPath                                          =   /WEB-INF/classes/
-
+jahiaCkEditorDiskPath                                  =    ckeditor-3.2.1
 
 ######################################################################
 ### URL's  ###########################################################
@@ -58,20 +61,14 @@ jahiaTemplatesHttpPath                                 =
 jahiaEnginesHttpPath                                   =
 jahiaJavaScriptHttpPath                                =
 
-jahiaWebAppsDeployerBaseURL                            = http://127.0.0.1:8080/manager/html/
+# Uncomment this entry and provide your custom URL for the WAR deployer,
+# if you use non-standard one  
+#jahiaWebAppsDeployerBaseURL                            = http://127.0.0.1:8080/manager/html/
 
-# This parameter will force the generation of the /site/ URL parameter
-# every time, even when sites are used with hostname resolution. This
-# is useful when using front-end URL rewriting such as Apache's URL
-# rewriting.
-siteIDInURL                                            =   false
-
-# This parameter will control, whether Jahia will check if the sitename and
-# the page-ID are matching, as it is possible to manually modify the page ID
-# in the URL and suddenly a page from a different site would be displayed. If
-# the parameter is set to true, Jahia will throw a 404 error in case of a
-# site/page mismatch
-performSiteAndPageIDMatchCheck                         =   false
+# This parameter will control, that if vanity URLs exists for a node and if
+# it has been accessed with a non-default vanity URL, we inform the client that
+# the resource has permanently moved (HTTP status code 301)
+permanentMoveForVanityURL                              = true
 
 ######################################################################
 ### Mail Service Configuration #######################################
@@ -94,14 +91,10 @@ mail_maxRegroupingOfPreviousException                  = 500
 ### Database  ########################################################
 ######################################################################
 # Database connection configuration is no longer configured here,
-# but rather through container-managed datasource connection. In Tomcat
+# but rather through container-managed datasource connection. In Tomcat 
 # these can be found in the following file:
 # <jahia-web-app-dir>/META-INF/context.xml
-db_script                                              =   hypersonic.script
-# The following setting is used to limit the number of in values passed
-# in SELECT * FROM XXX WHERE XXXX IN (VALUE_LIST) because some databases
-# have limitations. Normally you shouldn't need to modify this parameter.
-db_max_elements_for_in_clause                          =   1000
+db_script                                              =   derby_embedded.script
 # The DB dialect to be used by the Hibernate
 hibernate.dialect                                      =   @HIBERNATE_DIALECT@
 # Should nested transaction be allowed?
@@ -110,17 +103,9 @@ nested.transaction.allowed                             =   @NESTED_TRANSACTION_A
 ######################################################################
 ### Characters encoding ##############################################
 ######################################################################
-# Global encoding parameter, used to encode content to/from the database
-utf8Encoding                                           =   true
-
-# You may need to change the following values depending on the servlet
-# container you are using. The default values here are designed to work
-# with Tomcat.
-#
-# Default encoding for the output generated by Jahia (Html and Mail) :
-defaultResponseBodyEncoding                            =   UTF-8
-# Default encoding for URI and URLs send to Jahia :
-defaultURIEncoding                                     =   UTF-8
+# The character encoding (MIME charset) of the response being sent to the client,
+# request character encoding and e-mail charset. 
+characterEncoding                                      =   UTF-8
 
 ######################################################################
 ### Cache settings ###################################################
@@ -154,56 +139,20 @@ cacheClusterUnderlyingImplementation = jahiaReferenceCache
 cacheMaxGroups = 20000
 
 ######################################################################
-### Events       #####################################################
-######################################################################
-# Maximum number of events that can be delayed to the end of
-# processing jobs.
-maxAggregatedEvents                                    =   5000
-
-######################################################################
-### HTML Container Output cache  #####################################
-######################################################################
-# The HTML container cache is an embedded fragment cache, those caches
-# automatically (or specifically using the <container-cache> tag)
-# the output of <container> tags. This cache is very efficient for
-# highly dynamic sites with lots of content, users and personalization
-#
-# The "HTML container output cache" cache html output from <container>
-# and <container-cache> tags.
-# outputContainerCacheActivated is a global control that allows to
-# completely disable all caching for <container> and <container-cache>
-# tags.
-outputContainerCacheActivated                          =   true
-
-
-# the following value is the default expiration date in seconds of container cache entries
-# (for example 2592000secs is 30 days or 604800secs is 7 days)
-# here the value is 4 hours
-
-containerCacheDefaultExpirationDelay = 14400
-
-# specifies whether the container cache should be only activated in
-# live mode. You might want to activate this if you are doing very
-# fancy checks in templates and are running into issues with cache
-# invalidation in live mode.
-containerCacheLiveModeOnly = false
-
-######################################################################
 ### Template set #####################################################
 ######################################################################
 # Default value for template set
-default_templates_set		                        =   Web templates
-# Default setting for the error handling in boxes.
-# Can be overridden in the templates deployment descriptor (templates.xml)
-# for each template set.
-# How should we handle an exception within the box?
-#    'hide' - the whole box content will not be written out into the JSP writer if any error occurs;
-#    'compact' (default) - shows a predefined error message instead of partial box content
-#    						(the message can be overridden using 'errorMessage' attribute);
+default_templates_set		                        =   Jahia Intranet Templates
+# Default setting for the error handling in modules (page fragments).
+# How should we handle an exception within the fragment?
+#    'hide' - the whole module content will not be written out into
+#             the JSP writer if any error occurs;
+#    'compact' (default) - shows a predefined error message instead of
+#                          partial module content;
 #    'full' - shows real exception message with a stacktrace;
-#    'propagate' - propagates the occurred exception to the higher level
-#					(normally ends up with a standard error page)
-templates.boxes.onError                             	= full
+#    'propagate' - propagates the occurred exception to the higher
+#                  level (normally ends up with a standard error page) 
+templates.modules.onError                             	= compact
 
 ######################################################################
 ### Filemanager  #####################################################
@@ -218,34 +167,8 @@ jahiaFileUploadMaxSize                                  =  104857600
 # descriptor changes in order to restart the JahiaTemplateManagerService.
 # Set to -1 to deactivate changes detection completely.
 # Note, if "developmentMode" option is set to "true", this parameter
-# is ignored and the observer is started with the interval of 5 seconds.
-templates.observer.interval                            =   60000
-
-######################################################################
-### WebApps Deployment  ##############################################
-######################################################################
-# This setting is configured by the configuration wizard to use the
-# appropriate web applications deployer according to the application
-# server platform which Jahia is running on. We recommend you do not
-# modify this value unless it is false. Also currently only the Tomcat
-# implementation is fully tested and supported.
-JahiaWebAppsDeployerService                            =
-
-######################################################################
-### WebApps Preparing war  ##############################################
-######################################################################
-# In 'manager portlet' view, when you click on 'prepare war', it's saved in the filemanager
-# The following value specifies where it's saved.
-prepare.portlet.jcr.path       =   /content/shared/files
-
-######################################################################
-### Audit log  #######################################################
-######################################################################
-# Default values for amount of logs to be kept when flushing to a
-# limit. Note that this doesn't mean that the logs cannot be larger
-# than the amount specified, but simply that when limiting them, it
-# will default to this value.
-jahiaMaxLogs                                           =   500
+# is ignored and the observer is started with the interval of 5 seconds. 
+templates.observer.interval                            =   5000
 
 ######################################################################
 ### Multilingual support   ###########################################
@@ -272,57 +195,22 @@ org.jahia.multilang.default_language_code              =   en
 considerDefaultJVMLocale                               =   false
 # Should we switch to the user's preferred language after login?
 # Language switch takes place only if the current site has entries
-# in the user's preferred language
+# in the user's preferred language  
 considerPreferredLanguageAfterLogin                    =   false
 
 ######################################################################
-### ACLs   ###########################################################
+### NTLM Authentication config #######################################
 ######################################################################
-# Specifies whether we should preload ACLs from database on startup.
-org.jahia.acl.preload_active                           =   true
-
-# Enable ACL check when displaying the current page path
-# (using CurrentPagePathTag)
-checkAclInPagePath                                     = true
+# Enable the NtlmHttpFilter and adjust its configuration in the
+# applicationcontext-ntlmfilter.xml file
+ntlmFilter.enabled                                     = false
 
 ######################################################################
-### Tidy Configuration file ##########################################
+### SPNEGO Authentication config #####################################
 ######################################################################
-# Tidy is an HTML parser that is one of the multiple ones that is
-# used to verify HTML validity.
-# this file must be located in <jahia>/WEB-INF/etc/config dir.
-tidyConfig                                             =   tidy.properties
-
-######################################################################
-### Marked for deletion Content Object ###############################
-######################################################################
-# Set to true if you want marked for deleted content objects to be
-# loaded as well as staging content
-displayMarkedForDeletedContentObjects                  =   true
-
-######################################################################
-### Concurrent processing options ####################################
-######################################################################
-#
-# This variable controls how many threads are allowed to do heavy weight
-# processing (page creation not served from the cache)
-maxParallelProcessings                                 = 40
-# This variable controls how long threads are waiting to be able to start
-# generating pages in heavy load situations (value in milliseconds)
-pageGenerationWaitTime                                 = 30000
-# This variable controls the setting of the HTTP Retry-After header, which is sent
-# back to the client with a HTTP status code 503 (Service temporarily unavailable).
-# It could be used also to trigger an automatic reload (value in seconds).
-suggestedRetryTimeAfterTimeout                         = 60
-# This variable controls how long threads are waiting to be able to start
-# generating pages, when load is coming during server startup
-# (value in milliseconds)
-pageGenerationWaitTimeOnStartup                        = 10000
-# This variable controls the setting of the HTTP Retry-After header, which is sent
-# back to the client with a HTTP status code 503 (Service temporarily unavailable),
-# when it was triggered during server startup. It could be used also to trigger
-# an automatic reload (value in seconds).
-suggestedRetryTimeAfterTimeoutOnStartup                = 15
+# Enable the SpnegoHttpFilter and adjust its configuration in the
+# applicationcontext-spnegofilter.xml file
+spnegoFilter.enabled                                   = false
 
 ######################################################################
 ### CAS Authentication config ########################################
@@ -370,18 +258,6 @@ cookieAuthActivated                                    =   true
 doRedirectOnLogout                                     = true
 
 ######################################################################
-### Scheduler config  ################################################
-######################################################################
-# Path to scheduler configurations. The scheduler is used notably for processing
-# background jobs such as the XML imports, workflow activation, etc.
-# The RAM scheduler is a configuration of a scheduler that will not
-# be persistent between application restarts, and is mostly used
-# for non-critical tasks such as file listeners, cluster file
-# synchronization
-schedulerConfigFile                                    =   $context/WEB-INF/etc/config/quartz.properties
-ramSchedulerConfigFile                                 =   $context/WEB-INF/etc/config/quartz-ram.properties
-
-######################################################################
 ### Site serverName testing config ###################################
 ######################################################################
 # The following configuration parameters mostly concern the generation of the
@@ -425,17 +301,6 @@ siteServerNameTestURLExpr                              = ${request.scheme}://${s
 # relative URLs (e.g. /jahia/Jahia/site/mySite/pid/2) by uncommenting the option below:
 # useRelativeSiteURLs                                   = true
 
-# Url used by jahia to make HTTP request to itself.
-#localAccessUri                                          = http\://localhost\:8080
-
-# IP address of the server on the local network. The following two settings
-# are used by the file synchronization service when configured in cluster
-# to make sure that new templates and resources are properly deployed on
-# each node.
-localIp                                                  =
-# The HTTP port of the server on the local network
-localPort                                                = 8080
-
 # The following parameter allows for configuration of the connection timeout
 # when testing with the above URL. Don't set this too high as the connection
 # will be attempted everytime an "Exit Administration" button is generated.
@@ -477,7 +342,7 @@ processingServer                                       = true
 # Check out the assignment ranges to see if they may conflict with
 # something that might be present on your network.
 
-# The cluster communication protocol: either TCP or UDP
+# The cluster communication protocol: either TCP or UDP 
 cluster.communication.protocol                         = TCP
 
 # Here a default configuration for UDP Clustering
@@ -524,80 +389,11 @@ ehcache.jahia.file = ehcache-jahia.xml
 #ehcache.jahia.file = ehcache-jahia_cluster.xml
 
 ######################################################################
-### Workflow settings  ###############################################
-######################################################################
-# What is the default workflow type?
-# Possible values are: inactive, two_validation_step_workflow, three_validation_step_workflow, four_validation_step_workflow
-workflowDefaultType										= two_validation_step_workflow
-# If set to 'true' the workflow status icons will also be displayed for pages with linked
-# workflow type.
-# This option does not apply to other content objects (containers and container lists).
-# Workflow state icon for containers and container lists will only be shown in case they
-# have an independent workflow type.
-workflowDisplayStatusForLinkedPages                     = true
-
-######################################################################
-### Bigtext storage ##################################################
-######################################################################
-# This parameter selects the implementation of the big text storage
-# service, which either enables storage in database or in the file
-# system.
-# Note that you should not change this setting if you already have
-# content in your site as it will not automatically transfer content
-# between the database and the filesystem.
-bigtext.service                                         =
-
-######################################################################
-### Time-based publishing ############################################
-######################################################################
-# This setting can be used to de-activate the displaying of the
-# time-based publishing actions.
-showTimeBasedPublishingIcons                            = true
-
-######################################################################
 ### Development Mode #################################################
 ######################################################################
 # This setting can be used to deactivate development mode which flush
 # the html cache each time you change the operation mode (live/edit)
 developmentMode                                         = true
-
-######################################################################
-### Read-only Mode #################################################
-######################################################################
-# This setting can be used to activate read-only mode, which will not
-# display the edit/admin tabs and links in the top admin bar
-readOnlyMode                                            = false
-
-######################################################################
-### AES (Advanced Edition Settings) ##################################
-######################################################################
-# Enable/disable the information icons about current state of the
-# content object.
-# These are the default values, which can be changed by each user
-# in the "Advanced edit mode" menu of the toolbar.
-# Do we show icon, if the rights of the object differ from its parent?
-aclDiff_display											= false
-# The following setting controls an inline edition feature that
-# allows users in edit mode to modify content directly in the HTML.
-# This is only available for smalltext and bigtext fields.
-inlineEditingActivated                                  = false
-# Show integrity violation indicator?
-integrityChecks_display                                 = false
-# Show time-based publishing state?
-timebased_display                                       = false
-# Show workflow state information?
-workflow_display                                        = true
-######################################################################
-### Locking ##########################################################
-######################################################################
-# Use locking during editing/workflow operations?
-locksActivated                                          =  true
-
-######################################################################
-### Wizard-inserted properties  ######################################
-######################################################################
-# The following settings were inserted into this file by the
-# configuration wizard and therefore are not documented.
 
 ######################################################################
 ### custom errorDocument site property  ##############################
@@ -607,38 +403,6 @@ locksActivated                                          =  true
 # with your specific errorDocument jsp pages in the site directory first!
 #
 site.error.enabled 										= true
-
-######################################################################
-### Connection Timeout For Production Job ############################
-######################################################################
-# This setting allows you to specify the timeout for connecting this
-# jahia instance to a distant jahia when using production job
-# The settings is in milliseconds
-connectionTimeoutForProductionJob                           = 60000
-
-######################################################################
-### container list pagination settings    ############################
-######################################################################
-preloadedItemsForPagination                               = 100
-
-# Below you can change the default window size for the automatic pagination
-# of lists displayed in templates using the *containerList tags
-paginationWindowSize                                      = 100
-
-######################################################################
-### Session settings #################################################
-######################################################################
-# The editModeSessionTimeout variable controls the session timeout
-# (in seconds, not milliseconds !) for a user that has entered
-# edit mode, compare mode or preview mode. Jahia administrators are
-# encouraged to augment this value so that content editors may spend
-# more time editing a site without suffering from session timeouts.
-# At the same time, the default timeout for "regular" users could be
-# reduced to a lower value (by default 30 minutes on Tomcat) so that
-# less memory is used by session data. In Tomcat, the default session
-# setting is located in the tomcat/conf/web.xml file, under the tag
-# <session-timeout>.
-editModeSessionTimeout                                  = 1800
 
 ######################################################################
 ### User and Group name validation ###################################
@@ -661,14 +425,6 @@ userManagementUserNamePattern                           = [0-9a-z_A-Z\\-\\{\\}\\
 userManagementGroupNamePattern                          = [0-9a-z_A-Z\\-\\{\\}]+
 
 ######################################################################
-### Portlets #########################################################
-######################################################################
-# the following parameter activates AJAX rendering of portlets. This
-# is available only for logged-in users and requires clients to
-# support Javascript.
-portletAJAXRenderingActivated = true
-
-######################################################################
 ### Servlet response wrapper behavior control ########################
 ######################################################################
 # The following setting controls whether a call to
@@ -678,36 +434,3 @@ portletAJAXRenderingActivated = true
 # if this control is not necessary, but we introduced it in order to
 # control this behavior at deployment time.
 wrapperBufferFlushingActivated = true
-
-######################################################################
-### Google analytics settings ########################################
-######################################################################
-# This version of Jahia allows to make sites trackable by google
-# analytics, analytic data can be viewed in jahia in a window inten-
-# ded for this purpose.
-# To get data from the google analytics server, the site should have
-# a preregistered properties such as the gmail account and password
-# used when the google analytics account has been created.
-# The following setting controls whether the gmail password will be
-# exported when a site export is triggered.
-# By default, it is set to true, if turned to false then the password
-# will not be exported. Security conscious users might want to turn
-# this off.
-gmailPasswordExported = true
-
-######################################################################
-### History (breadcrumbs) settings ###################################
-######################################################################
-# The history settings (aka breadcrumbs), allows users to be able to
-# quickly retrace their navigation in the Jahia web site. The settings
-# below allow system administrators to configure this subsystem.
-#
-# the following setting specifies the length of the history stored
-# in the session for each user, when the history toolbar is activated.
-historySize = 5
-# If the history tracking should be URL based, activate the setting
-# below, otherwise Jahia will reconstruct the page URLs on each request.
-# In general it is recommended to use the full URL based history
-# tracking, which will conserve edition mode and other URL-based
-# parameters.
-historyUrlBased = true

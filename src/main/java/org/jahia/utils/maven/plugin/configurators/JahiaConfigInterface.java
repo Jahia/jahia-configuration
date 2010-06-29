@@ -11,23 +11,13 @@ import java.util.List;
  */
 public interface JahiaConfigInterface {
     
-    String getJahiaFileRepositoryDiskPath();
-
     String getRelease();
-
-    String getLocalIp();
-
-    String getLocalPort();
 
     String getDb_script();
 
     String getJahiaEtcDiskPath();
 
     String getJahiaVarDiskPath();
-
-    String getJahiaNewTemplatesDiskPath();
-
-    String getJahiaNewWebAppsDiskPath();
 
     String getJahiaSharedTemplatesDiskPath();
 
@@ -39,39 +29,15 @@ public interface JahiaConfigInterface {
 
     String getJahiaWebAppsDeployerBaseURL();
 
-    String getDatasource_name();
-
-    String getOutputCacheActivated();
-
-    String getOutputCacheDefaultExpirationDelay();
-
-    String getOutputCacheExpirationOnly();
-
-    String getOutputContainerCacheActivated();
-
-    String getContainerCacheDefaultExpirationDelay();
-
-    String getContainerCacheLiveModeOnly();
-
-    String getEsiCacheActivated();
-
-    String getJahia_WebApps_Deployer_Service();
-
-    String getDefautSite();
-
     String getCluster_activated();
+    
+    String getClusterStartIpAddress();
 
     String getCluster_node_serverId();
 
     String getProcessingServer();
 
-    String getBigtext_service();
-
-    String getJahiaFilesTemplatesDiskPath();
-
     String getJahiaImportsDiskPath();
-
-    String getJahiaFilesBigTextDiskPath();
 
     List<String> getClusterNodes();
 
@@ -95,8 +61,6 @@ public interface JahiaConfigInterface {
 
     List<String> getSiteImportLocation();
 
-    String getStoreFilesInDB();
-
     String getTargetConfigurationDirectory();
 
     void setTargetConfigurationDirectory(String targetConfigurationDirectory);
@@ -111,10 +75,6 @@ public interface JahiaConfigInterface {
     
     String getJahiaRootEmail();
     
-    float getJahiaVersion();
-
-    boolean isConfigureBeforePackaging();
-
     String getSourceWebAppDir();
 
     String getExternalConfigPath();
