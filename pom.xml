@@ -122,6 +122,17 @@
             <name>Jahia's Maven Repository</name>
             <url>http://maven.jahia.org/maven2</url>
         </pluginRepository>
+        <pluginRepository>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>jahiaRepository-snapshots</id>
+            <name>Jahia's Maven Repository</name>
+            <url>http://maven.jahia.org/maven2</url>
+        </pluginRepository>
     </pluginRepositories>
 
     <distributionManagement>
@@ -129,6 +140,12 @@
             <id>jahiaRepository</id>
             <url>scpexe://maven.jahia.org/var/www/vhosts/maven.jahia.org/html/maven2</url>
         </repository>
+        <snapshotRepository>
+            <id>jahiaRepository-snapshots</id>
+            <name>Jahia Maven Snapshot Repository</name>
+            <url>scpexe://maven.jahia.org/var/www/vhosts/maven.jahia.org/html/maven2</url>
+            <uniqueVersion>false</uniqueVersion>
+        </snapshotRepository>
     </distributionManagement>
 
 </project>
