@@ -50,8 +50,6 @@ import org.jahia.utils.maven.plugin.deployers.ServerDeploymentInterface;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Abstract class that is shared between some of plugin's goals.
@@ -61,9 +59,6 @@ import java.util.regex.Pattern;
  */
 public abstract class AbstractManagementMojo extends AbstractMojo {
 
-    private static final Pattern VERSION_TO_FLOAT_PATTERN = Pattern
-            .compile("^(\\d+)(?:\\D+|\\.(\\d+)?.*)*$");    
-    
     /**
      * Server type
      * @parameter expression="${jahia.deploy.targetServerType}"
@@ -239,40 +234,13 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
         return dir;
     }
     
-    /**
-     * Get the currently built Jahia version
-     */    
-    public float getJahiaVersion() {
-        float jahiaVersion = 0;
-        String version = null;
-        if ("jahia-root".equals(project.getArtifactId())) {
-            version = project.getVersion();
+    public int getProjectStructureVersion() {
+        int version = 0;
+        if (project.getProperties().containsKey("jahia.project.structure.version")) {
+            version = Integer.parseInt((String)project.getProperties().get("jahia.project.structure.version"));
         }
-        if (version == null) {
-            for (Iterator<?> iterator = project.getDependencyArtifacts()
-                    .iterator(); iterator.hasNext();) {
-                Artifact dependency = (Artifact) iterator.next();
-                if ("jahia-impl".equals(dependency.getArtifactId())) {
-                    version = dependency.getVersion();
-                    break;
-                }
-            }
-        }
-        if (version != null) {
-            try {
-                Matcher m = VERSION_TO_FLOAT_PATTERN.matcher(version);
-                if (m.matches()) {
-                    jahiaVersion = Float.parseFloat(m.group(1)
-                            + (m.group(2) != null ? "." + m.group(2) : ""));
-                }
-            } catch (NumberFormatException ex) {
-                getLog().warn(
-                        "Unable to parse the version of the jahia-impl artifact for '"
-                                + version + "'");
-            }
-        }
-        getLog().info("Jahia version is " + jahiaVersion);
-        return jahiaVersion;
+        getLog().info("Jahia project structure version is " + version);
+        return version;
     }
     
 }

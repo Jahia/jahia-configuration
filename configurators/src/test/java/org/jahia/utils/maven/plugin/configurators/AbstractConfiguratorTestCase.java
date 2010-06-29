@@ -43,9 +43,8 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
         websphereOracleConfigBean.setTargetConfigurationDirectory(configuratorsFile.toString());
         websphereOracleConfigBean.setSourceWebAppDir(configuratorsFile.toString());
         websphereOracleConfigBean.setCluster_activated("true");
+        websphereOracleConfigBean.setClusterStartIpAddress("1.2.3.4");
         websphereOracleConfigBean.setCluster_node_serverId("jahiaServer1");
-        websphereOracleConfigBean.setLocalIp("1.2.3.4");
-        websphereOracleConfigBean.setLocalPort("9080");
         websphereOracleConfigBean.setProcessingServer("true");
         List<String> clusterNodes = new ArrayList<String>();
         clusterNodes.add("2.3.4.5");
@@ -62,13 +61,11 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
         tomcatMySQLConfigBean = new JahiaConfigBean();
         tomcatMySQLConfigBean.setDatabaseType("mysql");
         tomcatMySQLConfigBean.setTargetServerType("tomcat");
-        tomcatMySQLConfigBean.setTargetServerVersion("5.5");
+        tomcatMySQLConfigBean.setTargetServerVersion("6");
         tomcatMySQLConfigBean.setTargetConfigurationDirectory(configuratorsFile.toString());
         tomcatMySQLConfigBean.setSourceWebAppDir(configuratorsFile.toString());
         tomcatMySQLConfigBean.setCluster_activated("false");
         tomcatMySQLConfigBean.setCluster_node_serverId("jahiaServer1");
-        tomcatMySQLConfigBean.setLocalIp("localhost");
-        tomcatMySQLConfigBean.setLocalPort("8080");
         tomcatMySQLConfigBean.setProcessingServer("true");
     }
 

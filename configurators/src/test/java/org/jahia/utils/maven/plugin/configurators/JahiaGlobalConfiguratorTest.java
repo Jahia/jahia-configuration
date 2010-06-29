@@ -36,8 +36,6 @@ public class JahiaGlobalConfiguratorTest extends TestCase {
         websphereDerbyConfigBean.setSourceWebAppDir(configuratorsFile.toString());
         websphereDerbyConfigBean.setCluster_activated("true");
         websphereDerbyConfigBean.setCluster_node_serverId("jahiaServer1");
-        websphereDerbyConfigBean.setLocalIp("1.2.3.4");
-        websphereDerbyConfigBean.setLocalPort("9080");
         websphereDerbyConfigBean.setProcessingServer("true");
         List<String> clusterNodes = new ArrayList<String>();
         clusterNodes.add("2.3.4.5");

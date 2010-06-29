@@ -4,10 +4,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.filefilter.AndFileFilter;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
-import org.apache.commons.io.filefilter.NameFileFilter;
-import org.apache.commons.io.filefilter.NotFileFilter;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.StringUtils;
 import org.jahia.utils.maven.plugin.AbstractLogger;
@@ -63,16 +60,6 @@ public class JahiaGlobalConfigurator {
         getLogger().info ("Configuring for server " + jahiaConfig.getTargetServerType() + " version " + jahiaConfig.getTargetServerVersion() + " with database type " + jahiaConfig.getDatabaseType());
 
         setProperties();
-
-        if (jahiaConfig.getDatabaseType().equals("hypersonic")) {
-            try {
-                db.query("SHUTDOWN");
-            } catch (Exception e) {
-                e.printStackTrace();
-                //
-            }
-        }
-
     }
 
     private void deployOnCluster() {
@@ -98,14 +85,11 @@ public class JahiaGlobalConfigurator {
 
     private void updateConfigurationFiles(String sourceWebAppPath, String webappPath, Properties dbProps, JahiaConfigInterface jahiaConfigInterface) throws Exception {
         getLogger().info("Configuring file using source " + sourceWebAppPath + " to target " + webappPath);
-        getLogger().info("Store files in database is :" + jahiaConfigInterface.getStoreFilesInDB());
-        new SpringHibernateConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-hibernate.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-hibernate.xml");
         new QuartzConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/config/quartz.properties", webappPath + "/WEB-INF/etc/config/quartz.properties");
         new JackrabbitConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml", webappPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml");
         new TomcatContextXmlConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(sourceWebAppPath + "/META-INF/context.xml", webappPath + "/META-INF/context.xml");
         new RootUserConfigurator(dbProps, jahiaConfigInterface, encryptPassword(jahiaConfigInterface.getJahiaRootPassword())).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/repository/root.xml", webappPath + "/WEB-INF/etc/repository/root.xml");
         new WebXmlConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(sourceWebAppPath + "/WEB-INF/web.xml", webappPath + "/WEB-INF/web.xml");
-        new SpringServicesConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/spring/applicationcontext-services.xml", webappPath + "/WEB-INF/etc/spring/applicationcontext-services.xml");
         if ("jboss".equalsIgnoreCase(jahiaConfigInterface.getTargetServerType())) {
             File datasourcePath = new File(jahiaConfigInterface.getTargetServerDirectory(), ServerDeploymentFactory.getInstance().getImplementation(jahiaConfigInterface.getTargetServerType() + jahiaConfigInterface.getTargetServerVersion()).getDeploymentFilePath("jahia-jboss-config.sar/jahia-ds", "xml"));
             if (datasourcePath.exists()) {
@@ -129,10 +113,6 @@ public class JahiaGlobalConfigurator {
 
         webappDir = getWebAppTargetConfigurationDir();
         String sourceWebappPath = webappDir.toString();
-        if (jahiaConfig.isConfigureBeforePackaging()) {
-            sourceWebappPath = jahiaConfig.getSourceWebAppDir();
-            getLogger().info("Configuration before WAR packaging is active, will look for configuration files in directory " + sourceWebappPath + " and store the modified files in " + webappDir);
-        }
 
         if (jahiaConfig.getCluster_activated().equals("true")) {
             getLogger().info(" Deploying in cluster for server in " + webappDir);
@@ -154,7 +134,6 @@ public class JahiaGlobalConfigurator {
             is = new FileInputStream(databaseScript);
             dbProps.load(is);
             // we override these just as the configuration wizard does
-            dbProps.put("storeFilesInDB", jahiaConfig.getStoreFilesInDB());
             dbProps.put("jahia.database.url", dbUrl);
             dbProps.put("jahia.database.user", jahiaConfig.getDatabaseUsername());
             dbProps.put("jahia.database.pass", jahiaConfig.getDatabasePassword());
@@ -184,20 +163,17 @@ public class JahiaGlobalConfigurator {
                     db.databaseOpen(dbProps.getProperty("jahia.database.driver"), jahiaConfig.getDatabaseUrl(), jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
                 }
                 createDBTables(databaseScript);
-                insertDBCustomContent();
             }
 
-            if (!jahiaConfig.isConfigureBeforePackaging()) {
-                deleteRepositoryAndIndexes();
-                if ("tomcat".equals(jahiaConfig.getTargetServerType())) {
-                    deleteTomcatFiles();
-                }
-                if (jahiaConfig.getSiteImportLocation() != null) {
-                    getLogger().info("copying site Export to the " + webappDir + "/WEB-INF/var/imports");
-                    importSites();
-                } else {
-                    getLogger().info("no site import found ");
-                }
+            deleteRepositoryAndIndexes();
+            if ("tomcat".equals(jahiaConfig.getTargetServerType())) {
+                deleteTomcatFiles();
+            }
+            if (jahiaConfig.getSiteImportLocation() != null) {
+                getLogger().info("copying site Export to the " + webappDir + "/WEB-INF/var/imports");
+                importSites();
+            } else {
+                getLogger().info("no site import found ");
             }
 
         } catch (Exception e) {
@@ -257,11 +233,8 @@ public class JahiaGlobalConfigurator {
 
         cleanDirectory(new File(webappDir + "/WEB-INF/var/search_indexes"));
 
-        File[] templateDirs = new File(jahiaConfig.getJahiaVersion() < 6.5 ?webappDir + "/templates":webappDir + "/modules")
-                .listFiles(jahiaConfig.getJahiaVersion() < 6.5 ? (FilenameFilter) new AndFileFilter(
-                        new NotFileFilter(new NameFileFilter("default")),
-                        DirectoryFileFilter.DIRECTORY)
-                        : DirectoryFileFilter.DIRECTORY);
+        File[] templateDirs = new File(webappDir + "/modules")
+                .listFiles((FilenameFilter) DirectoryFileFilter.DIRECTORY);
         if (templateDirs != null) {
             for (File templateDir : templateDirs) {
                 cleanDirectory(templateDir);
@@ -417,68 +390,6 @@ public class JahiaGlobalConfigurator {
     }
 // end createDBTables()
 
-
-    /**
-     * Insert database custom data, like root user and properties.
-     */
-    private void insertDBCustomContent() throws Exception {
-
-        if (jahiaConfig.getJahiaVersion() >= 6.5) return;
-
-        getLogger().debug("Inserting customized settings into database...");
-
-// get two keys...
-        final String rootName = "root";
-
-        final String password = encryptPassword(jahiaConfig.getJahiaRootPassword());   //root1234
-        getLogger().info("Encrypted root password for jahia is " + jahiaConfig.getJahiaRootPassword());
-        final int siteID0 = 0;
-        final String rootKey = rootName + ":" + siteID0;
-        final String grpKey0 = "administrators" + ":" + siteID0;
-        final String grpKey1 = "users" + ":" + siteID0;
-        final String grpKey2 = "guest" + ":" + siteID0;
-
-// query insert root user...
-        db.queryPreparedStatement("INSERT INTO jahia_users(id_jahia_users, name_jahia_users, password_jahia_users, key_jahia_users) VALUES(0,?,?,?)",
-                new Object[]{rootName, password, rootKey});
-
-// query insert root first name...
-        db.queryPreparedStatement("INSERT INTO jahia_user_prop(id_jahia_users, name_jahia_user_prop, value_jahia_user_prop, provider_jahia_user_prop, userkey_jahia_user_prop) VALUES(0, 'firstname', ?, 'jahia',?)",
-                new Object[]{"root", rootKey});
-
-// query insert root last name...
-        db.queryPreparedStatement("INSERT INTO jahia_user_prop(id_jahia_users, name_jahia_user_prop, value_jahia_user_prop, provider_jahia_user_prop, userkey_jahia_user_prop) VALUES(0, 'lastname', ?, 'jahia',?)",
-                new Object[]{"", rootKey});
-
-// query insert root e-mail address...
-        db.queryPreparedStatement("INSERT INTO jahia_user_prop(id_jahia_users, name_jahia_user_prop, value_jahia_user_prop, provider_jahia_user_prop, userkey_jahia_user_prop) VALUES(0, 'email', ?, 'jahia',?)",
-                new Object[]{(String) "", rootKey});
-
-// query insert administrators group...
-        db.queryPreparedStatement("INSERT INTO jahia_grps(id_jahia_grps, name_jahia_grps, key_jahia_grps, siteid_jahia_grps) VALUES(0,?,?,null)",
-                new Object[]{"administrators", grpKey0});
-
-// query insert users group...
-        db.queryPreparedStatement("INSERT INTO jahia_grps(id_jahia_grps, name_jahia_grps, key_jahia_grps, siteid_jahia_grps) VALUES(1,?,?,null)",
-                new Object[]{"users", grpKey1});
-
-// query insert guest group...
-        db.queryPreparedStatement("INSERT INTO jahia_grps(id_jahia_grps, name_jahia_grps, key_jahia_grps, siteid_jahia_grps) VALUES(2,?,?,null)",
-                new Object[]{"guest", grpKey2});
-
-
-// query insert administrators group access...
-        db.queryPreparedStatement("INSERT INTO jahia_grp_access(id_jahia_member, id_jahia_grps, membertype_grp_access) VALUES(?,?,1)",
-                new Object[]{rootKey, grpKey0});
-
-// create guest user
-        db.queryPreparedStatement("INSERT INTO jahia_users(id_jahia_users, name_jahia_users, password_jahia_users, key_jahia_users) VALUES(1,?,?,?)",
-                new Object[]{"guest", "*", "guest:0"});
-
-//db.queryPreparedStatement("INSERT INTO jahia_version(install_number, build, release_number, install_date) VALUES(0, ?,?,?)",
-//new Object[] { new Integer(Jahia.getBuildNumber()), Jahia.getReleaseNumber() + "." + Jahia.getPatchNumber(), new Timestamp(System.currentTimeMillis()) } );
-    }
-// end insertDBCustomContent()
 
     /**
          * Copy the external config

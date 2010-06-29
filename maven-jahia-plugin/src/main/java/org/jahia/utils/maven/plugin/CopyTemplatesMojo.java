@@ -78,20 +78,10 @@ public class CopyTemplatesMojo extends AbstractMojo {
         Set dependencyFiles = project.getDependencyArtifacts();
         Set<Artifact> dependenciesToRemove = new HashSet<Artifact>();
         for (Artifact dependencyFile : (Iterable<Artifact>) dependencyFiles) {
-            if (dependencyFile.getGroupId().equals("org.jahia.modules")) {
+            if (dependencyFile.getGroupId().equals("org.jahia.modules") || dependencyFile.getGroupId().equals("org.jahia.templates")) {
                 try {
                     FileUtils.copyFileToDirectory(dependencyFile.getFile(), new File(output,"jahia/WEB-INF/var/shared_modules"));
-                    getLog().info("Copy templates jar "+dependencyFile.getFile().getName() + " to shared templates");
-                    copyJars(dependencyFile.getFile(), new File(output,"jahia"));
-                    dependenciesToRemove.add(dependencyFile);
-                } catch (IOException e) {
-                    getLog().error("Error when copying file " + dependencyFile.getFile(), e);
-                }
-            }
-            if (dependencyFile.getGroupId().equals("org.jahia.templates")) {
-                try {
-                    FileUtils.copyFileToDirectory(dependencyFile.getFile(), new File(output,"jahia/WEB-INF/var/shared_templates"));
-                    getLog().info("Copy templates jar "+dependencyFile.getFile().getName() + " to shared templates");
+                    getLog().info("Copy modules JAR "+dependencyFile.getFile().getName() + " to shared modules folder");
                     copyJars(dependencyFile.getFile(), new File(output,"jahia"));
                     dependenciesToRemove.add(dependencyFile);
                 } catch (IOException e) {

@@ -3,9 +3,9 @@
     <groupId>org.jahia.server</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jahia-configuration-root</artifactId>
-    <version>1.2</version>
+    <version>2.0</version>
     <packaging>pom</packaging>
-    <name>Jahia Configuration Root Plugin</name>
+    <name>Jahia Configuration Root</name>
     <organization>
         <name>Jahia Solutions Group SA</name>
         <url>http://www.jahia.org</url>
@@ -13,9 +13,9 @@
     <url>http://www.jahia.org</url>
 
     <scm>
-        <connection>scm:svn:http://10.8.37.111/svn/jahia/trunk/</connection>
-        <developerConnection>scm:svn:http://10.8.37.111/svn/jahia/trunk/</developerConnection>
-        <url>http://10.8.37.111/svn/jahia/trunk</url>
+        <connection>scm:svn:http://10.8.37.111/svn/maven-jahia-plugin/trunk/</connection>
+        <developerConnection>scm:svn:http://10.8.37.111/svn/maven-jahia-plugin/trunk/</developerConnection>
+        <url>http://10.8.37.111/svn/maven-jahia-plugin/trunk</url>
     </scm>
     <developers>
         <developer>
