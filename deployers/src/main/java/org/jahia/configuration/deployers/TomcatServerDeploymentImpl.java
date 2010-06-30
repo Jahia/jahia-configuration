@@ -116,4 +116,10 @@ public class TomcatServerDeploymentImpl extends AbstractServerDeploymentImpl {
     public boolean isAutoDeploySupported() {
         return true;
     }
+
+    @Override
+    public String getWarExcludes() {
+        return (String) getDeployersProperties().get("tomcat");
+    }
+
 }

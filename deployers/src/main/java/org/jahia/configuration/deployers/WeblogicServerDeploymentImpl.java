@@ -66,4 +66,9 @@ public class WeblogicServerDeploymentImpl extends AbstractServerDeploymentImpl {
         return getDeploymentBaseDir() + "/" + name + "." + type;
     }
 
+    @Override
+    public String getWarExcludes() {
+        return (String) getDeployersProperties().get("weblogic");
+    }
+
 }
