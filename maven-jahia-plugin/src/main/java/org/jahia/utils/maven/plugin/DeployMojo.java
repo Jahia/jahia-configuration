@@ -46,6 +46,8 @@ import org.apache.maven.shared.dependency.tree.DependencyTreeBuilderException;
 import org.apache.maven.shared.dependency.tree.DependencyTree;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.codehaus.plexus.util.SelectorUtils;
 
 import java.util.*;
 import java.util.zip.ZipInputStream;
@@ -403,6 +405,9 @@ public class DeployMojo extends AbstractManagementMojo {
                 " resources for " + targetServerType +
                 " v" + targetServerVersion +
                 " in directory " + webappDir);
+        
+        String[] excludes = serverDeployer.getWarExcludes() != null ? StringUtils.split(serverDeployer.getWarExcludes(), ",") : null;
+        
         try {
             ZipInputStream z = new ZipInputStream(
                     new FileInputStream(artifact.getFile()));
@@ -410,6 +415,18 @@ public class DeployMojo extends AbstractManagementMojo {
             int cnt = 0;
             while ((entry = z.getNextEntry()) != null) {
                 if (!entry.isDirectory()) {
+                	if (excludes != null) {
+                		boolean doExclude = false;
+                		for (String excludePattern : excludes) {
+							if (SelectorUtils.matchPath(excludePattern, entry.getName())) {
+								doExclude = true;
+								break;
+							}
+						}
+                		if (doExclude) {
+                			continue;
+                		}
+                	}
                     File target = new File(webappDir, entry
                             .getName());
                     if (entry.getTime() > target.lastModified()) {
