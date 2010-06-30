@@ -4,20 +4,20 @@
     <parent>
         <groupId>org.jahia.server</groupId>
         <artifactId>jahia-configuration-root</artifactId>
-        <version>1.3</version>
+        <version>1.4</version>
     </parent>
     
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jahia.server</groupId>
     <artifactId>configurators</artifactId>
-    <version>1.20</version>
+    <version>1.21</version>
     <name>Jahia Server Configuration</name>
     
     <dependencies>
         <dependency>
             <groupId>org.jahia.server</groupId>
             <artifactId>deployers</artifactId>
-            <version>1.10</version>
+            <version>1.11</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
@@ -135,35 +135,8 @@
                     <target>1.5</target>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.dstovall</groupId>
-                <artifactId>onejar-maven-plugin</artifactId>
-                <version>1.4.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>one-jar</goal>
-                        </goals>
-                        <configuration>
-                            <mainClass>org.jahia.utils.maven.plugin.configurators.JahiaGlobalConfigurator</mainClass>
-                            <!-- Optional, default is false -->
-                            <attachToBuild>true</attachToBuild>
-                            <!-- Optional, default is "onejar" -->
-                            <filename>${project.build.finalName}-standalone.jar</filename>
-                            <classifier>standalone</classifier>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
-    
-    <pluginRepositories>
-        <pluginRepository>
-            <id>onejar-maven-plugin.googlecode.com</id>
-            <url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
-        </pluginRepository>
-    </pluginRepositories>
     
     <distributionManagement>
         <repository>
