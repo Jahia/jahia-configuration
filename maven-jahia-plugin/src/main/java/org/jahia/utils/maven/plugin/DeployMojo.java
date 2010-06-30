@@ -113,6 +113,12 @@ public class DeployMojo extends AbstractManagementMojo {
         }
     }
 
+    public void doValidate() throws MojoExecutionException, MojoFailureException {
+        if (! serverDeployer.validateInstallationDirectory(targetServerDirectory)) {
+            throw new MojoFailureException("Directory " + targetServerDirectory + " is not a valid installation directory for server " + targetServerType + " v" + targetServerVersion);
+        }
+    }
+
     private void deployProject() throws Exception {
         if (skipDeploy()) {
             getLog().info("jahia.deploy.skip is set to 'true' for the current project. Skip deploying it.");

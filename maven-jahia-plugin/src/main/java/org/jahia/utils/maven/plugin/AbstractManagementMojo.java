@@ -125,11 +125,6 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
     private Integer projectStructureVersion;
     
     public void execute() throws MojoExecutionException, MojoFailureException {
-        doValidate();
-        doExecute();
-    }
-
-    public void doValidate() throws MojoExecutionException, MojoFailureException {
         ServerDeploymentFactory.setTargetServerDirectory(targetServerDirectory);
         org.jahia.utils.maven.plugin.deployers.ServerDeploymentFactory.setTargetServerDirectory(targetServerDirectory);
         try {
@@ -140,10 +135,12 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
         if (serverDeployer == null) {
             throw new MojoFailureException("Server " + targetServerType + " v" + targetServerVersion + " not (yet) supported by this plugin.");
         }
-        if (! serverDeployer.validateInstallationDirectory(targetServerDirectory)) {
-            throw new MojoFailureException("Directory " + targetServerDirectory + " is not a valid installation directory for server " + targetServerType + " v" + targetServerVersion);
-        }
+        doValidate();
+        doExecute();
+    }
 
+    public void doValidate() throws MojoExecutionException, MojoFailureException {
+    	// do nothing
     }
 
     public abstract void doExecute() throws MojoExecutionException, MojoFailureException;
