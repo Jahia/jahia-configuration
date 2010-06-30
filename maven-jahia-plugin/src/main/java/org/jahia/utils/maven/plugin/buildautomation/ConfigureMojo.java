@@ -34,18 +34,15 @@
 package org.jahia.utils.maven.plugin.buildautomation;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.jahia.configuration.configurators.JahiaConfigInterface;
 import org.jahia.utils.maven.plugin.AbstractManagementMojo;
 import org.jahia.utils.maven.plugin.MojoLogger;
-import org.jahia.utils.maven.plugin.configurators.AbstractConfigurator;
-import org.jahia.utils.maven.plugin.configurators.DatabaseConnection;
-import org.jahia.utils.maven.plugin.configurators.JahiaConfigInterface;
-import org.jahia.utils.maven.plugin.configurators.JahiaGlobalConfigurator;
+import org.jahia.configuration.configurators.JahiaGlobalConfigurator;
 
 /**
  * Implementation of the Jahia's configuration Mojo. 
@@ -57,7 +54,7 @@ import org.jahia.utils.maven.plugin.configurators.JahiaGlobalConfigurator;
  * @requiresDependencyResolution runtime
  * @requiresProject false
  */
-public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfigInterface {
+public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfigInterface, org.jahia.utils.maven.plugin.configurators.JahiaConfigInterface {
 
     /**
      * @parameter expression="${jahia.configure.externalConfigPath}"
@@ -75,6 +72,14 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
 
     /**
+     * @parameter expression="${jahia.configure.configureBeforePackaging}" default-value="false"
+     * activates the configuration before the packaging of the WAR file, to allow to build a WAR file already
+     * configured.
+     */
+    protected boolean configureBeforePackaging;
+
+
+    /**
      * @parameter expression="${basedir}/src/main/webapp"
      * The source directory for the webapp resource when the configureBeforePackaging setting is activated.
      */
@@ -87,9 +92,28 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * properties file path
      *
+     * @parameter default-value="$context/WEB-INF/var/content/filemanager/"
+     */
+    protected String jahiaFileRepositoryDiskPath;
+
+    /**
+     * properties file path
+     *
      * @parameter default-value="Testing_release"
      */
     protected String release;
+    /**
+     * properties file path
+     *
+     * @parameter default-value="${jahia.configure.localIp}"
+     */
+    protected String localIp;
+    /**
+     * properties file path
+     *
+     * @parameter expression="${jahia.configure.localPort}" default-value="8080"
+     */
+    protected String localPort;
     /**
      * properties file path
      *
@@ -105,15 +129,35 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * properties file path
      *
-     * @parameter default-value="$context/WEB-INF/var/shared_modules/"
+     * @parameter default-value="$context/WEB-INF/var/new_templates/"
+     */
+    protected String jahiaNewTemplatesDiskPath;
+    /**
+     * properties file path
+     *
+     * @parameter default-value="$context/WEB-INF/var/new_webapps/"
+     */
+    protected String jahiaNewWebAppsDiskPath;
+    /**
+     * properties file path
+     *
+     * @parameter default-value="$context/WEB-INF/var/shared_templates/"
      */
     protected String jahiaSharedTemplatesDiskPath;
     /**
      * properties file path
      *
-     * @parameter default-value="$webContext/modules/"
+     * @parameter default-value="$webContext/templates/"
      */
     protected String jahiaTemplatesHttpPath;
+    /**
+     * @parameter default-value="$context/WEB-INF/var/shared_modules/"
+     */
+    protected String jahiaSharedModulesDiskPath;
+    /**
+     * @parameter default-value="$webContext/modules/"
+     */
+    protected String jahiaModulesHttpPath;
     /**
      * properties file path
      *
@@ -132,6 +176,66 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      * @parameter default-value="http\\://localhost\\:8080/manager"
      */
     protected String jahiaWebAppsDeployerBaseURL;
+    /**
+     * properties file path
+     *
+     * @parameter default-value="java\\:comp/env/jdbc/jahia"
+     */
+    protected String datasource_name;
+    /**
+     * properties file path
+     *
+     * @parameter default-value="false"
+     */
+    protected String outputCacheActivated;
+    /**
+     * properties file path
+     *
+     * @parameter default-value="-1"
+     */
+    protected String outputCacheDefaultExpirationDelay;
+    /**
+     * properties file path
+     *
+     * @parameter default-value="false"
+     */
+    protected String outputCacheExpirationOnly;
+    /**
+     * properties file path
+     *
+     * @parameter default-value="true"
+     */
+    protected String outputContainerCacheActivated;
+    /**
+     * properties file path
+     *
+     * @parameter default-value="14400"
+     */
+    protected String containerCacheDefaultExpirationDelay;
+    /**
+     * properties file path
+     *
+     * @parameter default-value="false"
+     */
+    protected String containerCacheLiveModeOnly;
+    /**
+     * properties file path
+     *
+     * @parameter default-value="false"
+     */
+    protected String esiCacheActivated;
+    /**
+     * properties file path
+     *
+     * @parameter expression="${jahia.configure.webAppsDeployerService}" default-value="org.jahia.services.webapps_deployer.JahiaTomcatWebAppsDeployerBaseService"
+     */
+    protected String Jahia_WebApps_Deployer_Service;
+    /**
+     * properties file path
+     *
+     * @parameter default-value="mySite"
+     */
+    protected String defautSite;
     /**
      * properties file path
      *
@@ -175,9 +279,28 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * properties file path
      *
+     * @parameter default-value="DBJahiaText"
+     */
+    protected String bigtext_service;
+    /**
+     * properties file path
+     *
+     * @parameter default-value="$context/WEB-INF/var/templates/"
+     */
+    protected String jahiaFilesTemplatesDiskPath;
+    /**
+     * properties file path
+     *
      * @parameter default-value="$context/WEB-INF/var/imports/"
      */
     protected String jahiaImportsDiskPath;
+
+    /**
+     * properties file path
+     *
+     * @parameter default-value="$context/WEB-INF/var/content/bigtext/"
+     */
+    protected String jahiaFilesBigTextDiskPath;
 
     /**
      * List of nodes in the cluster.
@@ -283,21 +406,28 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      */
     protected String contextPath;
     
-    // JahiaConfigBean jahiaPropertiesBean;
-    DatabaseConnection db;
     File webappDir;
     Properties dbProps;
     File databaseScript;
-    List<AbstractConfigurator> configurators = new ArrayList<AbstractConfigurator>();
 
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
-            JahiaGlobalConfigurator jahiaGlobalConfigurator = new JahiaGlobalConfigurator(new MojoLogger(getLog()),
-                    this);
-            jahiaGlobalConfigurator.execute();
+        	if (getProjectStructureVersion() == 2) {
+				new JahiaGlobalConfigurator(new MojoLogger(getLog()), this).execute();
+        	} else {
+				new org.jahia.utils.maven.plugin.configurators.JahiaGlobalConfigurator(new MojoLogger(getLog()), this).execute();
+        	}
         } catch (Exception e) {
             throw new MojoExecutionException("Error while configuring Jahia", e);
         }
+    }
+
+    public String getJahia_WebApps_Deployer_Service() {
+        return Jahia_WebApps_Deployer_Service;
+    }
+
+    public void setJahia_WebApps_Deployer_Service(String jahia_WebApps_Deployer_Service) {
+        Jahia_WebApps_Deployer_Service = jahia_WebApps_Deployer_Service;
     }
 
     /**
@@ -316,6 +446,10 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         }
     }
 
+    public String getBigtext_service() {
+        return bigtext_service;
+    }
+
     public String getCluster_activated() {
         return cluster_activated;
     }
@@ -328,8 +462,16 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return clusterNodes;
     }
 
-    public List<AbstractConfigurator> getConfigurators() {
-        return configurators;
+    public boolean isConfigureBeforePackaging() {
+        return configureBeforePackaging;
+    }
+
+    public String getContainerCacheDefaultExpirationDelay() {
+        return containerCacheDefaultExpirationDelay;
+    }
+
+    public String getContainerCacheLiveModeOnly() {
+        return containerCacheLiveModeOnly;
     }
 
     public String getDatabasePassword() {
@@ -352,8 +494,16 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return databaseUrl;
     }
 
+    public String getDatasource_name() {
+        return datasource_name;
+    }
+
     public String getDeploymentMode() {
         return deploymentMode;
+    }
+
+    public String getDefautSite() {
+        return defautSite;
     }
 
     public String getDevelopmentMode() {
@@ -372,6 +522,10 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return targetServerVersion;
     }
 
+    public String getEsiCacheActivated() {
+        return esiCacheActivated;
+    }
+
     public String getExternalConfigPath() {
         return externalConfigPath;
     }
@@ -388,6 +542,18 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return jahiaEtcDiskPath;
     }
 
+    public String getJahiaFileRepositoryDiskPath() {
+        return jahiaFileRepositoryDiskPath;
+    }
+
+    public String getJahiaFilesBigTextDiskPath() {
+        return jahiaFilesBigTextDiskPath;
+    }
+
+    public String getJahiaFilesTemplatesDiskPath() {
+        return jahiaFilesTemplatesDiskPath;
+    }
+
     public String getJahiaImportsDiskPath() {
         return jahiaImportsDiskPath;
     }
@@ -398,6 +564,14 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public String getJahiaWebAppsDeployerBaseURL() {
         return jahiaWebAppsDeployerBaseURL;
+    }
+
+    public String getJahiaNewTemplatesDiskPath() {
+        return jahiaNewTemplatesDiskPath;
+    }
+
+    public String getJahiaNewWebAppsDiskPath() {
+        return jahiaNewWebAppsDiskPath;
     }
 
     public String getJahiaRootPassword() {
@@ -416,8 +590,32 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return jahiaVarDiskPath;
     }
 
+    public String getLocalIp() {
+        return localIp;
+    }
+
+    public String getLocalPort() {
+        return localPort;
+    }
+
     public String getDb_script() {
         return getDatabaseType() + ".script";
+    }
+
+    public String getOutputCacheActivated() {
+        return outputCacheActivated;
+    }
+
+    public String getOutputCacheDefaultExpirationDelay() {
+        return outputCacheDefaultExpirationDelay;
+    }
+
+    public String getOutputCacheExpirationOnly() {
+        return outputCacheExpirationOnly;
+    }
+
+    public String getOutputContainerCacheActivated() {
+        return outputContainerCacheActivated;
     }
 
     public String getOverwritedb() {
@@ -499,5 +697,12 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return clusterStartIpAddress;
     }
 
+	public String getJahiaSharedModulesDiskPath() {
+		return jahiaSharedModulesDiskPath;
+	}
+
+	public String getJahiaModulesHttpPath() {
+		return jahiaModulesHttpPath;
+	}
 
 }

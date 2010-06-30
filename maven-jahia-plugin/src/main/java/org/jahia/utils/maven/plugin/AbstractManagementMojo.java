@@ -44,8 +44,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.commons.io.FileUtils;
-import org.jahia.utils.maven.plugin.deployers.ServerDeploymentFactory;
-import org.jahia.utils.maven.plugin.deployers.ServerDeploymentInterface;
+import org.jahia.configuration.deployers.ServerDeploymentFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,7 +92,7 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
      */
     protected File output;
 
-    protected ServerDeploymentInterface serverDeployer;
+    protected ServerDeployer serverDeployer;
 
     /**
      * @component
@@ -123,6 +122,8 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
      */
     protected ArtifactRepository localRepository;
     
+    private Integer projectStructureVersion;
+    
     public void execute() throws MojoExecutionException, MojoFailureException {
         doValidate();
         doExecute();
@@ -130,8 +131,9 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
 
     public void doValidate() throws MojoExecutionException, MojoFailureException {
         ServerDeploymentFactory.setTargetServerDirectory(targetServerDirectory);
+        org.jahia.utils.maven.plugin.deployers.ServerDeploymentFactory.setTargetServerDirectory(targetServerDirectory);
         try {
-            serverDeployer = ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion);
+            serverDeployer = getProjectStructureVersion() == 2 ? new ServerDeployer(ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion)) : new ServerDeployer(org.jahia.utils.maven.plugin.deployers.ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion));
         } catch (Exception e) {
             throw new MojoExecutionException("Error while validating deployers", e);
         }
@@ -235,12 +237,17 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
     }
     
     public int getProjectStructureVersion() {
+    	if (projectStructureVersion != null) {
+    		return projectStructureVersion;
+    	}
         int version = 0;
         if (project.getProperties().containsKey("jahia.project.structure.version")) {
             version = Integer.parseInt((String)project.getProperties().get("jahia.project.structure.version"));
         }
         getLog().info("Jahia project structure version is " + version);
-        return version;
+        projectStructureVersion = version;
+        
+        return projectStructureVersion;
     }
     
 }

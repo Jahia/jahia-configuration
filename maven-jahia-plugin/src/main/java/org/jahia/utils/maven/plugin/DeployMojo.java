@@ -46,7 +46,6 @@ import org.apache.maven.shared.dependency.tree.DependencyTreeBuilderException;
 import org.apache.maven.shared.dependency.tree.DependencyTree;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.jahia.utils.maven.plugin.deployers.ServerDeploymentFactory;
 
 import java.util.*;
 import java.util.zip.ZipInputStream;
@@ -125,7 +124,11 @@ public class DeployMojo extends AbstractManagementMojo {
             if (project.getGroupId().equals("org.jahia.server") || project.getGroupId().equals("org.jahia.extensions")) {
                 deployWarProject();
             } else if (project.getGroupId().equals("org.jahia.modules") || project.getGroupId().equals("org.jahia.templates")) {
-                deployModuleProject();
+                if (getProjectStructureVersion() == 2) {
+                	deployModuleProject();
+                } else {
+                	deployTemplateProject();
+                }
             }
         } else if (project.getPackaging().equals("sar") || project.getPackaging().equals("jboss-sar") || project.getPackaging().equals("rar")) {
             deploySarRarProject();
@@ -175,8 +178,7 @@ public class DeployMojo extends AbstractManagementMojo {
             File origSource = new File(baseDir, "src/main/webapp");
             File source = new File(output, project.getBuild().getFinalName());
             try {
-                int cnt = updateFiles(source, origSource, webappDir, ServerDeploymentFactory.getInstance()
-                        .getImplementation(targetServerType + targetServerVersion).getWarExcludes());
+                int cnt = updateFiles(source, origSource, webappDir, serverDeployer.getWarExcludes());
                 getLog().info("Copied "+cnt+" files.");
             } catch (IOException e) {
                 getLog().error("Error while deploying WAR project", e);
@@ -228,6 +230,48 @@ public class DeployMojo extends AbstractManagementMojo {
         }
     }
 
+    /**
+     * Copy template resources from output folder to the jsp/templates and WEB-INF/classes of jahia
+     * @throws Exception
+     */
+    private void deployTemplateProject() throws Exception {
+        File webappDir = getWebappDeploymentDir();
+
+        File source = new File(output, project.getArtifactId()+"-"+project.getVersion());
+
+        String prefix = "templates/";
+        File target = new File(getWebappDeploymentDir(),prefix);
+        if(!target.exists()) {
+            prefix = "jsp/jahia/templates/";
+        }
+
+        File templateXml = new File(source, "WEB-INF/templates.xml");
+        if (!templateXml.exists()) {
+            getLog().info("No template.xml file, bypassing template deployment");
+            return;
+        }
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(templateXml)));
+            String outputDir = null;
+            while (outputDir == null ) {
+                String line = reader.readLine();
+                if (line.trim().startsWith("<root-folder>")) {
+                    outputDir = line.substring(line.indexOf('>')+1, line.lastIndexOf('<'));
+                }
+            }
+
+            target = new File(getWebappDeploymentDir(),prefix+outputDir);
+            getLog().info("Updated template war resources for " + targetServerType + " v" + targetServerVersion + " in directory " + target);
+            int cnt = updateFiles(source, target, "**/WEB-INF,**/WEB-INF/**");
+            cnt += updateFiles(new File(source, "WEB-INF/classes"), new File(webappDir,"WEB-INF/classes"));
+            getLog().info("Copied "+cnt+" files.");
+            FileUtils.copyFileToDirectory(templateXml, target);
+            getLog().info("Updated template descriptor.");
+        } catch (IOException e) {
+            getLog().error("Error while deploying template project", e);
+        }
+    }
+    
     private void deployPrepackagedSiteProject() throws Exception {
         if (project.getAttachedArtifacts().size() > 0) {
             Artifact artifact = (Artifact) project.getAttachedArtifacts().get(project.getAttachedArtifacts().size()-1);
@@ -331,9 +375,8 @@ public class DeployMojo extends AbstractManagementMojo {
                     getLog().info("Copy shared resource " + artifact.getFile().getName());
                         List<File> sharedLibs = new LinkedList<File>();
                         sharedLibs.add(artifact.getFile());
-                        ServerDeploymentFactory.getInstance()
-                            .getImplementation(targetServerType + targetServerVersion)
-                                .deploySharedLibraries(targetServerDirectory, sharedLibs);
+                     
+                     serverDeployer.deploySharedLibraries(targetServerDirectory, sharedLibs);
                 }
             } catch (Exception e) {
                 getLog().error("Error while deploying EAR dependency", e);
@@ -511,5 +554,4 @@ public class DeployMojo extends AbstractManagementMojo {
         }
     }
 
-    
 }
