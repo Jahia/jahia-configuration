@@ -1,76 +1,95 @@
 package org.jahia.configuration.archivers;
 
+import org.codehaus.plexus.archiver.AbstractArchiver;
 import org.codehaus.plexus.archiver.ArchiverException;
+import org.codehaus.plexus.archiver.dir.DirectoryArchiver;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
+import org.codehaus.plexus.logging.Logger;
+import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.codehaus.plexus.util.FileUtils;
+import org.jahia.configuration.deployers.ServerDeploymentFactory;
 
 import java.io.File;
 import java.io.IOException;
 
 /**
- * MainArchiver, that handles different behaviors for different server types.
- * TODO For the moment serverType is not handled, we will implement later.
- * User: loom
- * Date: May 20, 2010
- * Time: 2:41:01 PM
+ * Handles copying/archiving of files with filtering, based on the target server
+ * type.
+ * 
+ * @author Serge Huber
+ * @author Sergiy Shyrkov
  */
 public class MainArchiver {
 
-    private String targetArchiveName;
-    private String sourceDirectory;
-    private String excludes;
+	private static void execute(File source, File target, String excludes,
+			boolean archive, boolean verbose) throws IOException,
+			ArchiverException {
+		AbstractArchiver archiver = archive ? new ZipArchiver()
+				: new DirectoryArchiver();
+		if (verbose) {
+			archiver.enableLogging(new ConsoleLogger(Logger.LEVEL_DEBUG,
+					"console"));
+		}
+		File absoluteDestFile = new File(target.getAbsolutePath());
+		archiver.setDestFile(absoluteDestFile);
+		archiver.addDirectory(source, null,
+				excludes != null ? excludes.split(",") : null);
+		archiver.createArchive();
+	}
 
-    public MainArchiver(String targetArchiveName, String sourceDirectory, String excludes) {
-        this.targetArchiveName = targetArchiveName;
-        this.sourceDirectory = sourceDirectory;
-        this.excludes = excludes;
-    }
+	public static void main(String[] args) throws IOException,
+			ArchiverException {
+		if (args.length < 2 || args[0].equals("-m") && args.length < 3) {
+			System.out
+					.println("Usage is:\n\t[-cmv] source target [serverType]");
+			System.out
+					.println("\tOption -c indicates that the target will be an archive file, i.e. the source will be compressed into an archive file.");
+			System.out
+					.println("\tOption -m performs \"move\" operation for the source folder"
+							+ " into the archive or target folder, i.e. the source folder is actually deleted after completing the operation.");
+			System.out
+					.println("\tOption -v does verbose output when performing operation.");
+			System.out
+					.println("For example:\n\t-cm /tmp/build/jahia-directory /opt/deployments/jahia.war"
+							+ " tomcat\nWill move the files from jahia-directory into an archive jahia.war"
+							+ " filtering out resources for Apache Tomcat as a target server type.");
+			return;
+		}
 
-    public void execute() throws IOException, ArchiverException {
-        ZipArchiver archiver = new ZipArchiver();
-        File absoluteDestFile = new File( new File(targetArchiveName). getAbsolutePath()); // little trick to get File.getParentFile() to work properly in the setDestFile call.
-        archiver.setDestFile( absoluteDestFile );
-        archiver.addDirectory(new File(sourceDirectory), null, excludes != null ? excludes.split(",") : null);
-        archiver.createArchive();
-    }
+		File target = null;
+		File source = null;
+		String serverType = null;
+		String excludes = null;
+		boolean performMove = false;
+		boolean archive = false;
+		boolean verbose = false;
+		if (args[0].startsWith("-")) {
+			performMove = args[0].contains("m");
+			archive = args[0].contains("c");
+			verbose = args[0].contains("v");
+			source = new File(args[1]);
+			target = new File(args[2]);
+			serverType = args.length > 3 ? args[3] : null;
+		} else {
+			source = new File(args[0]);
+			target = new File(args[1]);
+			serverType = args.length > 2 ? args[2] : null;
+		}
 
-    public static void main(String[] args) {
-        if (args.length < 2 || args[0].equals("-m") && args.length < 3) {
-            System.out
-                    .println("Usage is:\n\t[-m] targetArchiveFileName sourceDirectory [excludes]. For example: -m jahia.war"
-                            + " jahia-directory **/WEB-INF/lib/jstl-*.jar,**/WEB-INF/lib/standard-*.jar");
-            System.out
-                    .println("\tOption -m performs \"move\" operation for the source folder"
-                            + " into the archive, i.e. the source folder is actually deleted after making the specified archive.");
-            return;
-        }
-        String target = null;
-        String source = null;
-        String excludes = null;
-        boolean performMove = args[0].equals("-m");
-        if (performMove) {
-            target = args[1];
-            source = args[2];
-            excludes = args.length > 3 ? args[3] : null;
-        } else {
-            target = args[0];
-            source = args[1];
-            excludes = args.length > 2 ? args[2] : null;
-        }
-        
-        try {
-            new MainArchiver(target, source, excludes).execute();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (performMove) {
-            // need to delete the original directory
-            try {
-                FileUtils.deleteDirectory(new File(source));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+		if (serverType != null) {
+			ServerDeploymentFactory.setTargetServerDirectory("/tmp/");
+			excludes = ServerDeploymentFactory.getInstance()
+					.getImplementation(serverType).getWarExcludes();
+		}
+		execute(source, target, excludes, archive, verbose);
 
+		if (performMove) {
+			// need to delete the original directory
+			try {
+				FileUtils.deleteDirectory(source);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 }

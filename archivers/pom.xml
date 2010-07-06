@@ -11,7 +11,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jahia.configuration</groupId>
     <artifactId>archivers</artifactId>
-    <version>2.1</version>
+    <version>2.2</version>
     <name>Jahia Server Archivers</name>
 
     <pluginRepositories>
@@ -29,6 +29,11 @@
     </distributionManagement>
     
     <dependencies>
+        <dependency>
+            <groupId>org.jahia.configuration</groupId>
+            <artifactId>deployers</artifactId>
+            <version>2.1</version>
+        </dependency>
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-archiver</artifactId>
