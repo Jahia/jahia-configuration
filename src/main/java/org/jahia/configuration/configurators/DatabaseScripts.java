@@ -223,7 +223,7 @@ public class DatabaseScripts {
 
             if (buffer.endsWith(";")) {
                 // found seperator char in the script file, finish constructing
-                curSQLStatement.append(buffer.substring(0, buffer.length()-1));
+                curSQLStatement.append(buffer.substring(0, buffer.endsWith("end;") ? buffer.length() : buffer.length()-1));
                 String sqlStatement = curSQLStatement.toString().trim();
                 if (!"".equals(sqlStatement)) {
                     // System.out.println("Found statement [" + sqlStatement + "]");
