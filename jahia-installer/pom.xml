@@ -43,6 +43,34 @@
         <module>jahia-common-installer-package</module>
     </modules>
 
+    <repositories>
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>jahiaRepository</id>
+            <name>Jahia's Maven Repository</name>
+            <url>http://maven.jahia.org/maven2</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>jahiaRepository</id>
+            <name>Jahia's Maven Repository</name>
+            <url>http://maven.jahia.org/maven2</url>
+        </pluginRepository>
+    </pluginRepositories>
+    
     <distributionManagement>
         <repository>
             <id>jahiaRepository</id>
@@ -54,7 +82,7 @@
         </site>
     </distributionManagement>
 
-<build>
+	<build>
           <plugins>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
