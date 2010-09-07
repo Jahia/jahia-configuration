@@ -328,7 +328,7 @@ public class DeployMojo extends AbstractManagementMojo {
                 DependencyNode dependencyNode = (DependencyNode) iterator.next();
                 Artifact artifact = dependencyNode.getArtifact();
                 if (artifact.getGroupId().equals("org.jahia.server")) {
-                    if (artifact.getArtifactId().equals("jahia-ear")) {
+                    if (artifact.getArtifactId().equals("jahia-ear") || artifact.getArtifactId().equals("jahia-ee-ear")) {
                         deployEarDependency(dependencyNode);
                     }
                     if (artifact.getArtifactId().equals("configwizard-ear")) {
@@ -336,6 +336,7 @@ public class DeployMojo extends AbstractManagementMojo {
                     }
                     if (artifact.getArtifactId().equals("configwizard-webapp") ||
                             artifact.getArtifactId().equals("jahia-war") ||
+                            artifact.getArtifactId().equals("jahia-ee-war") ||
                             artifact.getArtifactId().equals("jahia-jboss-config")) {
                         deployWarRarSarDependency(dependencyNode);
                     }
@@ -374,6 +375,7 @@ public class DeployMojo extends AbstractManagementMojo {
             try {
                 if ((artifact.getGroupId().equals("org.jahia.server") &&
                         (artifact.getArtifactId().equals("jahia-war") ||
+                        		artifact.getArtifactId().equals("jahia-ee-war") ||
                                 artifact.getArtifactId().equals("config"))) ||
                         artifact.getType().equals("rar") ||
                         artifact.getType().equals("sar") ||
