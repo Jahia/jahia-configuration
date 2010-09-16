@@ -134,6 +134,7 @@ public class JahiaGlobalConfigurator {
             is = new FileInputStream(databaseScript);
             dbProps.load(is);
             // we override these just as the configuration wizard does
+            dbProps.put("storeFilesInDB", jahiaConfig.getStoreFilesInDB());
             dbProps.put("jahia.database.url", dbUrl);
             dbProps.put("jahia.database.user", jahiaConfig.getDatabaseUsername());
             dbProps.put("jahia.database.pass", jahiaConfig.getDatabasePassword());
