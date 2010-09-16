@@ -98,4 +98,16 @@ public interface JahiaConfigInterface {
      *         /jahia)
      */
     String getContextPath();
+
+	/**
+	 * Returns <code>true</code> if Jackrabbit should store binary data in the
+	 * DB, otherwise this data is store in a file system (corresponding
+	 * Jackrabbit property: externalBlobs).
+	 * 
+	 * @return <code>true</code> if Jackrabbit should store binary data in the
+	 *         DB, otherwise this data is store in a file system (corresponding
+	 *         Jackrabbit property: externalBlobs).
+	 */
+	String getStoreFilesInDB();
+
 }
