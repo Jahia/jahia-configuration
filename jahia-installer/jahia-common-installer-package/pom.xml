@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.jahia.server</groupId>
         <artifactId>jahia-installer</artifactId>
-        <version>1.2</version>
+        <version>1.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jahia-common-installer-package</artifactId>
@@ -48,6 +48,22 @@
             <groupId>org.jahia.server</groupId>
             <artifactId>jahia-installer-lib</artifactId>
             <version>${jahia.installers.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${driver.mysql.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.derby</groupId>
+            <artifactId>derbyclient</artifactId>
+            <version>${driver.derby.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${driver.postgresql.version}</version>
         </dependency>
     </dependencies>
 

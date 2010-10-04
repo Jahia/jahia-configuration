@@ -6,7 +6,7 @@
     <groupId>org.jahia.server</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jahia-installer</artifactId>
-    <version>1.2</version>
+    <version>1.3</version>
     <name>Jahia Installer</name>
     <packaging>pom</packaging>
     <properties>
@@ -16,7 +16,10 @@
         <izpack.version>4.3.3.jahia-SNAPSHOT</izpack.version>
         <staging.dir>${project.build.directory}/izpack</staging.dir>
         <launch4j.jahia.version>6.5.0.0</launch4j.jahia.version>
-        <jahia.installers.version>1.2</jahia.installers.version>       
+        <jahia.installers.version>1.3</jahia.installers.version>       
+	    <driver.derby.version>10.6.1.0</driver.derby.version>
+	    <driver.mysql.version>5.1.13</driver.mysql.version>
+	    <driver.postgresql.version>8.4-701.jdbc3</driver.postgresql.version>
     </properties>
 
   	<scm>
