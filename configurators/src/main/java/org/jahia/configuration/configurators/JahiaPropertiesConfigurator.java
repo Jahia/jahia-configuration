@@ -87,9 +87,9 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         properties.setProperty("hibernate.dialect", getDBProperty("jahia.database.hibernate.dialect"));
         properties.setProperty("nested.transaction.allowed", getDBProperty("jahia.nested_transaction_allowed"));
         
-        properties.storeProperties(sourceJahiaPath, targetJahiaPath);
-        
         configureScheduler();
+        
+        properties.storeProperties(sourceJahiaPath, targetJahiaPath);
     }
 
 	private void addClusterNodes(List<String> clusterNodes) {
