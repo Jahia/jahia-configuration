@@ -88,9 +88,11 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         properties.setProperty("nested.transaction.allowed", getDBProperty("jahia.nested_transaction_allowed"));
         
         properties.storeProperties(sourceJahiaPath, targetJahiaPath);
+        
+        configureScheduler();
     }
 
-    private void addClusterNodes(List<String> clusterNodes) {
+	private void addClusterNodes(List<String> clusterNodes) {
 
         final String propvalue = jahiaConfigInterface.getClusterStartIpAddress();
         properties.setProperty("cluster.tcp.start.ip_address", propvalue);
@@ -126,4 +128,14 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         properties.setProperty("processingServer", jahiaConfigInterface.getProcessingServer());
     }
 
+
+	private void configureScheduler() {
+		String delegate = (String) dbProperties
+				.get("jahia.quartz.jdbcDelegate");
+		if (delegate == null || delegate.length() == 0) {
+			delegate = "org.quartz.impl.jdbcjobstore.StdJDBCDelegate";
+		}
+
+		properties.setProperty("org.quartz.driverDelegateClass", delegate);
+	}
 }

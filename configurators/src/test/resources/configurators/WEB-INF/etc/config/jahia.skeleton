@@ -27,7 +27,9 @@ release                                                =
 server                                                 =
 serverVersion                                          =
 serverHome                                             =
-
+# Set this to true to enable maintenance mode, i.e. no requests will be
+# served except to /tools/
+maintenanceMode                                        = false
 
 ######################################################################
 ### Disk Paths  ######################################################
@@ -50,7 +52,7 @@ jahiaSharedTemplatesDiskPath                           =
 jahiaImportsDiskPath                                   =
 jahiaWebAppsDiskPath                                   =
 
-jahiaCkEditorDiskPath                                  =    ckeditor-3.2.1
+jahiaCkEditorDiskPath                                  =    ckeditor
 
 ######################################################################
 ### URL's  ###########################################################
@@ -61,9 +63,8 @@ jahiaTemplatesHttpPath                                 =
 jahiaEnginesHttpPath                                   =
 jahiaJavaScriptHttpPath                                =
 
-# Uncomment this entry and provide your custom URL for the WAR deployer,
-# if you use non-standard one  
-#jahiaWebAppsDeployerBaseURL                            = http://127.0.0.1:8080/manager/html/
+# Provide your custom URL for the WAR deployer, if you use non-standard one  
+jahiaWebAppsDeployerBaseURL                            = http://127.0.0.1:8080/manager/html/
 
 # This parameter will control, that if vanity URLs exists for a node and if
 # it has been accessed with a non-default vanity URL, we inform the client that
@@ -77,7 +78,7 @@ permanentMoveForVanityURL                              = true
 # error reports. They are configured via the configuration
 # wizard upon initial installation of Jahia.
 mail_service_activated                                 =   false
-mail_server                                            =
+mail_server                                            = localhost
 mail_administrator                                     =
 mail_from                                              =
 mail_paranoia                                          =
@@ -99,6 +100,8 @@ db_script                                              =   derby_embedded.script
 hibernate.dialect                                      =   @HIBERNATE_DIALECT@
 # Should nested transaction be allowed?
 nested.transaction.allowed                             =   @NESTED_TRANSACTION_ALLOWED@
+# Quartz scheduler driver delegate class
+org.quartz.driverDelegateClass                         =   org.quartz.impl.jdbcjobstore.StdJDBCDelegate
 
 ######################################################################
 ### Characters encoding ##############################################
@@ -142,7 +145,7 @@ cacheMaxGroups = 20000
 ### Template set #####################################################
 ######################################################################
 # Default value for template set
-default_templates_set		                        =   Jahia Intranet Templates
+default_templates_set		                        =   templates-intranet
 # Default setting for the error handling in modules (page fragments).
 # How should we handle an exception within the fragment?
 #    'hide' - the whole module content will not be written out into
@@ -434,3 +437,30 @@ userManagementGroupNamePattern                          = [0-9a-z_A-Z\\-\\{\\}]+
 # if this control is not necessary, but we introduced it in order to
 # control this behavior at deployment time.
 wrapperBufferFlushingActivated = true
+
+######################################################################
+### File Error dumping ###############################################
+######################################################################
+# By default Jahia dumps are errors in files created in temp directory
+# These files have the format
+# error-DATE-TIME-EXCEPTION_COUNT_SINCE_STARTUP.txt
+# The generated files contain a lot of information, very useful to
+# fully understand the context of an error. When submitting an error
+# to Jahia support, please always activate this logging and submit
+# the files into the support tracking system.
+#
+# The following setting activates / deactivates this behavior.
+dumpErrorsToFiles = true
+# This parameter allows to control file regrouping of a repeating exception
+# If a repeating exception occurs more than this maximum, a file will be
+# dumped anyway, just so that we are still informed in case this is the only
+# error sent.
+fileDumpMaxRegroupingOfPreviousException = 500
+
+######################################################################
+### HTML tag filtering ###############################################
+######################################################################
+# Provide a list of comma-separated HTML tag names that will be removed
+# from rich text properties before saving them (e.g. iframe,script,style).
+# Leave this list empty if no filtering should be done.
+filteredHtmlTags =  
