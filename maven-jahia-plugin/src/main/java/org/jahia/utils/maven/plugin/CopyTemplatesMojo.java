@@ -67,7 +67,7 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
         Set dependencyFiles = project.getDependencyArtifacts();
         Set<Artifact> dependenciesToRemove = new HashSet<Artifact>();
         for (Artifact dependencyFile : (Iterable<Artifact>) dependencyFiles) {
-            if (dependencyFile.getGroupId().equals("org.jahia.modules") || dependencyFile.getGroupId().equals("org.jahia.templates")) {
+            if (dependencyFile.getGroupId().equals("org.jahia.modules") || dependencyFile.getGroupId().equals("org.jahia.templates") || dependencyFile.getGroupId().endsWith(".jahia.modules")) {
                 try {
                     FileUtils.copyFileToDirectory(dependencyFile.getFile(), new File(output,"jahia/WEB-INF/var/shared_" + (getProjectStructureVersion() == 2 ? "modules" : "templates")));
                     getLog().info("Copy modules JAR "+dependencyFile.getFile().getName() + " to shared modules folder");
