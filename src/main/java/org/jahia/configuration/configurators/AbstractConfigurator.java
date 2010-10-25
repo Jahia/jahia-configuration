@@ -1,5 +1,6 @@
 package org.jahia.configuration.configurators;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -14,12 +15,16 @@ import java.util.Map;
  */
 public abstract class AbstractConfigurator {
 
-    protected Map dbProperties;
+    protected Map dbProperties = Collections.emptyMap();
     protected JahiaConfigInterface jahiaConfigInterface;
 
-    public AbstractConfigurator(Map dbProps, JahiaConfigInterface jahiaConfigInterface) {
-        this.dbProperties = dbProps;
+    public AbstractConfigurator(JahiaConfigInterface jahiaConfigInterface) {
         this.jahiaConfigInterface = jahiaConfigInterface;
+    }
+
+    public AbstractConfigurator(Map dbProps, JahiaConfigInterface jahiaConfigInterface) {
+        this(jahiaConfigInterface);
+        this.dbProperties = dbProps;
     }
 
     public abstract void updateConfiguration(String sourceFileName, String destFileName) throws Exception;
