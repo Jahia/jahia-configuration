@@ -261,8 +261,9 @@ public class JahiaGlobalConfigurator {
         File toFile = new File(toFileName);
 
         if (!fromFile.exists())
-            throw new IOException("FileCopy: " + "no such source file: "
-                    + fromFileName);
+        	return;
+//            throw new IOException("FileCopy: " + "no such source file: "
+//                    + fromFileName);
         if (!fromFile.isFile())
             throw new IOException("FileCopy: " + "can't copy directory: "
                     + fromFileName);
