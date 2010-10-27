@@ -227,6 +227,8 @@ public class DeployMojo extends AbstractManagementMojo {
         File target = new File(webappDir, "WEB-INF/var/shared_modules");
         FileUtils.copyFileToDirectory(source, target);
         getLog().info("Copied " + source + " into " + target);
+        
+        // deploy libraries if any
         File libs = new File(new File(output, project.getBuild().getFinalName()), "WEB-INF/lib");
         if (libs.isDirectory()) {
             File targetLibs = new File(webappDir, "WEB-INF");
@@ -235,6 +237,17 @@ public class DeployMojo extends AbstractManagementMojo {
             }
             getLog().info("Copying module libraries from " + libs + " into " + targetLibs);
             FileUtils.copyDirectoryToDirectory(libs, targetLibs);
+        }
+        
+        // copy DB scripts if any
+        File dbScripts = new File(new File(output, project.getBuild().getFinalName()), "META-INF/db");
+        if (dbScripts.isDirectory()) {
+            File targetScripts = new File(webappDir, "WEB-INF/var/db/sql/schema");
+            if (!targetScripts.isDirectory()) {
+            	targetScripts.mkdirs();
+            }
+            getLog().info("Copying database scripts from " + dbScripts + " into " + targetScripts);
+            FileUtils.copyDirectory(dbScripts, targetScripts);
         }
     }
 
