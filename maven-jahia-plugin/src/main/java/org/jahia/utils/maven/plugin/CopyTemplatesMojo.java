@@ -46,10 +46,9 @@ import java.util.jar.JarFile;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 
 /**
  * Mojo for copying Jahia modules and pre-packaged sites into Jahia WAR file.
@@ -72,6 +71,7 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
                     FileUtils.copyFileToDirectory(dependencyFile.getFile(), new File(output,"jahia/WEB-INF/var/shared_" + (getProjectStructureVersion() == 2 ? "modules" : "templates")));
                     getLog().info("Copy modules JAR "+dependencyFile.getFile().getName() + " to shared modules folder");
                     copyJars(dependencyFile.getFile(), new File(output,"jahia"));
+                    copyDbScripts(dependencyFile.getFile(), new File(output,"jahia"));
                     dependenciesToRemove.add(dependencyFile);
                 } catch (IOException e) {
                     getLog().error("Error when copying file " + dependencyFile.getFile(), e);
@@ -126,5 +126,23 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
         } catch (IOException e) {
             getLog().error("Error copying JAR files for module " + warFile, e);
         }
+    }
+
+    private void copyDbScripts(File warFile, File targetDir) {
+        try {
+            JarFile war = new JarFile(warFile);
+            if (war.getJarEntry("META-INF/db") != null) {
+            	war.close();
+            	ZipUnArchiver unarch = new ZipUnArchiver(warFile);
+            	File tmp = new File(targetDir, String.valueOf(System.currentTimeMillis()));
+            	tmp.mkdirs();
+            	unarch.extract("META-INF/db", tmp);
+            	FileUtils.copyDirectory(new File(tmp, "META-INF/db"), new File(targetDir, "WEB-INF/var/db/sql/schema"));
+            	FileUtils.deleteDirectory(tmp);
+                getLog().info("Copied database scripts from " + warFile.getName() + " to jahia/WEB-INF/var/db/sql/schema");
+            }
+        } catch (Exception e) {
+            getLog().error("Error copying database scripts for module " + warFile, e);
+		}
     }
 }
