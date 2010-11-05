@@ -135,7 +135,6 @@
                     <target>1.5</target>
                 </configuration>
             </plugin>
-            <!-- 
             <plugin>
                 <groupId>org.dstovall</groupId>
                 <artifactId>onejar-maven-plugin</artifactId>
@@ -154,7 +153,6 @@
                     </execution>
                 </executions>
             </plugin>
-             -->
         </plugins>
     </build>
     
