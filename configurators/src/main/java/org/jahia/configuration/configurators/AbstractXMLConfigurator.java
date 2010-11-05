@@ -89,5 +89,22 @@ public abstract class AbstractXMLConfigurator extends AbstractConfigurator {
         return (Element) xPath.selectSingleNode(scopeElement);
     }
 
+	/**
+	 * Removes matching element from the document.
+	 * 
+	 * @param scopeElement
+	 *            the root element to start search from
+	 * @param xPathExpression
+	 *            the XPath search expression
+	 * @throws JDOMException
+	 *             in case of an JDOM navigation error
+	 */
+	protected void removeElementIfExists(Element scopeElement,
+			String xPathExpression) throws JDOMException {
+		Element el = getElement(scopeElement, xPathExpression);
+		if (el != null) {
+			el.getParent().removeContent(el);
+		}
+	}
 
 }
