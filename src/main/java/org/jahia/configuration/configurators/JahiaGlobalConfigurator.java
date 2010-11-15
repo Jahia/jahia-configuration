@@ -126,8 +126,12 @@ public class JahiaGlobalConfigurator {
         }
         
         String dbUrl = jahiaConfig.getDatabaseUrl();
-        if (jahiaConfig.getDatabaseType().equals("derby_embedded") && jahiaConfig.getDatabaseUrl().contains("$context")) {
-            dbUrl = StringUtils.replace(dbUrl, "$context", StringUtils.replace(sourceWebappPath, "\\", "/"));
+        if (jahiaConfig.getDatabaseType().equals("derby_embedded")) {
+        	if (jahiaConfig.getDatabaseUrl().contains("$context")) {
+        		dbUrl = StringUtils.replace(dbUrl, "$context", StringUtils.replace(sourceWebappPath, "\\", "/"));
+        	} else {
+        		System.setProperty("derby.system.home", StringUtils.replace(sourceWebappPath, "\\", "/") + "/WEB-INF/var/dbdata"); 
+        	}
         }
         
         dbProps = new Properties();
