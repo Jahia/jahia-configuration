@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jahia.server</groupId>
     <artifactId>configurators</artifactId>
-    <version>1.21</version>
+    <version>1.22</version>
     <name>Jahia Server Configuration</name>
     
     <dependencies>
@@ -82,12 +82,12 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.12</version>
+            <version>5.1.13</version>
         </dependency>
         <dependency>
             <groupId>postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>8.4-701.jdbc3</version>
+            <version>8.4-702.jdbc3</version>
         </dependency>
         <!--Hypersonic dependencies-->
         <dependency>
@@ -105,23 +105,23 @@
         <dependency>
             <groupId>com.oracle</groupId>
             <artifactId>ojdbc5</artifactId>
-            <version>11.1.0.7.0</version>
+            <version>11.2.0.2.0</version>
         </dependency>
            <dependency>
             <groupId>com.oracle</groupId>
             <artifactId>orai18n</artifactId>
-            <version>11.1.0.7.0</version>
+            <version>11.2.0.2.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derbyclient</artifactId>
-            <version>10.5.3.0_1</version>
+            <version>10.6.2.1</version>
         </dependency>
         <dependency>
            <groupId>org.apache.derby</groupId>
            <artifactId>derby</artifactId>
-           <version>10.5.3.0_1</version>
+           <version>10.6.2.1</version>
         </dependency>        
     </dependencies>
     
