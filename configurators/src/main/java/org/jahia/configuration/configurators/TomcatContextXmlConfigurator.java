@@ -38,6 +38,7 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
+import org.jdom.xpath.XPath;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -59,12 +60,32 @@ public class TomcatContextXmlConfigurator extends AbstractXMLConfigurator {
             SAXBuilder saxBuilder = new SAXBuilder();
             FileReader fileReader = new FileReader(sourceFileName);
             org.jdom.Document jdomDocument = saxBuilder.build(fileReader);
-            Element webAppElement = jdomDocument.getRootElement();
+            Element root = jdomDocument.getRootElement();
 
-            setElementAttribute(webAppElement, "/Context/Resource", "username", getValue(dbProperties, "jahia.database.user"));
-            setElementAttribute(webAppElement, "/Context/Resource", "password", getValue(dbProperties, "jahia.database.pass"));
-            setElementAttribute(webAppElement, "/Context/Resource", "driverClassName", getValue(dbProperties, "jahia.database.driver"));
-            setElementAttribute(webAppElement, "/Context/Resource", "url", getValue(dbProperties, "jahia.database.url"));
+            setElementAttribute(root, "/Context/Resource", "password", getValue(dbProperties, "jahia.database.pass"));
+
+            Element resource = (Element)XPath.newInstance("/Context/Resource").selectSingleNode(root);
+            if (resource.getAttributeValue("username") != null) {
+            	resource.setAttribute("username", getValue(dbProperties, "jahia.database.user"));
+            }
+            if (resource.getAttributeValue("user") != null) {
+            	resource.setAttribute("user", getValue(dbProperties, "jahia.database.user"));
+            }
+            if (resource.getAttributeValue("url") != null) {
+            	resource.setAttribute("url", getValue(dbProperties, "jahia.database.url"));
+            }
+            if (resource.getAttributeValue("jdbcUrl") != null) {
+            	resource.setAttribute("jdbcUrl", getValue(dbProperties, "jahia.database.url"));
+            }
+            if (resource.getAttributeValue("driverClassName") != null) {
+            	resource.setAttribute("driverClassName", getValue(dbProperties, "jahia.database.driver"));
+            }
+            if (resource.getAttributeValue("driverClass") != null) {
+            	resource.setAttribute("driverClass", getValue(dbProperties, "jahia.database.driver"));
+            }
+            if (resource.getAttributeValue("validationQuery") != null) {
+            	resource.setAttribute("validationQuery", getValue(dbProperties, "jahia.database.validationQuery"));
+            }
 
             Format customFormat = Format.getPrettyFormat();
             customFormat.setLineSeparator(System.getProperty("line.separator"));
