@@ -5,6 +5,7 @@ jahia.database.driver   =  oracle.jdbc.OracleDriver
 jahia.database.url      =  jdbc:oracle:thin:@localhost:1521:jahia
 jahia.database.user     =  jahia
 jahia.database.pass     =  jahia
+jahia.database.validationQuery = select 1 from dual
 jahia.database.transactions = false
 jahia.database.schemascriptdir = sql/schema/oracle
 jahia.database.popuplationscriptdir = sql/population
