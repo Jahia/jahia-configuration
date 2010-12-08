@@ -10,7 +10,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jahia-common-installer-package</artifactId>
-    <version>1.8</version>
+    <version>1.9</version>
     <name>Jahia Installer Package</name>
     <packaging>pom</packaging>
     <properties>
@@ -125,7 +125,7 @@
                                             <artifactId>${jahia.package.name}</artifactId>
                                             <version>${jahia.package.version}</version>
                                             <classifier>${jahia.war.classifier}</classifier>
-                                            <type>war</type>
+                                            <type>ear</type>
                                             <overWrite>false</overWrite>
                                             <outputDirectory>${project.build.directory}/artifacts/jahia
                                             </outputDirectory>
