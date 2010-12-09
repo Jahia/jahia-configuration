@@ -10,7 +10,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jahia-common-installer-package</artifactId>
-    <version>1.9</version>
+    <version>1.10</version>
     <name>Jahia Installer Package</name>
     <packaging>pom</packaging>
     <properties>
@@ -122,12 +122,22 @@
                                         </artifactItem>
                                         <artifactItem>
                                             <groupId>org.jahia.server</groupId>
-                                            <artifactId>${jahia.package.name}</artifactId>
+                                            <artifactId>${jahia.war.package.name}</artifactId>
+                                            <version>${jahia.package.version}</version>
+                                            <classifier>${jahia.war.classifier}</classifier>
+                                            <type>war</type>
+                                            <overWrite>false</overWrite>
+                                            <outputDirectory>${project.build.directory}/artifacts/jahia-war
+                                            </outputDirectory>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>org.jahia.server</groupId>
+                                            <artifactId>${jahia.ear.package.name}</artifactId>
                                             <version>${jahia.package.version}</version>
                                             <classifier>${jahia.war.classifier}</classifier>
                                             <type>ear</type>
                                             <overWrite>false</overWrite>
-                                            <outputDirectory>${project.build.directory}/artifacts/jahia
+                                            <outputDirectory>${project.build.directory}/artifacts/jahia-ear
                                             </outputDirectory>
                                         </artifactItem>
                                         <artifactItem>
