@@ -90,6 +90,13 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
 		if (delegate == null || delegate.length() == 0) {
 			delegate = "org.quartz.impl.jdbcjobstore.StdJDBCDelegate";
 		}
+		
+		if (jahiaConfigInterface.getTargetServerType().startsWith("weblogic")) {
+			delegate = "org.quartz.impl.jdbcjobstore.WebLogicDelegate";
+			if (jahiaConfigInterface.getDatabaseType().equals("oracle")) {
+				delegate = "org.quartz.impl.jdbcjobstore.oracle.weblogic.WebLogicOracleDelegate";
+			}
+		}
 
 		properties.setProperty("org.quartz.driverDelegateClass", delegate);
 	}
