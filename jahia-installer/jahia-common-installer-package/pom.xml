@@ -17,7 +17,7 @@
         <jahia.archivers.version>2.2</jahia.archivers.version>
         <jahia.configurators.version>2.11</jahia.configurators.version>
         <jahia.deployers.version>2.1</jahia.deployers.version>
-    	<jahia.manifest.vendor.name>Jahia Solutions Group SA</jahia.manifest.vendor.name>
+        <jahia.manifest.vendor.name>Jahia Solutions Group SA</jahia.manifest.vendor.name>
     </properties>
 
     <dependencies>
@@ -196,7 +196,7 @@
                                     <goal>copy-dependencies</goal>
                                 </goals>
                                 <configuration>
-                              		<stripVersion>true</stripVersion>
+                                    <stripVersion>true</stripVersion>
                                     <excludeTransitive>true</excludeTransitive>
                                     <excludeGroupIds>org.codehaus.izpack</excludeGroupIds>
                                 </configuration>
@@ -274,8 +274,8 @@
                 </plugins>
             </build>
         </profile>
-                <profile>
-            <id>java-installer</id>
+        <profile>
+            <id>java-installer-ce</id>
             <build>
                 <plugins>
                     <plugin>
@@ -388,7 +388,7 @@
                                     <goal>copy-dependencies</goal>
                                 </goals>
                                 <configuration>
-                              		<stripVersion>true</stripVersion>
+                                    <stripVersion>true</stripVersion>
                                     <excludeTransitive>true</excludeTransitive>
                                     <excludeGroupIds>org.codehaus.izpack</excludeGroupIds>
                                 </configuration>
@@ -497,9 +497,9 @@
                         </executions>
                     </plugin>
                     <plugin>
-						<groupId>org.bluestemsoftware.open.maven.plugin</groupId>
-						<artifactId>launch4j-plugin</artifactId>
-						<version>1.5.0.0</version>
+                        <groupId>org.bluestemsoftware.open.maven.plugin</groupId>
+                        <artifactId>launch4j-plugin</artifactId>
+                        <version>1.5.0.0</version>
                         <configuration>
                             <dontWrapJar>false</dontWrapJar>
                             <headerType>gui</headerType>
