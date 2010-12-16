@@ -92,8 +92,6 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
      */
     protected File output;
 
-    protected ServerDeployer serverDeployer;
-
     /**
      * @component
      * @required
@@ -127,14 +125,7 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         ServerDeploymentFactory.setTargetServerDirectory(targetServerDirectory);
         org.jahia.utils.maven.plugin.deployers.ServerDeploymentFactory.setTargetServerDirectory(targetServerDirectory);
-        try {
-            serverDeployer = getProjectStructureVersion() == 2 ? new ServerDeployer(ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion)) : new ServerDeployer(org.jahia.utils.maven.plugin.deployers.ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion));
-        } catch (Exception e) {
-            throw new MojoExecutionException("Error while validating deployers", e);
-        }
-        if (serverDeployer == null) {
-            throw new MojoFailureException("Server " + targetServerType + " v" + targetServerVersion + " not (yet) supported by this plugin.");
-        }
+
         doValidate();
         doExecute();
     }
