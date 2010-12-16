@@ -331,16 +331,6 @@
                                             <outputDirectory>${project.build.directory}/artifacts/jahia-war
                                             </outputDirectory>
                                         </artifactItem>
-                                        <artifactItem>
-                                            <groupId>org.jahia.server</groupId>
-                                            <artifactId>${jahia.ear.package.name}</artifactId>
-                                            <version>${jahia.package.version}</version>
-                                            <classifier>${jahia.war.classifier}</classifier>
-                                            <type>ear</type>
-                                            <overWrite>false</overWrite>
-                                            <outputDirectory>${project.build.directory}/artifacts/jahia-ear
-                                            </outputDirectory>
-                                        </artifactItem>
                                     </artifactItems>
                                 </configuration>
                             </execution>
