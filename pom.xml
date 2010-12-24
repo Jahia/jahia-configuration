@@ -97,6 +97,7 @@
         <module>configurators</module>
         <module>archivers</module>
         <module>maven-jahia-plugin</module>
+        <module>jahia-installer</module>
     </modules>
     
     <repositories>

@@ -3,30 +3,25 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <groupId>org.jahia.server</groupId>
+
+    <parent>
+        <groupId>org.jahia.configuration</groupId>
+        <artifactId>jahia-configuration-root</artifactId>
+        <version>2.0</version>
+    </parent>
+    
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>jahia-installer</artifactId>
-    <version>1.4</version>
+    <artifactId>jahia-installer-lib</artifactId>
+    <version>2.0</version>
     <name>Jahia Installer</name>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
+    
     <properties>
-        <!--<jahia.package.name>jahia-war</jahia.package.name>-->
-        <!--<product.name>Jahia xCM Community Edition</product.name>-->
-        <!--<installer.filename>Jahia_xCM_CE_v${jahia.package.version}_r${buildNumber}</installer.filename>-->
         <izpack.version>4.3.3.jahia-SNAPSHOT</izpack.version>
-        <staging.dir>${project.build.directory}/izpack</staging.dir>
-        <launch4j.jahia.version>6.5.0.0</launch4j.jahia.version>
-        <jahia.installers.version>1.4</jahia.installers.version>       
 	    <driver.derby.version>10.6.1.0</driver.derby.version>
 	    <driver.mysql.version>5.1.13</driver.mysql.version>
 	    <driver.postgresql.version>8.4-701.jdbc3</driver.postgresql.version>
     </properties>
-
-  	<scm>
-      <connection>scm:svn:http://10.8.37.111/svn/jahia/trunk/</connection>
-      <developerConnection>scm:svn:http://10.8.37.111/svn/jahia/trunk/</developerConnection>
-      <url>http://10.8.37.111/svn/jahia/trunk</url>
-    </scm>
 
     <dependencies>
         <dependency>
@@ -41,79 +36,18 @@
         </dependency>
     </dependencies>
 
-    <modules>
-        <module>jahia-installer-lib</module>
-        <module>jahia-common-installer-package</module>
-    </modules>
-
-    <repositories>
-        <repository>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <id>jahiaRepository</id>
-            <name>Jahia's Maven Repository</name>
-            <url>http://maven.jahia.org/maven2</url>
-        </repository>
-    </repositories>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <id>jahiaRepository</id>
-            <name>Jahia's Maven Repository</name>
-            <url>http://maven.jahia.org/maven2</url>
-        </pluginRepository>
-    </pluginRepositories>
-    
-    <distributionManagement>
-        <repository>
-            <id>jahiaRepository</id>
-            <url>scpexe://maven.jahia.org/var/www/vhosts/maven.jahia.org/html/maven2</url>
-        </repository>
-        <site>
-            <id>jahia.website</id>
-            <url>file://${jahia.site.path}</url>
-        </site>
-    </distributionManagement>
-
 	<build>
-          <plugins>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>buildnumber-maven-plugin</artifactId>
-          <version>1.0-beta-3</version>
-          <executions>
-            <execution>
-              <phase>validate</phase>
-              <goals>
-                <goal>create</goal>
-              </goals>
-            </execution>
-          </executions>
-          <configuration>
-            <doCheck>false</doCheck>
-            <doUpdate>false</doUpdate>
-            <useLastCommittedRevision>true</useLastCommittedRevision>
-            <getRevisionOnlyOnce>true</getRevisionOnlyOnce>
-            <revisionOnScmFailure>00000</revisionOnScmFailure>
-            <!-- seems this doesn't work well yet, but maybe in a new future ?
-            <providerImplementations>
-              <svn>javasvn</svn>
-            </providerImplementations>
-             -->
-          </configuration>
-        </plugin>
-        </plugins>
-
-</build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+					<verbose>true</verbose>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>
