@@ -76,6 +76,15 @@ public class RootUserConfigurator extends AbstractXMLConfigurator {
         if (rootNameElement != null) {
             rootNameElement.setName(cfg.getJahiaRootUsername());
             Namespace jahiaNamespace = rootNameElement.getNamespace("j");
+            Element grantElement = rootNameElement.getChild("files")!=null?
+                    rootNameElement.getChild("files").getChild("private")!=null?
+                    rootNameElement.getChild("files").getChild("private").getChild("acl",jahiaNamespace)!=null?
+                    rootNameElement.getChild("files").getChild("private").getChild("acl",jahiaNamespace).getChild("GRANT_u_root")
+                    :null:null:null ;
+            if (grantElement != null) {
+                grantElement.setName("GRANT_u_" + cfg.getJahiaRootUsername());
+                grantElement.setAttribute("principal","u:" + cfg.getJahiaRootUsername(),jahiaNamespace);
+            }
             rootNameElement.setAttribute("password", rootPassword, jahiaNamespace);
             if (cfg.getJahiaRootFirstname() != null && cfg.getJahiaRootFirstname().length() > 0) {
                 rootNameElement.setAttribute("firstName", cfg.getJahiaRootFirstname(), jahiaNamespace);
