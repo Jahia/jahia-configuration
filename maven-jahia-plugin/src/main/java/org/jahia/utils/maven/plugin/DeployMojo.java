@@ -346,6 +346,7 @@ public class DeployMojo extends AbstractManagementMojo {
      */
     private void deployPomProject() {
         try {
+        	boolean sharedLibraries = project.getGroupId().equals("org.jahia.server") && project.getArtifactId().equals("shared-libraries");
             DependencyNode rootNode = getRootDependencyNode();
             List l = rootNode.getChildren();
             for (Iterator iterator = l.iterator(); iterator.hasNext();) {
@@ -364,6 +365,9 @@ public class DeployMojo extends AbstractManagementMojo {
                     } else if (artifact.getArtifactId().equals("shared-libraries")) {
                     	deploySharedLibraries(dependencyNode);
                     }
+                }
+                if (sharedLibraries) {
+                	deploySharedLibrary(artifact);
                 }
             }
             if ((project.getParent() != null) &&
