@@ -362,7 +362,7 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * properties developmentMode
      *
-     * @parameter expression="${jahia.configure.developmentMode}" default-value="false"
+     * @parameter expression="${jahia.configure.developmentMode}" default-value="true"
      */
     protected String developmentMode;
 
