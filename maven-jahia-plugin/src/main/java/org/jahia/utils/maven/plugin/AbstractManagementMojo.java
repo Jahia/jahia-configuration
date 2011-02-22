@@ -66,7 +66,7 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
 
     /**
      * Server version
-     * @parameter expression="${jahia.deploy.targetServerVersion}"
+     * @parameter expression="${jahia.deploy.targetServerVersion}" default-value=""
      */
     protected String targetServerVersion;
 
