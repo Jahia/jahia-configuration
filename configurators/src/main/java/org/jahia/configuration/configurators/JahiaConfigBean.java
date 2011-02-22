@@ -63,7 +63,7 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String db_script = "hypersonic.script";
     private String developmentMode = "false";
     private String targetServerType = "tomcat";
-    private String targetServerVersion = "";
+    private String targetServerVersion = "6";
     private String targetServerDirectory = "";
     private String databaseType = "derby";
     private String databaseUrl = "jdbc:derby:target/jahiadb;create=true";
