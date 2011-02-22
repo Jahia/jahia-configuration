@@ -443,7 +443,7 @@ public class JahiaGlobalConfigurator {
          * Returns a list of filenames that should be copied
          * over to the destination directory.
          *
-         * @param directory the parent diretory to be scanned
+         * @param directory the parent directory to be scanned
          * @return the array of filenames, relative to the sourceDir
          */
         private String[] getFilesToCopy(File directory) {
@@ -484,7 +484,7 @@ public class JahiaGlobalConfigurator {
 
 
 
-    public String encryptPassword(String password) {
+    public static String encryptPassword(String password) {
         if (password == null) {
             return null;
         }
@@ -543,14 +543,14 @@ public class JahiaGlobalConfigurator {
         AbstractLogger logger = new ConsoleLogger(ConsoleLogger.LEVEL_INFO);
         logger.info("Started Jahia global configurator");
         try {
-            new JahiaGlobalConfigurator(logger, getConfiguration(args.length > 0 ? new File(args[0]) : null)).execute();
+            new JahiaGlobalConfigurator(logger, getConfiguration(args.length > 0 ? new File(args[0]) : null, logger)).execute();
         } catch (Exception e) {
             logger.error("Error during execution of a configurator. Cause: " + e.getMessage(), e);
         }
         logger.info("... finished job of Jahia global configurator.");
     }
 
-    protected static JahiaConfigInterface getConfiguration(File configFile) throws IOException, IllegalAccessException,
+    protected static JahiaConfigInterface getConfiguration(File configFile, AbstractLogger logger) throws IOException, IllegalAccessException,
             InvocationTargetException {
         JahiaConfigBean config = new JahiaConfigBean();
         Properties props = null;
@@ -566,6 +566,13 @@ public class JahiaGlobalConfigurator {
         }
         if (props != null && !props.isEmpty()) {
             BeanUtils.populate(config, props);
+        }
+        if (logger != null) {
+        	props.put("databasePassword", "***");
+        	props.put("jahiaRootPassword", "***");
+        	props.put("jahiaToolManagerPassword", "***");
+        	props.put("mailServer", "***");
+        	logger.info("Loaded configuration from file " + configFile + ":\n" + props);
         }
         return config;
     }

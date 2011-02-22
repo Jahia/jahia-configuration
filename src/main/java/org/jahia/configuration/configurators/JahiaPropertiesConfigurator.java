@@ -54,6 +54,10 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         properties = new PropertiesManager(sourceJahiaPath, targetJahiaPath);
         // context  path
         properties.setProperty("jahia.contextPath", jahiaConfigInterface.getContextPath());
+        // jahia tools manager
+        properties.setProperty("jahiaToolManagerUsername", jahiaConfigInterface.getJahiaToolManagerUsername());
+        properties.setProperty("jahiaToolManagerPassword", JahiaGlobalConfigurator.encryptPassword(jahiaConfigInterface.getJahiaToolManagerPassword()));
+        
         properties.setProperty("release", jahiaConfigInterface.getRelease());
         properties.setProperty("server", jahiaConfigInterface.getTargetServerType());
         properties.setProperty("serverVersion", jahiaConfigInterface.getTargetServerVersion());
