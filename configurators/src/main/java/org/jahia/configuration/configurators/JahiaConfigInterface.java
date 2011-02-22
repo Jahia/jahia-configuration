@@ -109,5 +109,22 @@ public interface JahiaConfigInterface {
 	 *         Jackrabbit property: externalBlobs).
 	 */
 	String getStoreFilesInDB();
+	
+	/**
+	 * Returns the name of the user that is used to protect Jahia tools area
+	 * (/tools, etc.).
+	 * 
+	 * @return the name of the user that is used to protect Jahia tools area
+	 *         (/tools, etc.)
+	 */
+	String getJahiaToolManagerUsername();
 
+	/**
+	 * Returns the password of the user that is used to protect Jahia tools area
+	 * (/tools, etc.).
+	 * 
+	 * @return the password of the user that is used to protect Jahia tools area
+	 *         (/tools, etc.)
+	 */
+	String getJahiaToolManagerPassword();
 }

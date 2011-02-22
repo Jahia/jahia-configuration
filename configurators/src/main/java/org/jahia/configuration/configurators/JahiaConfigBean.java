@@ -94,6 +94,8 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String overwritedb = "true";
     private String storeFilesInDB = "false";
     private String targetConfigurationDirectory = "";
+	private String jahiaToolManagerPassword = "jahia";
+	private String jahiaToolManagerUsername = "password";
     
     public JahiaConfigInterface clone() throws CloneNotSupportedException {
         return (JahiaConfigInterface) super.clone();
@@ -487,4 +489,20 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     public void setClusterStartIpAddress(String clusterStartIpAddress) {
         this.clusterStartIpAddress = clusterStartIpAddress;
     }
+
+	public String getJahiaToolManagerUsername() {
+		return jahiaToolManagerUsername;
+	}
+
+	public String getJahiaToolManagerPassword() {
+		return jahiaToolManagerPassword;
+	}
+
+	public void setJahiaToolManagerPassword(String jahiaToolManagerPassword) {
+		this.jahiaToolManagerPassword = jahiaToolManagerPassword;
+	}
+
+	public void setJahiaToolManagerUsername(String jahiaToolManagerUsername) {
+		this.jahiaToolManagerUsername = jahiaToolManagerUsername;
+	}
 }

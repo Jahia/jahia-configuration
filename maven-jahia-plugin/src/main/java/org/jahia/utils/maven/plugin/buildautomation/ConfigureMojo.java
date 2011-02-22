@@ -410,6 +410,16 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     Properties dbProps;
     File databaseScript;
 
+    /**
+     * @parameter expression="${jahia.toolManager.username}" default-value="jahia"
+     */
+	protected String jahiaToolManagerUsername;
+
+    /**
+     * @parameter expression="${jahia.toolManager.password}" default-value="password"
+     */
+	private String jahiaToolManagerPassword;
+
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
         	if (getProjectStructureVersion() == 2) {
@@ -705,4 +715,11 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 		return jahiaModulesHttpPath;
 	}
 
+	public String getJahiaToolManagerUsername() {
+		return jahiaToolManagerUsername;
+	}
+
+	public String getJahiaToolManagerPassword() {
+		return jahiaToolManagerPassword;
+	}
 }
