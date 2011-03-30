@@ -34,6 +34,8 @@
 package org.jahia.utils.maven.plugin.buildautomation;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -239,7 +241,7 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * properties file path
      *
-     * @parameter default-value="false"
+     * @parameter expression="${jahia.configure.cluster_activated}" default-value="false"
      */
     protected String cluster_activated;
     /**
@@ -305,9 +307,9 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * List of nodes in the cluster.
      *
-     * @parameter
+     * @parameter expression="${jahia.deploy.clusterNodes}" default-value="192.168.1.100 192.168.1.200"
      */
-    protected List<String> clusterNodes;
+    protected String clusterNodes;
     
     /**
      * @parameter expression="${jahia.configure.cluster.tcp.start.ip_address}" default-value="192.168.1.100"
@@ -469,7 +471,7 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     }
 
     public List<String> getClusterNodes() {
-        return clusterNodes;
+        return new ArrayList<String>(Arrays.asList(clusterNodes.split(" ")));
     }
 
     public boolean isConfigureBeforePackaging() {

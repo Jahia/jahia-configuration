@@ -66,13 +66,16 @@ public class JahiaAdvancedPropertiesConfigurator extends AbstractConfigurator {
     }
 
 	private void addClusterNodes(List<String> clusterNodes) {
-
         final String propvalue = jahiaConfigInterface.getClusterStartIpAddress();
         properties.setProperty("cluster.tcp.start.ip_address", propvalue);
-        String clusterTtcpServiceNodesIp_address = propvalue+"[7840],";
-        String clustertcpidgeneratornodesip_address = propvalue+"[7850],";
-        String clustertcpesicontentidsnodesip_address = propvalue+"[7860],";
-        String clustertcphibernatenodesip_address = propvalue+"[7870],";
+        if (!clusterNodes.contains(propvalue)) {
+            clusterNodes.add(0, propvalue);
+        }
+
+        String clusterTtcpServiceNodesIp_address = "";
+        String clustertcpidgeneratornodesip_address = "";
+        String clustertcpesicontentidsnodesip_address = "";
+        String clustertcphibernatenodesip_address = "";
         for (int i = 0; i < clusterNodes.size(); i++) {
 
             if (i == clusterNodes.size() - 1) {
