@@ -28,8 +28,7 @@ public class JahiaPropertiesConfiguratorTest extends AbstractConfiguratorTestCas
         Properties websphereOracleProperties = new Properties();
         websphereOracleProperties.load(new FileInputStream(jahiaSkeletonFileParentPath + "jahia.properties"));
         assertEquals("was", websphereOracleProperties.getProperty("server"));
-        assertEquals("3", websphereOracleProperties.getProperty("cluster.tcp.num_initial_members"));
-        assertEquals("3", websphereOracleProperties.getProperty("cluster.tcp.num_initial_members"));
+        assertEquals("4", websphereOracleProperties.getProperty("cluster.tcp.num_initial_members"));
         assertEquals("1.2.3.4[7840],2.3.4.5[7840],3.4.5.6[7840],4.5.6.7[7840]", websphereOracleProperties.getProperty("cluster.tcp.service.nodes.ip_address"));
         
         JahiaPropertiesConfigurator tomcatMySQLConfigurator = new JahiaPropertiesConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);

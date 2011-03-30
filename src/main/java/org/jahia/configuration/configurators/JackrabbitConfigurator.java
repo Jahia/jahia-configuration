@@ -80,7 +80,6 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             Element journalElement;
             if (clusterElement != null) {
                 journalElement = clusterElement.getChild("Journal");
-                clusterElement.setAttribute("id", jahiaConfigInterface.getCluster_node_serverId());
                 journalElement.setAttribute("class", getValue(dbProperties, "jahia.jackrabbit.journal"));
             }
             
