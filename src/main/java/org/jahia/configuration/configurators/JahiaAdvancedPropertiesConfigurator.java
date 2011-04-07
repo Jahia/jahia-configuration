@@ -33,6 +33,7 @@
 
 package org.jahia.configuration.configurators;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.io.IOException;
 
@@ -72,30 +73,52 @@ public class JahiaAdvancedPropertiesConfigurator extends AbstractConfigurator {
             clusterNodes.add(0, propvalue);
         }
 
-        String clusterTtcpServiceNodesIp_address = "";
-        String clustertcpidgeneratornodesip_address = "";
-        String clustertcpesicontentidsnodesip_address = "";
-        String clustertcphibernatenodesip_address = "";
+        StringBuilder clusterTCPServiceNodesIPAddresses = new StringBuilder();
+        StringBuilder clusterTCPHibernateEHCacheNodesIPAddresses = new StringBuilder();
+        StringBuilder clusterTCPJahiaEHCacheNodesIPAddresses = new StringBuilder();
+
+        List<String> clusterTCPServiceRemotePorts = jahiaConfigInterface.getClusterTCPServiceRemotePorts();
+        if (clusterTCPServiceRemotePorts == null) {
+            clusterTCPServiceRemotePorts = new ArrayList<String>();
+        }
+        if (clusterTCPServiceRemotePorts.size() == 0) {
+            for (int i=0; i < clusterNodes.size(); i++);
+            clusterTCPServiceRemotePorts.add("7840");
+        }
+        List<String> clusterTCPEHCacheHibernateRemotePorts = jahiaConfigInterface.getClusterTCPEHCacheHibernateRemotePorts();
+        if (clusterTCPEHCacheHibernateRemotePorts == null) {
+            clusterTCPEHCacheHibernateRemotePorts = new ArrayList<String>();
+        }
+        if (clusterTCPEHCacheHibernateRemotePorts.size() == 0) {
+            for (int i=0; i < clusterNodes.size(); i++);
+            clusterTCPEHCacheHibernateRemotePorts.add("7860");
+        }
+        List<String> clusterTCPEHCacheJahiaRemotePorts = jahiaConfigInterface.getClusterTCPEHCacheJahiaRemotePorts();
+        if (clusterTCPEHCacheJahiaRemotePorts == null) {
+            clusterTCPEHCacheJahiaRemotePorts = new ArrayList<String>();
+        }
+        if (clusterTCPEHCacheJahiaRemotePorts.size() == 0) {
+            for (int i=0; i < clusterNodes.size(); i++);
+            clusterTCPEHCacheJahiaRemotePorts.add("7870");
+        }
+
         for (int i = 0; i < clusterNodes.size(); i++) {
-
-            if (i == clusterNodes.size() - 1) {
-                clusterTtcpServiceNodesIp_address = clusterTtcpServiceNodesIp_address + clusterNodes.get(i) + "[7840]";
-                clustertcpidgeneratornodesip_address = clustertcpidgeneratornodesip_address + clusterNodes.get(i) + "[7850]";
-                clustertcpesicontentidsnodesip_address = clustertcpesicontentidsnodesip_address + clusterNodes.get(i) + "[7860]";
-                clustertcphibernatenodesip_address = clustertcphibernatenodesip_address + clusterNodes.get(i) + "[7870]";
-            } else {
-
-                clusterTtcpServiceNodesIp_address = clusterTtcpServiceNodesIp_address + clusterNodes.get(i) + "[7840],";
-                clustertcpidgeneratornodesip_address = clustertcpidgeneratornodesip_address + clusterNodes.get(i) + "[7850],";
-                clustertcpesicontentidsnodesip_address = clustertcpesicontentidsnodesip_address + clusterNodes.get(i) + "[7860],";
-                clustertcphibernatenodesip_address = clustertcphibernatenodesip_address + clusterNodes.get(i) + "[7870],";
+            clusterTCPServiceNodesIPAddresses.append(clusterNodes.get(i) + "["+clusterTCPServiceRemotePorts.get(i)+"]");
+            clusterTCPHibernateEHCacheNodesIPAddresses.append(clusterNodes.get(i) + "["+clusterTCPEHCacheHibernateRemotePorts.get(i)+"]");
+            clusterTCPJahiaEHCacheNodesIPAddresses.append(clusterNodes.get(i) + "["+clusterTCPEHCacheJahiaRemotePorts.get(i)+"]");
+            if (i < clusterNodes.size() - 1) {
+                clusterTCPServiceNodesIPAddresses.append(",");
+                clusterTCPHibernateEHCacheNodesIPAddresses.append(",");
+                clusterTCPJahiaEHCacheNodesIPAddresses.append(",");
             }
 
-
         }
-        properties.setProperty("cluster.tcp.service.nodes.ip_address", clusterTtcpServiceNodesIp_address);
-        properties.setProperty("cluster.tcp.ehcache.hibernate.nodes.ip_address", clustertcpesicontentidsnodesip_address);
-        properties.setProperty("cluster.tcp.ehcache.jahia.nodes.ip_address", clustertcphibernatenodesip_address);
+        properties.setProperty("cluster.tcp.service.nodes.ip_address", clusterTCPServiceNodesIPAddresses.toString());
+        properties.setProperty("cluster.tcp.service.port", jahiaConfigInterface.getClusterTCPServicePort());
+        properties.setProperty("cluster.tcp.ehcache.hibernate.nodes.ip_address", clusterTCPHibernateEHCacheNodesIPAddresses.toString());
+        properties.setProperty("cluster.tcp.ehcache.hibernate.port", jahiaConfigInterface.getClusterTCPEHCacheHibernatePort());
+        properties.setProperty("cluster.tcp.ehcache.jahia.nodes.ip_address", clusterTCPJahiaEHCacheNodesIPAddresses.toString());
+        properties.setProperty("cluster.tcp.ehcache.jahia.port", jahiaConfigInterface.getClusterTCPEHCacheJahiaPort());
         properties.setProperty("cluster.tcp.num_initial_members",String.valueOf(clusterNodes.size()));
         properties.setProperty("processingServer", jahiaConfigInterface.getProcessingServer());
     }
