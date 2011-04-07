@@ -29,8 +29,10 @@ public class JahiaPropertiesConfiguratorTest extends AbstractConfiguratorTestCas
         websphereOracleProperties.load(new FileInputStream(jahiaSkeletonFileParentPath + "jahia.properties"));
         assertEquals("was", websphereOracleProperties.getProperty("server"));
         assertEquals("4", websphereOracleProperties.getProperty("cluster.tcp.num_initial_members"));
-        assertEquals("1.2.3.4[7840],2.3.4.5[7840],3.4.5.6[7840],4.5.6.7[7840]", websphereOracleProperties.getProperty("cluster.tcp.service.nodes.ip_address"));
-        
+        assertEquals("1.2.3.4[7840],2.3.4.5[8840],3.4.5.6[9840],4.5.6.7[10840]", websphereOracleProperties.getProperty("cluster.tcp.service.nodes.ip_address"));
+        assertEquals("1.2.3.4[7860],2.3.4.5[8860],3.4.5.6[9860],4.5.6.7[10860]", websphereOracleProperties.getProperty("cluster.tcp.ehcache.hibernate.nodes.ip_address"));
+        assertEquals("1.2.3.4[7870],2.3.4.5[8870],3.4.5.6[9870],4.5.6.7[10870]", websphereOracleProperties.getProperty("cluster.tcp.ehcache.jahia.nodes.ip_address"));
+
         JahiaPropertiesConfigurator tomcatMySQLConfigurator = new JahiaPropertiesConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);
         tomcatMySQLConfigurator.updateConfiguration(jahiaSkeletonFileParentPath + "jahia.properties", jahiaSkeletonFileParentPath + "jahia2.properties");
         new JahiaAdvancedPropertiesConfigurator(tomcatMySQLConfigBean).updateConfiguration(jahiaSkeletonFileParentPath + "jahia2.properties", jahiaSkeletonFileParentPath + "jahia2.properties");

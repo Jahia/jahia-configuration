@@ -53,7 +53,28 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
         clusterNodes.add("3.4.5.6");
         clusterNodes.add("4.5.6.7");
         websphereOracleConfigBean.setClusterNodes(clusterNodes);
-        
+        List<String> clusterTCPServiceRemotePorts = new ArrayList<String>();
+        clusterTCPServiceRemotePorts.add("7840");
+        clusterTCPServiceRemotePorts.add("8840");
+        clusterTCPServiceRemotePorts.add("9840");
+        clusterTCPServiceRemotePorts.add("10840");
+        websphereOracleConfigBean.setClusterTCPServiceRemotePorts(clusterTCPServiceRemotePorts);
+        List<String> clusterTCPEHCacheHibernateRemotePorts = new ArrayList<String>();
+        clusterTCPEHCacheHibernateRemotePorts.add("7860");
+        clusterTCPEHCacheHibernateRemotePorts.add("8860");
+        clusterTCPEHCacheHibernateRemotePorts.add("9860");
+        clusterTCPEHCacheHibernateRemotePorts.add("10860");
+        websphereOracleConfigBean.setClusterTCPEHCacheHibernateRemotePorts(clusterTCPEHCacheHibernateRemotePorts);
+        List<String> clusterTCPEHCacheJahiaRemotePorts = new ArrayList<String>();
+        clusterTCPEHCacheJahiaRemotePorts.add("7870");
+        clusterTCPEHCacheJahiaRemotePorts.add("8870");
+        clusterTCPEHCacheJahiaRemotePorts.add("9870");
+        clusterTCPEHCacheJahiaRemotePorts.add("10870");
+        websphereOracleConfigBean.setClusterTCPEHCacheJahiaRemotePorts(clusterTCPEHCacheJahiaRemotePorts);
+        websphereOracleConfigBean.setClusterTCPServicePort("7840");
+        websphereOracleConfigBean.setClusterTCPEHCacheHibernatePort("7860");
+        websphereOracleConfigBean.setClusterTCPEHCacheJahiaPort("7870");
+
         websphereOracleConfigBean.setJahiaRootUsername("superUser");
         websphereOracleConfigBean.setJahiaRootPassword("password");
         websphereOracleConfigBean.setJahiaRootFirstname("Jahia");
