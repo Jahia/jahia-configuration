@@ -82,24 +82,27 @@ public class JahiaAdvancedPropertiesConfigurator extends AbstractConfigurator {
             clusterTCPServiceRemotePorts = new ArrayList<String>();
         }
         if (clusterTCPServiceRemotePorts.size() == 0) {
-            for (int i=0; i < clusterNodes.size(); i++);
-            clusterTCPServiceRemotePorts.add("7840");
+            for (int i=0; i < clusterNodes.size(); i++) {
+                clusterTCPServiceRemotePorts.add("7840");
+            }
         }
         List<String> clusterTCPEHCacheHibernateRemotePorts = jahiaConfigInterface.getClusterTCPEHCacheHibernateRemotePorts();
         if (clusterTCPEHCacheHibernateRemotePorts == null) {
             clusterTCPEHCacheHibernateRemotePorts = new ArrayList<String>();
         }
         if (clusterTCPEHCacheHibernateRemotePorts.size() == 0) {
-            for (int i=0; i < clusterNodes.size(); i++);
-            clusterTCPEHCacheHibernateRemotePorts.add("7860");
+            for (int i=0; i < clusterNodes.size(); i++) {
+                clusterTCPEHCacheHibernateRemotePorts.add("7860");
+            }
         }
         List<String> clusterTCPEHCacheJahiaRemotePorts = jahiaConfigInterface.getClusterTCPEHCacheJahiaRemotePorts();
         if (clusterTCPEHCacheJahiaRemotePorts == null) {
             clusterTCPEHCacheJahiaRemotePorts = new ArrayList<String>();
         }
         if (clusterTCPEHCacheJahiaRemotePorts.size() == 0) {
-            for (int i=0; i < clusterNodes.size(); i++);
-            clusterTCPEHCacheJahiaRemotePorts.add("7870");
+            for (int i=0; i < clusterNodes.size(); i++) {
+                clusterTCPEHCacheJahiaRemotePorts.add("7870");
+            }
         }
 
         for (int i = 0; i < clusterNodes.size(); i++) {
