@@ -317,13 +317,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     protected String clusterStartIpAddress;
 
     /**
-     * TCP binding port for the Jahia cluster service channel for this node
-     *
-     * @parameter expression="${jahia.deploy.clusterTCPServicePort}" default-value="7840"
-     */
-    protected String clusterTCPServicePort;
-
-    /**
      * TCP binding port for the EHCache Hibernate channel for this node
      *
      * @parameter expression="${jahia.deploy.clusterTCPEHCacheHibernatePort}" default-value="7860"
@@ -336,13 +329,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      * @parameter expression="${jahia.deploy.clusterTCPEHCacheJahiaPort}" default-value="7870"
      */
     protected String clusterTCPEHCacheJahiaPort;
-
-    /**
-     * List of remote service channel ports to connect to (number of values must be equal to cluster nodes count)
-     *
-     * @parameter expression="${jahia.deploy.clusterTCPServiceRemotePorts}" default-value=""
-     */
-    protected String clusterTCPServiceRemotePorts;
 
     /**
      * List of remote EHCache Hibernate channel ports to connect to (number of values must be equal to cluster nodes count)
@@ -516,20 +502,12 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return new ArrayList<String>(Arrays.asList(clusterNodes.split(" ")));
     }
 
-    public String getClusterTCPServicePort() {
-        return clusterTCPServicePort;
-    }
-
     public String getClusterTCPEHCacheHibernatePort() {
         return clusterTCPEHCacheHibernatePort;
     }
 
     public String getClusterTCPEHCacheJahiaPort() {
         return clusterTCPEHCacheJahiaPort;
-    }
-
-    public List<String> getClusterTCPServiceRemotePorts() {
-        return new ArrayList<String>(Arrays.asList(clusterTCPServiceRemotePorts.split(" ")));
     }
 
     public List<String> getClusterTCPEHCacheHibernateRemotePorts() {
