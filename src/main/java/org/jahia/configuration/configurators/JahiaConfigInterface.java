@@ -41,13 +41,9 @@ public interface JahiaConfigInterface {
 
     List<String> getClusterNodes();
 
-    String getClusterTCPServicePort();
-
     String getClusterTCPEHCacheHibernatePort();
 
     String getClusterTCPEHCacheJahiaPort();
-
-    List<String> getClusterTCPServiceRemotePorts();
 
     List<String> getClusterTCPEHCacheHibernateRemotePorts();
 

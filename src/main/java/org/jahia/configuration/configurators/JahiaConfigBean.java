@@ -234,14 +234,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.clusterNodes = clusterNodes;
     }
 
-    public String getClusterTCPServicePort() {
-        return clusterTCPServicePort;
-    }
-
-    public void setClusterTCPServicePort(String clusterTCPServicePort) {
-        this.clusterTCPServicePort = clusterTCPServicePort;
-    }
-
     public String getClusterTCPEHCacheHibernatePort() {
         return clusterTCPEHCacheHibernatePort;
     }
@@ -256,14 +248,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public void setClusterTCPEHCacheJahiaPort(String clusterTCPEHCacheJahiaPort) {
         this.clusterTCPEHCacheJahiaPort = clusterTCPEHCacheJahiaPort;
-    }
-
-    public List<String> getClusterTCPServiceRemotePorts() {
-        return clusterTCPServiceRemotePorts;
-    }
-
-    public void setClusterTCPServiceRemotePorts(List<String> clusterTCPServiceRemotePorts) {
-        this.clusterTCPServiceRemotePorts = clusterTCPServiceRemotePorts;
     }
 
     public List<String> getClusterTCPEHCacheHibernateRemotePorts() {
