@@ -37,9 +37,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -88,9 +86,11 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
             }
 
         }
+        List dependencyList = new ArrayList(dependencyFiles);
         for (Artifact dependencyFile : dependenciesToRemove) {
-            dependencyFiles.remove(dependencyFile);
+            dependencyList.remove(dependencyFile);
         }
+        project.setDependencyArtifacts(new LinkedHashSet(dependencyList));
     }
 
     private void copyJars(File warFile, File targetDir) {
