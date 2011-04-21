@@ -62,6 +62,8 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         Set dependencyFiles = project.getDependencyArtifacts();
+        // @todo as we are working around what seems to be a Maven or JVM bug, maybe we should rebuild the list with
+        // just the elements we need instead of the hack that we have used at the end of this method.
         Set<Artifact> dependenciesToRemove = new HashSet<Artifact>();
         for (Artifact dependencyFile : (Iterable<Artifact>) dependencyFiles) {
             if (dependencyFile.getGroupId().equals("org.jahia.modules") || dependencyFile.getGroupId().equals("org.jahia.templates") || dependencyFile.getGroupId().endsWith(".jahia.modules")) {
