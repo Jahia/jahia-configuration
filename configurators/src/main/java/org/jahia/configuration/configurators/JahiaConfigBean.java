@@ -103,14 +103,14 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 	private String jahiaToolManagerPassword = "jahia";
 	private String jahiaToolManagerUsername = "password";
 
-    private String LDAPActivated = "false";
-    private String LDAPConnectionURL = "ldap://localhost:389";
-    private String LDAPPublicBindDN = "cn=manager,o=jahia";
-    private String LDAPPublicBindPassword;
-    private String LDAPUserUIDSearchAttribute = "cn";
-    private String LDAPUserUIDSearchName ="o=jahia";
-    private String LDAPGroupSearchAttribute = "cn";
-    private String LDAPGroupSearchName = "ou=JAHIAGroups,o=jahia";
+    private String ldapActivated = "false";
+    private String ldapConnectionURL = "ldap://localhost:389";
+    private String ldapPublicBindDN = "cn=manager,o=jahia";
+    private String ldapPublicBindPassword;
+    private String ldapUserUIDSearchAttribute = "cn";
+    private String ldapUserUIDSearchName ="o=jahia";
+    private String ldapGroupSearchAttribute = "cn";
+    private String ldapGroupSearchName = "ou=JAHIAGroups,o=jahia";
     
     public JahiaConfigInterface clone() throws CloneNotSupportedException {
         return (JahiaConfigInterface) super.clone();
@@ -553,67 +553,67 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 		this.jahiaToolManagerUsername = jahiaToolManagerUsername;
 	}
 
-    public String getLDAPActivated() {
-        return LDAPActivated;
+    public String getLdapActivated() {
+        return ldapActivated;
     }
 
-    public void setLDAPActivated(String LDAPActivated) {
-        this.LDAPActivated = LDAPActivated;
+    public void setLdapActivated(String ldapActivated) {
+        this.ldapActivated = ldapActivated;
     }
 
-    public String getLDAPConnectionURL() {
-        return LDAPConnectionURL;
+    public String getLdapConnectionURL() {
+        return ldapConnectionURL;
     }
 
-    public void setLDAPConnectionURL(String LDAPConnectionURL) {
-        this.LDAPConnectionURL = LDAPConnectionURL;
+    public void setLdapConnectionURL(String ldapConnectionURL) {
+        this.ldapConnectionURL = ldapConnectionURL;
     }
 
-    public String getLDAPPublicBindDN() {
-        return LDAPPublicBindDN;
+    public String getLdapPublicBindDN() {
+        return ldapPublicBindDN;
     }
 
-    public void setLDAPPublicBindDN(String LDAPPublicBindDN) {
-        this.LDAPPublicBindDN = LDAPPublicBindDN;
+    public void setLdapPublicBindDN(String ldapPublicBindDN) {
+        this.ldapPublicBindDN = ldapPublicBindDN;
     }
 
-    public String getLDAPPublicBindPassword() {
-        return LDAPPublicBindPassword;
+    public String getLdapPublicBindPassword() {
+        return ldapPublicBindPassword;
     }
 
-    public void setLDAPPublicBindPassword(String LDAPPublicBindPassword) {
-        this.LDAPPublicBindPassword = LDAPPublicBindPassword;
+    public void setLdapPublicBindPassword(String ldapPublicBindPassword) {
+        this.ldapPublicBindPassword = ldapPublicBindPassword;
     }
 
-    public String getLDAPUserUIDSearchAttribute() {
-        return LDAPUserUIDSearchAttribute;
+    public String getLdapUserUIDSearchAttribute() {
+        return ldapUserUIDSearchAttribute;
     }
 
-    public void setLDAPUserUIDSearchAttribute(String LDAPUserUIDSearchAttribute) {
-        this.LDAPUserUIDSearchAttribute = LDAPUserUIDSearchAttribute;
+    public void setLdapUserUIDSearchAttribute(String ldapUserUIDSearchAttribute) {
+        this.ldapUserUIDSearchAttribute = ldapUserUIDSearchAttribute;
     }
 
-    public String getLDAPUserUIDSearchName() {
-        return LDAPUserUIDSearchName;
+    public String getLdapUserUIDSearchName() {
+        return ldapUserUIDSearchName;
     }
 
-    public void setLDAPUserUIDSearchName(String LDAPUserUIDSearchName) {
-        this.LDAPUserUIDSearchName = LDAPUserUIDSearchName;
+    public void setLdapUserUIDSearchName(String ldapUserUIDSearchName) {
+        this.ldapUserUIDSearchName = ldapUserUIDSearchName;
     }
 
-    public String getLDAPGroupSearchAttribute() {
-        return LDAPGroupSearchAttribute;
+    public String getLdapGroupSearchAttribute() {
+        return ldapGroupSearchAttribute;
     }
 
-    public void setLDAPGroupSearchAttribute(String LDAPGroupSearchAttribute) {
-        this.LDAPGroupSearchAttribute = LDAPGroupSearchAttribute;
+    public void setLdapGroupSearchAttribute(String ldapGroupSearchAttribute) {
+        this.ldapGroupSearchAttribute = ldapGroupSearchAttribute;
     }
 
-    public String getLDAPGroupSearchName() {
-        return LDAPGroupSearchName;
+    public String getLdapGroupSearchName() {
+        return ldapGroupSearchName;
     }
 
-    public void setLDAPGroupSearchName(String LDAPGroupSearchName) {
-        this.LDAPGroupSearchName = LDAPGroupSearchName;
+    public void setLdapGroupSearchName(String ldapGroupSearchName) {
+        this.ldapGroupSearchName = ldapGroupSearchName;
     }
 }

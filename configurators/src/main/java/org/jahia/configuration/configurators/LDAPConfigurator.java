@@ -9,9 +9,6 @@ import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
-import org.codehaus.plexus.archiver.AbstractArchiver;
-import org.codehaus.plexus.archiver.dir.DirectoryArchiver;
-import org.codehaus.plexus.archiver.zip.ZipArchiver;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -34,7 +31,7 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
     @Override
     public void updateConfiguration(String sourceFileName, String destFileName) throws Exception {
 
-        if (!"true".equals(jahiaConfigInterface.getLDAPActivated())) {
+        if (!"true".equals(jahiaConfigInterface.getLdapActivated())) {
             return;
         }
 
@@ -52,17 +49,17 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
 
         // configure ldap file
         // setup user LDAP
-        setLDAPAttribute(jdomDocument, "jahiaUserLDAPProvider", "url", jahiaConfigInterface.getLDAPConnectionURL());
-        setLDAPAttribute(jdomDocument, "jahiaUserLDAPProvider", "public.bind.dn", jahiaConfigInterface.getLDAPPublicBindDN());
-        setLDAPAttribute(jdomDocument, "jahiaUserLDAPProvider", "public.bind.password", jahiaConfigInterface.getLDAPPublicBindPassword());
-        setLDAPAttribute(jdomDocument, "jahiaUserLDAPProvider", "uid.search.attribute", jahiaConfigInterface.getLDAPUserUIDSearchAttribute());
-        setLDAPAttribute(jdomDocument, "jahiaUserLDAPProvider", "uid.search.name", jahiaConfigInterface.getLDAPUserUIDSearchName());
+        setLDAPAttribute(jdomDocument, "jahiaUserLDAPProvider", "url", jahiaConfigInterface.getLdapConnectionURL());
+        setLDAPAttribute(jdomDocument, "jahiaUserLDAPProvider", "public.bind.dn", jahiaConfigInterface.getLdapPublicBindDN());
+        setLDAPAttribute(jdomDocument, "jahiaUserLDAPProvider", "public.bind.password", jahiaConfigInterface.getLdapPublicBindPassword());
+        setLDAPAttribute(jdomDocument, "jahiaUserLDAPProvider", "uid.search.attribute", jahiaConfigInterface.getLdapUserUIDSearchAttribute());
+        setLDAPAttribute(jdomDocument, "jahiaUserLDAPProvider", "uid.search.name", jahiaConfigInterface.getLdapUserUIDSearchName());
         // setup group LDAP
-        setLDAPAttribute(jdomDocument, "jahiaGroupLDAPProvider", "url", jahiaConfigInterface.getLDAPConnectionURL());
-        setLDAPAttribute(jdomDocument, "jahiaGroupLDAPProvider", "public.bind.dn", jahiaConfigInterface.getLDAPPublicBindDN());
-        setLDAPAttribute(jdomDocument, "jahiaGroupLDAPProvider", "public.bind.password", jahiaConfigInterface.getLDAPPublicBindPassword());
-        setLDAPAttribute(jdomDocument, "jahiaGroupLDAPProvider", "search.attribute", jahiaConfigInterface.getLDAPGroupSearchAttribute());
-        setLDAPAttribute(jdomDocument, "jahiaGroupLDAPProvider", "search.name", jahiaConfigInterface.getLDAPGroupSearchName());
+        setLDAPAttribute(jdomDocument, "jahiaGroupLDAPProvider", "url", jahiaConfigInterface.getLdapConnectionURL());
+        setLDAPAttribute(jdomDocument, "jahiaGroupLDAPProvider", "public.bind.dn", jahiaConfigInterface.getLdapPublicBindDN());
+        setLDAPAttribute(jdomDocument, "jahiaGroupLDAPProvider", "public.bind.password", jahiaConfigInterface.getLdapPublicBindPassword());
+        setLDAPAttribute(jdomDocument, "jahiaGroupLDAPProvider", "search.attribute", jahiaConfigInterface.getLdapGroupSearchAttribute());
+        setLDAPAttribute(jdomDocument, "jahiaGroupLDAPProvider", "search.name", jahiaConfigInterface.getLdapGroupSearchName());
 
         Format customFormat = Format.getPrettyFormat();
         customFormat.setLineSeparator(System.getProperty("line.separator"));

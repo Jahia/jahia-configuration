@@ -453,42 +453,42 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * @parameter expression="${jahia.ldap.activated}" default-value="false"
      */
-    private String LDAPActivated;
+    private String ldapActivated;
 
     /**
      * @parameter expression="${jahia.ldap.connectionURL}" default-value="ldap://localhost:389"
      */
-    private String LDAPConnectionURL;
+    private String ldapConnectionURL;
 
     /**
      * @parameter expression="${jahia.ldap.publicBindDN}" default-value="cn=manager,o=jahia"
      */
-    private String LDAPPublicBindDN;
+    private String ldapPublicBindDN;
 
     /**
      * @parameter expression="${jahia.ldap.publicBindPassword}"
      */
-    private String LDAPPublicBindPassword;
+    private String ldapPublicBindPassword;
 
     /**
      * @parameter expression="${jahia.ldap.userUIDSearchAttribute}" default-value="cn"
      */
-    private String LDAPUserUIDSearchAttribute;
+    private String ldapUserUIDSearchAttribute;
 
     /**
      * @parameter expression="${jahia.ldap.userUIDSearchName}" default-value="o=jahia"
      */
-    private String LDAPUserUIDSearchName;
+    private String ldapUserUIDSearchName;
 
     /**
      * @parameter expression="${jahia.ldap.groupSearchAttribute}" default-value="cn"
      */
-    private String LDAPGroupSearchAttribute;
+    private String ldapGroupSearchAttribute;
 
     /**
      * @parameter expression="${jahia.ldap.groupSearchName}" default-value="ou=JAHIAGroups,o=jahia"
      */
-    private String LDAPGroupSearchName;
+    private String ldapGroupSearchName;
 
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
@@ -809,35 +809,35 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 		return jahiaToolManagerPassword;
 	}
 
-    public String getLDAPActivated() {
-        return LDAPActivated;
+    public String getLdapActivated() {
+        return ldapActivated;
     }
 
-    public String getLDAPConnectionURL() {
-        return LDAPConnectionURL;
+    public String getLdapConnectionURL() {
+        return ldapConnectionURL;
     }
 
-    public String getLDAPPublicBindDN() {
-        return LDAPPublicBindDN;
+    public String getLdapPublicBindDN() {
+        return ldapPublicBindDN;
     }
 
-    public String getLDAPPublicBindPassword() {
-        return LDAPPublicBindPassword;
+    public String getLdapPublicBindPassword() {
+        return ldapPublicBindPassword;
     }
 
-    public String getLDAPUserUIDSearchAttribute() {
-        return LDAPUserUIDSearchAttribute;
+    public String getLdapUserUIDSearchAttribute() {
+        return ldapUserUIDSearchAttribute;
     }
 
-    public String getLDAPUserUIDSearchName() {
-        return LDAPUserUIDSearchName;
+    public String getLdapUserUIDSearchName() {
+        return ldapUserUIDSearchName;
     }
 
-    public String getLDAPGroupSearchAttribute() {
-        return LDAPGroupSearchAttribute;
+    public String getLdapGroupSearchAttribute() {
+        return ldapGroupSearchAttribute;
     }
 
-    public String getLDAPGroupSearchName() {
-        return LDAPGroupSearchName;
+    public String getLdapGroupSearchName() {
+        return ldapGroupSearchName;
     }
 }
