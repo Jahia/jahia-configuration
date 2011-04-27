@@ -450,6 +450,46 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      */
 	private String jahiaToolManagerPassword;
 
+    /**
+     * @parameter expression="${jahia.ldap.activated}" default-value="false"
+     */
+    private String LDAPActivated;
+
+    /**
+     * @parameter expression="${jahia.ldap.connectionURL}" default-value="ldap://localhost:389"
+     */
+    private String LDAPConnectionURL;
+
+    /**
+     * @parameter expression="${jahia.ldap.publicBindDN}" default-value="cn=manager,o=jahia"
+     */
+    private String LDAPPublicBindDN;
+
+    /**
+     * @parameter expression="${jahia.ldap.publicBindPassword}"
+     */
+    private String LDAPPublicBindPassword;
+
+    /**
+     * @parameter expression="${jahia.ldap.userUIDSearchAttribute}" default-value="cn"
+     */
+    private String LDAPUserUIDSearchAttribute;
+
+    /**
+     * @parameter expression="${jahia.ldap.userUIDSearchName}" default-value="o=jahia"
+     */
+    private String LDAPUserUIDSearchName;
+
+    /**
+     * @parameter expression="${jahia.ldap.groupSearchAttribute}" default-value="cn"
+     */
+    private String LDAPGroupSearchAttribute;
+
+    /**
+     * @parameter expression="${jahia.ldap.groupSearchName}" default-value="ou=JAHIAGroups,o=jahia"
+     */
+    private String LDAPGroupSearchName;
+
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
         	if (getProjectStructureVersion() == 2) {
@@ -768,4 +808,36 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 	public String getJahiaToolManagerPassword() {
 		return jahiaToolManagerPassword;
 	}
+
+    public String getLDAPActivated() {
+        return LDAPActivated;
+    }
+
+    public String getLDAPConnectionURL() {
+        return LDAPConnectionURL;
+    }
+
+    public String getLDAPPublicBindDN() {
+        return LDAPPublicBindDN;
+    }
+
+    public String getLDAPPublicBindPassword() {
+        return LDAPPublicBindPassword;
+    }
+
+    public String getLDAPUserUIDSearchAttribute() {
+        return LDAPUserUIDSearchAttribute;
+    }
+
+    public String getLDAPUserUIDSearchName() {
+        return LDAPUserUIDSearchName;
+    }
+
+    public String getLDAPGroupSearchAttribute() {
+        return LDAPGroupSearchAttribute;
+    }
+
+    public String getLDAPGroupSearchName() {
+        return LDAPGroupSearchName;
+    }
 }

@@ -65,7 +65,7 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
         clusterTCPEHCacheJahiaRemotePorts.add("9870");
         clusterTCPEHCacheJahiaRemotePorts.add("10870");
         websphereOracleConfigBean.setClusterTCPEHCacheJahiaRemotePorts(clusterTCPEHCacheJahiaRemotePorts);
-            websphereOracleConfigBean.setClusterTCPEHCacheHibernatePort("7860");
+        websphereOracleConfigBean.setClusterTCPEHCacheHibernatePort("7860");
         websphereOracleConfigBean.setClusterTCPEHCacheJahiaPort("7870");
 
         websphereOracleConfigBean.setJahiaRootUsername("superUser");
@@ -73,6 +73,14 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
         websphereOracleConfigBean.setJahiaRootFirstname("Jahia");
         websphereOracleConfigBean.setJahiaRootLastname("Root");
         websphereOracleConfigBean.setJahiaRootEmail("root@jahia.org");
+        websphereOracleConfigBean.setLDAPActivated("true");
+        websphereOracleConfigBean.setLDAPConnectionURL("ldap://10.8.37.17:389/");
+        websphereOracleConfigBean.setLDAPPublicBindDN("cn=manager,o=jahia");
+        websphereOracleConfigBean.setLDAPPublicBindPassword("ldapadmin");
+        websphereOracleConfigBean.setLDAPUserUIDSearchAttribute("cn");
+        websphereOracleConfigBean.setLDAPUserUIDSearchName("o=jahia");
+        websphereOracleConfigBean.setLDAPGroupSearchAttribute("cn");
+        websphereOracleConfigBean.setLDAPGroupSearchName("ou=JAHIAGroups,o=cg13,o=jahia");
 
         tomcatMySQLConfigBean = new JahiaConfigBean();
         tomcatMySQLConfigBean.setDatabaseType("mysql");
