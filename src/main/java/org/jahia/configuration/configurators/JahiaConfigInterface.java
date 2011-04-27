@@ -135,4 +135,26 @@ public interface JahiaConfigInterface {
 	 *         (/tools, etc.)
 	 */
 	String getJahiaToolManagerPassword();
+
+    /**
+     * Returns true if LDAP configuration is activated.
+     * @return
+     */
+    String getLDAPActivated();
+
+    String getLDAPConnectionURL();
+
+    String getLDAPPublicBindDN();
+
+    String getLDAPPublicBindPassword();
+
+    String getLDAPUserUIDSearchAttribute();
+
+    String getLDAPUserUIDSearchName();
+
+    String getLDAPGroupSearchAttribute();
+
+    String getLDAPGroupSearchName();
+
+
 }

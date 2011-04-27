@@ -107,7 +107,7 @@ public class JahiaGlobalConfigurator {
         } else {
             new JahiaAdvancedPropertiesConfigurator(jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.properties", webappPath + "/WEB-INF/etc/config/jahia.properties");
         }
-
+        new LDAPConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(sourceWebAppPath, webappPath + "/WEB-INF/var/shared_modules");
     }
 
     private void setProperties() throws Exception {

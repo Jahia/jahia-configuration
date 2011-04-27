@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Archiver-Version: Plexus Archiver
+Created-By: Apache Maven
+Built-By: loom
+Build-Jdk: 1.6.0_24
+Implementation-Title: ldap-config
+Implementation-URL: http://www.jahia.org
+Implementation-Vendor: Jahia
+Implementation-Vendor-Id: jahia
+Implementation-Version: 1.0
+Specification-Title: ldap-config
+Specification-Vendor: Jahia
+Specification-Version: 1.0
+depends: Jahia LDAP connector
+package-name: ldap-config
+root-folder: ldap-config
