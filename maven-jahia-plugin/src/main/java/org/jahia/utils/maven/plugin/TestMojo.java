@@ -105,10 +105,13 @@ public class TestMojo extends AbstractMojo {
                 is.close();
             }
 
+            long timer = System.currentTimeMillis();
+            
+            getLog().info("Star executing all tests...");
             for (String s : targets) {
                 executeTest(s);
             }
-            getLog().info("Done.");
+            getLog().info("...done in " + (System.currentTimeMillis() - timer) / 1000 + " s");
 
         } catch (IOException e) {
             getLog().error(e);
@@ -116,11 +119,12 @@ public class TestMojo extends AbstractMojo {
     }
 
     private void executeTest(String test) {
+        long timer = System.currentTimeMillis();
         try {
             URLConnection conn;
             InputStream is;
             String testUrl = testURL + "/test/" + test;
-            getLog().info("Execute : "+testUrl);
+            getLog().info("Execute: "+testUrl);
             conn = new URL(testUrl).openConnection();
             is = conn.getInputStream();
             File out = project.getBasedir();
@@ -136,6 +140,8 @@ public class TestMojo extends AbstractMojo {
             os.close();
         } catch (IOException e) {
             getLog().error(e);
+        } finally {
+            getLog().info("...done " + test + " in " + (System.currentTimeMillis() - timer) + " ms");
         }
     }
 
