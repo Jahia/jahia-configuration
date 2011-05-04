@@ -446,27 +446,27 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     File databaseScript;
 
     /**
-     * @parameter expression="${jahia.toolManager.username}" default-value="jahia"
+     * @parameter expression="${jahia.configure.toolManagerUsername}" default-value="jahia"
      */
 	protected String jahiaToolManagerUsername;
 
     /**
-     * @parameter expression="${jahia.toolManager.password}" default-value="password"
+     * @parameter expression="${jahia.configure.toolManagerPassword}" default-value="password"
      */
 	private String jahiaToolManagerPassword;
 
     /**
-     * @parameter expression="${jahia.ldap.activated}" default-value="false"
+     * @parameter expression="${jahia.configure.ldapActivated}" default-value="false"
      */
     private String ldapActivated;
 
     /**
-     * @parameter expression="${jahia.ldap.groupProviderProperties}"
+     * @parameter expression="${jahia.configure.groupLdapProviderProperties}"
      */
     protected Map<String, String> groupLdapProviderProperties;
 
     /**
-     * @parameter expression="${jahia.ldap.userProviderProperties}"
+     * @parameter expression="${jahia.configure.userLdapProviderProperties}"
      */
     protected Map<String, String> userLdapProviderProperties;
 
