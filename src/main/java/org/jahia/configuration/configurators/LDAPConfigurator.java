@@ -36,7 +36,9 @@ package org.jahia.configuration.configurators;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.jdom.Document;
+import org.jdom.Element;
 import org.jdom.JDOMException;
+import org.jdom.Namespace;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
@@ -63,7 +65,12 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
     @Override
     public void updateConfiguration(String sourceFileName, String destFileName) throws Exception {
 
-        if (!"true".equals(jahiaConfigInterface.getLdapActivated())) {
+        Map<String, String> groupProps = jahiaConfigInterface.getGroupLdapProviderProperties();
+        Map<String, String> userProps = jahiaConfigInterface.getUserLdapProviderProperties();
+        if (!Boolean.valueOf(jahiaConfigInterface.getLdapActivated())
+                || (groupProps == null || groupProps.isEmpty())
+                && (userProps == null || userProps.isEmpty())) {
+            // no configuration provided
             return;
         }
 
@@ -78,20 +85,12 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
         SAXBuilder saxBuilder = new SAXBuilder();
         InputStream skeletonContextStream = this.getClass().getClassLoader().getResourceAsStream("ldap/META-INF/spring/applicationcontext-ldap-config.xml");
         Document jdomDocument = saxBuilder.build(skeletonContextStream);
+        Element rootElement = jdomDocument.getRootElement();
+        Namespace ns = rootElement.getNamespace();
 
         // configure ldap file
-        // setup user LDAP
-        setLDAPAttribute(jdomDocument, "jahiaUserLDAPProvider", "url", jahiaConfigInterface.getLdapConnectionURL());
-        setLDAPAttribute(jdomDocument, "jahiaUserLDAPProvider", "public.bind.dn", jahiaConfigInterface.getLdapPublicBindDN());
-        setLDAPAttribute(jdomDocument, "jahiaUserLDAPProvider", "public.bind.password", jahiaConfigInterface.getLdapPublicBindPassword());
-        setLDAPAttribute(jdomDocument, "jahiaUserLDAPProvider", "uid.search.attribute", jahiaConfigInterface.getLdapUserUIDSearchAttribute());
-        setLDAPAttribute(jdomDocument, "jahiaUserLDAPProvider", "uid.search.name", jahiaConfigInterface.getLdapUserUIDSearchName());
-        // setup group LDAP
-        setLDAPAttribute(jdomDocument, "jahiaGroupLDAPProvider", "url", jahiaConfigInterface.getLdapConnectionURL());
-        setLDAPAttribute(jdomDocument, "jahiaGroupLDAPProvider", "public.bind.dn", jahiaConfigInterface.getLdapPublicBindDN());
-        setLDAPAttribute(jdomDocument, "jahiaGroupLDAPProvider", "public.bind.password", jahiaConfigInterface.getLdapPublicBindPassword());
-        setLDAPAttribute(jdomDocument, "jahiaGroupLDAPProvider", "search.attribute", jahiaConfigInterface.getLdapGroupSearchAttribute());
-        setLDAPAttribute(jdomDocument, "jahiaGroupLDAPProvider", "search.name", jahiaConfigInterface.getLdapGroupSearchName());
+        configure("JahiaUserManagerLDAPProvider", userProps, rootElement);
+        configure("JahiaGroupManagerLDAPProvider", groupProps, rootElement);
 
         Format customFormat = Format.getPrettyFormat();
         customFormat.setLineSeparator(System.getProperty("line.separator"));
@@ -109,8 +108,7 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
         boolean verbose = true;
         JarArchiver archiver = new JarArchiver();
         if (verbose) {
-            archiver.enableLogging(new ConsoleLogger(Logger.LEVEL_DEBUG,
-                    "console"));
+            archiver.enableLogging(new ConsoleLogger(Logger.LEVEL_DEBUG, "console"));
         }
 
         // let's generate the WAR file
@@ -131,11 +129,24 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
 
     }
 
-    void setLDAPAttribute(Document document, String providerId, String propertyName, String propertyValue) throws JDOMException {
-        setElementAttribute(document.getRootElement(),
-                "/xp:beans/xp:bean[@id=\""+ providerId +"\"]/xp:property[@name=\"ldapProperties\"]/xp:map/xp:entry[@key=\""+propertyName+"\"]",
-                "value",
-                propertyValue);
-
+    private void configure(String provider, Map<String, String> props,
+            Element root) throws JDOMException {
+        Namespace ns = root.getNamespace();
+        if (props != null && !props.isEmpty()) {
+            // setup user LDAP
+            Element map = getElement(root, "/xp:beans/xp:bean[@parent=\""
+                    + provider
+                    + "\"]/xp:property[@name=\"ldapProperties\"]/xp:map");
+            if (map != null) {
+                for (Map.Entry<String, String> prop : props.entrySet()) {
+                    map.addContent(new Element("entry", ns).setAttribute("key",
+                            prop.getKey()).setAttribute("value",
+                            prop.getValue()));
+                }
+            }
+        } else {
+            removeElementIfExists(root, "/xp:beans/xp:bean[@parent=\""
+                    + provider + "\"]");
+        }
     }
 }

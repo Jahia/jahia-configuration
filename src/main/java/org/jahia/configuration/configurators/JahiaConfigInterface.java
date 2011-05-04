@@ -1,6 +1,7 @@
 package org.jahia.configuration.configurators;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Configuration interface used by the configurators.
@@ -107,54 +108,46 @@ public interface JahiaConfigInterface {
      */
     String getContextPath();
 
-	/**
-	 * Returns <code>true</code> if Jackrabbit should store binary data in the
-	 * DB, otherwise this data is store in a file system (corresponding
-	 * Jackrabbit property: externalBlobs).
-	 * 
-	 * @return <code>true</code> if Jackrabbit should store binary data in the
-	 *         DB, otherwise this data is store in a file system (corresponding
-	 *         Jackrabbit property: externalBlobs).
-	 */
-	String getStoreFilesInDB();
-	
-	/**
-	 * Returns the name of the user that is used to protect Jahia tools area
-	 * (/tools, etc.).
-	 * 
-	 * @return the name of the user that is used to protect Jahia tools area
-	 *         (/tools, etc.)
-	 */
-	String getJahiaToolManagerUsername();
+    /**
+     * Returns <code>true</code> if Jackrabbit should store binary data in the DB, otherwise this data is store in a file system
+     * (corresponding Jackrabbit property: externalBlobs).
+     * 
+     * @return <code>true</code> if Jackrabbit should store binary data in the DB, otherwise this data is store in a file system
+     *         (corresponding Jackrabbit property: externalBlobs).
+     */
+    String getStoreFilesInDB();
 
-	/**
-	 * Returns the password of the user that is used to protect Jahia tools area
-	 * (/tools, etc.).
-	 * 
-	 * @return the password of the user that is used to protect Jahia tools area
-	 *         (/tools, etc.)
-	 */
-	String getJahiaToolManagerPassword();
+    /**
+     * Returns the name of the user that is used to protect Jahia tools area (/tools, etc.).
+     * 
+     * @return the name of the user that is used to protect Jahia tools area (/tools, etc.)
+     */
+    String getJahiaToolManagerUsername();
+
+    /**
+     * Returns the password of the user that is used to protect Jahia tools area (/tools, etc.).
+     * 
+     * @return the password of the user that is used to protect Jahia tools area (/tools, etc.)
+     */
+    String getJahiaToolManagerPassword();
 
     /**
      * Returns true if LDAP configuration is activated.
      * @return
      */
     String getLdapActivated();
+    /**
+     * The LDAP group manager provider options, including LDAP directory URL, bind DN and password, search attributes, field mapping etc.
+     * 
+     * @return LDAP group manager provider options, including LDAP directory URL, bind DN and password, search attributes, field mapping etc
+     */
+    Map<String, String> getGroupLdapProviderProperties();
 
-    String getLdapConnectionURL();
-
-    String getLdapPublicBindDN();
-
-    String getLdapPublicBindPassword();
-
-    String getLdapUserUIDSearchAttribute();
-
-    String getLdapUserUIDSearchName();
-
-    String getLdapGroupSearchAttribute();
-
-    String getLdapGroupSearchName();
-
+    /**
+     * The LDAP user manager provider options, including LDAP directory URL, bind DN and password, search attributes, field mapping etc.
+     * 
+     * @return LDAP user manager provider options, including LDAP directory URL, bind DN and password, search attributes, field mapping etc
+     */
+    Map<String, String> getUserLdapProviderProperties();
 
 }

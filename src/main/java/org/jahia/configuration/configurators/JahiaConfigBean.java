@@ -34,8 +34,10 @@
 package org.jahia.configuration.configurators;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * Holder for the Jahia properties.
@@ -60,10 +62,8 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String jahiaImportsDiskPath = "$context/WEB-INF/var/imports/";
     private String jahiaxmlPath;
     private List<String> clusterNodes = new ArrayList<String>();
-    private String clusterTCPServicePort = "7840";
     private String clusterTCPEHCacheHibernatePort = "7860";
     private String clusterTCPEHCacheJahiaPort = "7870";
-    private List<String> clusterTCPServiceRemotePorts = new ArrayList<String>();
     private List<String> clusterTCPEHCacheHibernateRemotePorts = new ArrayList<String>();
     private List<String> clusterTCPEHCacheJahiaRemotePorts = new ArrayList<String>();
     private String db_script = "hypersonic.script";
@@ -100,17 +100,12 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String overwritedb = "true";
     private String storeFilesInDB = "false";
     private String targetConfigurationDirectory = "";
-	private String jahiaToolManagerPassword = "jahia";
-	private String jahiaToolManagerUsername = "password";
+    private String jahiaToolManagerPassword = "jahia";
+    private String jahiaToolManagerUsername = "password";
 
     private String ldapActivated = "false";
-    private String ldapConnectionURL = "ldap://localhost:389";
-    private String ldapPublicBindDN = "cn=manager,o=jahia";
-    private String ldapPublicBindPassword;
-    private String ldapUserUIDSearchAttribute = "cn";
-    private String ldapUserUIDSearchName ="o=jahia";
-    private String ldapGroupSearchAttribute = "cn";
-    private String ldapGroupSearchName = "ou=JAHIAGroups,o=jahia";
+    private Map<String, String> groupLdapProviderProperties = new HashMap<String, String>();
+    private Map<String, String> userLdapProviderProperties = new HashMap<String, String>();
     
     public JahiaConfigInterface clone() throws CloneNotSupportedException {
         return (JahiaConfigInterface) super.clone();
@@ -537,21 +532,21 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.clusterStartIpAddress = clusterStartIpAddress;
     }
 
-	public String getJahiaToolManagerUsername() {
-		return jahiaToolManagerUsername;
-	}
+    public String getJahiaToolManagerUsername() {
+        return jahiaToolManagerUsername;
+    }
 
-	public String getJahiaToolManagerPassword() {
-		return jahiaToolManagerPassword;
-	}
+    public String getJahiaToolManagerPassword() {
+        return jahiaToolManagerPassword;
+    }
 
-	public void setJahiaToolManagerPassword(String jahiaToolManagerPassword) {
-		this.jahiaToolManagerPassword = jahiaToolManagerPassword;
-	}
+    public void setJahiaToolManagerPassword(String jahiaToolManagerPassword) {
+        this.jahiaToolManagerPassword = jahiaToolManagerPassword;
+    }
 
-	public void setJahiaToolManagerUsername(String jahiaToolManagerUsername) {
-		this.jahiaToolManagerUsername = jahiaToolManagerUsername;
-	}
+    public void setJahiaToolManagerUsername(String jahiaToolManagerUsername) {
+        this.jahiaToolManagerUsername = jahiaToolManagerUsername;
+    }
 
     public String getLdapActivated() {
         return ldapActivated;
@@ -561,59 +556,21 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.ldapActivated = ldapActivated;
     }
 
-    public String getLdapConnectionURL() {
-        return ldapConnectionURL;
+    public Map<String, String> getGroupLdapProviderProperties() {
+        return groupLdapProviderProperties;
     }
 
-    public void setLdapConnectionURL(String ldapConnectionURL) {
-        this.ldapConnectionURL = ldapConnectionURL;
+    public void setGroupLdapProviderProperties(
+            Map<String, String> groupLdapProviderProperties) {
+        this.groupLdapProviderProperties = groupLdapProviderProperties;
     }
 
-    public String getLdapPublicBindDN() {
-        return ldapPublicBindDN;
+    public Map<String, String> getUserLdapProviderProperties() {
+        return userLdapProviderProperties;
     }
 
-    public void setLdapPublicBindDN(String ldapPublicBindDN) {
-        this.ldapPublicBindDN = ldapPublicBindDN;
-    }
-
-    public String getLdapPublicBindPassword() {
-        return ldapPublicBindPassword;
-    }
-
-    public void setLdapPublicBindPassword(String ldapPublicBindPassword) {
-        this.ldapPublicBindPassword = ldapPublicBindPassword;
-    }
-
-    public String getLdapUserUIDSearchAttribute() {
-        return ldapUserUIDSearchAttribute;
-    }
-
-    public void setLdapUserUIDSearchAttribute(String ldapUserUIDSearchAttribute) {
-        this.ldapUserUIDSearchAttribute = ldapUserUIDSearchAttribute;
-    }
-
-    public String getLdapUserUIDSearchName() {
-        return ldapUserUIDSearchName;
-    }
-
-    public void setLdapUserUIDSearchName(String ldapUserUIDSearchName) {
-        this.ldapUserUIDSearchName = ldapUserUIDSearchName;
-    }
-
-    public String getLdapGroupSearchAttribute() {
-        return ldapGroupSearchAttribute;
-    }
-
-    public void setLdapGroupSearchAttribute(String ldapGroupSearchAttribute) {
-        this.ldapGroupSearchAttribute = ldapGroupSearchAttribute;
-    }
-
-    public String getLdapGroupSearchName() {
-        return ldapGroupSearchName;
-    }
-
-    public void setLdapGroupSearchName(String ldapGroupSearchName) {
-        this.ldapGroupSearchName = ldapGroupSearchName;
+    public void setUserLdapProviderProperties(
+            Map<String, String> userLdapProviderProperties) {
+        this.userLdapProviderProperties = userLdapProviderProperties;
     }
 }

@@ -4,6 +4,8 @@ import junit.framework.TestCase;
 
 import java.io.File;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,8 +15,8 @@ import java.util.List;
  * Oracle and MySQL configurations, default properties, etc...
  *
  * @author loom
- *         Date: Oct 27, 2009
- *         Time: 9:04:52 AM
+ * Date: Oct 27, 2009
+ * Time: 9:04:52 AM
  */
 public abstract class AbstractConfiguratorTestCase extends TestCase {
 
@@ -71,14 +73,20 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
         websphereOracleConfigBean.setJahiaRootFirstname("Jahia");
         websphereOracleConfigBean.setJahiaRootLastname("Root");
         websphereOracleConfigBean.setJahiaRootEmail("root@jahia.org");
+        
         websphereOracleConfigBean.setLdapActivated("true");
-        websphereOracleConfigBean.setLdapConnectionURL("ldap://10.8.37.17:389/");
-        websphereOracleConfigBean.setLdapPublicBindDN("cn=manager,o=jahia");
-        websphereOracleConfigBean.setLdapPublicBindPassword("ldapadmin");
-        websphereOracleConfigBean.setLdapUserUIDSearchAttribute("cn");
-        websphereOracleConfigBean.setLdapUserUIDSearchName("o=jahia");
-        websphereOracleConfigBean.setLdapGroupSearchAttribute("cn");
-        websphereOracleConfigBean.setLdapGroupSearchName("ou=JAHIAGroups,o=cg13,o=jahia");
+        Map<String, String> ldap = new HashMap<String, String>();
+        ldap.put("url", "ldap://10.8.37.17:389/");
+        ldap.put("public.bind.dn", "public.bind.dn");
+        ldap.put("public.bind.password", "ldapadmin");
+        ldap.put("uid.search.name", "o=jahia");
+        websphereOracleConfigBean.setUserLdapProviderProperties(ldap);
+        ldap = new HashMap<String, String>();
+        ldap.put("url", "ldap://10.8.37.17:389/");
+        ldap.put("public.bind.dn", "public.bind.dn");
+        ldap.put("public.bind.password", "ldapadmin");
+        ldap.put("search.name", "dc=jahia");
+        websphereOracleConfigBean.setGroupLdapProviderProperties(ldap);
 
         tomcatMySQLConfigBean = new JahiaConfigBean();
         tomcatMySQLConfigBean.setDatabaseType("mysql");
