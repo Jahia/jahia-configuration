@@ -36,7 +36,10 @@ package org.jahia.utils.maven.plugin.buildautomation;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.maven.plugin.MojoExecutionException;
@@ -45,6 +48,8 @@ import org.jahia.configuration.configurators.JahiaConfigInterface;
 import org.jahia.utils.maven.plugin.AbstractManagementMojo;
 import org.jahia.utils.maven.plugin.MojoLogger;
 import org.jahia.configuration.configurators.JahiaGlobalConfigurator;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Implementation of the Jahia's configuration Mojo. 
@@ -456,39 +461,14 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     private String ldapActivated;
 
     /**
-     * @parameter expression="${jahia.ldap.connectionURL}" default-value="ldap://localhost:389"
+     * @parameter expression="${jahia.ldap.groupProviderProperties}"
      */
-    private String ldapConnectionURL;
+    protected Map<String, String> groupLdapProviderProperties;
 
     /**
-     * @parameter expression="${jahia.ldap.publicBindDN}" default-value="cn=manager,o=jahia"
+     * @parameter expression="${jahia.ldap.userProviderProperties}"
      */
-    private String ldapPublicBindDN;
-
-    /**
-     * @parameter expression="${jahia.ldap.publicBindPassword}"
-     */
-    private String ldapPublicBindPassword;
-
-    /**
-     * @parameter expression="${jahia.ldap.userUIDSearchAttribute}" default-value="cn"
-     */
-    private String ldapUserUIDSearchAttribute;
-
-    /**
-     * @parameter expression="${jahia.ldap.userUIDSearchName}" default-value="o=jahia"
-     */
-    private String ldapUserUIDSearchName;
-
-    /**
-     * @parameter expression="${jahia.ldap.groupSearchAttribute}" default-value="cn"
-     */
-    private String ldapGroupSearchAttribute;
-
-    /**
-     * @parameter expression="${jahia.ldap.groupSearchName}" default-value="ou=JAHIAGroups,o=jahia"
-     */
-    private String ldapGroupSearchName;
+    protected Map<String, String> userLdapProviderProperties;
 
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
@@ -793,51 +773,55 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return clusterStartIpAddress;
     }
 
-	public String getJahiaSharedModulesDiskPath() {
-		return jahiaSharedModulesDiskPath;
-	}
+    public String getJahiaSharedModulesDiskPath() {
+        return jahiaSharedModulesDiskPath;
+    }
 
-	public String getJahiaModulesHttpPath() {
-		return jahiaModulesHttpPath;
-	}
+    public String getJahiaModulesHttpPath() {
+        return jahiaModulesHttpPath;
+    }
 
-	public String getJahiaToolManagerUsername() {
-		return jahiaToolManagerUsername;
-	}
+    public String getJahiaToolManagerUsername() {
+        return jahiaToolManagerUsername;
+    }
 
-	public String getJahiaToolManagerPassword() {
-		return jahiaToolManagerPassword;
-	}
+    public String getJahiaToolManagerPassword() {
+        return jahiaToolManagerPassword;
+    }
 
     public String getLdapActivated() {
         return ldapActivated;
     }
 
-    public String getLdapConnectionURL() {
-        return ldapConnectionURL;
+    public Map<String, String> getGroupLdapProviderProperties() {
+        return groupLdapProviderProperties;
     }
 
-    public String getLdapPublicBindDN() {
-        return ldapPublicBindDN;
+    public Map<String, String> getUserLdapProviderProperties() {
+        return userLdapProviderProperties;
     }
 
-    public String getLdapPublicBindPassword() {
-        return ldapPublicBindPassword;
+    public void setGroupLdapProviderProperties(String groupLdapProviderProperties) throws JSONException {
+        if (groupLdapProviderProperties != null) {
+            this.groupLdapProviderProperties = fromJSON(groupLdapProviderProperties);
+        }
     }
 
-    public String getLdapUserUIDSearchAttribute() {
-        return ldapUserUIDSearchAttribute;
+    public void setUserLdapProviderProperties(String userLdapProviderProperties) throws JSONException {
+        if (userLdapProviderProperties != null) {
+            this.userLdapProviderProperties = fromJSON(userLdapProviderProperties);
+        }
     }
+    
+    protected Map<String, String> fromJSON(String json) throws JSONException {
+        Map<String, String> values = new HashMap<String, String>();
+        JSONObject obj = new JSONObject(json.contains("{") ? json : "{" + json
+                + "}");
+        for (Iterator<?> iterator = obj.keys(); iterator.hasNext();) {
+            String key = (String) iterator.next();
+            values.put(key, obj.getString(key));
+        }
 
-    public String getLdapUserUIDSearchName() {
-        return ldapUserUIDSearchName;
-    }
-
-    public String getLdapGroupSearchAttribute() {
-        return ldapGroupSearchAttribute;
-    }
-
-    public String getLdapGroupSearchName() {
-        return ldapGroupSearchName;
+        return values;
     }
 }
