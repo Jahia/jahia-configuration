@@ -27,6 +27,11 @@ release                                                =
 server                                                 =
 serverVersion                                          =
 serverHome                                             =
+# This setting can be used to activate particular profile:
+#  - development
+#  - production
+#  - distantPublicationServer
+operatingMode                                          = development
 # Set this to true to enable maintenance mode, i.e. no requests will be
 # served except to /tools/
 maintenanceMode                                        = false
@@ -169,7 +174,7 @@ jahiaFileUploadMaxSize                                  =  104857600
 # Time in milliseconds between checks for the template deployment
 # descriptor changes in order to restart the JahiaTemplateManagerService.
 # Set to -1 to deactivate changes detection completely.
-# Note, if "developmentMode" option is set to "true", this parameter
+# Note, if "operatingMode" option is set to "development", this parameter
 # is ignored and the observer is started with the interval of 5 seconds. 
 templates.observer.interval                            =   5000
 
@@ -390,13 +395,6 @@ ehcache.hibernate.file = ehcache-hibernate.xml
 ehcache.jahia.file = ehcache-jahia.xml
 # For clustering comment above line and uncomment next line
 #ehcache.jahia.file = ehcache-jahia_cluster.xml
-
-######################################################################
-### Development Mode #################################################
-######################################################################
-# This setting can be used to deactivate development mode which flush
-# the html cache each time you change the operation mode (live/edit)
-developmentMode                                         = true
 
 ######################################################################
 ### custom errorDocument site property  ##############################

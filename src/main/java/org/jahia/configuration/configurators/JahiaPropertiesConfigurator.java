@@ -71,7 +71,7 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         properties.setProperty("jahiaWebAppsDeployerBaseURL", jahiaConfigInterface.getJahiaWebAppsDeployerBaseURL());
         properties.setProperty("jahiaImportsDiskPath", jahiaConfigInterface.getJahiaImportsDiskPath());
         properties.setProperty("db_script", jahiaConfigInterface.getDb_script());
-        properties.setProperty("developmentMode", jahiaConfigInterface.getDevelopmentMode());
+        properties.setProperty("operatingMode", jahiaConfigInterface.getOperatingMode());
 
         properties.setProperty("mail_paranoia", jahiaConfigInterface.getMailParanoia());
         if (jahiaConfigInterface.getMailServer() != null && jahiaConfigInterface.getMailServer().length() > 0) {
