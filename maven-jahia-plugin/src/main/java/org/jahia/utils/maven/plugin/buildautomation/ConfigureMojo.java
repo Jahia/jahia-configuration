@@ -470,6 +470,12 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      */
     protected Map<String, String> userLdapProviderProperties;
 
+    /**
+     * @parameter expression="${jahia.configure.operatingMode}" default-value="development"
+     */
+    protected String operatingMode;
+
+
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
         	if (getProjectStructureVersion() == 2) {
@@ -823,5 +829,9 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         }
 
         return values;
+    }
+
+    public String getOperatingMode() {
+        return operatingMode;
     }
 }

@@ -50,7 +50,7 @@ public interface JahiaConfigInterface {
 
     List<String> getClusterTCPEHCacheJahiaRemotePorts();
 
-    String getDevelopmentMode();
+    String getOperatingMode();
 
     String getTargetServerDirectory();
 

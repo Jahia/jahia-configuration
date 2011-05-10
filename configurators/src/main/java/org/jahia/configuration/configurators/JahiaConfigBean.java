@@ -67,7 +67,7 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private List<String> clusterTCPEHCacheHibernateRemotePorts = new ArrayList<String>();
     private List<String> clusterTCPEHCacheJahiaRemotePorts = new ArrayList<String>();
     private String db_script = "hypersonic.script";
-    private String developmentMode = "false";
+    private String operatingMode = "development";
     private String targetServerType = "tomcat";
     private String targetServerVersion = "6";
     private String targetServerDirectory = "";
@@ -270,12 +270,12 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.clusterTCPEHCacheJahiaRemotePorts = clusterTCPEHCacheJahiaRemotePorts;
     }
 
-    public void setDevelopmentMode(String developmentMode) {
-        this.developmentMode = developmentMode;
+    public void setOperatingMode(String operatingMode) {
+        this.operatingMode = operatingMode;
     }
 
-    public String getDevelopmentMode() {
-        return developmentMode;
+    public String getOperatingMode() {
+        return operatingMode;
     }
 
     public String getTargetServerDirectory() {
