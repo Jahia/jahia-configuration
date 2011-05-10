@@ -39,21 +39,21 @@ import com.izforge.izpack.installer.PanelActionConfiguration;
 import com.izforge.izpack.util.AbstractUIHandler;
 
 /**
- * Panel action that is responsible for locking (disabling) the previous
- * navigation button.
+ * Panel action that is responsible for locking (disabling) the previous navigation button.
  * 
  * @author Sergiy Shyrkov
  */
 public class LockPrevButtonPanelAction implements PanelAction {
 
-	public void executeAction(AutomatedInstallData adata, AbstractUIHandler handler) {
-		if (handler != null && handler instanceof IzPanel) {
-			((IzPanel) handler).getInstallerFrame().lockPrevButton();
-		}
+    public void executeAction(AutomatedInstallData adata,
+            AbstractUIHandler handler) {
+        if (handler != null && handler instanceof IzPanel) {
+            ((IzPanel) handler).getInstallerFrame().lockPrevButton();
+        }
 
-	}
+    }
 
-	public void initialize(PanelActionConfiguration configuration) {
-		// do nothing
-	}
+    public void initialize(PanelActionConfiguration configuration) {
+        // do nothing
+    }
 }

@@ -62,10 +62,12 @@ public class ResourcesConverter {
         String bundleName = args[0];
         String[] locales = args[1].split(",");
         File targetDir = new File(args[2]);
-        System.out.println("Converting resource bundle " + bundleName + " to XML language packs...");
+        System.out.println("Converting resource bundle " + bundleName
+                + " to XML language packs...");
         for (String lc : locales) {
             Locale currentLocale = new Locale(lc.trim());
-            System.out.println("...locale " + currentLocale.getDisplayName(Locale.ENGLISH));
+            System.out.println("...locale "
+                    + currentLocale.getDisplayName(Locale.ENGLISH));
             convert(bundleName, currentLocale, targetDir);
         }
         System.out.println("...converting done.");
@@ -74,21 +76,27 @@ public class ResourcesConverter {
     /**
      * Performs conversion of the property file into XML language pack.
      * 
-     * @param bundleName the resource bundle name
-     * @param locale locale to be used
-     * @param targetFolder the target folder
+     * @param bundleName
+     *            the resource bundle name
+     * @param locale
+     *            locale to be used
+     * @param targetFolder
+     *            the target folder
      * @throws FileNotFoundException
      */
-    private static void convert(String bundleName, Locale locale, File targetFolder) throws FileNotFoundException {
-        ResourceBundle enBundle = ResourceBundle.getBundle(bundleName, Locale.ENGLISH);
+    private static void convert(String bundleName, Locale locale,
+            File targetFolder) throws FileNotFoundException {
+        ResourceBundle enBundle = ResourceBundle.getBundle(bundleName,
+                Locale.ENGLISH);
         ResourceBundle bundle = null;
         try {
             bundle = ResourceBundle.getBundle(bundleName, locale);
         } catch (MissingResourceException e) {
             bundle = enBundle;
         }
-        PrintWriter out = new PrintWriter(new File(targetFolder, StringUtils.substringAfterLast(bundleName, ".") + "."
-                + locale.getISO3Language() + ".xml"));
+        PrintWriter out = new PrintWriter(new File(targetFolder,
+                StringUtils.substringAfterLast(bundleName, ".") + "."
+                        + locale.getISO3Language() + ".xml"));
         Enumeration<String> keyEnum = enBundle.getKeys();
         List<String> keys = new LinkedList<String>();
         while (keyEnum.hasMoreElements()) {
@@ -108,8 +116,8 @@ public class ResourcesConverter {
                     value = key;
                 }
             }
-            out.append("    <str id=\"").append(key).append("\" txt=\"").append(StringEscapeUtils.escapeXml(value))
-                    .append("\"/>");
+            out.append("    <str id=\"").append(key).append("\" txt=\"")
+                    .append(StringEscapeUtils.escapeXml(value)).append("\"/>");
             out.println();
         }
         out.println("</langpack>");

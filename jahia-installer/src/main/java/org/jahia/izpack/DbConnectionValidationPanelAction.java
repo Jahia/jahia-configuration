@@ -51,95 +51,103 @@ import com.izforge.izpack.util.Debug;
  */
 public class DbConnectionValidationPanelAction implements PanelAction {
 
-	private static String getVar(AutomatedInstallData adata, String name, String defValue) {
-		String var = adata.getVariable(name);
-		return var != null ? var : defValue;
-	}
+    private static String getVar(AutomatedInstallData adata, String name,
+            String defValue) {
+        String var = adata.getVariable(name);
+        return var != null ? var : defValue;
+    }
 
-	private boolean doValidate(AutomatedInstallData adata, IzPanel panel) {
-		if (!Boolean.valueOf(adata.getVariable(getVar(adata,
-		        "DbConnectionValidationPanelAction.validateVariable",
-		        "dbSettings.dbms.createTables")))) {
-			// no need to validate the connection
-			return true;
-		}
+    private boolean doValidate(AutomatedInstallData adata, IzPanel panel) {
+        if (!Boolean.valueOf(adata.getVariable(getVar(adata,
+                "DbConnectionValidationPanelAction.validateVariable",
+                "dbSettings.dbms.createTables")))) {
+            // no need to validate the connection
+            return true;
+        }
 
-		boolean passed = false;
+        boolean passed = false;
 
-		String dbmsType = adata.getVariable(getVar(adata,
-		        "DbConnectionValidationPanelAction.dbmsTypeVariable", "dbSettings.dbms.type"));
-		if (dbmsType.length() > 0) {
-			dbmsType = "." + dbmsType;
-		}
-		String driver = adata.getVariable(getVar(adata,
-		        "DbConnectionValidationPanelAction.driverVariable", "dbSettings.connection.driver")
-		        + dbmsType);
-		String url = adata.getVariable(getVar(adata,
-		        "DbConnectionValidationPanelAction.urlVariable", "dbSettings.connection.url")
-		        + dbmsType);
-		String username = adata.getVariable(getVar(adata,
-		        "DbConnectionValidationPanelAction.usernameVariable",
-		        "dbSettings.connection.username"));
-		String password = adata.getVariable(getVar(adata,
-		        "DbConnectionValidationPanelAction.passwordVariable",
-		        "dbSettings.connection.password"));
+        String dbmsType = adata.getVariable(getVar(adata,
+                "DbConnectionValidationPanelAction.dbmsTypeVariable",
+                "dbSettings.dbms.type"));
+        if (dbmsType.length() > 0) {
+            dbmsType = "." + dbmsType;
+        }
+        String driver = adata.getVariable(getVar(adata,
+                "DbConnectionValidationPanelAction.driverVariable",
+                "dbSettings.connection.driver")
+                + dbmsType);
+        String url = adata.getVariable(getVar(adata,
+                "DbConnectionValidationPanelAction.urlVariable",
+                "dbSettings.connection.url")
+                + dbmsType);
+        String username = adata.getVariable(getVar(adata,
+                "DbConnectionValidationPanelAction.usernameVariable",
+                "dbSettings.connection.username"));
+        String password = adata.getVariable(getVar(adata,
+                "DbConnectionValidationPanelAction.passwordVariable",
+                "dbSettings.connection.password"));
 
-		// perform connection settings validation
-		try {
-			passed = validateDbConnection(driver, url, username, password);
-		} catch (Exception e) {
-			passed = false;
-			Debug.trace("Validation did not pass, error: " + e.getMessage());
-			e.printStackTrace();
-			String key = "dbSettings.connection.error";
-			String message = panel.getInstallerFrame().langpack.getString(key);
-			message = message == null || message.length() == 0 || key.equals(message) ? "An error occurred while establishing the connection to the database"
-			        : message;
-			// StringWriter sw = new StringWriter();
-			// e.printStackTrace(new PrintWriter(sw));
-			// String stackTrace = sw.toString();
-			// if (stackTrace != null && stackTrace.length() > 200) {
-			// stackTrace = stackTrace.substring(0, 200 - 1) + "...";
-			// }
-			panel.emitError(panel.getInstallerFrame().langpack.getString("installer.error"),
-			        message + "\n" + e.getClass().getName() + ": " + e.getMessage());
-		}
+        // perform connection settings validation
+        try {
+            passed = validateDbConnection(driver, url, username, password);
+        } catch (Exception e) {
+            passed = false;
+            Debug.trace("Validation did not pass, error: " + e.getMessage());
+            e.printStackTrace();
+            String key = "dbSettings.connection.error";
+            String message = panel.getInstallerFrame().langpack.getString(key);
+            message = message == null || message.length() == 0
+                    || key.equals(message) ? "An error occurred while establishing the connection to the database"
+                    : message;
+            // StringWriter sw = new StringWriter();
+            // e.printStackTrace(new PrintWriter(sw));
+            // String stackTrace = sw.toString();
+            // if (stackTrace != null && stackTrace.length() > 200) {
+            // stackTrace = stackTrace.substring(0, 200 - 1) + "...";
+            // }
+            panel.emitError(panel.getInstallerFrame().langpack
+                    .getString("installer.error"), message + "\n"
+                    + e.getClass().getName() + ": " + e.getMessage());
+        }
 
-		return passed;
-	}
+        return passed;
+    }
 
-	public void executeAction(AutomatedInstallData adata, AbstractUIHandler handler) {
-		if (handler != null && handler instanceof IzPanel) {
-			IzPanel panel = (IzPanel) handler;
-			panel.setPostValidationFailed(!doValidate(adata, panel));
-		}
+    public void executeAction(AutomatedInstallData adata,
+            AbstractUIHandler handler) {
+        if (handler != null && handler instanceof IzPanel) {
+            IzPanel panel = (IzPanel) handler;
+            panel.setPostValidationFailed(!doValidate(adata, panel));
+        }
 
-	}
+    }
 
-	public void initialize(PanelActionConfiguration configuration) {
-		// do nothing
-	}
+    public void initialize(PanelActionConfiguration configuration) {
+        // do nothing
+    }
 
-	private boolean validateDbConnection(String driver, String url, String username, String password)
-	        throws ClassNotFoundException, SQLException, InstantiationException,
-	        IllegalAccessException {
-		boolean valid = true;
+    private boolean validateDbConnection(String driver, String url,
+            String username, String password) throws ClassNotFoundException,
+            SQLException, InstantiationException, IllegalAccessException {
+        boolean valid = true;
 
-		Class.forName(driver).newInstance();
-		Connection theConnection = DriverManager.getConnection(url, username, password);
-		Statement theStatement = theConnection.createStatement();
-		try {
-			theStatement.close();
-		} catch (Exception e) {
-			// ignore
-		}
-		try {
-			theConnection.close();
-		} catch (Exception e) {
-			// ignore
-		}
+        Class.forName(driver).newInstance();
+        Connection theConnection = DriverManager.getConnection(url, username,
+                password);
+        Statement theStatement = theConnection.createStatement();
+        try {
+            theStatement.close();
+        } catch (Exception e) {
+            // ignore
+        }
+        try {
+            theConnection.close();
+        } catch (Exception e) {
+            // ignore
+        }
 
-		return valid;
-	}
+        return valid;
+    }
 
 }
