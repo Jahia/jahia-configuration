@@ -12,15 +12,15 @@
     
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jahia-installer-lib</artifactId>
-    <version>2.0</version>
+    <version>2.1</version>
     <name>Jahia Installer</name>
     <packaging>jar</packaging>
     
     <properties>
-        <izpack.version>4.3.3.jahia-SNAPSHOT</izpack.version>
-	    <driver.derby.version>10.6.1.0</driver.derby.version>
-	    <driver.mysql.version>5.1.13</driver.mysql.version>
-	    <driver.postgresql.version>8.4-701.jdbc3</driver.postgresql.version>
+        <izpack.version>4.3.4.jahia1</izpack.version>
+	    <driver.derby.version>10.8.1.2</driver.derby.version>
+	    <driver.mysql.version>5.1.15</driver.mysql.version>
+	    <driver.postgresql.version>9.0-801.jdbc3</driver.postgresql.version>
     </properties>
 
     <dependencies>
@@ -32,7 +32,7 @@
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-            <version>2.5</version>
+            <version>2.6</version>
         </dependency>
     </dependencies>
 
