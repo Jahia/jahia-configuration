@@ -7,8 +7,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Common abstract class for setting up all the stuff that is needed to test configurators, such as resource paths,
@@ -48,23 +46,12 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
         websphereOracleConfigBean.setClusterStartIpAddress("1.2.3.4");
         websphereOracleConfigBean.setCluster_node_serverId("jahiaServer1");
         websphereOracleConfigBean.setProcessingServer("true");
-        List<String> clusterNodes = new ArrayList<String>();
-        clusterNodes.add("2.3.4.5");
-        clusterNodes.add("3.4.5.6");
-        clusterNodes.add("4.5.6.7");
-        websphereOracleConfigBean.setClusterNodes(clusterNodes);
-        List<String> clusterTCPEHCacheHibernateRemotePorts = new ArrayList<String>();
-        clusterTCPEHCacheHibernateRemotePorts.add("7860");
-        clusterTCPEHCacheHibernateRemotePorts.add("8860");
-        clusterTCPEHCacheHibernateRemotePorts.add("9860");
-        clusterTCPEHCacheHibernateRemotePorts.add("10860");
-        websphereOracleConfigBean.setClusterTCPEHCacheHibernateRemotePorts(clusterTCPEHCacheHibernateRemotePorts);
-        List<String> clusterTCPEHCacheJahiaRemotePorts = new ArrayList<String>();
-        clusterTCPEHCacheJahiaRemotePorts.add("7870");
-        clusterTCPEHCacheJahiaRemotePorts.add("8870");
-        clusterTCPEHCacheJahiaRemotePorts.add("9870");
-        clusterTCPEHCacheJahiaRemotePorts.add("10870");
-        websphereOracleConfigBean.setClusterTCPEHCacheJahiaRemotePorts(clusterTCPEHCacheJahiaRemotePorts);
+        websphereOracleConfigBean
+                .setClusterTCPEHCacheHibernateHosts(JahiaGlobalConfigurator
+                        .fromString("1.2.3.4[7860] 2.3.4.5[8860] 3.4.5.6[9860] 4.5.6.7[10860]"));
+        websphereOracleConfigBean
+                .setClusterTCPEHCacheJahiaHosts(JahiaGlobalConfigurator
+                        .fromString("1.2.3.4[7870] 2.3.4.5[8870] 3.4.5.6[9870] 4.5.6.7[10870]"));
         websphereOracleConfigBean.setClusterTCPEHCacheHibernatePort("7860");
         websphereOracleConfigBean.setClusterTCPEHCacheJahiaPort("7870");
 

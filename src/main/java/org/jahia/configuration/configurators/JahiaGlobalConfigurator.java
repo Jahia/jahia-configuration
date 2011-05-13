@@ -1,22 +1,30 @@
 package org.jahia.configuration.configurators;
 
-import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.BeanUtilsBean;
+import org.apache.commons.beanutils.ConvertUtilsBean;
+import org.apache.commons.beanutils.Converter;
+import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
-import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.StringUtils;
 import org.jahia.configuration.deployers.ServerDeploymentFactory;
 import org.jahia.configuration.logging.AbstractLogger;
 import org.jahia.configuration.logging.ConsoleLogger;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -28,6 +36,48 @@ import java.util.Properties;
  */
 public class JahiaGlobalConfigurator {
 
+    private static final ConvertUtilsBean CONVERTER_UTILS_BEAN = new ConvertUtilsBean();
+    static {
+        CONVERTER_UTILS_BEAN.register(new Converter() {
+            @SuppressWarnings("rawtypes")
+            public Object convert(Class type, Object value) {
+                return fromString(value != null ? value.toString() : null);
+            }
+        }, List.class);
+        CONVERTER_UTILS_BEAN.register(new Converter() {
+            @SuppressWarnings("rawtypes")
+            public Object convert(Class type, Object value) {
+                return value != null ? fromJSON(value.toString()) : new HashMap<String, String>();
+            }
+        }, Map.class);
+    }
+    
+    public static Map<String, String> fromJSON(String json) {
+        Map<String, String> values = new HashMap<String, String>();
+        try {
+            JSONObject obj = new JSONObject(json.contains("{") ? json : "{" + json
+                    + "}");
+            for (Iterator<?> iterator = obj.keys(); iterator.hasNext();) {
+                String key = (String) iterator.next();
+                values.put(key, obj.getString(key));
+            }
+        } catch (JSONException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
+
+        return values;
+    }
+
+    public static List<String> fromString(String value) {
+        List<String> valueList = new LinkedList<String>();
+        if (value != null && value.length() > 0) {
+            for (String singleValue : StringUtils.split(value, " ,;:")) {
+                valueList.add(singleValue.trim());
+            }
+        }
+        return valueList;
+    }
+    
     JahiaConfigInterface jahiaConfig;
     DatabaseConnection db;
     File webappDir;
@@ -101,9 +151,9 @@ public class JahiaGlobalConfigurator {
 
         new JahiaPropertiesConfigurator(dbProps, jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.skeleton", webappPath + "/WEB-INF/etc/config/jahia.properties");
         if (new File(sourceWebAppPath + "/WEB-INF/etc/config/jahia.advanced.skeleton").exists()) {
-            new JahiaAdvancedPropertiesConfigurator(jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.advanced.skeleton", webappPath + "/WEB-INF/etc/config/jahia.advanced.properties");
+            new JahiaAdvancedPropertiesConfigurator(logger, jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.advanced.skeleton", webappPath + "/WEB-INF/etc/config/jahia.advanced.properties");
         } else {
-            new JahiaAdvancedPropertiesConfigurator(jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.properties", webappPath + "/WEB-INF/etc/config/jahia.properties");
+            new JahiaAdvancedPropertiesConfigurator(logger, jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.properties", webappPath + "/WEB-INF/etc/config/jahia.properties");
         }
         new LDAPConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(sourceWebAppPath, webappPath + "/WEB-INF/var/shared_modules");
     }
@@ -408,80 +458,6 @@ public class JahiaGlobalConfigurator {
 // end createDBTables()
 
 
-    /**
-         * Copy the external config
-         *
-         * @throws IOException
-         * @return true if an external config has been found
-
-         */
-        private boolean copyExternalConfig()
-                throws Exception {
-            if (jahiaConfig.getExternalConfigPath() == null) {
-                getLogger().info("External jahia config. not specified.");
-                return false;
-
-            }
-            File externalConfigDirectory = new File(jahiaConfig.getExternalConfigPath());
-            if (!externalConfigDirectory.exists()) {
-                getLogger().warn("Not copying external jahia config. Directory[" + externalConfigDirectory.getAbsolutePath()
-                        + "] does not exist!");
-                return false;
-            }
-
-            getLogger().info("Copying external jahia config. directory [" + externalConfigDirectory.getAbsolutePath() + "] to [" + getWebappDeploymentDir().getAbsolutePath() + "]");
-            String[] fileNames = getFilesToCopy(externalConfigDirectory);
-            for (int i = 0; i < fileNames.length; i++) {
-                copyFile(new File(externalConfigDirectory, fileNames[i]), new File(getWebappDeploymentDir(), fileNames[i]));
-            }
-            return true;
-        }
-
-        /**
-         * Returns a list of filenames that should be copied
-         * over to the destination directory.
-         *
-         * @param directory the parent directory to be scanned
-         * @return the array of filenames, relative to the sourceDir
-         */
-        private String[] getFilesToCopy(File directory) {
-            DirectoryScanner scanner = new DirectoryScanner();
-            scanner.setBasedir(directory);
-            scanner.addDefaultExcludes();
-            scanner.scan();
-            return scanner.getIncludedFiles();
-        }
-
-
-        /**
-         * Copy file from source to destination
-         *
-         * @param source
-         * @param destination
-         * @return
-         * @throws IOException
-         */
-        private boolean copyFile(File source, File destination) {
-            try {
-                boolean doOverride = destination.exists();
-                FileUtils.copyFile(source.getCanonicalFile(), destination);
-                // preserve timestamp
-                destination.setLastModified(source.lastModified());
-
-                if (!doOverride) {
-                    getLogger().debug(" + [" + source.getPath() + "] has been copied to [" + destination.getAbsolutePath()+"]");
-                } else {
-                    getLogger().debug(" o [" + destination.getAbsolutePath() + "] has been overrided by " + source.getPath());
-                }
-            } catch (Exception e) {
-                getLogger().error(" + Unable to copy" + source.getPath(),e);
-
-            }
-            return true;
-        }
-
-
-
     public static String encryptPassword(String password) {
         if (password == null) {
             return null;
@@ -563,7 +539,7 @@ public class JahiaGlobalConfigurator {
             }
         }
         if (props != null && !props.isEmpty()) {
-            BeanUtils.populate(config, props);
+            new BeanUtilsBean(CONVERTER_UTILS_BEAN, new PropertyUtilsBean()).populate(config, props);
         }
         if (logger != null) {
         	props.put("databasePassword", "***");

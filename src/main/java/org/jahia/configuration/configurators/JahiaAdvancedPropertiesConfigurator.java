@@ -33,9 +33,12 @@
 
 package org.jahia.configuration.configurators;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.codehaus.plexus.util.StringUtils;
+import org.jahia.configuration.logging.AbstractLogger;
 
 /**
  * Property configuration for the jahia.advanced.properties file.
@@ -46,70 +49,60 @@ import java.io.IOException;
 public class JahiaAdvancedPropertiesConfigurator extends AbstractConfigurator {
 
     private PropertiesManager properties;
+    
+    protected AbstractLogger logger;
 
-    public JahiaAdvancedPropertiesConfigurator(JahiaConfigInterface jahiaConfigInterface) {
-        super(jahiaConfigInterface);
+    public JahiaAdvancedPropertiesConfigurator(AbstractLogger logger, JahiaConfigInterface cfg) {
+        super(cfg);
+        this.logger = logger;
     }
 
     public void updateConfiguration(String sourceJahiaPath, String targetJahiaPath) throws IOException {
         properties = new PropertiesManager(sourceJahiaPath, targetJahiaPath);
-        // context  path
-        properties.setProperty("cluster.activated", jahiaConfigInterface.getCluster_activated());
-        properties.setProperty("cluster.node.serverId", jahiaConfigInterface.getCluster_node_serverId());
+        
+        JahiaConfigInterface cfg = jahiaConfigInterface;
 
-        if (jahiaConfigInterface.getCluster_activated().equals("true")) {
-            addClusterNodes(jahiaConfigInterface.getClusterNodes());
+        properties.setProperty("processingServer", cfg.getProcessingServer());
+        
+        properties.setProperty("cluster.activated", cfg.getCluster_activated());
+        properties.setProperty("cluster.node.serverId", cfg.getCluster_node_serverId());
+        properties.setProperty("cluster.tcp.start.ip_address", cfg.getClusterStartIpAddress());
 
+        properties.setProperty("cluster.tcp.ehcache.hibernate.port", cfg.getClusterTCPEHCacheHibernatePort());
+        properties.setProperty("cluster.tcp.ehcache.jahia.port", cfg.getClusterTCPEHCacheJahiaPort());
+        
+        List<String> hibernateHosts = getInitialHosts(cfg.getClusterTCPEHCacheHibernateHosts(), cfg.getClusterNodes(), cfg.getClusterTCPEHCacheHibernatePort());
+        List<String> jahiaHosts = getInitialHosts(cfg.getClusterTCPEHCacheJahiaHosts(), cfg.getClusterNodes(), cfg.getClusterTCPEHCacheJahiaPort());
+        if (hibernateHosts.size() != jahiaHosts.size()) {
+            logger.error("ERROR: number of initial hosts for Hibernate and Jahia"
+                    + " caches do not match. There is an issue in the provided configuration!");
         }
-        properties.setProperty("cluster.node.serverId", jahiaConfigInterface.getCluster_node_serverId());
+        properties.setProperty("cluster.tcp.ehcache.hibernate.nodes.ip_address", StringUtils.join(hibernateHosts.iterator(), ","));
+        properties.setProperty("cluster.tcp.ehcache.jahia.nodes.ip_address", StringUtils.join(jahiaHosts.iterator(), ","));
+
+        properties.setProperty("cluster.tcp.num_initial_members",String.valueOf(hibernateHosts.size()));
         
         properties.storeProperties(sourceJahiaPath, targetJahiaPath);
     }
 
-	private void addClusterNodes(List<String> clusterNodes) {
-        final String propvalue = jahiaConfigInterface.getClusterStartIpAddress();
-        properties.setProperty("cluster.tcp.start.ip_address", propvalue);
-        if (!clusterNodes.contains(propvalue)) {
-            clusterNodes.add(0, propvalue);
-        }
+    private static List<String> getInitialHosts(List<String> hosts,
+            List<String> nodeIps, String port) {
+        List<String> finalHosts = new LinkedList<String>();
 
-        StringBuilder clusterTCPHibernateEHCacheNodesIPAddresses = new StringBuilder();
-        StringBuilder clusterTCPJahiaEHCacheNodesIPAddresses = new StringBuilder();
-
-        List<String> clusterTCPEHCacheHibernateRemotePorts = jahiaConfigInterface.getClusterTCPEHCacheHibernateRemotePorts();
-        if (clusterTCPEHCacheHibernateRemotePorts == null) {
-            clusterTCPEHCacheHibernateRemotePorts = new ArrayList<String>();
-        }
-        if (clusterTCPEHCacheHibernateRemotePorts.size() == 0) {
-            for (int i=0; i < clusterNodes.size(); i++) {
-                clusterTCPEHCacheHibernateRemotePorts.add("7860");
+        if (!hosts.isEmpty()) {
+            for (String host : hosts) {
+                if (!host.contains("[")) {
+                    // add a default port
+                    host = host + "[" + port + "]";
+                }
+                finalHosts.add(host);
+            }
+        } else if (!nodeIps.isEmpty()) {
+            for (String host : nodeIps) {
+                finalHosts.add(host + "[" + port + "]");
             }
         }
-        List<String> clusterTCPEHCacheJahiaRemotePorts = jahiaConfigInterface.getClusterTCPEHCacheJahiaRemotePorts();
-        if (clusterTCPEHCacheJahiaRemotePorts == null) {
-            clusterTCPEHCacheJahiaRemotePorts = new ArrayList<String>();
-        }
-        if (clusterTCPEHCacheJahiaRemotePorts.size() == 0) {
-            for (int i=0; i < clusterNodes.size(); i++) {
-                clusterTCPEHCacheJahiaRemotePorts.add("7870");
-            }
-        }
-
-        for (int i = 0; i < clusterNodes.size(); i++) {
-            clusterTCPHibernateEHCacheNodesIPAddresses.append(clusterNodes.get(i) + "["+clusterTCPEHCacheHibernateRemotePorts.get(i)+"]");
-            clusterTCPJahiaEHCacheNodesIPAddresses.append(clusterNodes.get(i) + "["+clusterTCPEHCacheJahiaRemotePorts.get(i)+"]");
-            if (i < clusterNodes.size() - 1) {
-                clusterTCPHibernateEHCacheNodesIPAddresses.append(",");
-                clusterTCPJahiaEHCacheNodesIPAddresses.append(",");
-            }
-
-        }
-        properties.setProperty("cluster.tcp.ehcache.hibernate.nodes.ip_address", clusterTCPHibernateEHCacheNodesIPAddresses.toString());
-        properties.setProperty("cluster.tcp.ehcache.hibernate.port", jahiaConfigInterface.getClusterTCPEHCacheHibernatePort());
-        properties.setProperty("cluster.tcp.ehcache.jahia.nodes.ip_address", clusterTCPJahiaEHCacheNodesIPAddresses.toString());
-        properties.setProperty("cluster.tcp.ehcache.jahia.port", jahiaConfigInterface.getClusterTCPEHCacheJahiaPort());
-        properties.setProperty("cluster.tcp.num_initial_members",String.valueOf(clusterNodes.size()));
-        properties.setProperty("processingServer", jahiaConfigInterface.getProcessingServer());
+        return finalHosts;
     }
 
 }

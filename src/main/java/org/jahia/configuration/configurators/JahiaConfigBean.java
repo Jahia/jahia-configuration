@@ -64,8 +64,8 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private List<String> clusterNodes = new ArrayList<String>();
     private String clusterTCPEHCacheHibernatePort = "7860";
     private String clusterTCPEHCacheJahiaPort = "7870";
-    private List<String> clusterTCPEHCacheHibernateRemotePorts = new ArrayList<String>();
-    private List<String> clusterTCPEHCacheJahiaRemotePorts = new ArrayList<String>();
+    private List<String> clusterTCPEHCacheHibernateHosts = new ArrayList<String>();
+    private List<String> clusterTCPEHCacheJahiaHosts = new ArrayList<String>();
     private String db_script = "hypersonic.script";
     private String operatingMode = "development";
     private String targetServerType = "tomcat";
@@ -235,7 +235,9 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     }
 
     public void setClusterNodes(List<String> clusterNodes) {
-        this.clusterNodes = clusterNodes;
+        if (clusterNodes != null) {
+            this.clusterNodes = clusterNodes;
+        }
     }
 
     public String getClusterTCPEHCacheHibernatePort() {
@@ -254,20 +256,24 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.clusterTCPEHCacheJahiaPort = clusterTCPEHCacheJahiaPort;
     }
 
-    public List<String> getClusterTCPEHCacheHibernateRemotePorts() {
-        return clusterTCPEHCacheHibernateRemotePorts;
+    public List<String> getClusterTCPEHCacheHibernateHosts() {
+        return clusterTCPEHCacheHibernateHosts;
     }
 
-    public void setClusterTCPEHCacheHibernateRemotePorts(List<String> clusterTCPEHCacheHibernateRemotePorts) {
-        this.clusterTCPEHCacheHibernateRemotePorts = clusterTCPEHCacheHibernateRemotePorts;
+    public void setClusterTCPEHCacheHibernateHosts(List<String> clusterTCPEHCacheHibernateHosts) {
+        if (clusterTCPEHCacheHibernateHosts != null) {
+            this.clusterTCPEHCacheHibernateHosts = clusterTCPEHCacheHibernateHosts;
+        }
     }
 
-    public List<String> getClusterTCPEHCacheJahiaRemotePorts() {
-        return clusterTCPEHCacheJahiaRemotePorts;
+    public List<String> getClusterTCPEHCacheJahiaHosts() {
+        return clusterTCPEHCacheJahiaHosts;
     }
 
-    public void setClusterTCPEHCacheJahiaRemotePorts(List<String> clusterTCPEHCacheJahiaRemotePorts) {
-        this.clusterTCPEHCacheJahiaRemotePorts = clusterTCPEHCacheJahiaRemotePorts;
+    public void setClusterTCPEHCacheJahiaHosts(List<String> clusterTCPEHCacheJahiaHosts) {
+        if (clusterTCPEHCacheJahiaHosts != null) {
+            this.clusterTCPEHCacheJahiaHosts = clusterTCPEHCacheJahiaHosts;
+        }
     }
 
     public void setOperatingMode(String operatingMode) {
