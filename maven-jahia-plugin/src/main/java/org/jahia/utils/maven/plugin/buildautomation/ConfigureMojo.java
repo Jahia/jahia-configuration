@@ -34,10 +34,6 @@
 package org.jahia.utils.maven.plugin.buildautomation;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -48,8 +44,6 @@ import org.jahia.configuration.configurators.JahiaConfigInterface;
 import org.jahia.utils.maven.plugin.AbstractManagementMojo;
 import org.jahia.utils.maven.plugin.MojoLogger;
 import org.jahia.configuration.configurators.JahiaGlobalConfigurator;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * Implementation of the Jahia's configuration Mojo. 
@@ -280,9 +274,15 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * properties file path
      *
-     * @parameter expression="${jahia.deploy.processingServer}"
+     * @parameter expression="${jahia.configure.processingServer}"
      */
     protected String processingServer;
+    /**
+     * properties file path
+     *
+     * @parameter expression="${jahia.deploy.processingServer}"
+     */
+    protected String processingServerLegacy;
     /**
      * properties file path
      *
@@ -312,7 +312,7 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * List of nodes in the cluster.
      *
-     * @parameter expression="${jahia.deploy.clusterNodes}" default-value="192.168.1.100 192.168.1.200"
+     * @parameter expression="${jahia.configure.clusterNodes}" default-value="192.168.1.100 192.168.1.200"
      */
     protected String clusterNodes;
     
@@ -324,30 +324,30 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * TCP binding port for the EHCache Hibernate channel for this node
      *
-     * @parameter expression="${jahia.deploy.clusterTCPEHCacheHibernatePort}" default-value="7860"
+     * @parameter expression="${jahia.configure.clusterTCPEHCacheHibernatePort}" default-value="7860"
      */
     protected String clusterTCPEHCacheHibernatePort;
 
     /**
      * TCP binding port for the EHCache Jahia channel for this node
      *
-     * @parameter expression="${jahia.deploy.clusterTCPEHCacheJahiaPort}" default-value="7870"
+     * @parameter expression="${jahia.configure.clusterTCPEHCacheJahiaPort}" default-value="7870"
      */
     protected String clusterTCPEHCacheJahiaPort;
 
     /**
-     * List of remote EHCache Hibernate channel ports to connect to (number of values must be equal to cluster nodes count)
+     * List of EHCache Hibernate channel hosts to connect to (number of values must be equal to cluster nodes count)
      *
-     * @parameter expression="${jahia.deploy.clusterTCPEHCacheHibernateRemotePorts}" default-value=""
+     * @parameter expression="${jahia.configure.clusterTCPEHCacheHibernateHosts}" default-value=""
      */
-    protected String clusterTCPEHCacheHibernateRemotePorts;
+    protected String clusterTCPEHCacheHibernateHosts;
 
     /**
-     * List of remote EHCache Jahia channel ports to connect to (number of values must be equal to cluster nodes count)
+     * List of EHCache Jahia channel hosts to connect to (number of values must be equal to cluster nodes count)
      *
-     * @parameter expression="${jahia.deploy.clusterTCPEHCacheJahiaRemotePorts}" default-value=""
+     * @parameter expression="${jahia.configure.clusterTCPEHCacheJahiaHosts}" default-value=""
      */
-    protected String clusterTCPEHCacheJahiaRemotePorts;
+    protected String clusterTCPEHCacheJahiaHosts;
 
     /**
      * Database type used
@@ -525,7 +525,7 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     }
 
     public List<String> getClusterNodes() {
-        return new ArrayList<String>(Arrays.asList(clusterNodes.split(" ")));
+        return JahiaGlobalConfigurator.fromString(clusterNodes);
     }
 
     public String getClusterTCPEHCacheHibernatePort() {
@@ -536,12 +536,12 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return clusterTCPEHCacheJahiaPort;
     }
 
-    public List<String> getClusterTCPEHCacheHibernateRemotePorts() {
-        return new ArrayList<String>(Arrays.asList(clusterTCPEHCacheHibernateRemotePorts.split(" ")));
+    public List<String> getClusterTCPEHCacheHibernateHosts() {
+        return JahiaGlobalConfigurator.fromString(clusterTCPEHCacheHibernateHosts);
     }
 
-    public List<String> getClusterTCPEHCacheJahiaRemotePorts() {
-        return new ArrayList<String>(Arrays.asList(clusterTCPEHCacheJahiaRemotePorts.split(" ")));
+    public List<String> getClusterTCPEHCacheJahiaHosts() {
+        return JahiaGlobalConfigurator.fromString(clusterTCPEHCacheJahiaHosts);
     }
 
     public boolean isConfigureBeforePackaging() {
@@ -705,7 +705,7 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     }
 
     public String getProcessingServer() {
-        return processingServer;
+        return processingServer != null ? processingServer : processingServerLegacy;
     }
 
     public String getRelease() {
@@ -807,30 +807,18 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return userLdapProviderProperties;
     }
 
-    public void setGroupLdapProviderProperties(String groupLdapProviderProperties) throws JSONException {
+    public void setGroupLdapProviderProperties(String groupLdapProviderProperties) {
         if (groupLdapProviderProperties != null) {
-            this.groupLdapProviderProperties = fromJSON(groupLdapProviderProperties);
+            this.groupLdapProviderProperties = JahiaGlobalConfigurator.fromJSON(groupLdapProviderProperties);
         }
     }
 
-    public void setUserLdapProviderProperties(String userLdapProviderProperties) throws JSONException {
+    public void setUserLdapProviderProperties(String userLdapProviderProperties) {
         if (userLdapProviderProperties != null) {
-            this.userLdapProviderProperties = fromJSON(userLdapProviderProperties);
+            this.userLdapProviderProperties = JahiaGlobalConfigurator.fromJSON(userLdapProviderProperties);
         }
     }
     
-    protected Map<String, String> fromJSON(String json) throws JSONException {
-        Map<String, String> values = new HashMap<String, String>();
-        JSONObject obj = new JSONObject(json.contains("{") ? json : "{" + json
-                + "}");
-        for (Iterator<?> iterator = obj.keys(); iterator.hasNext();) {
-            String key = (String) iterator.next();
-            values.put(key, obj.getString(key));
-        }
-
-        return values;
-    }
-
     public String getOperatingMode() {
         return operatingMode;
     }

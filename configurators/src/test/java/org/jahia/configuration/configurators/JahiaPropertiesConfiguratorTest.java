@@ -7,6 +7,8 @@ import java.io.FileInputStream;
 import java.util.Properties;
 
 import org.jahia.configuration.configurators.JahiaPropertiesConfigurator;
+import org.jahia.configuration.logging.SLF4JLogger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Unit test for jahia.properties configurator
@@ -22,9 +24,11 @@ public class JahiaPropertiesConfiguratorTest extends AbstractConfiguratorTestCas
         File jahiaSkeletonFile = new File(jahiaSkeletonURL.getFile());
         String jahiaSkeletonFileParentPath = jahiaSkeletonFile.getParentFile().getPath() + File.separator;
 
+        SLF4JLogger logger = new SLF4JLogger(LoggerFactory.getLogger(JahiaPropertiesConfiguratorTest.class));
+
         JahiaPropertiesConfigurator websphereOracleConfigurator = new JahiaPropertiesConfigurator(oracleDBProperties, websphereOracleConfigBean);
         websphereOracleConfigurator.updateConfiguration(jahiaSkeletonFile.toString(), jahiaSkeletonFileParentPath + "jahia.properties");
-        new JahiaAdvancedPropertiesConfigurator(websphereOracleConfigBean).updateConfiguration(jahiaSkeletonFileParentPath + "jahia.properties", jahiaSkeletonFileParentPath + "jahia.properties");
+        new JahiaAdvancedPropertiesConfigurator(logger, websphereOracleConfigBean).updateConfiguration(jahiaSkeletonFileParentPath + "jahia.properties", jahiaSkeletonFileParentPath + "jahia.properties");
         Properties websphereOracleProperties = new Properties();
         websphereOracleProperties.load(new FileInputStream(jahiaSkeletonFileParentPath + "jahia.properties"));
         assertEquals("was", websphereOracleProperties.getProperty("server"));
@@ -34,7 +38,7 @@ public class JahiaPropertiesConfiguratorTest extends AbstractConfiguratorTestCas
 
         JahiaPropertiesConfigurator tomcatMySQLConfigurator = new JahiaPropertiesConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);
         tomcatMySQLConfigurator.updateConfiguration(jahiaSkeletonFileParentPath + "jahia.properties", jahiaSkeletonFileParentPath + "jahia2.properties");
-        new JahiaAdvancedPropertiesConfigurator(tomcatMySQLConfigBean).updateConfiguration(jahiaSkeletonFileParentPath + "jahia2.properties", jahiaSkeletonFileParentPath + "jahia2.properties");
+        new JahiaAdvancedPropertiesConfigurator(logger, tomcatMySQLConfigBean).updateConfiguration(jahiaSkeletonFileParentPath + "jahia2.properties", jahiaSkeletonFileParentPath + "jahia2.properties");
         Properties tomcatMySQLProperties = new Properties();
         tomcatMySQLProperties.load(new FileInputStream(jahiaSkeletonFileParentPath + "jahia2.properties"));
         assertEquals("tomcat", tomcatMySQLProperties.getProperty("server"));

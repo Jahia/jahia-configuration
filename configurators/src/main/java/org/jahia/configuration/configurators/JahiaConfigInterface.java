@@ -12,91 +12,21 @@ import java.util.Map;
  */
 public interface JahiaConfigInterface {
     
-    String getRelease();
-
-    String getDb_script();
-
-    String getJahiaEtcDiskPath();
-
-    String getJahiaVarDiskPath();
-
-    String getJahiaSharedModulesDiskPath();
-
-    String getJahiaModulesHttpPath();
-
-    String getJahiaEnginesHttpPath();
-
-    String getJahiaJavaScriptHttpPath();
-
-    String getJahiaWebAppsDeployerBaseURL();
-
     String getCluster_activated();
-    
-    String getClusterStartIpAddress();
 
     String getCluster_node_serverId();
 
-    String getProcessingServer();
-
-    String getJahiaImportsDiskPath();
-
     List<String> getClusterNodes();
+
+    String getClusterStartIpAddress();
 
     String getClusterTCPEHCacheHibernatePort();
 
+    List<String> getClusterTCPEHCacheHibernateHosts();
+
     String getClusterTCPEHCacheJahiaPort();
 
-    List<String> getClusterTCPEHCacheHibernateRemotePorts();
-
-    List<String> getClusterTCPEHCacheJahiaRemotePorts();
-
-    String getOperatingMode();
-
-    String getTargetServerDirectory();
-
-    String getTargetServerType();
-
-    String getTargetServerVersion();
-
-    String getDatabaseType();
-
-    String getDatabasePassword();
-
-    String getDatabaseUrl();
-
-    String getDatabaseUsername();
-
-    String getOverwritedb();
-
-    List<String> getSiteImportLocation();
-
-    String getTargetConfigurationDirectory();
-
-    void setTargetConfigurationDirectory(String targetConfigurationDirectory);
-
-    String getJahiaRootUsername();
-    
-    String getJahiaRootPassword();
-
-    String getJahiaRootFirstname();
-    
-    String getJahiaRootLastname();
-    
-    String getJahiaRootEmail();
-    
-    String getSourceWebAppDir();
-
-    String getExternalConfigPath();
-
-    String getWebAppDirName();
-    
-    String getMailServer();
-    
-    String getMailFrom();
-    
-    String getMailAdministrator();
-    
-    String getMailParanoia();
+    List<String> getClusterTCPEHCacheJahiaHosts();
 
     /**
      * Returns the Web application context path Jahia is deployed to. Is empty
@@ -108,21 +38,46 @@ public interface JahiaConfigInterface {
      */
     String getContextPath();
 
-    /**
-     * Returns <code>true</code> if Jackrabbit should store binary data in the DB, otherwise this data is store in a file system
-     * (corresponding Jackrabbit property: externalBlobs).
-     * 
-     * @return <code>true</code> if Jackrabbit should store binary data in the DB, otherwise this data is store in a file system
-     *         (corresponding Jackrabbit property: externalBlobs).
-     */
-    String getStoreFilesInDB();
+    String getDatabasePassword();
+    
+    String getDatabaseType();
+
+    String getDatabaseUrl();
+
+    String getDatabaseUsername();
+
+    String getDb_script();
+
+    String getExternalConfigPath();
 
     /**
-     * Returns the name of the user that is used to protect Jahia tools area (/tools, etc.).
+     * The LDAP group manager provider options, including LDAP directory URL, bind DN and password, search attributes, field mapping etc.
      * 
-     * @return the name of the user that is used to protect Jahia tools area (/tools, etc.)
+     * @return LDAP group manager provider options, including LDAP directory URL, bind DN and password, search attributes, field mapping etc
      */
-    String getJahiaToolManagerUsername();
+    Map<String, String> getGroupLdapProviderProperties();
+
+    String getJahiaEnginesHttpPath();
+
+    String getJahiaEtcDiskPath();
+
+    String getJahiaImportsDiskPath();
+
+    String getJahiaJavaScriptHttpPath();
+
+    String getJahiaModulesHttpPath();
+
+    String getJahiaRootEmail();
+
+    String getJahiaRootFirstname();
+
+    String getJahiaRootLastname();
+
+    String getJahiaRootPassword();
+
+    String getJahiaRootUsername();
+
+    String getJahiaSharedModulesDiskPath();
 
     /**
      * Returns the password of the user that is used to protect Jahia tools area (/tools, etc.).
@@ -132,16 +87,58 @@ public interface JahiaConfigInterface {
     String getJahiaToolManagerPassword();
 
     /**
+     * Returns the name of the user that is used to protect Jahia tools area (/tools, etc.).
+     * 
+     * @return the name of the user that is used to protect Jahia tools area (/tools, etc.)
+     */
+    String getJahiaToolManagerUsername();
+
+    String getJahiaVarDiskPath();
+
+    String getJahiaWebAppsDeployerBaseURL();
+
+    /**
      * Returns true if LDAP configuration is activated.
      * @return
      */
     String getLdapActivated();
+    
+    String getMailAdministrator();
+
+    String getMailFrom();
+    
+    String getMailParanoia();
+    
+    String getMailServer();
+    
+    String getOperatingMode();
+
+    String getOverwritedb();
+
+    String getProcessingServer();
+    
+    String getRelease();
+    
+    List<String> getSiteImportLocation();
+    
+    String getSourceWebAppDir();
+    
     /**
-     * The LDAP group manager provider options, including LDAP directory URL, bind DN and password, search attributes, field mapping etc.
+     * Returns <code>true</code> if Jackrabbit should store binary data in the DB, otherwise this data is store in a file system
+     * (corresponding Jackrabbit property: externalBlobs).
      * 
-     * @return LDAP group manager provider options, including LDAP directory URL, bind DN and password, search attributes, field mapping etc
+     * @return <code>true</code> if Jackrabbit should store binary data in the DB, otherwise this data is store in a file system
+     *         (corresponding Jackrabbit property: externalBlobs).
      */
-    Map<String, String> getGroupLdapProviderProperties();
+    String getStoreFilesInDB();
+
+    String getTargetConfigurationDirectory();
+
+    String getTargetServerDirectory();
+
+    String getTargetServerType();
+
+    String getTargetServerVersion();
 
     /**
      * The LDAP user manager provider options, including LDAP directory URL, bind DN and password, search attributes, field mapping etc.
@@ -149,5 +146,8 @@ public interface JahiaConfigInterface {
      * @return LDAP user manager provider options, including LDAP directory URL, bind DN and password, search attributes, field mapping etc
      */
     Map<String, String> getUserLdapProviderProperties();
+    String getWebAppDirName();
+
+    void setTargetConfigurationDirectory(String targetConfigurationDirectory);
 
 }
