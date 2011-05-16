@@ -47,13 +47,9 @@ import java.util.Map;
  */
 public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private File outputDirectory;
-    private String release = "Testing_release";
     private String jahiaEtcDiskPath = "$context/WEB-INF/etc/";
     private String jahiaVarDiskPath = "$context/WEB-INF/var/";
     private String jahiaSharedModulesDiskPath = "$context/WEB-INF/var/shared_modules/";
-    private String jahiaModulesHttpPath = "$webContext/modules/";
-    private String jahiaEnginesHttpPath = "$webContext/engines/";
-    private String jahiaJavaScriptHttpPath = "$webContext/javascript/jahia.js";
     private String jahiaWebAppsDeployerBaseURL = "http\\://localhost\\:8080/manager";
     private String cluster_activated = "false";
     private String cluster_node_serverId = "Jahia1";
@@ -119,14 +115,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.outputDirectory = outputDirectory;
     }
 
-    public String getRelease() {
-        return release;
-    }
-
-    public void setRelease(String release) {
-        this.release = release;
-    }
-
     public String getDb_script() {
         return db_script;
     }
@@ -156,30 +144,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     }
     public void setJahiaSharedModulesDiskPath(String jahiaSharedModulesDiskPath) {
         this.jahiaSharedModulesDiskPath = jahiaSharedModulesDiskPath;
-    }
-
-    public String getJahiaModulesHttpPath() {
-        return jahiaModulesHttpPath;
-    }
-
-    public void setJahiaModulesHttpPath(String jahiaModulesHttpPath) {
-        this.jahiaModulesHttpPath = jahiaModulesHttpPath;
-    }
-
-    public String getJahiaEnginesHttpPath() {
-        return jahiaEnginesHttpPath;
-    }
-
-    public void setJahiaEnginesHttpPath(String jahiaEnginesHttpPath) {
-        this.jahiaEnginesHttpPath = jahiaEnginesHttpPath;
-    }
-
-    public String getJahiaJavaScriptHttpPath() {
-        return jahiaJavaScriptHttpPath;
-    }
-
-    public void setJahiaJavaScriptHttpPath(String jahiaJavaScriptHttpPath) {
-        this.jahiaJavaScriptHttpPath = jahiaJavaScriptHttpPath;
     }
 
     public String getJahiaWebAppsDeployerBaseURL() {

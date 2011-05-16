@@ -5,8 +5,8 @@
 #  This file contains some of the most important settings for configuring
 #  it's behavior.
 #  Other interesting files can be found elsewhere in the WEB-INF/etc
-#  directory, such as WEB-INF/etc/spring for LDAP connector activation,
-#  cache implementation configuration, Hibernate configuration, etc.
+#  directory, such as WEB-INF/etc/spring for cache implementation
+#  configuration, Hibernate configuration, etc.
 
 ######################################################################
 ### Web application context path #####################################
@@ -20,10 +20,8 @@ jahia.contextPath                                      =
 ######################################################################
 ### Server  ##########################################################
 ######################################################################
-# General server information, such as release version, the application
-# server it is running on, as well as the home disk path to the deployed
-# Jahia instance.
-release                                                =
+# General server information, such as the application server it is
+# running on, as well as the home disk path to the deployed Jahia instance.
 server                                                 =
 serverVersion                                          =
 serverHome                                             =
@@ -37,16 +35,17 @@ operatingMode                                          = development
 maintenanceMode                                        = false
 
 ######################################################################
+### Jahia Tool Manager ###############################################
+######################################################################
+jahiaToolManagerUsername                               = jahia
+jahiaToolManagerPassword                               = password
+
+######################################################################
 ### Disk Paths  ######################################################
 ######################################################################
 # The following disk paths configure where Jahia will store data on disk,
 # such as temporary files or content files, or even in some cases where
 # it will retrieve additional configuration from.
-
-jahiaJspDiskPath                                       =   /
-jahiaEnginesDiskPath                                   =   /engines/
-jahiaTemplatesDiskPath                                 =   /modules/
-jahiaJavaScriptDiskPath                                =   /javascript/
 
 jahiaFilesDiskPath                                     =   $context/WEB-INF
 jahiaEtcDiskPath                                       =
@@ -57,16 +56,11 @@ jahiaSharedTemplatesDiskPath                           =
 jahiaImportsDiskPath                                   =
 jahiaWebAppsDiskPath                                   =
 
-jahiaCkEditorDiskPath                                  =    ckeditor
-
 ######################################################################
 ### URL's  ###########################################################
 ######################################################################
 
-jahiaHostHttpPath                                      =
 jahiaTemplatesHttpPath                                 =
-jahiaEnginesHttpPath                                   =
-jahiaJavaScriptHttpPath                                =
 
 # Provide your custom URL for the WAR deployer, if you use non-standard one  
 jahiaWebAppsDeployerBaseURL                            = http://127.0.0.1:8080/manager/html/
@@ -75,6 +69,13 @@ jahiaWebAppsDeployerBaseURL                            = http://127.0.0.1:8080/m
 # it has been accessed with a non-default vanity URL, we inform the client that
 # the resource has permanently moved (HTTP status code 301)
 permanentMoveForVanityURL                              = true
+
+# Enable this option to make URL rewrite engine "shorten" the URL to
+# content in live mode, .e.g.:
+#     http://my.acme.org/cms/render/live/en/site/myAcme/home.html
+# can become:
+#     http://my.acme.org/cms/home.html
+urlRewriteSeoRulesEnabled                              = false
 
 ######################################################################
 ### Mail Service Configuration #######################################
@@ -118,25 +119,6 @@ characterEncoding                                      =   UTF-8
 ######################################################################
 ### Cache settings ###################################################
 ######################################################################
-# These settings controls all the caches that are integrated in Jahia,
-# except for the Hibernate ones that are controlled from the
-# WEB-INF/etc/spring/applicationcontext-hibernate.xml configuration
-# file.
-#
-# The entry allow you to specify the amount of free memory you want to keep in your jvm
-# If we reach this limit jahia will remove entries of his cache until if get under this limit
-# this limit must be express in MB size
-freeMemoryLimit = 64MB
-
-# The following setting allows to select the underlying cache implementation used
-# in the Jahia's cluster cache implementations. Possible values are :
-# - jahiaReferenceCache : a cache implementation that uses SoftReferences to
-#   hold references to the cached objects. This cache will free memory in order
-#   to avoid OutOfMemory errors.
-# - jahiaSimpleCache : an LRU cache implementation that uses the freeMemoryLimit
-#   trigger to flush elements from memory
-cacheClusterUnderlyingImplementation = jahiaReferenceCache
-
 # caches may use groups that work like categories on cache entries. By default
 # groups are limited in numbers of 20000, with an LRU (least recently used)
 # algorithm for removing a group. When a group is removed, so are all the
@@ -176,7 +158,7 @@ jahiaFileUploadMaxSize                                  =  104857600
 # Set to -1 to deactivate changes detection completely.
 # Note, if "operatingMode" option is set to "development", this parameter
 # is ignored and the observer is started with the interval of 5 seconds. 
-templates.observer.interval                            =   5000
+templates.observer.interval                            =   60000
 
 ######################################################################
 ### Multilingual support   ###########################################
@@ -207,35 +189,10 @@ considerDefaultJVMLocale                               =   false
 considerPreferredLanguageAfterLogin                    =   false
 
 ######################################################################
-### NTLM Authentication config #######################################
+### Container Authentication ########################################
 ######################################################################
-# Enable the NtlmHttpFilter and adjust its configuration in the
-# applicationcontext-ntlmfilter.xml file
-ntlmFilter.enabled                                     = false
-
-######################################################################
-### SPNEGO Authentication config #####################################
-######################################################################
-# Enable the SpnegoHttpFilter and adjust its configuration in the
-# applicationcontext-spnegofilter.xml file
-spnegoFilter.enabled                                   = false
-
-######################################################################
-### CAS Authentication config ########################################
-######################################################################
-# You can configure here the CAS authentication sub-system. First
-# you must add the CAS valve in the WEB-INF/etc/spring/auth/applicationcontext-auth-pipeline.xml
-# file in the authPipeline with the following section, add the end
-# of the pipeline :
-# <bean class="org.jahia.params.valves.CASAuthValveImpl" />
-#
-# The following setting configures the redirect URL to the CAS server
-# for login
-cas.loginUrl                                           = https://localhost:8443/cas/login
-# The following setting configures the URL on which we validate the
-# ticket.
-cas.validateUrl                                        = https://localhost:8443/cas/serviceValidate
-
+# Enable the container authentication valve
+auth.container.enabled                                 = false
 ######################################################################
 ### Cookie authentication valve config #############################
 ######################################################################
@@ -244,77 +201,12 @@ cas.validateUrl                                        = https://localhost:8443/
 # an identifier corresponding to a specific Jahia user, when he selects the
 # "remember me" option in the login engine.
 #
-# Should we use cookie authentication for login ?
-cookieAuthActivated                                    =   true
+# Should we use cookie authentication for login?
+auth.cookie.enabled                                    =   true
 
 ######################################################################
-### Logoff Redirect ##################################################
+### URL generator settings ###########################################
 ######################################################################
-# uncomment this to bypass the usual Jahia logout process and instead redirected the user after logout
-# to a URL of your choice
-#logoutRedirectUrl                                      =   http://www.acme.com/logoff.php
-
-# Uncomment this to perform a forward to the internal page or JSP (the URL is context related) after user logout.
-# This parameter is mutually exclusive with the previous one (logoutRedirectUrl).
-# It will be considered only if the previous one is not set.
-#logoutForwardUrl                                      =   /jsp/afterLogout.jsp
-
-# Jahia was always forwarding the new page URL after logout, but this
-# way the frontend HTML Container cache was not used. So the following
-# setting does a client side redirect on logout to make use of the caches
-# and save resources with not having to render the page after logout.
-doRedirectOnLogout                                     = true
-
-######################################################################
-### Site serverName testing config ###################################
-######################################################################
-# The following configuration parameters mostly concern the generation of the
-# "Exit Administration" button in the administration console. The URL that is
-# generated to go back to a site needs to be tested first, in order to
-# determine if we should generate an URL using the site's serverName or if
-# we should generate an URL using the current host name used for accessing the
-# administration servlet.
-#
-# For example, if for a site we have :
-#    serverName="this.is.an.invalid.hostname",
-#    serverKey="myTestSite"
-# the following parameters will determine the URL that will be tested. So
-# if we have the default, Jahia will try to connect to :
-#    http://this.is.an.invalid.hostname:8080/jahia/jsp/isjahia.jsp
-# and use the connection timeout that we specify. If the connection fails,
-# the URL generated will be :
-#    http://localhost:8080/jahia/Jahia/site/myTestSite
-# The localhost:8080 part may be different if this is not what we are using
-# when connecting to the administration servlet. If we are connected to the
-# administration servlet with :
-#    http://127.0.0.1:7070/cms/administration
-# then the fallback URL for the "Exit Administration" would be :
-#    http://127.0.0.1:7070/cms/Jahia/site/myTestSite
-#
-# The siteServerNameTestURLExpr can access the following variables :
-#  "request" - an HttpServletRequest object
-#  "siteServerName" - a String that contains the siteServerName we want to
-# test.
-# Expressions always start with "${" and end with "}". The expression
-# language supported is JEXL. You can find more information about JEXL
-# here : http://jakarta.apache.org/commons/jexl/
-# Note : you can also change the name/location of the isjahia.jsp file. The
-# only thing this resource must do is set a header called "jahia-version" that
-# must be present for the siteServerName to be properly identified as a Jahia
-# server.
-siteServerNameTestURLExpr                              = ${request.scheme}://${siteServerName}:${request.serverPort}${request.contextPath}/isjahia.jsp
-#
-# Instead of using absolute URLs (e.g. http://www.acme.com:8081/jahia/Jahia/site/mySite/pid/2)
-# for the "Exit Administration" button, as explained above, you can choose to generate
-# relative URLs (e.g. /jahia/Jahia/site/mySite/pid/2) by uncommenting the option below:
-# useRelativeSiteURLs                                   = true
-
-# The following parameter allows for configuration of the connection timeout
-# when testing with the above URL. Don't set this too high as the connection
-# will be attempted everytime an "Exit Administration" button is generated.
-# The timeout value is in milliseconds.
-siteServerNameTestConnectTimeout                       = 500
-
 # The siteURLPortOverride allows to force the generation of siteURLs to a
 # certain port. This will bypass the request.getServerPort() calls
 # and everything else. If it is set to 0, the port override is inactive,
@@ -324,38 +216,6 @@ siteServerNameTestConnectTimeout                       = 500
 # issues with cookies, or if you plan to access Jahia through multiple
 # front-end machines.
 siteURLPortOverride                                    = 0
-
-######################################################################
-### Cluster settings  ################################################
-######################################################################
-
-# Use this setting to activate most of the clustering communicating
-cluster.activated                                      = false
-
-# the serverId MUST be different for each node of the cluster.
-cluster.node.serverId                                  = jahiaServer1
-
-# The processingServer setting specifies whether this instance of Jahia
-# will execute long-running operations such as activation jobs, XML imports,
-# etc. In the current implementation only one cluster node may be a
-# processing server, while all others must have this settings to the
-# value "false".
-processingServer                                       = true
-
-# Here a default configuration for TCP Clustering
-# The example below uses two-nodes cluster: 192.168.1.100 and 192.168.1.200
-# Current node is 192.168.1.100
-#
-# Here your local ip address
-cluster.tcp.start.ip_address                           =   192.168.1.100
-# Here the minimum numbers of members in the group to be contacted for initial membership
-#(if your cluster is higher than two nodes then upgrade this to at least 3)
-cluster.tcp.num_initial_members                        =   2
-# Here the list of all members ip and port, and local port for each channel
-cluster.tcp.ehcache.hibernate.nodes.ip_address         =   192.168.1.100[7860],192.168.1.200[7860]
-cluster.tcp.ehcache.hibernate.port                     =   7860
-cluster.tcp.ehcache.jahia.nodes.ip_address             =   192.168.1.100[7870],192.168.1.200[7870]
-cluster.tcp.ehcache.jahia.port                         =   7870
 
 ######################################################################
 ### custom errorDocument site property  ##############################
@@ -415,11 +275,44 @@ dumpErrorsToFiles = true
 # dumped anyway, just so that we are still informed in case this is the only
 # error sent.
 fileDumpMaxRegroupingOfPreviousException = 500
+######################################################################
+### Concurrent processing options ####################################
+######################################################################
+# This variable controls how many threads are allowed to do heavy weight
+# processing (module creation not served from the cache)
+maxModulesToGenerateInParallel = 50
+# This variable controls how long threads are waiting to be able to start
+# generating modules in heavy load situations (value in milliseconds)
+moduleGenerationWaitTime = 10000
+# When Jahia does not respond fast enough (see moduleGenerationWaitTime) an 
+# automatic thread dump will be created to help figuring out what caused the 
+# slowdown. In order to not spam the log file, a minimum interval between two 
+# dumps can be defined. If the interval is set to -1, then automatic thread 
+# dumps will be disabled.
+minimumIntervalAfterLastAutoThreadDump = 60000
 
 ######################################################################
-### HTML tag filtering ###############################################
+### JCR and WebDAV ###################################################
 ######################################################################
-# Provide a list of comma-separated HTML tag names that will be removed
-# from rich text properties before saving them (e.g. iframe,script,style).
-# Leave this list empty if no filtering should be done.
-filteredHtmlTags =  
+# JCR repository home folder. Can be either a servlet context related resource
+# or an absolute path  
+jahia.jackrabbit.home = WEB-INF/var/repository
+# Set this option to true to force re-indexing of all repository content
+# on the server startup.
+# Note please that re-indexing could take significant time depending on
+# the volume of data.
+jahia.jackrabbit.reindexOnStartup = false
+# Flag indicating if a consistency check should be issued during startup
+# of the JCR repository
+jahia.jackrabbit.consistencyCheck = false
+# Flag indicating if the consistency check should additionally attempt to fix issues
+jahia.jackrabbit.consistencyFix = false
+# Which type of the repository inconsistency handler to use:
+# a) fail - when an inconsistency is encountered in the repository (missing child node),
+#    an error is logged with the info and the repository is shut down 
+# a) log - just log the inconsistency info and continue with the repository startup 
+jahia.jackrabbit.onWorkspaceInconsistency = log
+
+# Disable the directory listing for /repository servlet.
+# (WebDAV client access won't work in such a case)
+repositoryDirectoryListingDisabled = false

@@ -58,24 +58,48 @@
             <param name="schemaObjectPrefix" value="jr_${wsp.name}_"/>
             <param name="externalBLOBs" value="@EXTERNAL_BLOBS@"/>
             <param name="schemaCheckEnabled" value="false"/>
+            
+            <param name="consistencyCheck" value="${jahia.jackrabbit.consistencyCheck}"/>
+            <param name="consistencyFix" value="${jahia.jackrabbit.consistencyFix}"/>
+
+            <!-- By default the bundle cache size is at 8MB. If you see a lot of messages indicating high miss count as
+            in the following example :
+            BundleCache: num=2860 mem=8189k max=8192k avg=2932 hits=12'217'232 miss=5'802'768
+            You should increase the bundle cache size. The value is in MB. -->
+            <!--param name="bundleCacheSize" value="512" /-->
         </PersistenceManager>
 
         <SearchIndex class="org.apache.jackrabbit.core.query.lucene.JahiaSearchIndex">
             <param name="path" value="${wsp.home}/index"/>
-            <!-- setting textFilterClasses to empty value disables Jackrabbit document extraction -->
             <param name="analyzer" value="org.jahia.services.search.analyzer.StandardAnalyzer"/>
+            <!-- setting textFilterClasses to empty value disables Jackrabbit document extraction -->            
             <param name="textFilterClasses" value=""/>
             <param name="supportHighlighting" value="true"/>
             <param name="excerptProviderClass" value="org.jahia.services.search.jcr.HTMLExcerpt"/>
             <param name="indexingConfiguration" value="${rep.home}/indexing_configuration.xml"/>
             <param name="indexingConfigurationClass" value="org.apache.jackrabbit.core.query.lucene.JahiaIndexingConfigurationImpl"/>            
-            <param name="spellCheckerClass" value="org.jahia.services.search.spell.CompositeSpellChecker"/>            
+            <param name="spellCheckerClass" value="org.jahia.services.search.spell.CompositeSpellChecker"/>
+
+            <!-- This next parameter allows to specify that we want to limit the initially loaded result size -->
+            <param name="resultFetchSize" value="100"/>
+
+            <!-- The maxClauseCount setting will need to be increased to perform queries on large sub-trees -->
+            <param name="maxClauseCount" value="65000" />
+
+            <!-- Increase the cache size if the doc number cache hits are below 90% -->
+            <!--param name="cacheSize" value="100000" /-->
+            
+            <param name="onWorkspaceInconsistency" value="${jahia.jackrabbit.onWorkspaceInconsistency}"/>
         </SearchIndex>
+
+        <NodeTypeInstanceHandler class="org.apache.jackrabbit.core.JahiaNodeTypeInstanceHandlerFactory">
+
+        </NodeTypeInstanceHandler>
+
 
     </Workspace>
 
-
-    <Cluster id="clusterNode1">
+    <Cluster id="${cluster.node.serverId}">
    		<Journal class="@JOURNAL_CLASS@">
                <param name="dataSourceName" value="jahiaDS" />
                <param name="revision" value="${rep.home}/revisionNode"/>
@@ -108,6 +132,9 @@
 		  <param name="schemaObjectPrefix" value="jr_v_"/>
 		  <param name="externalBLOBs" value="@EXTERNAL_BLOBS@"/>
           <param name="schemaCheckEnabled" value="false"/>
+          
+          <param name="consistencyCheck" value="${jahia.jackrabbit.consistencyCheck}"/>
+          <param name="consistencyFix" value="${jahia.jackrabbit.consistencyFix}"/>
 		</PersistenceManager>
 
 
@@ -122,7 +149,8 @@
             <!-- setting textFilterClasses to empty value disables Jackrabbit document extraction -->
         <param name="textFilterClasses" value=""/>
         <param name="supportHighlighting" value="true"/>
+        
+        <param name="onWorkspaceInconsistency" value="${jahia.jackrabbit.onWorkspaceInconsistency}"/>
     </SearchIndex>
-
 
 </Repository>

@@ -57,15 +57,9 @@ public interface JahiaConfigInterface {
      */
     Map<String, String> getGroupLdapProviderProperties();
 
-    String getJahiaEnginesHttpPath();
-
     String getJahiaEtcDiskPath();
 
     String getJahiaImportsDiskPath();
-
-    String getJahiaJavaScriptHttpPath();
-
-    String getJahiaModulesHttpPath();
 
     String getJahiaRootEmail();
 
@@ -116,8 +110,6 @@ public interface JahiaConfigInterface {
     String getOverwritedb();
 
     String getProcessingServer();
-    
-    String getRelease();
     
     List<String> getSiteImportLocation();
     

@@ -152,8 +152,6 @@ public class JahiaGlobalConfigurator {
         new JahiaPropertiesConfigurator(dbProps, jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.skeleton", webappPath + "/WEB-INF/etc/config/jahia.properties");
         if (new File(sourceWebAppPath + "/WEB-INF/etc/config/jahia.advanced.skeleton").exists()) {
             new JahiaAdvancedPropertiesConfigurator(logger, jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.advanced.skeleton", webappPath + "/WEB-INF/etc/config/jahia.advanced.properties");
-        } else {
-            new JahiaAdvancedPropertiesConfigurator(logger, jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.properties", webappPath + "/WEB-INF/etc/config/jahia.properties");
         }
         new LDAPConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(sourceWebAppPath, webappPath + "/WEB-INF/var/shared_modules");
     }
