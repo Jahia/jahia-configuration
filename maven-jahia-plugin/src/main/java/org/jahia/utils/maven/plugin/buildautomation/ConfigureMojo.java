@@ -156,10 +156,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      */
     protected String jahiaSharedModulesDiskPath;
     /**
-     * @parameter default-value="$webContext/modules/"
-     */
-    protected String jahiaModulesHttpPath;
-    /**
      * properties file path
      *
      * @parameter default-value="$webContext/engines/"
@@ -781,10 +777,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public String getJahiaSharedModulesDiskPath() {
         return jahiaSharedModulesDiskPath;
-    }
-
-    public String getJahiaModulesHttpPath() {
-        return jahiaModulesHttpPath;
     }
 
     public String getJahiaToolManagerUsername() {

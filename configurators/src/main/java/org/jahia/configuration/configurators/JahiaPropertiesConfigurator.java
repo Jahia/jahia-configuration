@@ -58,16 +58,12 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         properties.setProperty("jahiaToolManagerUsername", jahiaConfigInterface.getJahiaToolManagerUsername());
         properties.setProperty("jahiaToolManagerPassword", JahiaGlobalConfigurator.encryptPassword(jahiaConfigInterface.getJahiaToolManagerPassword()));
         
-        properties.setProperty("release", jahiaConfigInterface.getRelease());
         properties.setProperty("server", jahiaConfigInterface.getTargetServerType());
         properties.setProperty("serverVersion", jahiaConfigInterface.getTargetServerVersion());
         properties.setProperty("serverHome", jahiaConfigInterface.getTargetServerDirectory() != null ? jahiaConfigInterface.getTargetServerDirectory().replace("\\\\", "/").replace("\\", "/") : null);
         properties.setProperty("jahiaEtcDiskPath", jahiaConfigInterface.getJahiaEtcDiskPath());
         properties.setProperty("jahiaVarDiskPath", jahiaConfigInterface.getJahiaVarDiskPath());
         properties.setProperty("jahiaSharedTemplatesDiskPath", jahiaConfigInterface.getJahiaSharedModulesDiskPath());
-        properties.setProperty("jahiaTemplatesHttpPath", jahiaConfigInterface.getJahiaModulesHttpPath());
-        properties.setProperty("jahiaEnginesHttpPath", jahiaConfigInterface.getJahiaEnginesHttpPath());
-        properties.setProperty("jahiaJavaScriptHttpPath", jahiaConfigInterface.getJahiaJavaScriptHttpPath());
         properties.setProperty("jahiaWebAppsDeployerBaseURL", jahiaConfigInterface.getJahiaWebAppsDeployerBaseURL());
         properties.setProperty("jahiaImportsDiskPath", jahiaConfigInterface.getJahiaImportsDiskPath());
         properties.setProperty("db_script", jahiaConfigInterface.getDb_script());
