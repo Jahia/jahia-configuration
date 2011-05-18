@@ -150,30 +150,10 @@
                             <goal>one-jar</goal>
                         </goals>
                         <configuration>
-                            <mainClass>org.jahia.configuration.configurators.JahiaGlobalConfigurator</mainClass>
+                            <mainClass>org.jahia.configuration.Main</mainClass>
                             <attachToBuild>true</attachToBuild>
                             <filename>${project.build.finalName}-standalone.jar</filename>
                             <classifier>standalone</classifier>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>appassembler-maven-plugin</artifactId>
-                <version>1.1.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>assemble</goal>
-                        </goals>
-                        <configuration>
-                            <programs>
-                                <program>
-                                    <mainClass>org.jahia.configuration.modules.ModuleDeployer</mainClass>
-                                    <name>deploy-module</name>
-                                </program>
-                            </programs>
                         </configuration>
                     </execution>
                 </executions>

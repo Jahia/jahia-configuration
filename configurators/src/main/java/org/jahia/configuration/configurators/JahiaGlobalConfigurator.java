@@ -511,18 +511,7 @@ public class JahiaGlobalConfigurator {
         }
     }
 
-    public static void main(String[] args) {
-        AbstractLogger logger = new ConsoleLogger(ConsoleLogger.LEVEL_INFO);
-        logger.info("Started Jahia global configurator");
-        try {
-            new JahiaGlobalConfigurator(logger, getConfiguration(args.length > 0 ? new File(args[0]) : null, logger)).execute();
-        } catch (Exception e) {
-            logger.error("Error during execution of a configurator. Cause: " + e.getMessage(), e);
-        }
-        logger.info("... finished job of Jahia global configurator.");
-    }
-
-    protected static JahiaConfigInterface getConfiguration(File configFile, AbstractLogger logger) throws IOException, IllegalAccessException,
+    public static JahiaConfigInterface getConfiguration(File configFile, AbstractLogger logger) throws IOException, IllegalAccessException,
             InvocationTargetException {
         JahiaConfigBean config = new JahiaConfigBean();
         Properties props = null;
