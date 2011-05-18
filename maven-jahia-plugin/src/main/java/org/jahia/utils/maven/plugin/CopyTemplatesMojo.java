@@ -34,19 +34,14 @@
 package org.jahia.utils.maven.plugin;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
+import org.jahia.configuration.modules.ModuleDeployer;
 
 /**
  * Mojo for copying Jahia modules and pre-packaged sites into Jahia WAR file.
@@ -65,25 +60,24 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
         // @todo as we are working around what seems to be a Maven or JVM bug, maybe we should rebuild the list with
         // just the elements we need instead of the hack that we have used at the end of this method.
         Set<Artifact> dependenciesToRemove = new HashSet<Artifact>();
+        ModuleDeployer deployer = new ModuleDeployer(new File(output, "jahia/WEB-INF/var/shared_" + (getProjectStructureVersion() == 2 ? "modules" : "templates")), new MojoLogger(getLog()));
         for (Artifact dependencyFile : (Iterable<Artifact>) dependencyFiles) {
+            File file = dependencyFile.getFile();
             if (dependencyFile.getGroupId().equals("org.jahia.modules") || dependencyFile.getGroupId().equals("org.jahia.templates") || dependencyFile.getGroupId().endsWith(".jahia.modules")) {
                 try {
-                    FileUtils.copyFileToDirectory(dependencyFile.getFile(), new File(output,"jahia/WEB-INF/var/shared_" + (getProjectStructureVersion() == 2 ? "modules" : "templates")));
-                    getLog().info("Copy modules JAR "+dependencyFile.getFile().getName() + " to shared modules folder");
-                    copyJars(dependencyFile.getFile(), new File(output,"jahia"));
-                    copyDbScripts(dependencyFile.getFile(), new File(output,"jahia"));
+                    deployer.deployModule(file);
                     dependenciesToRemove.add(dependencyFile);
                 } catch (IOException e) {
-                    getLog().error("Error when copying file " + dependencyFile.getFile(), e);
+                    getLog().error("Error when copying file " + file, e);
                 }
             }
             if (dependencyFile.getGroupId().equals("org.jahia.prepackagedsites")) {
                 try {
-                    FileUtils.copyFile(dependencyFile.getFile(), new File(output,"jahia/WEB-INF/var/prepackagedSites/"+dependencyFile.getArtifactId()+".zip"));
-                    getLog().info("Copy prepackaged site "+dependencyFile.getFile().getName());
+                    FileUtils.copyFile(file, new File(output,"jahia/WEB-INF/var/prepackagedSites/"+dependencyFile.getArtifactId()+".zip"));
+                    getLog().info("Copy prepackaged site " + file.getName());
                     dependenciesToRemove.add(dependencyFile);
                 } catch (IOException e) {
-                    getLog().error("Error when copying file " + dependencyFile.getFile(), e);
+                    getLog().error("Error when copying file " + file, e);
                 }
             }
 
@@ -95,56 +89,4 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
         project.setDependencyArtifacts(new LinkedHashSet(dependencyList));
     }
 
-    private void copyJars(File warFile, File targetDir) {
-        try {
-            JarFile war = new JarFile(warFile);
-            int deployed = 0;
-            if (war.getJarEntry("WEB-INF/lib") != null) {
-                Enumeration<JarEntry> entries = war.entries();
-                while (entries.hasMoreElements()) {
-                    JarEntry entry = entries.nextElement();
-                    if (entry.getName().startsWith("WEB-INF/lib/") && entry.getName().endsWith(".jar")) {
-                        deployed++;
-                        InputStream source = war.getInputStream(entry);
-                        File libsDir = new File(targetDir, "WEB-INF/lib"); 
-                        if (!libsDir.exists()) {
-                            libsDir.mkdirs();
-                        }
-                        File targetFile = new File(targetDir, entry.getName());
-                        FileOutputStream target = new FileOutputStream(targetFile);
-                        IOUtils.copy(source, target);
-                        IOUtils.closeQuietly(source);
-                        target.flush();
-                        IOUtils.closeQuietly(target);
-                        if (entry.getTime() > 0) {
-                            targetFile.setLastModified(entry.getTime());
-                        }
-                    }
-                }
-            }
-            if (deployed > 0) {
-                getLog().info("Copied " + deployed + " JARs from " + warFile.getName() + " to jahia/WEB-INF/lib");
-            }
-        } catch (IOException e) {
-            getLog().error("Error copying JAR files for module " + warFile, e);
-        }
-    }
-
-    private void copyDbScripts(File warFile, File targetDir) {
-        try {
-            JarFile war = new JarFile(warFile);
-            if (war.getJarEntry("META-INF/db") != null) {
-            	war.close();
-            	ZipUnArchiver unarch = new ZipUnArchiver(warFile);
-            	File tmp = new File(targetDir, String.valueOf(System.currentTimeMillis()));
-            	tmp.mkdirs();
-            	unarch.extract("META-INF/db", tmp);
-            	FileUtils.copyDirectory(new File(tmp, "META-INF/db"), new File(targetDir, "WEB-INF/var/db/sql/schema"));
-            	FileUtils.deleteDirectory(tmp);
-                getLog().info("Copied database scripts from " + warFile.getName() + " to jahia/WEB-INF/var/db/sql/schema");
-            }
-        } catch (Exception e) {
-            getLog().error("Error copying database scripts for module " + warFile, e);
-		}
-    }
 }
