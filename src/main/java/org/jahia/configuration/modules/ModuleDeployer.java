@@ -76,7 +76,7 @@ public class ModuleDeployer {
             	unarch.extract("META-INF/db", tmp);
             	FileUtils.copyDirectory(new File(tmp, "META-INF/db"), new File(targetDir, "WEB-INF/var/db/sql/schema"));
             	FileUtils.deleteDirectory(tmp);
-                logger.info("Copied database scripts from " + warFile.getName() + " to jahia/WEB-INF/var/db/sql/schema");
+                logger.info("Copied database scripts from " + warFile.getName() + " to WEB-INF/var/db/sql/schema");
             }
         } catch (Exception e) {
             logger.error("Error copying database scripts for module " + warFile, e);
