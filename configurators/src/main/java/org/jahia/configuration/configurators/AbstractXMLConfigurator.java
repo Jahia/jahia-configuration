@@ -5,6 +5,7 @@ import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.xpath.XPath;
 
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.List;
 
@@ -89,22 +90,38 @@ public abstract class AbstractXMLConfigurator extends AbstractConfigurator {
         return (Element) xPath.selectSingleNode(scopeElement);
     }
 
-	/**
-	 * Removes matching element from the document.
-	 * 
-	 * @param scopeElement
-	 *            the root element to start search from
-	 * @param xPathExpression
-	 *            the XPath search expression
-	 * @throws JDOMException
-	 *             in case of an JDOM navigation error
-	 */
-	protected void removeElementIfExists(Element scopeElement,
-			String xPathExpression) throws JDOMException {
-		Element el = getElement(scopeElement, xPathExpression);
-		if (el != null) {
-			el.getParent().removeContent(el);
-		}
-	}
+    public List<Element> getElements(Element scopeElement, String xPathExpression) throws JDOMException {
+        List<Element> elems = new LinkedList<Element>();
+        XPath xPath = XPath.newInstance(xPathExpression);
+        String namespaceURI = scopeElement.getDocument().getRootElement().getNamespaceURI();
+        if ((namespaceURI != null) && (!"".equals(namespaceURI))) {
+            xPath.addNamespace("xp", namespaceURI);
+        }
+        for (Object obj : xPath.selectNodes(scopeElement)) {
+            if (obj instanceof Element) {
+                elems.add((Element) obj);
+            }
+        }
+        
+        return elems;
+    }
+    
+    /**
+     * Removes matching element from the document.
+     * 
+     * @param scopeElement
+     *            the root element to start search from
+     * @param xPathExpression
+     *            the XPath search expression
+     * @throws JDOMException
+     *             in case of an JDOM navigation error
+     */
+    protected void removeElementIfExists(Element scopeElement,
+            String xPathExpression) throws JDOMException {
+        Element el = getElement(scopeElement, xPathExpression);
+        if (el != null) {
+            el.getParent().removeContent(el);
+        }
+    }
 
 }
