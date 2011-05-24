@@ -265,13 +265,13 @@ public class JahiaGlobalConfigurator {
         cleanDirectory(new File(jahiaConfig.getTargetServerDirectory() + "/work"));
         getLogger().info("Finished deleting content of Tomcat's "+jahiaConfig.getTargetServerDirectory() + "/temp and "+jahiaConfig.getTargetServerDirectory() + "/work folders");
         
-        File ctx = new File(jahiaConfig.getTargetServerDirectory() + "/conf/Catalina/localhost/" + jahiaConfig.getWebAppDirName() + ".xml ");
+        File ctx = new File(jahiaConfig.getTargetServerDirectory() + "/conf/Catalina/localhost/" + jahiaConfig.getWebAppDirName() + ".xml");
         if (ctx.exists()) {
-        	if (ctx.delete()) {
-        		getLogger().info("Deleted Tomcat context file " + ctx);
-        	} else {
-        		getLogger().warn("Unable to delete Tomcat context file " + ctx);
-        	}
+            if (ctx.delete()) {
+                getLogger().info("Deleted Tomcat context file " + ctx);
+            } else {
+                getLogger().warn("Unable to delete Tomcat context file " + ctx);
+            }
         }
     }
 
