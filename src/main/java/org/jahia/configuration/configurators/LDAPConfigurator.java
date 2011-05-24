@@ -35,6 +35,8 @@ package org.jahia.configuration.configurators;
 
 import org.apache.commons.io.FileUtils;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
+import org.jdom.Attribute;
+import org.jdom.Comment;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -47,7 +49,10 @@ import org.codehaus.plexus.logging.console.ConsoleLogger;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -99,6 +104,8 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
         FileWriter fw = new FileWriter(destFile);
         xmlOutputter.output(jdomDocument, fw);
         fw.close();
+        
+        //xmlOutputter.output(jdomDocument, System.out);
 
         // copy MANIFEST file.
         InputStream manifestStream = this.getClass().getClassLoader().getResourceAsStream("ldap/META-INF/MANIFEST.MF");
@@ -130,18 +137,37 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
     }
 
     private void configure(String provider, Map<String, String> props,
-            Element root) throws JDOMException {
-        Namespace ns = root.getNamespace();
+            Element root) throws JDOMException, IOException {
         if (props != null && !props.isEmpty()) {
             // setup user LDAP
             Element map = getElement(root, "/xp:beans/xp:bean[@parent=\""
                     + provider
                     + "\"]/xp:property[@name=\"ldapProperties\"]/xp:map");
             if (map != null) {
-                for (Map.Entry<String, String> prop : props.entrySet()) {
-                    map.addContent(new Element("entry", ns).setAttribute("key",
-                            prop.getKey()).setAttribute("value",
-                            prop.getValue()));
+                Namespace ns = root.getNamespace();
+                XMLOutputter xmlOutputter = new XMLOutputter(Format.getRawFormat());
+                StringWriter out = new StringWriter(64);
+                Map<String, String> ldapProps = new HashMap<String, String>(props);
+                for (Element element : getElements(map, "xp:entry")) {
+                    Attribute key = element.getAttribute("key");
+                    if (ldapProps.containsKey(key)) {
+                        element.setAttribute("value", ldapProps.get(key));
+                        ldapProps.remove(key);
+                    } else {
+                        // comment it out
+                        int pos = map.indexOf(element);
+                        map.removeContent(element);
+                        element.setNamespace(Namespace.NO_NAMESPACE);
+                        xmlOutputter.output(element, out);
+                        map.addContent(pos, new Comment(out.getBuffer().toString()));
+                        out.getBuffer().delete(0, out.getBuffer().length());
+                    }
+                }
+                
+                for (Map.Entry<String, String> prop : ldapProps.entrySet()) {
+                        map.addContent(new Element("entry", ns).setAttribute(
+                                "key", prop.getKey()).setAttribute("value",
+                                prop.getValue()));
                 }
             }
         } else {
