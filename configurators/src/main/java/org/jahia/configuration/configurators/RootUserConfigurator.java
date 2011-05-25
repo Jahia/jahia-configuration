@@ -72,6 +72,7 @@ public class RootUserConfigurator extends AbstractXMLConfigurator {
         Document jdomDocument = saxBuilder.build(sourceFileName);
         Element beansElement = jdomDocument.getRootElement();
         Element rootNameElement = getElement(beansElement, "/content/users/ROOT_NAME_PLACEHOLDER");
+        rootNameElement = rootNameElement != null ? rootNameElement : getElement(beansElement, "/content/users/root");
 
         if (rootNameElement != null) {
             rootNameElement.setName(cfg.getJahiaRootUsername());
