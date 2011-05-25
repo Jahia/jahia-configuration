@@ -11,7 +11,6 @@ import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.codehaus.plexus.util.StringUtils;
 import org.jahia.configuration.deployers.ServerDeploymentFactory;
 import org.jahia.configuration.logging.AbstractLogger;
-import org.jahia.configuration.logging.ConsoleLogger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
