@@ -53,6 +53,15 @@ import org.jahia.configuration.modules.ModuleDeployer;
  */
 public class CopyTemplatesMojo extends AbstractManagementMojo {
 
+    /**
+     * @parameter default-value="false"
+     */
+    protected boolean deployTests;
+
+    /**
+     * @parameter default-value="false"
+     */
+    protected boolean deployToServer;
 
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
@@ -60,10 +69,21 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
         // @todo as we are working around what seems to be a Maven or JVM bug, maybe we should rebuild the list with
         // just the elements we need instead of the hack that we have used at the end of this method.
         Set<Artifact> dependenciesToRemove = new HashSet<Artifact>();
-        ModuleDeployer deployer = new ModuleDeployer(new File(output, "jahia/WEB-INF/var/shared_" + (getProjectStructureVersion() == 2 ? "modules" : "templates")), new MojoLogger(getLog()));
+        File target;
+        if(deployToServer) {
+            try {
+                target = new File(getWebappDeploymentDir(), (new StringBuilder()).append("WEB-INF/var/shared_").append(getProjectStructureVersion() != 2 ? "templates" : "modules").toString());
+            } catch(Exception e) {
+                throw new MojoExecutionException("Cannot deploy module", e);
+            }
+        } else {
+            target = new File(output, (new StringBuilder()).append("jahia/WEB-INF/var/shared_").append(getProjectStructureVersion() != 2 ? "templates" : "modules").toString());
+        }
+
+        ModuleDeployer deployer = new ModuleDeployer(target, new MojoLogger(getLog()));
         for (Artifact dependencyFile : (Iterable<Artifact>) dependencyFiles) {
             File file = dependencyFile.getFile();
-            if (dependencyFile.getGroupId().equals("org.jahia.modules") || dependencyFile.getGroupId().equals("org.jahia.templates") || dependencyFile.getGroupId().endsWith(".jahia.modules")) {
+            if (!deployTests && (dependencyFile.getGroupId().equals("org.jahia.modules") || dependencyFile.getGroupId().equals("org.jahia.templates") || dependencyFile.getGroupId().endsWith(".jahia.modules")) || deployTests && dependencyFile.getGroupId().equals("org.jahia.test")) {
                 try {
                     deployer.deployModule(file);
                     dependenciesToRemove.add(dependencyFile);
