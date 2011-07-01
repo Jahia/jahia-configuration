@@ -102,6 +102,8 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String ldapActivated = "false";
     private Map<String, String> groupLdapProviderProperties = new HashMap<String, String>();
     private Map<String, String> userLdapProviderProperties = new HashMap<String, String>();
+ 
+    private String externalizedConfigTargetPath = null;
     
     public JahiaConfigInterface clone() throws CloneNotSupportedException {
         return (JahiaConfigInterface) super.clone();
@@ -542,5 +544,13 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     public void setUserLdapProviderProperties(
             Map<String, String> userLdapProviderProperties) {
         this.userLdapProviderProperties = userLdapProviderProperties;
+    }
+
+    public String getExternalizedConfigTargetPath() {
+        return externalizedConfigTargetPath;
+    }
+
+    public void setExternalizedConfigTargetPath(String externalizedConfigTargetPath) {
+        this.externalizedConfigTargetPath = externalizedConfigTargetPath;
     }
 }

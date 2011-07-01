@@ -472,6 +472,11 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     protected String operatingMode;
 
 
+    /**
+     * @parameter expression="${jahia.config.externalizedTargetPath}"
+     */
+    private String externalizedConfigTargetPath;
+
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
         	if (getProjectStructureVersion() == 2) {
@@ -813,5 +818,9 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     
     public String getOperatingMode() {
         return operatingMode;
+    }
+
+    public String getExternalizedConfigTargetPath() {
+        return externalizedConfigTargetPath;
     }
 }

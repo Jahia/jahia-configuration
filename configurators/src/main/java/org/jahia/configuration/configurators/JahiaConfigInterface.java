@@ -142,4 +142,11 @@ public interface JahiaConfigInterface {
 
     void setTargetConfigurationDirectory(String targetConfigurationDirectory);
 
+    /**
+     * The location at which to store Jahia's externalized configuration. Setting this value will enable the
+     * externalization generation.
+     * @return
+     */
+    String getExternalizedConfigTargetPath();
+    
 }

@@ -8,11 +8,15 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.codehaus.plexus.archiver.jar.JarArchiver;
+import org.codehaus.plexus.logging.Logger;
+import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.StringUtils;
 import org.jahia.configuration.deployers.ServerDeploymentFactory;
 import org.jahia.configuration.logging.AbstractLogger;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jahia.configuration.logging.ConsoleLogger;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -83,6 +87,8 @@ public class JahiaGlobalConfigurator {
     Properties dbProps;
     File databaseScript;
     List<AbstractConfigurator> configurators = new ArrayList<AbstractConfigurator>();
+    String externalizedConfigPath = null;
+    File jahiaConfigDir;
 
     AbstractLogger logger;
 
@@ -104,6 +110,19 @@ public class JahiaGlobalConfigurator {
             // directory for the configurators.
             ServerDeploymentFactory.setTargetServerDirectory(jahiaConfig.getTargetConfigurationDirectory());
         }
+        if (jahiaConfig.getExternalizedConfigTargetPath() != null) {
+            File tempDirectory = FileUtils.getTempDirectory();
+            jahiaConfigDir = new File(tempDirectory, "jahia-config");
+            jahiaConfigDir.mkdir();
+            File jahiaConfigOrgDir = new File(jahiaConfigDir, "org");
+            jahiaConfigOrgDir.mkdir();
+            File jahiaConfigJahiaDir = new File(jahiaConfigOrgDir, "jahia");
+            jahiaConfigJahiaDir.mkdir();
+            File jahiaConfigConfigDir = new File(jahiaConfigJahiaDir, "config");
+            jahiaConfigConfigDir.mkdir();
+            externalizedConfigPath = jahiaConfigConfigDir.getPath();
+        }
+
         db = new DatabaseConnection();
 
         getLogger().info ("Configuring for server " + jahiaConfig.getTargetServerType() + " version " + jahiaConfig.getTargetServerVersion() + " with database type " + jahiaConfig.getDatabaseType());
@@ -148,15 +167,24 @@ public class JahiaGlobalConfigurator {
             }
         }
 
-        new JahiaPropertiesConfigurator(dbProps, jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.skeleton", webappPath + "/WEB-INF/etc/config/jahia.properties");
-        if (new File(sourceWebAppPath + "/WEB-INF/etc/config/jahia.advanced.skeleton").exists()) {
-            new JahiaAdvancedPropertiesConfigurator(logger, jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.advanced.skeleton", webappPath + "/WEB-INF/etc/config/jahia.advanced.properties");
+        String targetConfigPath = webappPath + "/WEB-INF/etc/config";
+        String targetSpringPath = webappPath + "/WEB-INF/etc/spring";
+        if (externalizedConfigPath != null) {
+            targetConfigPath = externalizedConfigPath;
+            targetSpringPath = externalizedConfigPath;
         }
-        new LDAPConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(sourceWebAppPath, webappPath + "/WEB-INF/var/shared_modules");
+        new JahiaPropertiesConfigurator(dbProps, jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.skeleton", targetConfigPath + "/jahia.properties");
+        if (new File(sourceWebAppPath + "/WEB-INF/etc/config/jahia.advanced.skeleton").exists()) {
+            new JahiaAdvancedPropertiesConfigurator(logger, jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.advanced.skeleton", targetConfigPath + "/jahia.advanced.properties");
+        }
+        String ldapTargetFile = webappPath + "/WEB-INF/var/shared_modules";
+        if (externalizedConfigPath != null) {
+            ldapTargetFile = externalizedConfigPath + "/applicationcontext-ldap-config.xml";
+        }
+        new LDAPConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(sourceWebAppPath, ldapTargetFile);
     }
 
     private void setProperties() throws Exception {
-
 
         //now set the common properties to both a clustered environment and a standalone one
 
@@ -201,10 +229,15 @@ public class JahiaGlobalConfigurator {
 
         //updates jackrabbit, quartz and spring files
         updateConfigurationFiles(sourceWebappPath, webappDir.getPath(), dbProps, jahiaConfig);
-        getLogger().info("creating database tables and copying license file");
+        getLogger().info("Copying license file...");
+        String targetConfigPath = webappDir.getPath() + "/WEB-INF/etc/config";
+        if (jahiaConfig.getExternalizedConfigTargetPath() != null) {
+            targetConfigPath = externalizedConfigPath;
+        }
         try {
-            copyLicense(sourceWebappPath + "/WEB-INF/etc/config/licenses/license-free.xml", webappDir.getPath() + "/WEB-INF/etc/config/license.xml");
+            copyLicense(sourceWebappPath + "/WEB-INF/etc/config/licenses/license-free.xml", targetConfigPath + "/license.xml");
             if (jahiaConfig.getOverwritedb().equals("true")) {
+                getLogger().info("Creating database tables...");
                 if (!databaseScript.exists()) {
                     getLogger().info("cannot find script in " + databaseScript.getPath());
                     throw new Exception("Cannot find script for database " + jahiaConfig.getDatabaseType());
@@ -224,10 +257,31 @@ public class JahiaGlobalConfigurator {
                 deleteTomcatFiles();
             }
             if (jahiaConfig.getSiteImportLocation() != null) {
-                getLogger().info("copying site Export to the " + webappDir + "/WEB-INF/var/imports");
+                getLogger().info("Copying site Export to the " + webappDir + "/WEB-INF/var/imports");
                 importSites();
             } else {
-                getLogger().info("no site import found ");
+                getLogger().info("No site import found, no import needed.");
+            }
+
+            if ((jahiaConfigDir != null) && (jahiaConfig.getExternalizedConfigTargetPath() != null)) {
+                boolean verbose = true;
+                JarArchiver archiver = new JarArchiver();
+                if (verbose) {
+                    archiver.enableLogging(new org.codehaus.plexus.logging.console.ConsoleLogger(Logger.LEVEL_DEBUG,
+                            "console"));
+                }
+                // let's generate the WAR file
+                File targetFile = new File(jahiaConfig.getExternalizedConfigTargetPath(), "jahia-config.jar");
+                // archiver.setManifest(targetManifestFile);
+                archiver.setDestFile(targetFile);
+                String excludes = null;
+
+                archiver.addDirectory(jahiaConfigDir, null,
+                        excludes != null ? excludes.split(",") : null);
+                archiver.createArchive();
+
+                FileUtils.deleteDirectory(jahiaConfigDir);
+
             }
 
         } catch (Exception e) {

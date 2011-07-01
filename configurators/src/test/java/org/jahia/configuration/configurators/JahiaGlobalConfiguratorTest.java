@@ -9,12 +9,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
- * TODO Comment me
+ * Unit test to validate proper configuration generation.
  *
  * @author loom
  *         Date: May 11, 2010
@@ -40,14 +44,29 @@ public class JahiaGlobalConfiguratorTest extends TestCase {
         websphereDerbyConfigBean.setCluster_activated("true");
         websphereDerbyConfigBean.setCluster_node_serverId("jahiaServer1");
         websphereDerbyConfigBean.setProcessingServer("true");
+        websphereDerbyConfigBean.setLdapActivated("true");
         List<String> clusterNodes = new ArrayList<String>();
         clusterNodes.add("2.3.4.5");
         clusterNodes.add("3.4.5.6");
         clusterNodes.add("4.5.6.7");
         websphereDerbyConfigBean.setClusterNodes(clusterNodes);
+        websphereDerbyConfigBean.setExternalizedConfigTargetPath(configuratorsFile.getPath());
 
         JahiaGlobalConfigurator jahiaGlobalConfigurator = new JahiaGlobalConfigurator(new SLF4JLogger(logger), websphereDerbyConfigBean);
         jahiaGlobalConfigurator.execute();
-        
+
+        File configFile = new File(configuratorsFile, "jahia-config.jar");
+        JarFile configJarFile = new JarFile(configFile);
+        // assertNotNull("Missing LDAP configuration file in jahia-config.jar file!", configJarFile.getEntry("org/jahia/config/applicationcontext-ldap-config.xml"));
+        JarEntry licenseJarEntry = configJarFile.getJarEntry("org/jahia/config/license.xml");
+        assertNotNull("Missing license file in jahia-config.jar file!", licenseJarEntry);
+        JarEntry jahiaPropertiesJarEntry = configJarFile.getJarEntry("org/jahia/config/jahia.properties");
+        assertNotNull("Missing properties file in jahia-config.jar file!", jahiaPropertiesJarEntry);
+
+        InputStream jahiaPropsInputStream = configJarFile.getInputStream(jahiaPropertiesJarEntry);
+        Properties jahiaProperties = new Properties();
+        jahiaProperties.load(jahiaPropsInputStream);
+        assertEquals("Server value not correct", "was", jahiaProperties.get("server"));
+        assertEquals("Server version value not correct", "6.1.0.25", jahiaProperties.get("serverVersion"));
     }
 }
