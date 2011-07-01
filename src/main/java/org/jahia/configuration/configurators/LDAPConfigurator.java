@@ -79,13 +79,26 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
             return;
         }
 
-        File tempDirectory = FileUtils.getTempDirectory();
-        File ldapConfigDirectory = new File(tempDirectory, "ldap-config");
-        ldapConfigDirectory.mkdir();
-        File metainfDir = new File(ldapConfigDirectory, "META-INF");
-        metainfDir.mkdir();
-        File springDir = new File(metainfDir, "spring");
-        springDir.mkdir();
+        File destFile = null;
+        File tempDirectory = null;
+        File ldapConfigDirectory = null;
+        File targetManifestFile = null;
+        if (jahiaConfigInterface.getExternalizedConfigTargetPath() == null) {
+            tempDirectory = FileUtils.getTempDirectory();
+            ldapConfigDirectory = new File(tempDirectory, "ldap-config");
+            ldapConfigDirectory.mkdir();
+            File metainfDir = new File(ldapConfigDirectory, "META-INF");
+            metainfDir.mkdir();
+            File springDir = new File(metainfDir, "spring");
+            springDir.mkdir();
+            destFile = new File(springDir, "applicationcontext-ldap-config.xml");
+            // copy MANIFEST file.
+            InputStream manifestStream = this.getClass().getClassLoader().getResourceAsStream("ldap/META-INF/MANIFEST.MF");
+            targetManifestFile = new File(metainfDir, "MANIFEST.MF");
+            FileUtils.copyInputStreamToFile(manifestStream, targetManifestFile);
+        } else {
+            destFile = new File(destFileName);
+        }
 
         SAXBuilder saxBuilder = new SAXBuilder();
         InputStream skeletonContextStream = this.getClass().getClassLoader().getResourceAsStream("ldap/META-INF/spring/applicationcontext-ldap-config.xml");
@@ -100,40 +113,31 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
         Format customFormat = Format.getPrettyFormat();
         customFormat.setLineSeparator(System.getProperty("line.separator"));
         XMLOutputter xmlOutputter = new XMLOutputter(customFormat);
-        File destFile = new File(springDir, "applicationcontext-ldap-config.xml");
-        FileWriter fw = new FileWriter(destFile);
-        xmlOutputter.output(jdomDocument, fw);
-        fw.close();
-        
-        //xmlOutputter.output(jdomDocument, System.out);
+        xmlOutputter.output(jdomDocument, new FileWriter(destFile));
 
-        // copy MANIFEST file.
-        InputStream manifestStream = this.getClass().getClassLoader().getResourceAsStream("ldap/META-INF/MANIFEST.MF");
-        File targetManifestFile = new File(metainfDir, "MANIFEST.MF");
-        FileUtils.copyInputStreamToFile(manifestStream, targetManifestFile);
+        if (jahiaConfigInterface.getExternalizedConfigTargetPath() == null) {
+            boolean verbose = true;
+            JarArchiver archiver = new JarArchiver();
+            if (verbose) {
+                archiver.enableLogging(new ConsoleLogger(Logger.LEVEL_DEBUG,
+                        "console"));
+            }
+            // let's generate the WAR file
+            File targetFile = new File(tempDirectory, "ldap-config.war");
+            archiver.setManifest(targetManifestFile);
+            archiver.setDestFile(targetFile);
+            String excludes = null;
 
-        boolean verbose = true;
-        JarArchiver archiver = new JarArchiver();
-        if (verbose) {
-            archiver.enableLogging(new ConsoleLogger(Logger.LEVEL_DEBUG, "console"));
+            archiver.addDirectory(ldapConfigDirectory, null,
+                    excludes != null ? excludes.split(",") : null);
+            archiver.createArchive();
+
+            // copy the WAR file to the deployment directory
+            FileUtils.copyFileToDirectory(targetFile, new File(destFileName));
+
+            FileUtils.deleteDirectory(ldapConfigDirectory);
+            targetFile.delete();
         }
-
-        // let's generate the WAR file
-        File targetFile = new File(tempDirectory, "ldap-config.war");
-        archiver.setManifest(targetManifestFile);
-        archiver.setDestFile(targetFile);
-        String excludes = null;
-
-        archiver.addDirectory(ldapConfigDirectory, null,
-                excludes != null ? excludes.split(",") : null);
-        archiver.createArchive();
-
-        // copy the WAR file to the deployment directory
-        FileUtils.copyFileToDirectory(targetFile, new File(destFileName));
-
-        FileUtils.deleteDirectory(ldapConfigDirectory);
-        targetFile.delete();
-
     }
 
     private void configure(String provider, Map<String, String> props,
