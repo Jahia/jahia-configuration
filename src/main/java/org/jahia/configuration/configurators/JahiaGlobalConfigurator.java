@@ -110,7 +110,7 @@ public class JahiaGlobalConfigurator {
             // directory for the configurators.
             ServerDeploymentFactory.setTargetServerDirectory(jahiaConfig.getTargetConfigurationDirectory());
         }
-        if (jahiaConfig.getExternalizedConfigTargetPath() != null) {
+        if (!StringUtils.isBlank(jahiaConfig.getExternalizedConfigTargetPath())) {
             File tempDirectory = FileUtils.getTempDirectory();
             jahiaConfigDir = new File(tempDirectory, "jahia-config");
             jahiaConfigDir.mkdir();
@@ -231,7 +231,7 @@ public class JahiaGlobalConfigurator {
         updateConfigurationFiles(sourceWebappPath, webappDir.getPath(), dbProps, jahiaConfig);
         getLogger().info("Copying license file...");
         String targetConfigPath = webappDir.getPath() + "/WEB-INF/etc/config";
-        if (jahiaConfig.getExternalizedConfigTargetPath() != null) {
+        if (!StringUtils.isBlank(jahiaConfig.getExternalizedConfigTargetPath())) {
             targetConfigPath = externalizedConfigPath;
         }
         try {
@@ -263,7 +263,7 @@ public class JahiaGlobalConfigurator {
                 getLogger().info("No site import found, no import needed.");
             }
 
-            if ((jahiaConfigDir != null) && (jahiaConfig.getExternalizedConfigTargetPath() != null)) {
+            if ((jahiaConfigDir != null) && (!StringUtils.isBlank(jahiaConfig.getExternalizedConfigTargetPath()))) {
                 boolean verbose = true;
                 JarArchiver archiver = new JarArchiver();
                 if (verbose) {

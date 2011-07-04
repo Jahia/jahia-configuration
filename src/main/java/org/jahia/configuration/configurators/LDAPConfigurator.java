@@ -35,6 +35,7 @@ package org.jahia.configuration.configurators;
 
 import org.apache.commons.io.FileUtils;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
+import org.codehaus.plexus.util.StringUtils;
 import org.jdom.Attribute;
 import org.jdom.Comment;
 import org.jdom.Document;
@@ -83,7 +84,7 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
         File tempDirectory = null;
         File ldapConfigDirectory = null;
         File targetManifestFile = null;
-        if (jahiaConfigInterface.getExternalizedConfigTargetPath() == null) {
+        if (StringUtils.isBlank(jahiaConfigInterface.getExternalizedConfigTargetPath())) {
             tempDirectory = FileUtils.getTempDirectory();
             ldapConfigDirectory = new File(tempDirectory, "ldap-config");
             ldapConfigDirectory.mkdir();
@@ -115,7 +116,7 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
         XMLOutputter xmlOutputter = new XMLOutputter(customFormat);
         xmlOutputter.output(jdomDocument, new FileWriter(destFile));
 
-        if (jahiaConfigInterface.getExternalizedConfigTargetPath() == null) {
+        if (StringUtils.isBlank(jahiaConfigInterface.getExternalizedConfigTargetPath())) {
             boolean verbose = true;
             JarArchiver archiver = new JarArchiver();
             if (verbose) {
