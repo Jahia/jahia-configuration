@@ -143,6 +143,13 @@ public interface JahiaConfigInterface {
     void setTargetConfigurationDirectory(String targetConfigurationDirectory);
 
     /**
+     * If active, we will package the configuration as a JAR file and place it in the location specified in the
+     * exrernalizedConfigTargetPath bean variable
+     * @return
+     */
+    boolean isExternalizedConfigActivated();
+
+    /**
      * The location at which to store Jahia's externalized configuration. Setting this value will enable the
      * externalization generation.
      * @return

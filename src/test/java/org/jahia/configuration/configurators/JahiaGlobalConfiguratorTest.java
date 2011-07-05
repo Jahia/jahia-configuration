@@ -50,6 +50,7 @@ public class JahiaGlobalConfiguratorTest extends TestCase {
         clusterNodes.add("3.4.5.6");
         clusterNodes.add("4.5.6.7");
         websphereDerbyConfigBean.setClusterNodes(clusterNodes);
+        websphereDerbyConfigBean.setExternalizedConfigActivated(true);
         websphereDerbyConfigBean.setExternalizedConfigTargetPath(configuratorsFile.getPath());
 
         JahiaGlobalConfigurator jahiaGlobalConfigurator = new JahiaGlobalConfigurator(new SLF4JLogger(logger), websphereDerbyConfigBean);
