@@ -473,6 +473,11 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
 
     /**
+     * @parameter expression="${jahia.config.externalizedActivated}" default-value="false"
+     */
+    private boolean externalizedConfigActivated;
+
+    /**
      * @parameter expression="${jahia.config.externalizedTargetPath}"
      */
     private String externalizedConfigTargetPath;
@@ -818,6 +823,10 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     
     public String getOperatingMode() {
         return operatingMode;
+    }
+
+    public boolean isExternalizedConfigActivated() {
+        return externalizedConfigActivated;
     }
 
     public String getExternalizedConfigTargetPath() {
