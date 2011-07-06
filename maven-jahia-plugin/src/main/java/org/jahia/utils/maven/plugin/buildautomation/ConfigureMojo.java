@@ -473,14 +473,32 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
 
     /**
+     * Activates configuration externalization. Make sure to specify a value for the externalizedConfigTargetPath that
+     * will indicate where the configuration JAR should be generated.
+     *
      * @parameter expression="${jahia.config.externalizedActivated}" default-value="false"
      */
     private boolean externalizedConfigActivated;
 
     /**
+     * The location at which the externalized configuration JAR will be generated.
      * @parameter expression="${jahia.config.externalizedTargetPath}"
      */
     private String externalizedConfigTargetPath;
+
+    /**
+     * Allows to specify a classifier on the configuration, usually used to identify cluster node configurations, such
+     * as jahiaNode1, jahiaNode2, etc...
+     * @parameter expression="${jahia.config.externalizedClassifier}" default-value=""
+     */
+    private String externalizedConfigClassifier;
+
+    /**
+     * The name of the JAR file (without the extension)
+     *
+     * @parameter expression="${jahia.config.externalizedActivated}" default-value="jahia-config"
+     */
+    private String externalizedConfigFinalName;
 
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
@@ -831,5 +849,13 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public String getExternalizedConfigTargetPath() {
         return externalizedConfigTargetPath;
+    }
+
+    public String getExternalizedConfigClassifier() {
+        return externalizedConfigClassifier;
+    }
+
+    public String getExternalizedConfigFinalName() {
+        return externalizedConfigFinalName;
     }
 }

@@ -168,13 +168,19 @@ public class JahiaGlobalConfigurator {
 
         String targetConfigPath = webappPath + "/WEB-INF/etc/config";
         String targetSpringPath = webappPath + "/WEB-INF/etc/spring";
+        String jahiaPropertiesFileName = "jahia.properties";
+        String jahiaAdvancedPropertiesFileName = "jahia.advanced.properties";
         if (externalizedConfigTempPath != null) {
             targetConfigPath = externalizedConfigTempPath;
             targetSpringPath = externalizedConfigTempPath;
+            if (!StringUtils.isBlank(jahiaConfigInterface.getExternalizedConfigClassifier())) {
+                jahiaPropertiesFileName = "jahia." + jahiaConfigInterface.getExternalizedConfigClassifier() + ".properties";
+                jahiaAdvancedPropertiesFileName = "jahia.advanced." + jahiaConfigInterface.getExternalizedConfigClassifier() + ".properties";
+            }
         }
-        new JahiaPropertiesConfigurator(dbProps, jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.skeleton", targetConfigPath + "/jahia.properties");
+        new JahiaPropertiesConfigurator(dbProps, jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.skeleton", targetConfigPath + "/" + jahiaPropertiesFileName);
         if (new File(sourceWebAppPath + "/WEB-INF/etc/config/jahia.advanced.skeleton").exists()) {
-            new JahiaAdvancedPropertiesConfigurator(logger, jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.advanced.skeleton", targetConfigPath + "/jahia.advanced.properties");
+            new JahiaAdvancedPropertiesConfigurator(logger, jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.advanced.skeleton", targetConfigPath + "/" + jahiaAdvancedPropertiesFileName);
         }
         String ldapTargetFile = webappPath + "/WEB-INF/var/shared_modules";
         if (externalizedConfigTempPath != null) {
@@ -269,8 +275,18 @@ public class JahiaGlobalConfigurator {
                     archiver.enableLogging(new org.codehaus.plexus.logging.console.ConsoleLogger(Logger.LEVEL_DEBUG,
                             "console"));
                 }
+
+                String jarFileName = "jahia-config.jar";
+                if (!StringUtils.isBlank(jahiaConfig.getExternalizedConfigFinalName())) {
+                    jarFileName = jahiaConfig.getExternalizedConfigFinalName();
+                    if (!StringUtils.isBlank(jahiaConfig.getExternalizedConfigClassifier())) {
+                        jarFileName += "-" + jahiaConfig.getExternalizedConfigClassifier();
+                    }
+                    jarFileName += ".jar";
+                }
+
                 // let's generate the WAR file
-                File targetFile = new File(jahiaConfig.getExternalizedConfigTargetPath(), "jahia-config.jar");
+                File targetFile = new File(jahiaConfig.getExternalizedConfigTargetPath(), jarFileName);
                 // archiver.setManifest(targetManifestFile);
                 archiver.setDestFile(targetFile);
                 String excludes = null;

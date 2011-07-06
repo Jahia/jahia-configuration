@@ -155,5 +155,17 @@ public interface JahiaConfigInterface {
      * @return
      */
     String getExternalizedConfigTargetPath();
-    
+
+    /**
+     * Allows to specify a classifier on the configuration, usually used to identify cluster node configurations, such
+     * as jahiaNode1, jahiaNode2, etc...
+     * @return
+     */
+    String getExternalizedConfigClassifier();
+
+    /**
+     * The name of the JAR file (without the extension)
+     * @return
+     */
+    String getExternalizedConfigFinalName();
 }
