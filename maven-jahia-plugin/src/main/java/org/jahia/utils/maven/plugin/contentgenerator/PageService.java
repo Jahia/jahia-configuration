@@ -49,8 +49,6 @@ public class PageService {
 
 		PageBO rootPage = createNewPage(export, rootPageName, articlesMap, export.getNbSubLevels() + 1, null);
 
-        export.getMapFile().delete();
-
 		OutputService outService = new OutputService();
         outService.initOutputFile(export.getOutputFile());
 		outService.appendStringToFile(export.getOutputFile(), export.toString());
@@ -159,10 +157,10 @@ public class PageService {
 		}
 
         HashMap<String, List<String>> acls = new HashMap<String, List<String>>();
-        if (random.nextFloat() < export.getGroupAclRatio()) {
+        if (random.nextFloat() < export.getGroupAclRatio() && export.getNumberOfGroups() > 0) {
             acls.put("g:group"+random.nextInt(export.getNumberOfGroups()), Arrays.asList("editor"));
         }
-        if (random.nextFloat() < export.getUsersAclRatio()) {
+        if (random.nextFloat() < export.getUsersAclRatio() && export.getNumberOfUsers() > 0) {
             acls.put("u:user"+random.nextInt(export.getNumberOfUsers()), Arrays.asList("editor"));
         }
 

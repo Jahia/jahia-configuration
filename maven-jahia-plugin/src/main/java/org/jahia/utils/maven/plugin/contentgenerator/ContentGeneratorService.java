@@ -149,6 +149,9 @@ public class ContentGeneratorService {
 
             String baseSiteKey = export.getSiteKey();
 
+            export.getMapFile().delete();
+
+
             for (int i = 0; i < export.getNumberOfSites(); i++) {
                 // as we create a full site we will need a home page
                 export.setRootPageName(ContentGeneratorCst.ROOT_PAGE_NAME);
@@ -158,8 +161,6 @@ public class ContentGeneratorService {
                 site.setSiteKey(siteKey);
 
                 SiteService siteService = new SiteService();
-
-                export.setMapFile(new File(export.getOutputDir(), siteKey+".sitemap.txt"));
 
                 generatePages(export);
 
