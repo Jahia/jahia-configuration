@@ -1,6 +1,7 @@
 package org.jahia.utils.maven.plugin.contentgenerator;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.SiteBO;
@@ -8,10 +9,7 @@ import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGenerator
 import org.jdom.Document;
 import org.jdom.Element;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 import java.util.Properties;
 
@@ -23,24 +21,16 @@ public class SiteService {
 		sep = System.getProperty("file.separator");
 	}
 
-	public File createAndPopulateRepositoryFile(File tempOutputDir, SiteBO site, File pagesFile, File filesFile)
+	public File createAndPopulateRepositoryFile(File tempOutputDir, SiteBO site, File pagesFile, File filesFile, File groupsFile)
 			throws IOException {
-		File repositoryFile = new File(tempOutputDir + sep + "repository.xml");
+		File repositoryFile = new File(tempOutputDir, "repository.xml");
 
-		StringBuffer sb = new StringBuffer();
-		sb.append(site.getHeader());
-
-		if (filesFile != null) {
-			String files = FileUtils.readFileToString(filesFile);
-			sb.append(files);
-		}
-
-		String pages = FileUtils.readFileToString(pagesFile);
-		sb.append(pages);
-
-		sb.append(site.getFooter());
-
-		FileUtils.writeStringToFile(repositoryFile, sb.toString());
+        FileOutputStream output = new FileOutputStream(repositoryFile, true);
+        IOUtils.write(site.getHeader(), output);
+        IOUtils.copy(new FileInputStream(filesFile), output);
+        IOUtils.copy(new FileInputStream(pagesFile), output);
+        IOUtils.copy(new FileInputStream(groupsFile), output);
+		IOUtils.write(site.getFooter(), output);
 
 		return repositoryFile;
 	}
@@ -56,7 +46,7 @@ public class SiteService {
 	 *             can not delete dir
 	 */
 	public File createSiteDirectory(String siteKey, File destDir) throws IOException {
-		File tempOutputDir = new File(destDir + sep + siteKey);
+		File tempOutputDir = new File(destDir, siteKey);
 		if (tempOutputDir.exists()) {
 			FileUtils.deleteDirectory(tempOutputDir);
 		}
@@ -75,8 +65,8 @@ public class SiteService {
 	 */
 	public File copyPagesFile(File pagesFile, File tempOutputDir) throws IOException {
 		FileUtils.copyFileToDirectory(pagesFile, tempOutputDir);
-		File copy = new File(tempOutputDir + sep + pagesFile.getName());
-		File renamedCopy = new File(tempOutputDir + sep + ContentGeneratorCst.REPOSITORY_FILENAME);
+		File copy = new File(tempOutputDir, pagesFile.getName());
+		File renamedCopy = new File(tempOutputDir, ContentGeneratorCst.REPOSITORY_FILENAME);
 		copy.renameTo(renamedCopy);
 		logger.debug("new file containing pages: " + renamedCopy);
 		return renamedCopy;
@@ -130,7 +120,7 @@ public class SiteService {
         }
 
 		String sep = System.getProperty("file.separator");
-		File propFile = new File(tempOutputDir + sep + ContentGeneratorCst.SITE_PROPERTIES_FILENAME);
+		File propFile = new File(tempOutputDir, ContentGeneratorCst.SITE_PROPERTIES_FILENAME);
 
 		siteProp.store(new FileOutputStream(propFile), ContentGeneratorCst.DESCRIPTION_DEFAULT);
 

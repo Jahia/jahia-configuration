@@ -14,6 +14,7 @@ import org.w3c.dom.DOMException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
@@ -142,7 +143,9 @@ public class ContentGeneratorService {
             for (UserBO user : users) {
                 userNames.add(user.getName());
             }
-            os.appendPathToFile(new File(export.getOutputDir(), "users.txt"), userNames);
+            File f = new File(export.getOutputDir(), "users.txt");
+            f.delete();
+            os.appendPathToFile(f, userNames);
 
             String baseSiteKey = export.getSiteKey();
 
@@ -172,7 +175,7 @@ public class ContentGeneratorService {
 
                 // create tree dirs for files attachments (if files are not at
                 // "none")
-                File tempXmlFile = null;
+                File filesFile = null;
                 if (!ContentGeneratorCst.VALUE_NONE.equals(export.getAddFilesToPage())) {
                     FileService fileService = new FileService();
                     File filesDirectory = siteService.createFilesDirectoryTree(siteKey, tempOutputDir);
@@ -184,24 +187,20 @@ public class ContentGeneratorService {
                     fileService.copyFilesForAttachment(filesToCopy, filesDirectory);
 
                     // generates XML code for files
-                    tempXmlFile = new File(export.getOutputDir(), "jcrFiles.xml");
-                    fileService.createAndPopulateFilesXmlFile(tempXmlFile, filesToCopy);
+                    filesFile = new File(export.getOutputDir(), "jcrFiles.xml");
+                    fileService.createAndPopulateFilesXmlFile(filesFile, filesToCopy);
                 }
-
-                // 2 - copy pages => repository.xml
-                File repositoryFile = siteService.createAndPopulateRepositoryFile(tempOutputDir, site,
-                        export.getOutputFile(), tempXmlFile);
-
-                // Add XML Groups
 
                 List<GroupBO> groups = userGroupService.generateGroups(export.getNumberOfGroups(), export.getNumberOfUsersPerGroup(), users);
                 Element groupsNode = userGroupService.generateJcrGroups(siteKey, groups);
+                Document groupsDoc = new Document(groupsNode);
+                File groupsFile = new File(export.getOutputDir(), "groups.xml");
+                os.writeJdomDocumentToFile(groupsDoc, groupsFile);
 
-                // TODO: transformer le repository String en repository global JDOM
-                Document repositoryDoc = readXmlFile(repositoryFile);
-                repositoryDoc = siteService.insertGroupsIntoSiteRepository(repositoryDoc, siteKey, groupsNode);
+                // 2 - copy pages => repository.xml
+                File repositoryFile = siteService.createAndPopulateRepositoryFile(tempOutputDir, site,
+                        export.getOutputFile(), filesFile, groupsFile);
 
-                os.writeJdomDocumentToFile(repositoryDoc, repositoryFile);
                 filesToZip.add(repositoryFile);
 
                 String zipFileName = siteKey + ".zip";

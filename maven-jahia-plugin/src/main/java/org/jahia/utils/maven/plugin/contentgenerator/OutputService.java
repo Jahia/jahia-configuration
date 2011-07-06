@@ -133,7 +133,9 @@ public class OutputService {
         OutputStreamWriter fwriter = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
         BufferedWriter fOut = new BufferedWriter(fwriter);
 
-		out.setFormat(Format.getPrettyFormat());
+        Format prettyFormat = Format.getPrettyFormat();
+        prettyFormat.setOmitDeclaration(true);
+        out.setFormat(prettyFormat);
 		
 		out.output(doc, fOut);
 		fOut.flush();
