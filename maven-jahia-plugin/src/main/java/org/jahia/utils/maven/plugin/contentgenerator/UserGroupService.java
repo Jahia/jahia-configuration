@@ -3,6 +3,7 @@ package org.jahia.utils.maven.plugin.contentgenerator;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
+import org.jahia.configuration.configurators.JahiaGlobalConfigurator;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.GroupBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.UserBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
@@ -32,7 +33,7 @@ public class UserGroupService {
         Element usersNode = new Element("users");
         contentNode.addContent(usersNode);
 
-        UserBO rootUser = new UserBO("root", hashPassword("root"), null);
+        UserBO rootUser = new UserBO("root", JahiaGlobalConfigurator.encryptPassword("root"), null);
         Element rootUserNode = rootUser.getJcrXml();
         usersNode.addContent(rootUserNode);
 
@@ -82,13 +83,13 @@ public class UserGroupService {
 
         Element rootUser = new Element("root");
         rootUser.setAttribute("member", "/users/root", ContentGeneratorCst.NS_J);
-        rootUser.setAttribute("primaryType", "jnt:member", ContentGeneratorCst.NS_JNT);
+        rootUser.setAttribute("primaryType", "jnt:member", ContentGeneratorCst.NS_JCR);
         jmembersSiteAdmin.addContent(rootUser);
 
         // site-privileged node
         Element sitePrivilegedNode = new Element("site-privileged");
         sitePrivilegedNode.setAttribute("mixinTypes", "systemNode", ContentGeneratorCst.NS_JMIX);
-        sitePrivilegedNode.setAttribute("primaryType", "jnt:group", ContentGeneratorCst.NS_JNT);
+        sitePrivilegedNode.setAttribute("primaryType", "jnt:group", ContentGeneratorCst.NS_JCR);
         sitePrivilegedNode.setAttribute("hidden", "false", ContentGeneratorCst.NS_J);
         groupsNode.addContent(sitePrivilegedNode);
 
@@ -120,7 +121,7 @@ public class UserGroupService {
 
             String username = "user" + userid;
             String pathJcr = getPathForUsername(username);
-            UserBO user = new UserBO(username, hashPassword(username), pathJcr);
+            UserBO user = new UserBO(username, JahiaGlobalConfigurator.encryptPassword(username), pathJcr);
             users.add(user);
         }
         return users;
@@ -177,8 +178,4 @@ public class UserGroupService {
         return nbUsersRemaining;
     }
 
-    public String hashPassword(String password) {
-        // hash for "password"
-        return "W6ph5Mm5Pz8GgiULbPgzG37mj9g=";
-    }
 }

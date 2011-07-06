@@ -181,12 +181,6 @@ public class ContentGeneratorService {
                     // get all files available in the pool dir
                     List<File> filesToCopy = fileService.getFilesAvailable(export.getFilesDirectory());
 
-                    // if there are more files available than pages created, we copy
-                    // only the total of files that have been used
-                    if (filesToCopy.size() > export.getTotalPages()) {
-                        filesToCopy = filesToCopy.subList(0, export.getTotalPages() - 1);
-                    }
-
                     fileService.copyFilesForAttachment(filesToCopy, filesDirectory);
 
                     // generates XML code for files

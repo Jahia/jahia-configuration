@@ -35,7 +35,7 @@ public class HelpMojo extends AbstractMojo {
 		getLog().info(
 				"* jahia.cg.nbPagesPerLevel (optional, default = " + ContentGeneratorCst.NB_SUBPAGES_PER_PAGE_DEFAULT
 						+ ")");
-		getLog().info("* jahia.cg.outputDirectory");
+		getLog().info("* jahia.cg.outputDirectory (optional, default = output)");
 		getLog().info("* jahia.cg.outputFileName (optional, default = " + ContentGeneratorCst.OUTPUT_FILE_DEFAULT + ")");
 		getLog().info("* jahia.cg.pagesHaveVanity (optional, default = " + ContentGeneratorCst.HAS_VANITY_DEFAULT + ")");
 		getLog().info("  if true, add a vanity URL to each page, on the template \"/page<n>\"");
