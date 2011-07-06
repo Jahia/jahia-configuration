@@ -105,6 +105,8 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     private boolean externalizedConfigActivated = false;
     private String externalizedConfigTargetPath = null;
+    private String externalizedConfigClassifier = null;
+    private String externalizedConfigFinalName = "jahia-config";
     
     public JahiaConfigInterface clone() throws CloneNotSupportedException {
         return (JahiaConfigInterface) super.clone();
@@ -561,5 +563,21 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public void setExternalizedConfigActivated(boolean externalizedConfigActivated) {
         this.externalizedConfigActivated = externalizedConfigActivated;
+    }
+
+    public String getExternalizedConfigClassifier() {
+        return externalizedConfigClassifier;
+    }
+
+    public void setExternalizedConfigClassifier(String externalizedConfigClassifier) {
+        this.externalizedConfigClassifier = externalizedConfigClassifier;
+    }
+
+    public String getExternalizedConfigFinalName() {
+        return externalizedConfigFinalName;
+    }
+
+    public void setExternalizedConfigFinalName(String externalizedConfigFinalName) {
+        this.externalizedConfigFinalName = externalizedConfigFinalName;
     }
 }

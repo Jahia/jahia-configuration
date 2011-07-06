@@ -52,17 +52,21 @@ public class JahiaGlobalConfiguratorTest extends TestCase {
         websphereDerbyConfigBean.setClusterNodes(clusterNodes);
         websphereDerbyConfigBean.setExternalizedConfigActivated(true);
         websphereDerbyConfigBean.setExternalizedConfigTargetPath(configuratorsFile.getPath());
+        websphereDerbyConfigBean.setExternalizedConfigClassifier("jahiaServer1");
+        websphereDerbyConfigBean.setExternalizedConfigFinalName("jahia-externalized-config");
 
         JahiaGlobalConfigurator jahiaGlobalConfigurator = new JahiaGlobalConfigurator(new SLF4JLogger(logger), websphereDerbyConfigBean);
         jahiaGlobalConfigurator.execute();
 
-        File configFile = new File(configuratorsFile, "jahia-config.jar");
+        File configFile = new File(configuratorsFile, "jahia-externalized-config-jahiaServer1.jar");
         JarFile configJarFile = new JarFile(configFile);
         // assertNotNull("Missing LDAP configuration file in jahia-config.jar file!", configJarFile.getEntry("org/jahia/config/applicationcontext-ldap-config.xml"));
         JarEntry licenseJarEntry = configJarFile.getJarEntry("org/jahia/config/license.xml");
-        assertNotNull("Missing license file in jahia-config.jar file!", licenseJarEntry);
-        JarEntry jahiaPropertiesJarEntry = configJarFile.getJarEntry("org/jahia/config/jahia.properties");
-        assertNotNull("Missing properties file in jahia-config.jar file!", jahiaPropertiesJarEntry);
+        assertNotNull("Missing license file in jahia-externalized-config-jahiaServer1.jar file!", licenseJarEntry);
+        JarEntry jahiaPropertiesJarEntry = configJarFile.getJarEntry("org/jahia/config/jahia.jahiaServer1.properties");
+        assertNotNull("Missing jahia.jahiaServer1.properties file in jahia-externalized-config-jahiaServer1.jar file!", jahiaPropertiesJarEntry);
+        JarEntry jahiaAdvancedPropertiesJarEntry = configJarFile.getJarEntry("org/jahia/config/jahia.advanced.jahiaServer1.properties");
+        assertNotNull("Missing jahia.advanced.jahiaServer1.properties file in jahia-externalized-config-jahiaServer1.jar file!", jahiaAdvancedPropertiesJarEntry);
 
         InputStream jahiaPropsInputStream = configJarFile.getInputStream(jahiaPropertiesJarEntry);
         Properties jahiaProperties = new Properties();
