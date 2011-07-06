@@ -142,7 +142,7 @@ public class DeployMojo extends AbstractManagementMojo {
         } else if (project.getPackaging().equals("war")) {
             if (project.getGroupId().equals("org.jahia.server") || project.getGroupId().equals("org.jahia.extensions")) {
                 deployWarProject();
-            } else if (project.getGroupId().equals("org.jahia.modules") || project.getGroupId().equals("org.jahia.templates") || project.getGroupId().endsWith(".jahia.modules")) {
+            } else if (project.getGroupId().equals("org.jahia.modules") || project.getGroupId().equals("org.jahia.templates") || project.getGroupId().equals("org.jahia.test")  || project.getGroupId().endsWith(".jahia.modules")) {
                 if (getProjectStructureVersion() == 2) {
                 	deployModuleProject();
                 } else {
