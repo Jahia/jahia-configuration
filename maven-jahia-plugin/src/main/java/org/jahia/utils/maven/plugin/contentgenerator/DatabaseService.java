@@ -67,6 +67,7 @@ public final class DatabaseService {
 		if (null != dbConnection) {
 			try {
 				dbConnection.close();
+                dbConnection = null;
 			} catch (SQLException e) {
 				logger.error("Error during connection close", e);
 			}

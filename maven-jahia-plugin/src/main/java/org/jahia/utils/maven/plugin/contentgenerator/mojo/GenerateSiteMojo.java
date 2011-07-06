@@ -26,7 +26,7 @@ public class GenerateSiteMojo extends ContentGeneratorMojo {
 
 		String zipFilePath = null;
 		try {
-			zipFilePath = contentGeneratorService.generateSite(export);
+			zipFilePath = contentGeneratorService.generateSites(export);
 		} catch (DOMException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

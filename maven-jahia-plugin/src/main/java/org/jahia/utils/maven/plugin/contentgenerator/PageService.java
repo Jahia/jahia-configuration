@@ -49,6 +49,8 @@ public class PageService {
 
 		PageBO rootPage = createNewPage(export, rootPageName, articlesMap, export.getNbSubLevels() + 1, null);
 
+        export.getMapFile().delete();
+
 		OutputService outService = new OutputService();
         outService.initOutputFile(export.getOutputFile());
 		outService.appendStringToFile(export.getOutputFile(), export.toString());
@@ -62,17 +64,15 @@ public class PageService {
 					createSubPages(export, articles, export.getNbSubLevels(), export.getMaxArticleIndex()));
 			outService.appendPageToFile(export.getOutputFile(), pageTopLevel);
 
-			// path
-			if (export.getCreateMap()) {
-				logger.info("Pages path are being written to the map file");
-				List<PageBO> listeTopPage = new ArrayList<PageBO>();
-				listeTopPage.add(pageTopLevel);
+            // path
+            logger.info("Pages path are being written to the map file");
+            List<PageBO> listeTopPage = new ArrayList<PageBO>();
+            listeTopPage.add(pageTopLevel);
 
-				List<String> pagesPath = getPagesPath(listeTopPage, ContentGeneratorCst.PAGE_PATH_SEPARATOR + rootPage.getUniqueName());
-				outService.appendPathToFile(export.getMapFile(), pagesPath);
-			}
+            List<String> pagesPath = getPagesPath(listeTopPage, "/sites/" + export.getSiteKey() + "/" + rootPage.getUniqueName());
+            outService.appendPathToFile(export.getMapFile(), pagesPath);
 
-			logger.debug("XML code of top level page #" + i + " written in output file");
+            logger.debug("XML code of top level page #" + i + " written in output file");
 			logger.info("Top page #" + i + " with subpages created and written to file");
 		}
 		outService.appendStringToFile(export.getOutputFile(), rootPage.getFooter());

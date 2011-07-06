@@ -79,7 +79,7 @@ public class FileService {
 
 		for (Iterator<String> iterator = filenames.iterator(); iterator.hasNext();) {
 			String fileName = iterator.next();
-			f = new File(filesDirectory + sep + fileName);
+			f = new File(filesDirectory, fileName);
 			fileList.add(f);
 		}
 		return fileList;
@@ -109,7 +109,7 @@ public class FileService {
 			// newDirForFile.mkdir();
 
 			FileUtils.copyFileToDirectory(oldFile, destDir);
-			newFile = new File(destDir + sep + oldFile.getName());
+			newFile = new File(destDir, oldFile.getName());
 			newFiles.add(newFile);
 		}
 		return newFiles;

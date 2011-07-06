@@ -17,178 +17,168 @@ import java.util.List;
 
 public class UserGroupService {
 
-	private Log logger = new SystemStreamLog();
+    private Log logger = new SystemStreamLog();
 
-	private static String sep = System.getProperty("file.separator");;
+    private static String sep = System.getProperty("file.separator");
+    ;
 
-	public Document createUsersRepository(List<UserBO> users) {
-		String jcrDate = ContentGeneratorService.getInstance().getDateForJcrImport(null);
+    public Document createUsersRepository(List<UserBO> users) {
+        String jcrDate = ContentGeneratorService.getInstance().getDateForJcrImport(null);
 
-		Document doc = new Document();
-		Element contentNode = new Element("content");
-		doc.setRootElement(contentNode);
+        Document doc = new Document();
+        Element contentNode = new Element("content");
+        doc.setRootElement(contentNode);
 
-		Element usersNode = new Element("users");
-		contentNode.addContent(usersNode);
+        Element usersNode = new Element("users");
+        contentNode.addContent(usersNode);
 
-		UserBO rootUser = new UserBO("root", hashPassword("root"), jcrDate, null);
-		Element rootUserNode = rootUser.getJcrXml();
-		usersNode.addContent(rootUserNode);
+        UserBO rootUser = new UserBO("root", hashPassword("root"), null);
+        Element rootUserNode = rootUser.getJcrXml();
+        usersNode.addContent(rootUserNode);
 
-		for (Iterator<UserBO> iterator = users.iterator(); iterator.hasNext();) {
-			UserBO userBO = iterator.next();
-			usersNode.addContent(userBO.getJcrXml());
-		}
+        for (Iterator<UserBO> iterator = users.iterator(); iterator.hasNext(); ) {
+            UserBO userBO = iterator.next();
+            usersNode.addContent(userBO.getJcrXml());
+        }
 
-		return doc;
-	}
+        return doc;
+    }
 
-	public File createFileTreeForUsers(List<UserBO> users, File tempDirectory) throws IOException {
-		ClassLoader cl = this.getClass().getClassLoader();
-		OutputService os = new OutputService();
-		
-		File f = new File(tempDirectory + sep + "content" + sep + "users");
-		FileUtils.forceMkdir(f);
+    public File createFileTreeForUsers(List<UserBO> users, File tempDirectory) throws IOException {
+        ClassLoader cl = this.getClass().getClassLoader();
+        OutputService os = new OutputService();
 
-		File dirUser;
-		for (Iterator<UserBO> iterator = users.iterator(); iterator.hasNext();) {
-			UserBO userBO = iterator.next();
-			logger.debug("Creates directories tree for user " + userBO.getName());
-			dirUser = new File(f + sep + userBO.getDirectoryName(1) + sep + userBO.getDirectoryName(2) + sep
-					+ userBO.getDirectoryName(3) + sep + userBO.getName() + sep + "files" + sep + "profiles" + sep
-					+ "publisher.png");
-			FileUtils.forceMkdir(dirUser);
-			
-			File thumbnail = new File(dirUser + sep + "publisher.png");
-			os.writeInputStreamToFile(cl.getResourceAsStream("publisher.png"), thumbnail);
-		}
-		return f;
-	}
+        File f = new File(tempDirectory + sep + "content" + sep + "users");
+        FileUtils.forceMkdir(f);
 
-	public Element generateJcrGroups(String siteKey, List<GroupBO> groups) {
+        File dirUser;
+        for (Iterator<UserBO> iterator = users.iterator(); iterator.hasNext(); ) {
+            UserBO userBO = iterator.next();
+            logger.debug("Creates directories tree for user " + userBO.getName());
+            dirUser = new File(f + sep + userBO.getDirectoryName(1) + sep + userBO.getDirectoryName(2) + sep
+                    + userBO.getDirectoryName(3) + sep + userBO.getName() + sep + "files" + sep + "profiles" + sep
+                    + "publisher.png");
+            FileUtils.forceMkdir(dirUser);
 
-		String jcrDate = ContentGeneratorService.getInstance().getDateForJcrImport(null);
+            File thumbnail = new File(dirUser + sep + "publisher.png");
+            os.writeInputStreamToFile(cl.getResourceAsStream("publisher.png"), thumbnail);
+        }
+        return f;
+    }
 
-		logger.info("Users and groups generated, creation of JCR document...");
-		Element groupsNode = new Element("groups");
+    public Element generateJcrGroups(String siteKey, List<GroupBO> groups) {
+        logger.info("Users and groups generated, creation of JCR document...");
+        Element groupsNode = new Element("groups");
 
-		// site-administrators node
-		Element siteAdminNode = new Element("site-administrators");
-		siteAdminNode.setAttribute("mixinTypes", "jmix:systemNode", ContentGeneratorCst.NS_JCR);
-		siteAdminNode.setAttribute("primaryType", "jnt:group", ContentGeneratorCst.NS_JCR);
-		groupsNode.addContent(siteAdminNode);
+        // site-administrators node
+        Element siteAdminNode = new Element("site-administrators");
+        siteAdminNode.setAttribute("mixinTypes", "jmix:systemNode", ContentGeneratorCst.NS_JCR);
+        siteAdminNode.setAttribute("primaryType", "jnt:group", ContentGeneratorCst.NS_JCR);
+        groupsNode.addContent(siteAdminNode);
 
-		Element jmembersSiteAdmin = new Element("members", ContentGeneratorCst.NS_J);
-		jmembersSiteAdmin.setAttribute("primaryType", "jnt:member", ContentGeneratorCst.NS_JCR);
-		siteAdminNode.addContent(jmembersSiteAdmin);
+        Element jmembersSiteAdmin = new Element("members", ContentGeneratorCst.NS_J);
+        jmembersSiteAdmin.setAttribute("primaryType", "jnt:member", ContentGeneratorCst.NS_JCR);
+        siteAdminNode.addContent(jmembersSiteAdmin);
 
-		Element rootUser = new Element("root");
-		rootUser.setAttribute("member", "/users/root", ContentGeneratorCst.NS_J);
-		rootUser.setAttribute("primaryType", "jnt:member", ContentGeneratorCst.NS_JNT);
-		jmembersSiteAdmin.addContent(rootUser);
+        Element rootUser = new Element("root");
+        rootUser.setAttribute("member", "/users/root", ContentGeneratorCst.NS_J);
+        rootUser.setAttribute("primaryType", "jnt:member", ContentGeneratorCst.NS_JNT);
+        jmembersSiteAdmin.addContent(rootUser);
 
-		// site-privileged node
-		Element sitePrivilegedNode = new Element("site-privileged");
-		sitePrivilegedNode.setAttribute("mixinTypes", "systemNode", ContentGeneratorCst.NS_JMIX);
-		sitePrivilegedNode.setAttribute("primaryType", "jnt:group", ContentGeneratorCst.NS_JNT);
-        sitePrivilegedNode.setAttribute("hidden","false", ContentGeneratorCst.NS_J);
-		groupsNode.addContent(sitePrivilegedNode);
+        // site-privileged node
+        Element sitePrivilegedNode = new Element("site-privileged");
+        sitePrivilegedNode.setAttribute("mixinTypes", "systemNode", ContentGeneratorCst.NS_JMIX);
+        sitePrivilegedNode.setAttribute("primaryType", "jnt:group", ContentGeneratorCst.NS_JNT);
+        sitePrivilegedNode.setAttribute("hidden", "false", ContentGeneratorCst.NS_J);
+        groupsNode.addContent(sitePrivilegedNode);
 
-		Element jmembersSitePrivileged = new Element("members", ContentGeneratorCst.NS_J);
-		jmembersSitePrivileged.setAttribute("primaryType", "jnt:member", ContentGeneratorCst.NS_JCR);
-		sitePrivilegedNode.addContent(jmembersSitePrivileged);
+        Element jmembersSitePrivileged = new Element("members", ContentGeneratorCst.NS_J);
+        jmembersSitePrivileged.setAttribute("primaryType", "jnt:member", ContentGeneratorCst.NS_JCR);
+        sitePrivilegedNode.addContent(jmembersSitePrivileged);
 
-		Element siteAdminGroup = new Element("site-administrators");
-		siteAdminGroup.setAttribute("member", "/sites/" + siteKey + "/groups/site-administrators",
-				ContentGeneratorCst.NS_J);
-		siteAdminGroup.setAttribute("primaryType", "jnt:member", ContentGeneratorCst.NS_JCR);
-        siteAdminGroup.setAttribute("hidden","false", ContentGeneratorCst.NS_J);
-		jmembersSitePrivileged.setContent(siteAdminGroup);
+        Element siteAdminGroup = new Element("site-administrators");
+        siteAdminGroup.setAttribute("member", "/sites/" + siteKey + "/groups/site-administrators",
+                ContentGeneratorCst.NS_J);
+        siteAdminGroup.setAttribute("primaryType", "jnt:member", ContentGeneratorCst.NS_JCR);
+        siteAdminGroup.setAttribute("hidden", "false", ContentGeneratorCst.NS_J);
+        jmembersSitePrivileged.setContent(siteAdminGroup);
 
-		for (Iterator<GroupBO> iterator = groups.iterator(); iterator.hasNext();) {
-			GroupBO group = iterator.next();
+        for (Iterator<GroupBO> iterator = groups.iterator(); iterator.hasNext(); ) {
+            GroupBO group = iterator.next();
 
-			Element groupNode = group.getJcrXml();
-			groupsNode.addContent(groupNode);
-		}
-		return groupsNode;
-	}
+            Element groupNode = group.getJcrXml();
+            groupsNode.addContent(groupNode);
+        }
+        return groupsNode;
+    }
 
-	public List<GroupBO> generateUsersAndGroups(Integer nbUsers, Integer nbGroups) {
-		logger.info(nbUsers + " users and " + nbGroups + " groups are going to be generated");
+    public List<UserBO> generateUsers(Integer nbUsers) {
+        logger.info(nbUsers + " users are going to be generated");
 
-		List<GroupBO> groups = new ArrayList<GroupBO>();
-		String jcrDate = ContentGeneratorService.getInstance().getDateForJcrImport(null);
-		logger.debug("JCR Date = " + jcrDate);
+        List<UserBO> users = new ArrayList<UserBO>();
+        for (int userid = 1; userid < (nbUsers+1); userid++) {
 
-		// users per group without modulo
-		Integer nbUsersPerGroup = getNbUsersPerGroup(nbUsers, nbGroups);
+            String username = "user" + userid;
+            String pathJcr = getPathForUsername(username);
+            UserBO user = new UserBO(username, hashPassword(username), pathJcr);
+            users.add(user);
+        }
+        return users;
+    }
 
-		// users with no group, will be dispatched
-		Integer nbUsersRemaining = getNbUsersRemaining(nbUsers, nbGroups);
+    public List<GroupBO> generateGroups(Integer nbGroups, Integer nbUsersPerGroup, List<UserBO> users) {
+        logger.info(nbGroups + " groups are going to be generated");
 
-		int cptGroups = 1;
-		int cptUsersTotal = 1;
-		while (cptGroups <= nbGroups.intValue()) {
-			List<UserBO> users = new ArrayList<UserBO>();
-			
-			// if there is some users, we add one more user to this group
-			int cptUsers;
-			if (nbUsersRemaining > 0) {
-				cptUsers = 0;
-				nbUsersRemaining--;
-			} else {
-				cptUsers = 1;
-			}
-			while (cptUsers <= nbUsersPerGroup.intValue()) {
-				String dateJcr = ContentGeneratorService.getInstance().getDateForJcrImport(null);
-				String username = "user" + cptUsersTotal;
-				String pathJcr = getPathForUsername(username);
-				// password == userName
-				UserBO user = new UserBO(username, hashPassword(username), dateJcr, pathJcr);
-				users.add(user);
-				cptUsers++;
-				cptUsersTotal++;
-			}
+        List<GroupBO> groups = new ArrayList<GroupBO>();
 
-			GroupBO group = new GroupBO("group" + cptGroups, users, jcrDate);
-			groups.add(group);
-			cptGroups++;
-		}
-		return groups;
-	}
+        int cptGroups = 1;
+        int cptUsers = 0;
 
-	public String getPathForUsername(String username) {
+        while (cptGroups <= nbGroups) {
+            List<UserBO> usersForGroup = new ArrayList<UserBO>();
+            int total = cptUsers + nbUsersPerGroup;
+            for (; cptUsers < total; cptUsers++) {
+                usersForGroup.add(users.get(cptUsers % users.size()));
+            }
 
-		StringBuilder builder = new StringBuilder();
+            GroupBO group = new GroupBO("group" + cptGroups, usersForGroup);
+            groups.add(group);
+            cptGroups++;
+        }
+        return groups;
+    }
 
-		int userNameHashcode = Math.abs(username.hashCode());
-		String firstFolder = getFolderName(userNameHashcode).toLowerCase();
-		userNameHashcode = Math.round(userNameHashcode / 100);
-		String secondFolder = getFolderName(userNameHashcode).toLowerCase();
-		userNameHashcode = Math.round(userNameHashcode / 100);
-		String thirdFolder = getFolderName(userNameHashcode).toLowerCase();
-		return builder.append("/users").append("/").append(firstFolder).append("/").append(secondFolder).append("/")
-				.append(thirdFolder).append("/").append(username).toString();
-	}
+    public String getPathForUsername(String username) {
 
-	private String getFolderName(int userNameHashcode) {
-		int i = (userNameHashcode % 100);
-		return Character.toString((char) ('a' + Math.round(i / 10))) + Character.toString((char) ('a' + (i % 10)));
-	}
+        StringBuilder builder = new StringBuilder();
 
-	public Integer getNbUsersPerGroup(Integer nbUsers, Integer nbGroups) {
-		Integer nbUsersPerGroup = nbUsers / nbGroups;
-		return nbUsersPerGroup;
-	}
+        int userNameHashcode = Math.abs(username.hashCode());
+        String firstFolder = getFolderName(userNameHashcode).toLowerCase();
+        userNameHashcode = Math.round(userNameHashcode / 100);
+        String secondFolder = getFolderName(userNameHashcode).toLowerCase();
+        userNameHashcode = Math.round(userNameHashcode / 100);
+        String thirdFolder = getFolderName(userNameHashcode).toLowerCase();
+        return builder.append("/users").append("/").append(firstFolder).append("/").append(secondFolder).append("/")
+                .append(thirdFolder).append("/").append(username).toString();
+    }
 
-	public Integer getNbUsersRemaining(Integer nbUsers, Integer nbGroups) {
-		Integer nbUsersRemaining = nbUsers % nbGroups;
-		return nbUsersRemaining;
-	}
+    private String getFolderName(int userNameHashcode) {
+        int i = (userNameHashcode % 100);
+        return Character.toString((char) ('a' + Math.round(i / 10))) + Character.toString((char) ('a' + (i % 10)));
+    }
 
-	public String hashPassword(String password) {
-		// hash for "password"
-		return "W6ph5Mm5Pz8GgiULbPgzG37mj9g=";
-	}
+    public Integer getNbUsersPerGroup(Integer nbUsers, Integer nbGroups) {
+        Integer nbUsersPerGroup = nbUsers / nbGroups;
+        return nbUsersPerGroup;
+    }
+
+    public Integer getNbUsersRemaining(Integer nbUsers, Integer nbGroups) {
+        Integer nbUsersRemaining = nbUsers % nbGroups;
+        return nbUsersRemaining;
+    }
+
+    public String hashPassword(String password) {
+        // hash for "password"
+        return "W6ph5Mm5Pz8GgiULbPgzG37mj9g=";
+    }
 }

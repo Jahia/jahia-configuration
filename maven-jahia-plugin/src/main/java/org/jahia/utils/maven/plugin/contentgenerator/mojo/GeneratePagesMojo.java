@@ -30,9 +30,7 @@ public class GeneratePagesMojo extends ContentGeneratorMojo {
 		}
 		
 		getLog().info("XML import file available here: " + export.getOutputFile().getAbsolutePath());
-		if (export.getCreateMap()) {
-			getLog().info("Paths list available here: " + export.getMapFile().getAbsolutePath());
-		}
+        getLog().info("Paths list available here: " + export.getMapFile().getAbsolutePath());
 
 		getLog().info("Completed, " + export.getTotalPages() + " pages created");
 		getLog().info("Please remember that your export contains articles randomly picked from Wikipedia data, and the content generator is not responsible for the articles content. Thank you!");

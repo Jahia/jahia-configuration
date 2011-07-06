@@ -11,15 +11,12 @@ public class UserBO {
 
 	private String jcrPath;
 
-	private String jcrDate;
+    private String email;
 
-	private String email;
-
-	public UserBO(String name, String password, String dateJcr, String pathJcr) {
+	public UserBO(String name, String password, String pathJcr) {
 		this.name = name;
 		this.password = password;
-		this.jcrDate = dateJcr;
-		this.email = this.name + "@example.com";
+        this.email = this.name + "@example.com";
 		this.jcrPath = pathJcr;
 	}
 
@@ -45,14 +42,6 @@ public class UserBO {
 
 	public void setPathJcr(String pathJcr) {
 		this.jcrPath = pathJcr;
-	}
-
-	public String getDateJcr() {
-		return jcrDate;
-	}
-
-	public void setDateJcr(String dateJcr) {
-		this.jcrDate = dateJcr;
 	}
 
 	public String getEmail() {
@@ -91,8 +80,6 @@ public class UserBO {
 
 		userElement.setAttribute("mixinTypes", "jmix:accessControlled", ContentGeneratorCst.NS_JCR);
 		userElement.setAttribute("primaryType", "jnt:user", ContentGeneratorCst.NS_JCR);
-
-		userElement.setAttribute("lastLoginDate", this.jcrDate);
 
 		// userElement.setAttribute("password.history.1242739225417", null);
 		userElement.setAttribute("preferredLanguage", "en");

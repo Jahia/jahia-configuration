@@ -12,13 +12,10 @@ public class GroupBO {
 
 	private List<UserBO> users;
 
-	private String dateJcr;
-
-	public GroupBO(String name, List<UserBO> users, String dateJcr) {
+    public GroupBO(String name, List<UserBO> users) {
 		this.name = name;
 		this.users = users;
-		this.dateJcr = dateJcr;
-	}
+    }
 
 	public String getName() {
 		return name;

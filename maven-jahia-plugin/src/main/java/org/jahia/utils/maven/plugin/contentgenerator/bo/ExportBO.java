@@ -15,8 +15,6 @@ public class ExportBO {
 
 	private String outputDir;
 
-	private String outputFilename;
-
 	private Integer nbPagesTopLevel;
 
 	private Integer nbSubLevels;
@@ -28,8 +26,6 @@ public class ExportBO {
 	private String rootPageName;
 
 	private Integer maxArticleIndex;
-
-	private Boolean createMap;
 
 	private File mapFile;
 
@@ -53,9 +49,13 @@ public class ExportBO {
 	
 	private Integer numberOfGroups;	
 
+    private Integer numberOfUsersPerGroup;
+
     private double groupAclRatio;
 
     private double usersAclRatio;
+
+    private Integer numberOfSites;
 
 	public File getOutputFile() {
 		return outputFile;
@@ -71,14 +71,6 @@ public class ExportBO {
 
 	public void setOutputDir(String outputDir) {
 		this.outputDir = outputDir;
-	}
-
-	public String getOutputFilename() {
-		return outputFilename;
-	}
-
-	public void setOutputFilename(String outputFilename) {
-		this.outputFilename = outputFilename;
 	}
 
 	public Integer getNbPagesTopLevel() {
@@ -127,14 +119,6 @@ public class ExportBO {
 
 	public void setMaxArticleIndex(Integer maxArticleIndex) {
 		this.maxArticleIndex = maxArticleIndex;
-	}
-
-	public Boolean getCreateMap() {
-		return createMap;
-	}
-
-	public void setCreateMap(Boolean createMap) {
-		this.createMap = createMap;
 	}
 
 	public File getMapFile() {
@@ -225,6 +209,14 @@ public class ExportBO {
 		this.numberOfGroups = numberOfGroups;
 	}
 
+    public Integer getNumberOfUsersPerGroup() {
+        return numberOfUsersPerGroup;
+    }
+
+    public void setNumberOfUsersPerGroup(Integer numberOfUsersPerGroup) {
+        this.numberOfUsersPerGroup = numberOfUsersPerGroup;
+    }
+
     public double getGroupAclRatio() {
         return groupAclRatio;
     }
@@ -239,6 +231,14 @@ public class ExportBO {
 
     public void setUsersAclRatio(double usersAclRatio) {
         this.usersAclRatio = usersAclRatio;
+    }
+
+    public Integer getNumberOfSites() {
+        return numberOfSites;
+    }
+
+    public void setNumberOfSites(Integer numberOfSites) {
+        this.numberOfSites = numberOfSites;
     }
 
     public ExportBO() {

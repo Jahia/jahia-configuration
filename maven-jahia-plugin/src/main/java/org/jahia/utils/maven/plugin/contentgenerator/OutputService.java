@@ -54,7 +54,7 @@ public class OutputService {
 	public void appendPathToFile(File f, List<String> paths) throws IOException {
 		for (Iterator<String> iterator = paths.iterator(); iterator.hasNext();) {
 			String path = iterator.next();
-			path = path + ",";
+			path = path + "\n";
 			appendStringToFile(f, path);
 		}
 	}
@@ -73,7 +73,7 @@ public class OutputService {
 			zipOutput.close();
 			newZipArchive = new File(outputPath + sep + archiveName);
 		} catch (IOException e) {
-			logger.error("Can not create ZIP file: " + e);
+			logger.error("Can not create ZIP file: ",e);
 		}
 		return newZipArchive;
 	}

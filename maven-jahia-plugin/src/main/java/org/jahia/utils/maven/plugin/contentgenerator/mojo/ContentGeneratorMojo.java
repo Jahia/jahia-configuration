@@ -75,16 +75,6 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
 	protected String outputFileName;
 
 	/**
-	 * @parameter expression="${jahia.cg.createMapYn}" default-value="false"
-	 */
-	protected Boolean createMapYn;
-
-	/**
-	 * @parameter expression="${jahia.cg.ouputMapName}" default-value="jahia-cg.output.csv"
-	 */
-	protected String outputMapName;
-
-	/**
 	 * @parameter expression="${jahia.cg.pagesHaveVanity}" default-value="true"
 	 */
 	protected Boolean pagesHaveVanity;
@@ -105,7 +95,7 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
 	protected String addFiles;
 
 	/**
-	 * @parameter expression="${jahia.cg.poolDirectory}"
+	 * @parameter expression="${jahia.cg.poolDirectory}" default-value="files_pool"
 	 */
 	protected String poolDirectory;
 
@@ -130,6 +120,11 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
 	 */
 	protected Integer numberOfGroups;
 
+	/**
+	 * @parameter expression="${jahia.cg.numberOfUsersPerGroup}" default-value="5"
+	 */
+	protected Integer numberOfUsersPerGroup;
+
     /**
      * @parameter expression="${jahia.cg.groupsAclRatio}" defaule-value="0"
      */
@@ -139,6 +134,11 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
      * @parameter expression="${jahia.cg.usersAclRatio}" defaule-value="0"
      */
     protected double usersAclRatio;
+
+    /**
+     * @parameter expression="${jahia.cg.numberOfSites}" default-value="1"
+     */
+    protected Integer numberOfSites;
 
 	public abstract void execute() throws MojoExecutionException, MojoFailureException;
 
@@ -196,9 +196,7 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
 		export.setOutputFile(outputFile);
 		export.setOutputDir(outputDirectory);
 
-        export.setCreateMap(createMapYn);
-
-		File outputMapFile = new File(outputDirectory + pathSeparator + outputMapName);
+		File outputMapFile = new File(outputDirectory + pathSeparator + "sitemap.txt");
 		export.setMapFile(outputMapFile);
         export.setPagesHaveVanity(pagesHaveVanity);
         export.setSiteKey(siteKey);
@@ -210,7 +208,7 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
 			if (poolDirectory == null) {
 				throw new MojoExecutionException("Pool directory property can not be null");
 			}
-			File fPoolDirectory = new File(poolDirectory);
+			File fPoolDirectory = new File(export.getOutputDir(), poolDirectory);
 			if (!fPoolDirectory.exists()) {
 				fPoolDirectory.mkdirs();
 			}
@@ -225,10 +223,11 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
         export.setNumberOfBigTextPerPage(numberOfBigTextPerPage);
         export.setNumberOfUsers(numberOfUsers);
         export.setNumberOfGroups(numberOfGroups);
+        export.setNumberOfUsersPerGroup(numberOfUsersPerGroup);
 		export.setNumberOfFilesToGenerate(numberOfFilesToGenerate);
         export.setGroupAclRatio(groupAclRatio);
         export.setUsersAclRatio(usersAclRatio);
-
+        export.setNumberOfSites(numberOfSites);
 		Integer totalPages = contentGeneratorService.getTotalNumberOfPagesNeeded(nbPagesOnTopLevel, nbSubLevels,
 				nbPagesPerLevel);
 		export.setTotalPages(totalPages);

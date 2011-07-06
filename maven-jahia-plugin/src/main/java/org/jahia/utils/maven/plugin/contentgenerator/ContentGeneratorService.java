@@ -21,261 +21,280 @@ public class ContentGeneratorService {
 
     private Log logger = new SystemStreamLog();
 
-	public static ContentGeneratorService instance;
+    public static ContentGeneratorService instance;
 
-	public static int currentPageIndex = 0;
+    public static int currentPageIndex = 0;
 
-	public static int currentFileIndex = 0;
+    public static int currentFileIndex = 0;
 
-	private ContentGeneratorService() {
-	}
+    private ContentGeneratorService() {
+    }
 
-	public static ContentGeneratorService getInstance() {
-		if (instance == null) {
-			instance = new ContentGeneratorService();
-		}
-		return instance;
-	}
+    public static ContentGeneratorService getInstance() {
+        if (instance == null) {
+            instance = new ContentGeneratorService();
+        }
+        return instance;
+    }
 
-	/**
-	 * Generates an XML files containing the pages tree and that can be imported
-	 * into a Jahia website
-	 * 
-	 * @param export
-	 */
-	public void generatePages(ExportBO export) throws MojoExecutionException, IOException {
-		if (!ContentGeneratorCst.VALUE_NONE.equals(export.getAddFilesToPage()) && export.getFileNames().isEmpty()) {
-			throw new MojoExecutionException(
-					"Directory containing files to include is empty, use jahia-cg:generate-files first");
-		}
+    /**
+     * Generates an XML files containing the pages tree and that can be imported
+     * into a Jahia website
+     *
+     * @param export
+     */
+    public void generatePages(ExportBO export) throws MojoExecutionException, IOException {
+        if (!ContentGeneratorCst.VALUE_NONE.equals(export.getAddFilesToPage()) && export.getFileNames().isEmpty()) {
+            throw new MojoExecutionException(
+                    "Directory containing files to include is empty, use jahia-cg:generate-files first");
+        }
 
-		List<ArticleBO> articles = DatabaseService.getInstance().selectArticles(export, export.getTotalPages());
+        List<ArticleBO> articles = DatabaseService.getInstance().selectArticles(export, export.getTotalPages());
 
-		PageService pageService = new PageService();
-		pageService.createTopPages(export, articles);
-	}
+        PageService pageService = new PageService();
+        pageService.createTopPages(export, articles);
+    }
 
-	/**
-	 * Generates text files that can be used as attachments, with random content
-	 * from the articles database
-	 * 
-	 * @param export
-	 * @throws MojoExecutionException
-	 */
-	public void generateFiles(ExportBO export) throws MojoExecutionException {
-		logger.info("Jahia files generator starts");
+    /**
+     * Generates text files that can be used as attachments, with random content
+     * from the articles database
+     *
+     * @param export
+     * @throws MojoExecutionException
+     */
+    public void generateFiles(ExportBO export) throws MojoExecutionException {
+        logger.info("Jahia files generator starts");
 
-		Integer numberOfFilesToGenerate = export.getNumberOfFilesToGenerate();
-		if (numberOfFilesToGenerate == null) {
-			throw new MojoExecutionException("numberOfFilesToGenerate parameter is null");
-		}
+        Integer numberOfFilesToGenerate = export.getNumberOfFilesToGenerate();
+        if (numberOfFilesToGenerate == null) {
+            throw new MojoExecutionException("numberOfFilesToGenerate parameter is null");
+        }
 
-		List<ArticleBO> articles = DatabaseService.getInstance().selectArticles(export,
-				export.getNumberOfFilesToGenerate());
-		int indexArticle = 0;
-		File outputFile;
+        List<ArticleBO> articles = DatabaseService.getInstance().selectArticles(export,
+                export.getNumberOfFilesToGenerate());
+        int indexArticle = 0;
+        File outputFile;
 
-		for (int i = 0; i < numberOfFilesToGenerate; i++) {
-			if (indexArticle == articles.size()) {
-				indexArticle = 0;
-			}
+        for (int i = 0; i < numberOfFilesToGenerate; i++) {
+            if (indexArticle == articles.size()) {
+                indexArticle = 0;
+            }
 
-			String newFileName = "file." + i + ".txt";
-			String newFilePath = export.getFilesDirectory() + System.getProperty("file.separator") + newFileName;
-			outputFile = new File(newFilePath);
+            outputFile = new File(export.getFilesDirectory(), "file." + i + ".txt");
 
-			try {
-				FileUtils.writeStringToFile(outputFile, articles.get(indexArticle).getContent());
-			} catch (IOException e) {
-				throw new MojoExecutionException("Can't create new file: " + e.getMessage());
-			}
+            try {
+                FileUtils.writeStringToFile(outputFile, articles.get(indexArticle).getContent());
+            } catch (IOException e) {
+                throw new MojoExecutionException("Can't create new file: " + e.getMessage());
+            }
 
-			indexArticle++;
-		}
-	}
+            indexArticle++;
+        }
 
-	/**
-	 * Generates pages and then creates a ZIP archive containing those pages,
-	 * the files needed for attachments and site.properties
-	 * 
-	 * @param export
-	 * @return Absolute path of ZIP file created
-	 * @throws MojoExecutionException
-	 * @throws ParserConfigurationException
-	 * @throws DOMException
-	 */
-	public String generateSite(ExportBO export) throws MojoExecutionException, DOMException,
-			ParserConfigurationException {
-		String globalArchivePath = null;
-		String sep = System.getProperty("file.separator");
+        FileService fileService = new FileService();
+        List<String> filesNamesAvailable = fileService.getFileNamesAvailable(export.getFilesDirectory());
+        export.setFileNames(filesNamesAvailable);
 
-		// as we create a full site we will need a home page
-		export.setRootPageName(ContentGeneratorCst.ROOT_PAGE_NAME);
-		SiteBO site = new SiteBO();
-		site.setSiteKey(export.getSiteKey());
+    }
 
-		try {
-			SiteService siteService = new SiteService();
+    /**
+     * Generates pages and then creates a ZIP archive containing those pages,
+     * the files needed for attachments and site.properties
+     *
+     *
+     * @param export
+     * @return Absolute path of ZIP file created
+     * @throws MojoExecutionException
+     * @throws ParserConfigurationException
+     * @throws DOMException
+     */
+    public String generateSites(ExportBO export) throws MojoExecutionException, DOMException,
+            ParserConfigurationException {
+        String globalArchivePath = null;
 
-			generatePages(export);
+        OutputService os = new OutputService();
+        UserGroupService userGroupService = new UserGroupService();
 
-			logger.debug("Pages generated, now site");
-			List<File> filesToZip = new ArrayList<File>();
+        List<File> globalFilesToZip = new ArrayList<File>();
 
-			// create temporary dir in output dir (siteKey)
-			File tempOutputDir = siteService.createSiteDirectory(export.getSiteKey(), new File(export.getOutputDir()));
+        try {
+            if (!ContentGeneratorCst.VALUE_NONE.equals(export.getAddFilesToPage()) && export.getFileNames().isEmpty()) {
+                generateFiles(export);
+            }
 
-			// create properties file
-			File propertiesFile = siteService.createPropertiesFile(export.getSiteKey(), export.getSiteLanguages(), tempOutputDir);
-			filesToZip.add(propertiesFile);
+            List<UserBO> users = userGroupService.generateUsers(export.getNumberOfUsers());
+            File tmpUsers = new File(export.getOutputDir(), "users");
+            tmpUsers.mkdir();
 
-			// create tree dirs for files attachments (if files are not at
-			// "none")
-			File tempXmlFile = null;
-			if (!ContentGeneratorCst.VALUE_NONE.equals(export.getAddFilesToPage())) {
-				FileService fileService = new FileService();
-				File filesDirectory = siteService.createFilesDirectoryTree(export.getSiteKey(), tempOutputDir);
-				filesToZip.add(new File(tempOutputDir + "/content"));
+            File repositoryUsers = new File(tmpUsers, "repository.xml");
+            Document usersRepositoryDocument = userGroupService.createUsersRepository(users);
+            os.writeJdomDocumentToFile(usersRepositoryDocument, repositoryUsers);
 
-				// get all files available in the pool dir
-				List<File> filesToCopy = fileService.getFilesAvailable(export.getFilesDirectory());
+            List<File> filesToZip = new ArrayList<File>();
+            File contentUsers = userGroupService.createFileTreeForUsers(users, tmpUsers);
 
-				// if there are more files available than pages created, we copy
-				// only the total of files that have been used
-				if (filesToCopy.size() > export.getTotalPages()) {
-					filesToCopy = filesToCopy.subList(0, export.getTotalPages() - 1);
-				}
+            filesToZip.add(repositoryUsers);
+            filesToZip.add(contentUsers);
+            File usersArchive = os.createSiteArchive("users.zip", export.getOutputDir(), filesToZip);
+            globalFilesToZip.add(usersArchive);
 
-				fileService.copyFilesForAttachment(filesToCopy, filesDirectory);
+            List<String> userNames = new ArrayList<String>();
+            for (UserBO user : users) {
+                userNames.add(user.getName());
+            }
+            os.appendPathToFile(new File(export.getOutputDir(), "users.txt"), userNames);
 
-				// generates XML code for files
-				tempXmlFile = new File(export.getOutputDir() + sep + "jcrFiles.xml");
-				fileService.createAndPopulateFilesXmlFile(tempXmlFile, filesToCopy);
-			}
+            String baseSiteKey = export.getSiteKey();
 
-			// 2 - copy pages => repository.xml
-			File repositoryFile = siteService.createAndPopulateRepositoryFile(tempOutputDir, site,
-					export.getOutputFile(), tempXmlFile);
+            for (int i = 0; i < export.getNumberOfSites(); i++) {
+                // as we create a full site we will need a home page
+                export.setRootPageName(ContentGeneratorCst.ROOT_PAGE_NAME);
+                SiteBO site = new SiteBO();
+                String siteKey = baseSiteKey + (i > 0 ? i+1 : "");
+                export.setSiteKey(siteKey);
+                site.setSiteKey(siteKey);
 
-			// Add XML Groups
-			UserGroupService userGroupService = new UserGroupService();
+                SiteService siteService = new SiteService();
 
-			Integer nbUsers = export.getNumberOfUsers();
-			Integer nbGroups = export.getNumberOfGroups();
-			List<GroupBO> groups = userGroupService.generateUsersAndGroups(nbUsers, nbGroups);
-			Element groupsNode = userGroupService.generateJcrGroups(export.getSiteKey(), groups);
+                export.setMapFile(new File(export.getOutputDir(), siteKey+".sitemap.txt"));
 
-			// TODO: transformer le repository String en repository global JDOM
-			Document repositoryDoc = readXmlFile(repositoryFile);
-			repositoryDoc = siteService.insertGroupsIntoSiteRepository(repositoryDoc, export.getSiteKey(), groupsNode);
+                generatePages(export);
 
-			OutputService os = new OutputService();
+                logger.debug("Pages generated, now site");
+                filesToZip = new ArrayList<File>();
 
-			os.writeJdomDocumentToFile(repositoryDoc, repositoryFile);
-			filesToZip.add(repositoryFile);
+                // create temporary dir in output dir (siteKey)
+                File tempOutputDir = siteService.createSiteDirectory(siteKey, new File(export.getOutputDir()));
 
-			String zipFileName = export.getSiteKey() + ".zip";
-			File siteArchive = os.createSiteArchive(zipFileName, tempOutputDir.getAbsolutePath(), filesToZip);
+                // create properties file
+                File propertiesFile = siteService.createPropertiesFile(siteKey, export.getSiteLanguages(), tempOutputDir);
+                filesToZip.add(propertiesFile);
 
-			// Users archive
-			filesToZip.clear();
-			File tmpUsers = new File(tempOutputDir + sep + "tmpUsers");
-			tmpUsers.mkdir();
-			
-			List<UserBO> users = new ArrayList<UserBO>();
-			for (Iterator<GroupBO> iterator = groups.iterator(); iterator.hasNext();) {
-				GroupBO group = iterator.next();
-				users.addAll(group.getUsers());
-			}
-			File repositoryUsers = new File(tmpUsers + sep + "repository.xml");
-			Document usersRepositoryDocument = userGroupService.createUsersRepository(users);
-			os.writeJdomDocumentToFile(usersRepositoryDocument, repositoryUsers);
+                // create tree dirs for files attachments (if files are not at
+                // "none")
+                File tempXmlFile = null;
+                if (!ContentGeneratorCst.VALUE_NONE.equals(export.getAddFilesToPage())) {
+                    FileService fileService = new FileService();
+                    File filesDirectory = siteService.createFilesDirectoryTree(siteKey, tempOutputDir);
+                    filesToZip.add(new File(tempOutputDir + "/content"));
 
-			File contentUsers = userGroupService.createFileTreeForUsers(users, tmpUsers);
-			
-			filesToZip.add(repositoryUsers);
-			filesToZip.add(contentUsers);
-			String usersZipFileName = "users.zip";
-			File usersArchive = os.createSiteArchive(usersZipFileName, tmpUsers.getParentFile().getAbsolutePath(), filesToZip);
-			
-			// Global site archive
-			filesToZip.clear();
-			filesToZip.add(siteArchive);
-			filesToZip.add(usersArchive);
-			File globalArchive = os.createSiteArchive(zipFileName, tempOutputDir.getParentFile().getAbsolutePath(), filesToZip);
-			globalArchivePath = globalArchive.getAbsolutePath();
-			
-		} catch (IOException e) {
-			throw new MojoExecutionException("Exception while creating the website ZIP archive: " + e);
-		}
-		return globalArchivePath;
-	}
+                    // get all files available in the pool dir
+                    List<File> filesToCopy = fileService.getFilesAvailable(export.getFilesDirectory());
 
-	/**
-	 * Calculates the number of pages needed, used to know how much articles we
-	 * will need
-	 * 
-	 * @param nbPagesTopLevel
-	 * @param nbLevels
-	 * @param nbPagesPerLevel
-	 * @return number of pages needed
-	 */
-	public Integer getTotalNumberOfPagesNeeded(Integer nbPagesTopLevel, Integer nbLevels, Integer nbPagesPerLevel) {
-		Double nbPages = new Double(0);
-		for (double d = nbLevels; d > 0; d--) {
-			nbPages += Math.pow(nbPagesPerLevel.doubleValue(), d);
-		}
-		nbPages = nbPages * nbPagesTopLevel + nbPagesTopLevel;
+                    // if there are more files available than pages created, we copy
+                    // only the total of files that have been used
+                    if (filesToCopy.size() > export.getTotalPages()) {
+                        filesToCopy = filesToCopy.subList(0, export.getTotalPages() - 1);
+                    }
 
-		return new Integer(nbPages.intValue());
-	}
+                    fileService.copyFilesForAttachment(filesToCopy, filesDirectory);
 
-	/**
-	 * Format a date for inclusion in JCR XML file If date is null, current date
-	 * is used Format used: http://www.day.com/specs/jcr/1.0/6.2.5.1_Date.html
-	 * 
-	 * @param date
-	 * @return formated date
-	 */
-	public String getDateForJcrImport(Date date) {
-		GregorianCalendar gc = (GregorianCalendar) GregorianCalendar.getInstance();
-		if (date != null) {
-			gc.setTime(date);
-		}
-		StringBuffer sbNewDate = new StringBuffer();
-		// 2011-04-01T17:39:59.265+02:00
-		sbNewDate.append(gc.get(Calendar.YEAR));
-		sbNewDate.append("-");
-		sbNewDate.append(gc.get(Calendar.MONTH));
-		sbNewDate.append("-");
-		sbNewDate.append(gc.get(Calendar.DAY_OF_MONTH));
-		sbNewDate.append("T");
-		sbNewDate.append(gc.get(Calendar.HOUR_OF_DAY));
-		sbNewDate.append(":");
-		sbNewDate.append(gc.get(Calendar.MINUTE));
-		sbNewDate.append(":");
-		sbNewDate.append(gc.get(Calendar.SECOND));
-		sbNewDate.append(".");
-		sbNewDate.append(gc.get(Calendar.MILLISECOND));
-		sbNewDate.append(gc.get(Calendar.ZONE_OFFSET));
-		return sbNewDate.toString();
-	}
+                    // generates XML code for files
+                    tempXmlFile = new File(export.getOutputDir(), "jcrFiles.xml");
+                    fileService.createAndPopulateFilesXmlFile(tempXmlFile, filesToCopy);
+                }
 
-	// @TODO a supprimer
-	private Document readXmlFile(File xmlFile) {
-		SAXBuilder builder = new SAXBuilder();
+                // 2 - copy pages => repository.xml
+                File repositoryFile = siteService.createAndPopulateRepositoryFile(tempOutputDir, site,
+                        export.getOutputFile(), tempXmlFile);
 
-		Document document = null;
-		try {
-			document = builder.build(xmlFile);
-		} catch (JDOMException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+                // Add XML Groups
 
-		return document;
-	}
+                List<GroupBO> groups = userGroupService.generateGroups(export.getNumberOfGroups(), export.getNumberOfUsersPerGroup(), users);
+                Element groupsNode = userGroupService.generateJcrGroups(siteKey, groups);
+
+                // TODO: transformer le repository String en repository global JDOM
+                Document repositoryDoc = readXmlFile(repositoryFile);
+                repositoryDoc = siteService.insertGroupsIntoSiteRepository(repositoryDoc, siteKey, groupsNode);
+
+                os.writeJdomDocumentToFile(repositoryDoc, repositoryFile);
+                filesToZip.add(repositoryFile);
+
+                String zipFileName = siteKey + ".zip";
+                File siteArchive = os.createSiteArchive(zipFileName, export.getOutputDir(), filesToZip);
+
+                // Users archive
+                filesToZip.clear();
+                globalFilesToZip.add(siteArchive);
+            }
+
+            // Global site archive
+
+
+            File globalArchive = os.createSiteArchive("import.zip", export.getOutputDir(), globalFilesToZip);
+            globalArchivePath = globalArchive.getAbsolutePath();
+
+        } catch (IOException e) {
+            throw new MojoExecutionException("Exception while creating the website ZIP archive: " + e);
+        }
+        return globalArchivePath;
+    }
+
+    /**
+     * Calculates the number of pages needed, used to know how much articles we
+     * will need
+     *
+     * @param nbPagesTopLevel
+     * @param nbLevels
+     * @param nbPagesPerLevel
+     * @return number of pages needed
+     */
+    public Integer getTotalNumberOfPagesNeeded(Integer nbPagesTopLevel, Integer nbLevels, Integer nbPagesPerLevel) {
+        Double nbPages = new Double(0);
+        for (double d = nbLevels; d > 0; d--) {
+            nbPages += Math.pow(nbPagesPerLevel.doubleValue(), d);
+        }
+        nbPages = nbPages * nbPagesTopLevel + nbPagesTopLevel;
+
+        return new Integer(nbPages.intValue());
+    }
+
+    /**
+     * Format a date for inclusion in JCR XML file If date is null, current date
+     * is used Format used: http://www.day.com/specs/jcr/1.0/6.2.5.1_Date.html
+     *
+     * @param date
+     * @return formated date
+     */
+    public String getDateForJcrImport(Date date) {
+        GregorianCalendar gc = (GregorianCalendar) GregorianCalendar.getInstance();
+        if (date != null) {
+            gc.setTime(date);
+        }
+        StringBuffer sbNewDate = new StringBuffer();
+        // 2011-04-01T17:39:59.265+02:00
+        sbNewDate.append(gc.get(Calendar.YEAR));
+        sbNewDate.append("-");
+        sbNewDate.append(gc.get(Calendar.MONTH));
+        sbNewDate.append("-");
+        sbNewDate.append(gc.get(Calendar.DAY_OF_MONTH));
+        sbNewDate.append("T");
+        sbNewDate.append(gc.get(Calendar.HOUR_OF_DAY));
+        sbNewDate.append(":");
+        sbNewDate.append(gc.get(Calendar.MINUTE));
+        sbNewDate.append(":");
+        sbNewDate.append(gc.get(Calendar.SECOND));
+        sbNewDate.append(".");
+        sbNewDate.append(gc.get(Calendar.MILLISECOND));
+        sbNewDate.append(gc.get(Calendar.ZONE_OFFSET));
+        return sbNewDate.toString();
+    }
+
+    // @TODO a supprimer
+    private Document readXmlFile(File xmlFile) {
+        SAXBuilder builder = new SAXBuilder();
+
+        Document document = null;
+        try {
+            document = builder.build(xmlFile);
+        } catch (JDOMException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return document;
+    }
 }

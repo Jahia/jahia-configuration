@@ -37,12 +37,6 @@ public class HelpMojo extends AbstractMojo {
 						+ ")");
 		getLog().info("* jahia.cg.outputDirectory");
 		getLog().info("* jahia.cg.outputFileName (optional, default = " + ContentGeneratorCst.OUTPUT_FILE_DEFAULT + ")");
-
-		getLog().info("* jahia.cg.createMapYn (optional, default = " + ContentGeneratorCst.CREATE_MAP_DEFAULT + ")");
-		getLog().info(
-				"  if true, the tool will generate another file containing the absolute path of each page, one per line");
-
-		getLog().info("* jahia.cg.ouputMapName (optional, default = " + ContentGeneratorCst.OUTPUT_MAP_DEFAULT + ")");
 		getLog().info("* jahia.cg.pagesHaveVanity (optional, default = " + ContentGeneratorCst.HAS_VANITY_DEFAULT + ")");
 		getLog().info("  if true, add a vanity URL to each page, on the template \"/page<n>\"");
 
@@ -60,8 +54,12 @@ public class HelpMojo extends AbstractMojo {
 		getLog().info("* jahia.cg.numberOfFilesToGenerate required for file generation. Files will be generated in poolDirectory path.");
 		getLog().info("* jahia.cg.numberOfBigTextPerPage (optional, default = 1)");
 		getLog().info("* jahia.cg.numberOfUsers: generate user1 to user${numberOfUsers}. Password is \"password\"");
-		getLog().info("* jahia.cg.numberOfGroups: generate group1 to user${numberOfGroups}. First groups contain one more user is some users can not make a full group. ");
-		
+		getLog().info("* jahia.cg.numberOfGroups: generate group1 to group${numberOfGroups}.");
+		getLog().info("* jahia.cg.numberOfUsersPerGroup: Size of each generated group. ");
+		getLog().info("* jahia.cg.numberOfSites: Total number of sites in final import file. ");
+		getLog().info("* jahia.cg.groupsAclRatio: Percentage of page having specific ACL on a random group. (between 0 and 1)");
+		getLog().info("* jahia.cg.usersAclRatio: Percentage of page having specific ACL on a random user. (between 0 and 1)");
+
 		getLog().info("");
 		getLog().info("NB:");
 		getLog().info("1. You can not generate more than " + ContentGeneratorCst.MAX_TOTAL_PAGES + " pages");
