@@ -1,8 +1,12 @@
 package org.jahia.configuration.configurators;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.net.URL;
 import java.io.File;
 
+import org.apache.commons.vfs.FileSystemManager;
+import org.apache.commons.vfs.VFS;
 import org.jahia.configuration.configurators.JackrabbitConfigurator;
 import org.jdom.input.SAXBuilder;
 import org.jdom.Document;
@@ -18,12 +22,14 @@ public class JackrabbitConfiguratorTest extends AbstractXMLConfiguratorTestCase 
 
     public void testUpdateConfiguration () throws Exception {
         URL repositoryURL = this.getClass().getClassLoader().getResource("configurators/WEB-INF/etc/repository/jackrabbit/repository.xml");
+        FileSystemManager fsManager = VFS.getManager();
+
         File repositoryFile = new File(repositoryURL.getFile());
         String repositoryFileParentPath = repositoryFile.getParentFile().getPath() + File.separator;
 
         oracleDBProperties.setProperty("storeFilesInDB", "true");
         JackrabbitConfigurator websphereOracleJackrabbitConfigurator = new JackrabbitConfigurator(oracleDBProperties, websphereOracleConfigBean);
-        websphereOracleJackrabbitConfigurator.updateConfiguration(repositoryFile.toString(), repositoryFileParentPath + "repository-modified.xml");
+        websphereOracleJackrabbitConfigurator.updateConfiguration(new VFSConfigFile(fsManager, repositoryURL.toExternalForm()), repositoryFileParentPath + "repository-modified.xml");
 
         // The following tests are NOT exhaustive
         SAXBuilder saxBuilder = new SAXBuilder();
@@ -41,7 +47,7 @@ public class JackrabbitConfiguratorTest extends AbstractXMLConfiguratorTestCase 
 
         mysqlDBProperties.setProperty("storeFilesInDB", "false");
         JackrabbitConfigurator tomcatMySQLJackrabbitConfigurator = new JackrabbitConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);
-        tomcatMySQLJackrabbitConfigurator.updateConfiguration(repositoryFileParentPath + "repository-modified.xml", repositoryFileParentPath + "repository-modified2.xml");
+        tomcatMySQLJackrabbitConfigurator.updateConfiguration(new VFSConfigFile(fsManager, repositoryFileParentPath + "repository-modified.xml"), repositoryFileParentPath + "repository-modified2.xml");
 
         // The following tests are NOT exhaustive
         saxBuilder = new SAXBuilder();

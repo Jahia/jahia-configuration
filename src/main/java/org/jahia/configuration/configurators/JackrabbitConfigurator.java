@@ -40,7 +40,7 @@ import org.jdom.xpath.XPath;
 import org.jdom.input.SAXBuilder;
 
 import java.io.FileWriter;
-import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.List;
 
@@ -57,13 +57,13 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
         super(dbProperties, jahiaConfigInterface);
     }
    
-    public void updateConfiguration(String sourceFileName, String destFileName) throws Exception {
+    public void updateConfiguration(ConfigFile sourceConfigFile, String destFileName) throws Exception {
         try {
             SAXBuilder saxBuilder = new SAXBuilder();
             saxBuilder.setFeature(
                     "http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
 
-            FileReader fileReader = new FileReader(sourceFileName);
+            InputStreamReader fileReader = new InputStreamReader(sourceConfigFile.getInputStream());
             org.jdom.Document jdomDocument = saxBuilder.build(fileReader);
             Element repositoryElement = jdomDocument.getRootElement();
             Namespace namespace = repositoryElement.getNamespace();
@@ -123,7 +123,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             xmlOutputter.output(jdomDocument, new FileWriter(destFileName));
 
         } catch (JDOMException jdome) {
-            throw new Exception("Error while updating configuration file " + sourceFileName, jdome);
+            throw new Exception("Error while updating configuration file " + sourceConfigFile, jdome);
         }
     }
 }

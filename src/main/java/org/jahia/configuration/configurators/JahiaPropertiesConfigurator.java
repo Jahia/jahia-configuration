@@ -50,8 +50,8 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         super(dbProperties, jahiaConfigInterface);
     }
 
-    public void updateConfiguration(String sourceJahiaPath, String targetJahiaPath) throws IOException {
-        properties = new PropertiesManager(sourceJahiaPath, targetJahiaPath);
+    public void updateConfiguration(ConfigFile sourceJahiaPath, String targetJahiaPath) throws IOException {
+        properties = new PropertiesManager(sourceJahiaPath.getInputStream());
         // context  path
         properties.setProperty("jahia.contextPath", jahiaConfigInterface.getContextPath());
         // jahia tools manager
@@ -81,7 +81,7 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         
         configureScheduler();
         
-        properties.storeProperties(sourceJahiaPath, targetJahiaPath);
+        properties.storeProperties(sourceJahiaPath.getInputStream(), targetJahiaPath);
     }
 
 	private void configureScheduler() {

@@ -1,11 +1,14 @@
 package org.jahia.configuration.configurators;
 
+import org.apache.commons.vfs.FileSystemManager;
+import org.apache.commons.vfs.VFS;
 import org.jahia.configuration.configurators.RootUserConfigurator;
 import org.jdom.input.SAXBuilder;
 import org.jdom.Document;
 import org.jdom.Attribute;
 import org.jdom.Element;
 
+import java.io.FileInputStream;
 import java.net.URL;
 import java.io.File;
 
@@ -18,12 +21,13 @@ import java.io.File;
  */
 public class RootUserConfiguratorTest extends AbstractXMLConfiguratorTestCase {
     public void testUpdateConfiguration() throws Exception {
+        FileSystemManager fsManager = VFS.getManager();
         URL rootXmlUrl = this.getClass().getClassLoader().getResource("configurators/WEB-INF/etc/repository/root-test.xml");
         File rootXmlFile = new File(rootXmlUrl.getFile());
         String rootXmlFileParentPath = rootXmlFile.getParentFile().getPath() + File.separator;
 
         RootUserConfigurator websphereOracleConfigurator = new RootUserConfigurator(oracleDBProperties, websphereOracleConfigBean, "password");
-        websphereOracleConfigurator.updateConfiguration(rootXmlFile.toString(), rootXmlFileParentPath + "root-modified.xml");
+        websphereOracleConfigurator.updateConfiguration(new VFSConfigFile(fsManager, rootXmlUrl.toExternalForm()), rootXmlFileParentPath + "root-modified.xml");
 
         SAXBuilder saxBuilder = new SAXBuilder();
         Document jdomDocument = saxBuilder.build(rootXmlFileParentPath + "root-modified.xml");
@@ -41,7 +45,7 @@ public class RootUserConfiguratorTest extends AbstractXMLConfiguratorTestCase {
                 + websphereOracleConfigBean.getJahiaRootUsername() + "/@j:email", prefix)).getValue());
 
         RootUserConfigurator tomcatMySQLConfigurator = new RootUserConfigurator(mysqlDBProperties, tomcatMySQLConfigBean, "1234root");
-        tomcatMySQLConfigurator.updateConfiguration(rootXmlFileParentPath + "root-test.xml", rootXmlFileParentPath + "root-modified2.xml");
+        tomcatMySQLConfigurator.updateConfiguration(new VFSConfigFile(fsManager, rootXmlFileParentPath + "root-test.xml"), rootXmlFileParentPath + "root-modified2.xml");
 
         jdomDocument = saxBuilder.build(rootXmlFileParentPath + "root-modified2.xml");
 

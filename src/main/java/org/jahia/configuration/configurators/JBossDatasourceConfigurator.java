@@ -33,8 +33,8 @@
 
 package org.jahia.configuration.configurators;
 
-import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.InputStreamReader;
 import java.util.Map;
 
 import org.jdom.Element;
@@ -55,11 +55,11 @@ public class JBossDatasourceConfigurator extends AbstractXMLConfigurator {
         super(dbProperties, jahiaConfigInterface);
     }
 
-    public void updateConfiguration(String sourceFileName, String destFileName)
+    public void updateConfiguration(ConfigFile sourceConfigFile, String destFileName)
             throws Exception {
         try {
             SAXBuilder saxBuilder = new SAXBuilder();
-            FileReader fileReader = new FileReader(sourceFileName);
+            InputStreamReader fileReader = new InputStreamReader(sourceConfigFile.getInputStream());
             org.jdom.Document jdomDocument = saxBuilder.build(fileReader);
             Element datasource = jdomDocument.getRootElement().getChild(
                     "no-tx-datasource");
@@ -84,7 +84,7 @@ public class JBossDatasourceConfigurator extends AbstractXMLConfigurator {
 
         } catch (JDOMException jdome) {
             throw new Exception("Error while updating configuration file "
-                    + sourceFileName, jdome);
+                    + sourceConfigFile, jdome);
         }
 
     }
