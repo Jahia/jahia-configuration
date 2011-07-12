@@ -32,6 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -188,7 +189,7 @@ public class JahiaGlobalConfigurator {
             }
         }
 
-        FileObject jahiaImplFileObject = findVFSFile(sourceWebAppPath + "/WEB-INF/lib", "jahia-impl-.*\\.jar");
+        FileObject jahiaImplFileObject = findVFSFile(sourceWebAppPath + "/WEB-INF/lib", "jahia\\-impl\\-.*\\.jar");
         URL jahiaDefaultConfigJARURL = this.getClass().getClassLoader().getResource("jahia-default-config.jar");
         if (jahiaImplFileObject != null) {
             jahiaDefaultConfigJARURL = jahiaImplFileObject.getURL();
@@ -199,7 +200,7 @@ public class JahiaGlobalConfigurator {
 
         new JahiaPropertiesConfigurator(dbProps, jahiaConfigInterface).updateConfiguration (jahiaPropertiesConfigFile, targetConfigPath + "/" + jahiaPropertiesFileName);
 
-        FileObject jahiaEEImplFileObject = findVFSFile(sourceWebAppPath + "/WEB-INF/lib", "jahia-ee-impl.*\\.jar");
+        FileObject jahiaEEImplFileObject = findVFSFile(sourceWebAppPath + "/WEB-INF/lib", "jahia\\-ee\\-impl.*\\.jar");
         if (jahiaEEImplFileObject != null) {
             jahiaDefaultConfigJARURL = jahiaEEImplFileObject.getURL();
         }
@@ -218,14 +219,15 @@ public class JahiaGlobalConfigurator {
         new LDAPConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,sourceWebAppPath), ldapTargetFile);
     }
 
-    private FileObject findVFSFile(String parentPath, String fileMatchingPattern) {
+    public FileObject findVFSFile(String parentPath, String fileMatchingPattern) {
         Pattern matchingPattern = Pattern.compile(fileMatchingPattern);
         try {
             FileSystemManager fsManager = VFS.getManager();
             FileObject parentFileObject = fsManager.resolveFile(parentPath);
             FileObject[] children = parentFileObject.getChildren();
             for (FileObject child : children) {
-                if (fileMatchingPattern.matches(child.getName().getBaseName())) {
+                Matcher matcher = matchingPattern.matcher(child.getName().getBaseName());
+                if (matcher.matches()) {
                     return child;
                 }
             }

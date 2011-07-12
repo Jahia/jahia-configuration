@@ -2,6 +2,7 @@ package org.jahia.configuration.configurators;
 
 import junit.framework.TestCase;
 
+import org.apache.commons.vfs.FileObject;
 import org.jahia.configuration.configurators.JahiaConfigBean;
 import org.jahia.configuration.configurators.JahiaGlobalConfigurator;
 import org.jahia.configuration.logging.SLF4JLogger;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,41 @@ import java.util.jar.JarFile;
  *         Time: 2:26:38 PM
  */
 public class JahiaGlobalConfiguratorTest extends TestCase {
+
+    public void testFindVFSFile() throws URISyntaxException {
+        JahiaConfigBean websphereDerbyConfigBean;
+
+        Logger logger = LoggerFactory.getLogger(JahiaGlobalConfiguratorTest.class);
+
+        URL configuratorsResourceURL = this.getClass().getClassLoader().getResource("configurators");
+        File configuratorsFile = new File(configuratorsResourceURL.toURI());
+
+        websphereDerbyConfigBean = new JahiaConfigBean();
+        websphereDerbyConfigBean.setDatabaseType("derby");
+        websphereDerbyConfigBean.setTargetServerType("was");
+        websphereDerbyConfigBean.setTargetServerVersion("6.1.0.25");
+        websphereDerbyConfigBean.setTargetConfigurationDirectory(configuratorsFile.toString());
+        websphereDerbyConfigBean.setSourceWebAppDir(configuratorsFile.toString());
+        websphereDerbyConfigBean.setCluster_activated("true");
+        websphereDerbyConfigBean.setCluster_node_serverId("jahiaServer1");
+        websphereDerbyConfigBean.setProcessingServer("true");
+        websphereDerbyConfigBean.setLdapActivated("true");
+        List<String> clusterNodes = new ArrayList<String>();
+        clusterNodes.add("2.3.4.5");
+        clusterNodes.add("3.4.5.6");
+        clusterNodes.add("4.5.6.7");
+        websphereDerbyConfigBean.setClusterNodes(clusterNodes);
+        websphereDerbyConfigBean.setExternalizedConfigActivated(true);
+        websphereDerbyConfigBean.setExternalizedConfigTargetPath(configuratorsFile.getPath());
+        websphereDerbyConfigBean.setExternalizedConfigClassifier("jahiaServer1");
+        websphereDerbyConfigBean.setExternalizedConfigFinalName("jahia-externalized-config");
+
+        JahiaGlobalConfigurator jahiaGlobalConfigurator = new JahiaGlobalConfigurator(new SLF4JLogger(logger), websphereDerbyConfigBean);
+        FileObject webXmlFileObject = jahiaGlobalConfigurator.findVFSFile(configuratorsFile.getPath() + "/WEB-INF", "web\\.xml");
+        assertNotNull("Couldn't find web.xml using full matching pattern", webXmlFileObject);
+        webXmlFileObject = jahiaGlobalConfigurator.findVFSFile(configuratorsFile.getPath() + "/WEB-INF", "w.*\\.xml");
+        assertNotNull("Couldn't find web.xml using basic pattern", webXmlFileObject);
+    }
 
     public void testGlobalConfiguration() throws Exception {
 
