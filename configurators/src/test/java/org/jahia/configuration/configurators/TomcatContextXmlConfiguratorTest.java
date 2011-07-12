@@ -1,9 +1,12 @@
 package org.jahia.configuration.configurators;
 
+import org.apache.commons.vfs.FileSystemManager;
+import org.apache.commons.vfs.VFS;
 import org.jahia.configuration.configurators.TomcatContextXmlConfigurator;
 import org.jdom.input.SAXBuilder;
 import org.jdom.Document;
 
+import java.io.FileInputStream;
 import java.net.URL;
 import java.io.File;
 
@@ -17,12 +20,13 @@ import java.io.File;
 public class TomcatContextXmlConfiguratorTest extends AbstractXMLConfiguratorTestCase {
     
     public void testUpdateConfiguration() throws Exception {
+        FileSystemManager fsManager = VFS.getManager();
         URL contextXmlUrl = this.getClass().getClassLoader().getResource("configurators/META-INF/context.xml");
         File contextXmlFile = new File(contextXmlUrl.getFile());
         String contextXmlParentPath = contextXmlFile.getParentFile().getPath() + File.separator;
 
         TomcatContextXmlConfigurator tomcatOracleConfigurator = new TomcatContextXmlConfigurator(oracleDBProperties, tomcatMySQLConfigBean);
-        tomcatOracleConfigurator.updateConfiguration(contextXmlFile.toString(), contextXmlParentPath + "context-modified.xml");
+        tomcatOracleConfigurator.updateConfiguration(new VFSConfigFile(fsManager, contextXmlUrl.toExternalForm()), contextXmlParentPath + "context-modified.xml");
 
         // The following tests are NOT exhaustive
         SAXBuilder saxBuilder = new SAXBuilder();
@@ -35,7 +39,7 @@ public class TomcatContextXmlConfiguratorTest extends AbstractXMLConfiguratorTes
         assertAllTextEquals(jdomDocument, "//Resource/@driverClassName", prefix, oracleDBProperties.getProperty("jahia.database.driver"));
 
         TomcatContextXmlConfigurator tomcatMySQLContextXmlConfigurator = new TomcatContextXmlConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);
-        tomcatMySQLContextXmlConfigurator.updateConfiguration(contextXmlParentPath + "context-modified.xml", contextXmlParentPath + "context-modified2.xml");
+        tomcatMySQLContextXmlConfigurator.updateConfiguration(new VFSConfigFile(fsManager, contextXmlParentPath + "context-modified.xml"), contextXmlParentPath + "context-modified2.xml");
 
         // The following tests are NOT exhaustive
         saxBuilder = new SAXBuilder();

@@ -39,7 +39,6 @@ import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.util.Map;
 
@@ -61,15 +60,14 @@ public class RootUserConfigurator extends AbstractXMLConfigurator {
         cfg = jahiaConfigInterface;
     }
 
-    public void updateConfiguration(String sourceFileName, String destFileName) throws Exception {
+    public void updateConfiguration(ConfigFile sourceConfigFile, String destFileName) throws Exception {
 
-        File rootFile = new File(sourceFileName);
-        if (!rootFile.exists()) {
+        if (sourceConfigFile == null) {
             return;
         }        
 
         SAXBuilder saxBuilder = new SAXBuilder();
-        Document jdomDocument = saxBuilder.build(sourceFileName);
+        Document jdomDocument = saxBuilder.build(sourceConfigFile.getInputStream());
         Element beansElement = jdomDocument.getRootElement();
         Element rootNameElement = getElement(beansElement, "/content/users/ROOT_NAME_PLACEHOLDER");
         rootNameElement = rootNameElement != null ? rootNameElement : getElement(beansElement, "/content/users/root");

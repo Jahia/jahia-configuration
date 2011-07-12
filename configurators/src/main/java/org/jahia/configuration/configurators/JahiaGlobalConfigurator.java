@@ -8,6 +8,10 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs.FileSystemManager;
+import org.apache.commons.vfs.VFS;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.StringUtils;
@@ -18,6 +22,7 @@ import org.json.JSONObject;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -27,6 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 /**
  * Global Jahia configuration utility.
@@ -152,17 +158,20 @@ public class JahiaGlobalConfigurator {
 
     private void updateConfigurationFiles(String sourceWebAppPath, String webappPath, Properties dbProps, JahiaConfigInterface jahiaConfigInterface) throws Exception {
         getLogger().info("Configuring file using source " + sourceWebAppPath + " to target " + webappPath);
-        new JackrabbitConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml", webappPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml");
-        new TomcatContextXmlConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(sourceWebAppPath + "/META-INF/context.xml", webappPath + "/META-INF/context.xml");
-        new RootUserConfigurator(dbProps, jahiaConfigInterface, encryptPassword(jahiaConfigInterface.getJahiaRootPassword())).updateConfiguration(sourceWebAppPath + "/WEB-INF/etc/repository/root.xml", webappPath + "/WEB-INF/etc/repository/root.xml");
+
+        FileSystemManager fsManager = VFS.getManager();
+
+        new JackrabbitConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,sourceWebAppPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml"), webappPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml");
+        new TomcatContextXmlConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,sourceWebAppPath + "/META-INF/context.xml"), webappPath + "/META-INF/context.xml");
+        new RootUserConfigurator(dbProps, jahiaConfigInterface, encryptPassword(jahiaConfigInterface.getJahiaRootPassword())).updateConfiguration(new VFSConfigFile(fsManager,sourceWebAppPath + "/WEB-INF/etc/repository/root.xml"), webappPath + "/WEB-INF/etc/repository/root.xml");
         if ("jboss".equalsIgnoreCase(jahiaConfigInterface.getTargetServerType())) {
             File datasourcePath = new File(jahiaConfigInterface.getTargetServerDirectory(), ServerDeploymentFactory.getInstance().getImplementation(jahiaConfigInterface.getTargetServerType() + jahiaConfigInterface.getTargetServerVersion()).getDeploymentFilePath("jahia-jboss-config.sar/jahia-ds", "xml"));
             if (datasourcePath.exists()) {
-                new JBossDatasourceConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(datasourcePath.getPath(), datasourcePath.getPath());
+                new JBossDatasourceConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,datasourcePath.getPath()), datasourcePath.getPath());
             }
             datasourcePath = new File(sourceWebAppPath, "../jahia-jboss-config/jahia-ds.xml");
             if (datasourcePath.exists()) {
-                new JBossDatasourceConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(datasourcePath.getPath(), datasourcePath.getPath());
+                new JBossDatasourceConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,datasourcePath.getPath()), datasourcePath.getPath());
             }
         }
 
@@ -178,15 +187,52 @@ public class JahiaGlobalConfigurator {
                 jahiaAdvancedPropertiesFileName = "jahia.advanced." + jahiaConfigInterface.getExternalizedConfigClassifier() + ".properties";
             }
         }
-        new JahiaPropertiesConfigurator(dbProps, jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.skeleton", targetConfigPath + "/" + jahiaPropertiesFileName);
-        if (new File(sourceWebAppPath + "/WEB-INF/etc/config/jahia.advanced.skeleton").exists()) {
-            new JahiaAdvancedPropertiesConfigurator(logger, jahiaConfigInterface).updateConfiguration (sourceWebAppPath + "/WEB-INF/etc/config/jahia.advanced.skeleton", targetConfigPath + "/" + jahiaAdvancedPropertiesFileName);
+
+        FileObject jahiaImplFileObject = findVFSFile(sourceWebAppPath + "/WEB-INF/lib", "jahia-impl-.*\\.jar");
+        URL jahiaDefaultConfigJARURL = this.getClass().getClassLoader().getResource("jahia-default-config.jar");
+        if (jahiaImplFileObject != null) {
+            jahiaDefaultConfigJARURL = jahiaImplFileObject.getURL();
         }
+
+        // Locate the Jar file
+        ConfigFile jahiaPropertiesConfigFile = new VFSConfigFile(fsManager.resolveFile("jar:" + jahiaDefaultConfigJARURL.toExternalForm()), "org/jahia/defaults/config/properties/jahia.properties");
+
+        new JahiaPropertiesConfigurator(dbProps, jahiaConfigInterface).updateConfiguration (jahiaPropertiesConfigFile, targetConfigPath + "/" + jahiaPropertiesFileName);
+
+        FileObject jahiaEEImplFileObject = findVFSFile(sourceWebAppPath + "/WEB-INF/lib", "jahia-ee-impl.*\\.jar");
+        if (jahiaEEImplFileObject != null) {
+            jahiaDefaultConfigJARURL = jahiaEEImplFileObject.getURL();
+        }
+
+        try {
+            ConfigFile jahiaAdvancedPropertiesConfigFile = new VFSConfigFile(fsManager.resolveFile("jar:" + jahiaDefaultConfigJARURL.toExternalForm()), "org/jahia/defaults/config/properties/jahia.advanced.properties");
+            new JahiaAdvancedPropertiesConfigurator(logger, jahiaConfigInterface).updateConfiguration (jahiaAdvancedPropertiesConfigFile, targetConfigPath + "/" + jahiaAdvancedPropertiesFileName);
+        } catch (FileSystemException fse) {
+            // in the case we cannot access the file, it means we should not do the advanced configuration, which is expected for Jahia "core".
+        }
+
         String ldapTargetFile = webappPath + "/WEB-INF/var/shared_modules";
         if (externalizedConfigTempPath != null) {
             ldapTargetFile = externalizedConfigTempPath + "/applicationcontext-ldap-config.xml";
         }
-        new LDAPConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(sourceWebAppPath, ldapTargetFile);
+        new LDAPConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,sourceWebAppPath), ldapTargetFile);
+    }
+
+    private FileObject findVFSFile(String parentPath, String fileMatchingPattern) {
+        Pattern matchingPattern = Pattern.compile(fileMatchingPattern);
+        try {
+            FileSystemManager fsManager = VFS.getManager();
+            FileObject parentFileObject = fsManager.resolveFile(parentPath);
+            FileObject[] children = parentFileObject.getChildren();
+            for (FileObject child : children) {
+                if (fileMatchingPattern.matches(child.getName().getBaseName())) {
+                    return child;
+                }
+            }
+        } catch (FileSystemException e) {
+            logger.debug("Couldn't find file matching pattern " + fileMatchingPattern + " at path " + parentPath);
+        }
+        return null;
     }
 
     private void setProperties() throws Exception {

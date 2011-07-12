@@ -1,5 +1,6 @@
 package org.jahia.configuration.configurators;
 
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.Map;
 
@@ -27,7 +28,7 @@ public abstract class AbstractConfigurator {
         this.dbProperties = dbProps;
     }
 
-    public abstract void updateConfiguration(String sourceFileName, String destFileName) throws Exception;
+    public abstract void updateConfiguration(ConfigFile sourceConfigFile, String destFileName) throws Exception;
 
     protected static String getValue(Map values, String key) {
         String replacement = (String) values.get(key);

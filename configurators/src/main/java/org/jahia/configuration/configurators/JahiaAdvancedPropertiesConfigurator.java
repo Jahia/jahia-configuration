@@ -57,8 +57,8 @@ public class JahiaAdvancedPropertiesConfigurator extends AbstractConfigurator {
         this.logger = logger;
     }
 
-    public void updateConfiguration(String sourceJahiaPath, String targetJahiaPath) throws IOException {
-        properties = new PropertiesManager(sourceJahiaPath, targetJahiaPath);
+    public void updateConfiguration(ConfigFile sourceJahiaPath, String targetJahiaPath) throws IOException {
+        properties = new PropertiesManager(sourceJahiaPath.getInputStream());
         
         JahiaConfigInterface cfg = jahiaConfigInterface;
 
@@ -82,7 +82,7 @@ public class JahiaAdvancedPropertiesConfigurator extends AbstractConfigurator {
 
         properties.setProperty("cluster.tcp.num_initial_members",String.valueOf(hibernateHosts.size()));
         
-        properties.storeProperties(sourceJahiaPath, targetJahiaPath);
+        properties.storeProperties(sourceJahiaPath.getInputStream(), targetJahiaPath);
     }
 
     private static List<String> getInitialHosts(List<String> hosts,

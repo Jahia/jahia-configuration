@@ -62,10 +62,12 @@ import java.util.regex.PatternSyntaxException;
  * @version 1.0
  */
 public class PropertiesManager {
-    public Properties properties = new Properties();
-    public String sourcePropertiesFilePath;
-    public String destPropertiesFilePath;
-    public Set<String> removedPropertyNames = new HashSet<String>();
+    private Properties properties = new Properties();
+    private Set modifiedProperties = new HashSet<String>();
+    private boolean loadedFromInputStream = false;
+    private Set<String> removedPropertyNames = new HashSet<String>();
+    private boolean unmodifiedCommentingActivated = false;
+    private String additionalPropertiesMessage = "The following properties were added.";
 
     /**
      * Default constructor.
@@ -77,18 +79,13 @@ public class PropertiesManager {
 
 
     /**
-     * Default constructor.
-     *
-     * @param sourcePropertiesFilePath The filesystem path from the file is loaded.
-     * @param destPropertiesFilePath   The filesystem path where the file is saved.
-     * @throws java.io.IOException thrown if there was a problem loading the properties file from the sourcePropertiesFilePath
+     * Construct a properties manager from an existing input stream that references a properties file.
+     * @param sourcePropertiesInputStream
+     * @throws IOException
      */
-    public PropertiesManager(String sourcePropertiesFilePath, String destPropertiesFilePath) throws IOException {
-        this.sourcePropertiesFilePath = sourcePropertiesFilePath;
-        this.destPropertiesFilePath = destPropertiesFilePath;
-        this.loadProperties(sourcePropertiesFilePath);
+    public PropertiesManager(InputStream sourcePropertiesInputStream) throws IOException {
+        this.loadProperties(sourcePropertiesInputStream);
     } // end constructor
-
 
     /**
      * Default constructor.
@@ -103,13 +100,13 @@ public class PropertiesManager {
     /**
      * Load a complete properties file in memory by its filename.
      *
+     * @param sourcePropertiesInputStream
      */
-    private void loadProperties(String sourcePropertiesFilePath) throws IOException {
-        FileInputStream inputStream = null;
-        inputStream = new FileInputStream(sourcePropertiesFilePath);
+    private void loadProperties(InputStream sourcePropertiesInputStream) throws IOException {
         properties = new Properties();
-        properties.load(inputStream);
-        inputStream.close();
+        properties.load(sourcePropertiesInputStream);
+        sourcePropertiesInputStream.close();
+        loadedFromInputStream = true;
     } // end loadProperties
 
 
@@ -133,6 +130,7 @@ public class PropertiesManager {
     public void setProperty(String propertyName,
                             String propvalue) {
         properties.setProperty(propertyName, propvalue);
+        modifiedProperties.add(propertyName);
     } // end setProperty
 
 
@@ -148,30 +146,21 @@ public class PropertiesManager {
 
     } // end removeProperty
 
-
-    /**
-     * Store new properties and values in the properties file.
-     * The file writed is the same, using the same file path, as the file loaded before.
-     *
-     * @author Alexandre Kraft
-     */
-    public void storeProperties() throws IOException {
-        storeProperties(sourcePropertiesFilePath, destPropertiesFilePath);
-    } // end storeProperties
-
-
     /**
      * Store new properties and values in the properties file.
      * If the file where you want to write doesn't exists, the file is created.
      *
-     * @param sourcePropertiesFilePath The filesystem path where the file is loaded from.
+     * @param sourcePropertiesInputStream The source input stream used to load the properties from, or null if it
+     * doesn't exist.
      * @param destPropertiesFilePath   The filesystem path where the file is saved.
      * @author Alexandre Kraft
      * @author Khue N'Guyen
      */
-    public void storeProperties(String sourcePropertiesFilePath, String destPropertiesFilePath)
+    public void storeProperties(InputStream sourcePropertiesInputStream, String destPropertiesFilePath)
             throws IOException {
-        boolean baseObjectExists = true;
+        if (loadedFromInputStream && sourcePropertiesInputStream == null) {
+            throw new UnsupportedOperationException("If loaded from an input stream, it must be provided when storing the file");
+        }
         List outputLineList = new ArrayList();
         String currentLine = null;
 
@@ -185,19 +174,9 @@ public class PropertiesManager {
         }
 
         // try to create a file object via the propertiesFilePath...
-        File propertiesFileObjectBase = null;
-        try {
-            propertiesFileObjectBase = new File(sourcePropertiesFilePath);
-            baseObjectExists = propertiesFileObjectBase.exists();
 
-        } catch (NullPointerException npe) {
-            baseObjectExists = false;
-        } finally {
-            propertiesFileObjectBase = null;
-        }
-
-        if (baseObjectExists) {
-            BufferedReader buffered = new BufferedReader(new FileReader(sourcePropertiesFilePath));
+        if (loadedFromInputStream) {
+            BufferedReader buffered = new BufferedReader(new InputStreamReader(sourcePropertiesInputStream));
             int position = 0;
 
             Set remainingPropertyNames = new HashSet(properties.keySet());
@@ -210,13 +189,21 @@ public class PropertiesManager {
                     if (!currentLine.trim().equals("") && !currentLine.trim().startsWith("#") && (equalPosition >= 0)) {
                         String currentPropertyName = currentLine.substring(0, equalPosition).trim();
                         if (remainingPropertyNames.contains(currentPropertyName)) {
-                            String propvalue = properties.getProperty(currentPropertyName);
+                            String propValue = properties.getProperty(currentPropertyName);
                             remainingPropertyNames.remove(currentPropertyName);
-
                             StringBuffer thisLineBuffer = new StringBuffer();
-                            thisLineBuffer.append(currentLine.substring(0, equalPosition + 1));
-                            thisLineBuffer.append(" ");
-                            thisLineBuffer.append(propvalue);
+                            if (!unmodifiedCommentingActivated ||
+                                    modifiedProperties.contains(currentPropertyName)) {
+                                thisLineBuffer.append(currentLine.substring(0, equalPosition + 1));
+                                thisLineBuffer.append(" ");
+                                thisLineBuffer.append(propValue);
+                            } else {
+                                // this property was not modified, we comment it out
+                                thisLineBuffer.append("#");
+                                thisLineBuffer.append(currentLine.substring(0, equalPosition + 1));
+                                thisLineBuffer.append(" ");
+                                thisLineBuffer.append(propValue);
+                            }
                             outputLineList.add(thisLineBuffer.toString());
                         } else if (removedPropertyNames.contains(currentPropertyName)) {
                             // the property must be removed from the file, we do not add it to the output.                            
@@ -233,7 +220,10 @@ public class PropertiesManager {
                 }
             }
 
-            // add not found properties at the end of the file (and the jahia.properties layout is keeping)...
+            // add not found properties at the end of the file (and the jahia.properties layout is kept)...
+            if ((remainingPropertyNames.size() > 0) && (additionalPropertiesMessage != null)) {
+                outputLineList.add("# " + additionalPropertiesMessage);
+            }
             Iterator remainingPropNameIterator = remainingPropertyNames.iterator();
             while (remainingPropNameIterator.hasNext()) {
                 String restantPropertyName = (String) remainingPropNameIterator.next();
@@ -307,5 +297,29 @@ public class PropertiesManager {
         return properties;
     } // end getPropertiesObject
 
+    public boolean isUnmodifiedCommentingActivated() {
+        return unmodifiedCommentingActivated;
+    }
 
+    /**
+     * If activated, non-modified properties will be commented out when saving the modifications
+     * @param unmodifiedCommentingActivated
+     */
+    public void setUnmodifiedCommentingActivated(boolean unmodifiedCommentingActivated) {
+        this.unmodifiedCommentingActivated = unmodifiedCommentingActivated;
+    }
+
+    public String getAdditionalPropertiesMessage() {
+        return additionalPropertiesMessage;
+    }
+
+    /**
+     * The message to use in a comment before the list of properties that were not present in the
+     * original properties file and that were added dynamically. Set this message to null to avoid
+     * the generation of this message.
+     * @param additionalPropertiesMessage
+     */
+    public void setAdditionalPropertiesMessage(String additionalPropertiesMessage) {
+        this.additionalPropertiesMessage = additionalPropertiesMessage;
+    }
 }

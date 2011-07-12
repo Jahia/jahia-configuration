@@ -40,8 +40,8 @@ import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 import org.jdom.xpath.XPath;
 
-import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.InputStreamReader;
 import java.util.Map;
 
 /**
@@ -55,10 +55,10 @@ public class TomcatContextXmlConfigurator extends AbstractXMLConfigurator {
         super(dbProperties, jahiaConfigInterface);
     }
 
-    public void updateConfiguration(String sourceFileName, String destFileName) throws Exception {
+    public void updateConfiguration(ConfigFile sourceConfigFile, String destFileName) throws Exception {
         try {
             SAXBuilder saxBuilder = new SAXBuilder();
-            FileReader fileReader = new FileReader(sourceFileName);
+            InputStreamReader fileReader = new InputStreamReader(sourceConfigFile.getInputStream());
             org.jdom.Document jdomDocument = saxBuilder.build(fileReader);
             Element root = jdomDocument.getRootElement();
 
@@ -93,7 +93,7 @@ public class TomcatContextXmlConfigurator extends AbstractXMLConfigurator {
             xmlOutputter.output(jdomDocument, new FileWriter(destFileName));
 
         } catch (JDOMException jdome) {
-            throw new Exception("Error while updating configuration file " + sourceFileName, jdome);
+            throw new Exception("Error while updating configuration file " + sourceConfigFile, jdome);
         }
 
     }

@@ -35,7 +35,6 @@ package org.jahia.configuration.configurators;
 
 import org.apache.commons.io.FileUtils;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
-import org.codehaus.plexus.util.StringUtils;
 import org.jdom.Attribute;
 import org.jdom.Comment;
 import org.jdom.Document;
@@ -69,7 +68,7 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
     }
 
     @Override
-    public void updateConfiguration(String sourceFileName, String destFileName) throws Exception {
+    public void updateConfiguration(ConfigFile sourceConfigFile, String destFileName) throws Exception {
 
         Map<String, String> groupProps = jahiaConfigInterface.getGroupLdapProviderProperties();
         Map<String, String> userProps = jahiaConfigInterface.getUserLdapProviderProperties();
