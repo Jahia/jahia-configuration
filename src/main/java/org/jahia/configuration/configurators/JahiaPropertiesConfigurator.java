@@ -33,8 +33,11 @@
 
 package org.jahia.configuration.configurators;
 
+import java.io.File;
+import java.io.FileReader;
 import java.util.Map;
 import java.io.IOException;
+import java.util.Properties;
 
 /**
  * Property configuration for the jahia.properties file.
@@ -52,6 +55,17 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
 
     public void updateConfiguration(ConfigFile sourceJahiaPath, String targetJahiaPath) throws IOException {
         properties = new PropertiesManager(sourceJahiaPath.getInputStream());
+        properties.setUnmodifiedCommentingActivated(true);
+
+        File targetJahiaFile = new File(targetJahiaPath);
+        Properties existingProperties = new Properties();
+        if (targetJahiaFile.exists()) {
+            existingProperties.load(new FileReader(targetJahiaFile));
+            for (String propertyName : existingProperties.stringPropertyNames()) {
+                properties.setProperty(propertyName, existingProperties.getProperty(propertyName));
+            }
+        }
+
         // context  path
         properties.setProperty("jahia.contextPath", jahiaConfigInterface.getContextPath());
         // jahia tools manager

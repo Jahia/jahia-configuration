@@ -33,9 +33,12 @@
 
 package org.jahia.configuration.configurators;
 
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.jahia.configuration.logging.AbstractLogger;
@@ -59,7 +62,17 @@ public class JahiaAdvancedPropertiesConfigurator extends AbstractConfigurator {
 
     public void updateConfiguration(ConfigFile sourceJahiaPath, String targetJahiaPath) throws IOException {
         properties = new PropertiesManager(sourceJahiaPath.getInputStream());
-        
+        properties.setUnmodifiedCommentingActivated(true);
+
+        File targetJahiaFile = new File(targetJahiaPath);
+        Properties existingProperties = new Properties();
+        if (targetJahiaFile.exists()) {
+            existingProperties.load(new FileReader(targetJahiaFile));
+            for (String propertyName : existingProperties.stringPropertyNames()) {
+                properties.setProperty(propertyName, existingProperties.getProperty(propertyName));
+            }
+        }
+
         JahiaConfigInterface cfg = jahiaConfigInterface;
 
         properties.setProperty("processingServer", cfg.getProcessingServer());

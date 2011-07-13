@@ -42,7 +42,7 @@ public class JahiaPropertiesConfiguratorTest extends AbstractConfiguratorTestCas
 
         JahiaPropertiesConfigurator websphereOracleConfigurator = new JahiaPropertiesConfigurator(oracleDBProperties, websphereOracleConfigBean);
         websphereOracleConfigurator.updateConfiguration(jahiaPropertiesConfigFile, targetJahiaPropertiesFile);
-        new JahiaAdvancedPropertiesConfigurator(logger, websphereOracleConfigBean).updateConfiguration(new VFSConfigFile(fsManager, targetJahiaPropertiesFile), targetJahiaPropertiesFile);
+        new JahiaAdvancedPropertiesConfigurator(logger, websphereOracleConfigBean).updateConfiguration(jahiaPropertiesConfigFile, targetJahiaPropertiesFile);
         Properties websphereOracleProperties = new Properties();
         websphereOracleProperties.load(new FileInputStream(jahiaDefaultConfigFileParentPath + "jahia.properties"));
         assertEquals("was", websphereOracleProperties.getProperty("server"));
