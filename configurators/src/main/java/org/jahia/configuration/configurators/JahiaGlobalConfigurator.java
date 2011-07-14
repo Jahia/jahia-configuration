@@ -213,9 +213,6 @@ public class JahiaGlobalConfigurator {
         }
 
         String ldapTargetFile = webappPath + "/WEB-INF/var/shared_modules";
-        if (externalizedConfigTempPath != null) {
-            ldapTargetFile = externalizedConfigTempPath + "/applicationcontext-ldap-config.xml";
-        }
         new LDAPConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,sourceWebAppPath), ldapTargetFile);
     }
 
