@@ -83,22 +83,18 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
         File tempDirectory = null;
         File ldapConfigDirectory = null;
         File targetManifestFile = null;
-        if (!jahiaConfigInterface.isExternalizedConfigActivated()) {
-            tempDirectory = FileUtils.getTempDirectory();
-            ldapConfigDirectory = new File(tempDirectory, "ldap-config");
-            ldapConfigDirectory.mkdir();
-            File metainfDir = new File(ldapConfigDirectory, "META-INF");
-            metainfDir.mkdir();
-            File springDir = new File(metainfDir, "spring");
-            springDir.mkdir();
-            destFile = new File(springDir, "applicationcontext-ldap-config.xml");
-            // copy MANIFEST file.
-            InputStream manifestStream = this.getClass().getClassLoader().getResourceAsStream("ldap/META-INF/MANIFEST.MF");
-            targetManifestFile = new File(metainfDir, "MANIFEST.MF");
-            FileUtils.copyInputStreamToFile(manifestStream, targetManifestFile);
-        } else {
-            destFile = new File(destFileName);
-        }
+        tempDirectory = FileUtils.getTempDirectory();
+        ldapConfigDirectory = new File(tempDirectory, "ldap-config");
+        ldapConfigDirectory.mkdir();
+        File metainfDir = new File(ldapConfigDirectory, "META-INF");
+        metainfDir.mkdir();
+        File springDir = new File(metainfDir, "spring");
+        springDir.mkdir();
+        destFile = new File(springDir, "applicationcontext-ldap-config.xml");
+        // copy MANIFEST file.
+        InputStream manifestStream = this.getClass().getClassLoader().getResourceAsStream("ldap/META-INF/MANIFEST.MF");
+        targetManifestFile = new File(metainfDir, "MANIFEST.MF");
+        FileUtils.copyInputStreamToFile(manifestStream, targetManifestFile);
 
         SAXBuilder saxBuilder = new SAXBuilder();
         InputStream skeletonContextStream = this.getClass().getClassLoader().getResourceAsStream("ldap/META-INF/spring/applicationcontext-ldap-config.xml");
@@ -115,29 +111,27 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
         XMLOutputter xmlOutputter = new XMLOutputter(customFormat);
         xmlOutputter.output(jdomDocument, new FileWriter(destFile));
 
-        if (!jahiaConfigInterface.isExternalizedConfigActivated()) {
-            boolean verbose = true;
-            JarArchiver archiver = new JarArchiver();
-            if (verbose) {
-                archiver.enableLogging(new ConsoleLogger(Logger.LEVEL_DEBUG,
-                        "console"));
-            }
-            // let's generate the WAR file
-            File targetFile = new File(tempDirectory, "ldap-config.war");
-            archiver.setManifest(targetManifestFile);
-            archiver.setDestFile(targetFile);
-            String excludes = null;
-
-            archiver.addDirectory(ldapConfigDirectory, null,
-                    excludes != null ? excludes.split(",") : null);
-            archiver.createArchive();
-
-            // copy the WAR file to the deployment directory
-            FileUtils.copyFileToDirectory(targetFile, new File(destFileName));
-
-            FileUtils.deleteDirectory(ldapConfigDirectory);
-            targetFile.delete();
+        boolean verbose = true;
+        JarArchiver archiver = new JarArchiver();
+        if (verbose) {
+            archiver.enableLogging(new ConsoleLogger(Logger.LEVEL_DEBUG,
+                    "console"));
         }
+        // let's generate the WAR file
+        File targetFile = new File(tempDirectory, "ldap-config.war");
+        archiver.setManifest(targetManifestFile);
+        archiver.setDestFile(targetFile);
+        String excludes = null;
+
+        archiver.addDirectory(ldapConfigDirectory, null,
+                excludes != null ? excludes.split(",") : null);
+        archiver.createArchive();
+
+        // copy the WAR file to the deployment directory
+        FileUtils.copyFileToDirectory(targetFile, new File(destFileName));
+
+        FileUtils.deleteDirectory(ldapConfigDirectory);
+        targetFile.delete();
     }
 
     private void configure(String provider, Map<String, String> props,
