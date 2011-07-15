@@ -13,9 +13,9 @@
     <url>http://www.jahia.org</url>
 
     <scm>
-        <connection>scm:svn:http://10.8.37.111/svn/maven-jahia-plugin/trunk/</connection>
-        <developerConnection>scm:svn:http://10.8.37.111/svn/maven-jahia-plugin/trunk/</developerConnection>
-        <url>http://10.8.37.111/svn/maven-jahia-plugin/trunk</url>
+        <connection>scm:svn:https://devtools.jahia.com/svn/maven-jahia-plugin/trunk/</connection>
+        <developerConnection>scm:svn:https://devtools.jahia.com/svn/maven-jahia-plugin/trunk/</developerConnection>
+        <url>https://devtools.jahia.com/svn/maven-jahia-plugin/trunk</url>
     </scm>
     <developers>
         <developer>
