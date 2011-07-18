@@ -34,6 +34,7 @@
 package org.jahia.configuration.configurators;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.jdom.Attribute;
 import org.jdom.Comment;
@@ -109,7 +110,12 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
         Format customFormat = Format.getPrettyFormat();
         customFormat.setLineSeparator(System.getProperty("line.separator"));
         XMLOutputter xmlOutputter = new XMLOutputter(customFormat);
-        xmlOutputter.output(jdomDocument, new FileWriter(destFile));
+        FileWriter fw = new FileWriter(destFile);
+        try {
+            xmlOutputter.output(jdomDocument, fw);
+        } finally {
+            IOUtils.closeQuietly(fw);
+        }
 
         boolean verbose = true;
         JarArchiver archiver = new JarArchiver();
