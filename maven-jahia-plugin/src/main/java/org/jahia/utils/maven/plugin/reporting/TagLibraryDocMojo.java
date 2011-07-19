@@ -47,6 +47,8 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.reporting.AbstractMavenReport;
 import org.apache.maven.reporting.MavenReport;
 import org.apache.maven.reporting.MavenReportException;
+import org.codehaus.plexus.archiver.util.DefaultFileSet;
+import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.util.FileUtils;
 
 import com.sun.tlddoc.TLDDocGenerator;
@@ -117,6 +119,14 @@ public class TagLibraryDocMojo extends AbstractMavenReport implements MavenRepor
      * @readonly
      */
     private String outputDirectory;
+
+    /**
+     * The name of the destination directory.
+     * 
+     * @parameter expression="${taglibrarydoc.outputZipFile}" alias="taglibrarydoc.outputZipFile" default-value="${project.artifactId}-${project.version}-tlddoc.zip"
+     * @since 2.53
+     */
+    private String outputZipFile;
 
     /**
      * @parameter expression="${project}"
@@ -196,6 +206,19 @@ public class TagLibraryDocMojo extends AbstractMavenReport implements MavenRepor
             getLog().error(e.getMessage(), e);
         }
         
+        if (outputZipFile != null && outputZipFile.length() > 0) {
+            ZipArchiver zip = new ZipArchiver();
+            zip.setDestFile(new File(outputDirectory, outputZipFile));
+            DefaultFileSet fs = new DefaultFileSet();
+            fs.setDirectory(output);
+            try {
+                zip.addFileSet(fs);
+                zip.createArchive();
+            } catch (Exception e) {
+                getLog().error(e.getMessage(), e);
+            }
+        }
+
         getLog().info("Finished generating taglib documentation");
     }
 
