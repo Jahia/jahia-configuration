@@ -38,26 +38,26 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import com.izforge.izpack.installer.AutomatedInstallData;
-import com.izforge.izpack.installer.IzPanel;
-import com.izforge.izpack.installer.PanelAction;
-import com.izforge.izpack.installer.PanelActionConfiguration;
-import com.izforge.izpack.util.AbstractUIHandler;
+import com.izforge.izpack.installer.DataValidator;
 import com.izforge.izpack.util.Debug;
 
 /**
- * Panel action that is responsible for validating DB connection settings.
+ * Data validator that is responsible for validating DB connection settings.
  * 
  * @author Sergiy Shyrkov
  */
-public class DbConnectionValidationPanelAction implements PanelAction {
+public class DbConnectionValidator implements DataValidator {
 
     private static String getVar(AutomatedInstallData adata, String name,
             String defValue) {
         String var = adata.getVariable(name);
         return var != null ? var : defValue;
     }
+    private String errorMsg;
 
-    private boolean doValidate(AutomatedInstallData adata, IzPanel panel) {
+    private String warningMsg = "";
+
+    private boolean doValidate(AutomatedInstallData adata) {
         if (!Boolean.valueOf(adata.getVariable(getVar(adata,
                 "DbConnectionValidationPanelAction.validateVariable",
                 "dbSettings.dbms.createTables")))) {
@@ -96,35 +96,31 @@ public class DbConnectionValidationPanelAction implements PanelAction {
             Debug.trace("Validation did not pass, error: " + e.getMessage());
             e.printStackTrace();
             String key = "dbSettings.connection.error";
-            String message = panel.getInstallerFrame().langpack.getString(key);
-            message = message == null || message.length() == 0
-                    || key.equals(message) ? "An error occurred while establishing the connection to the database"
-                    : message;
-            // StringWriter sw = new StringWriter();
-            // e.printStackTrace(new PrintWriter(sw));
-            // String stackTrace = sw.toString();
-            // if (stackTrace != null && stackTrace.length() > 200) {
-            // stackTrace = stackTrace.substring(0, 200 - 1) + "...";
-            // }
-            panel.emitError(panel.getInstallerFrame().langpack
-                    .getString("installer.error"), message + "\n"
-                    + e.getClass().getName() + ": " + e.getMessage());
+            errorMsg = adata.langpack.getString(key);
+            errorMsg = errorMsg == null || errorMsg.length() == 0
+                    || key.equals(errorMsg) ? "An error occurred while establishing the connection to the database"
+                    : errorMsg;
+            errorMsg = errorMsg + "\n" + e.getClass().getName() + ": "
+                    + e.getMessage();
         }
 
         return passed;
     }
 
-    public void executeAction(AutomatedInstallData adata,
-            AbstractUIHandler handler) {
-        if (handler != null && handler instanceof IzPanel) {
-            IzPanel panel = (IzPanel) handler;
-            panel.setPostValidationFailed(!doValidate(adata, panel));
-        }
-
+    public boolean getDefaultAnswer() {
+        return false;
     }
 
-    public void initialize(PanelActionConfiguration configuration) {
-        // do nothing
+    public String getErrorMessageId() {
+        return errorMsg;
+    }
+
+    public String getWarningMessageId() {
+        return warningMsg;
+    }
+
+    public Status validateData(AutomatedInstallData adata) {
+        return doValidate(adata) ? Status.OK : Status.ERROR;
     }
 
     private boolean validateDbConnection(String driver, String url,
