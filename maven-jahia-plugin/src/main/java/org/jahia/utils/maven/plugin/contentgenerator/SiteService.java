@@ -155,8 +155,8 @@ public class SiteService {
 	}
 
 	/**
-	 * Creates a new jahia category
-	 * with attributes and content (translations)
+	 * Creates a new jahia category with attributes and content (translations)
+	 * 
 	 * @param idCategory
 	 * @return JCR category created
 	 */
@@ -164,7 +164,7 @@ public class SiteService {
 
 		Element category = new Element("category" + idCategory);
 		category.setAttribute("published", "true", ContentGeneratorCst.NS_J);
-		category.setAttribute("primaryType", "category",
+		category.setAttribute("primaryType", "jnt:category",
 				ContentGeneratorCst.NS_JCR);
 
 		// TODO: manage languages
@@ -201,36 +201,40 @@ public class SiteService {
 
 	/**
 	 * Creates a new category and call itself to add sub-categories
+	 * 
 	 * @param level
 	 * @return
 	 */
 	private Element addCategory(int level) {
-			Element category = createCategory(counterCategories);
-			counterCategories--;
-			
+		Element category = createCategory(counterCategories);
+		counterCategories--;
+
 		if (level > 0 && counterCategories > 0) {
-			level --;
+			level--;
 			category.addContent(addCategory(level));
 		}
-		return category;		
+		return category;
 	}
 
 	/**
 	 * Creates all categories requested
+	 * 
 	 * @param nbCategories
 	 * @param nbLevelsCategories
 	 * @return
 	 */
-	public Element createCategories(Integer nbCategories, Integer nbLevelsCategories) {
-		logger.info("Creation of " + nbCategories + " categories on " + nbLevelsCategories + " levels");
+	public Element createCategories(Integer nbCategories,
+			Integer nbLevelsCategories) {
+		logger.info("Creation of " + nbCategories + " categories on "
+				+ nbLevelsCategories + " levels");
 		counterCategories = nbCategories;
 		Element categories = new Element("categories");
-		
+
 		while (counterCategories > 0) {
 			int level = nbLevelsCategories;
 			Element category = addCategory(level);
 			categories.addContent(category);
-		}		
+		}
 
 		return categories;
 	}
@@ -243,25 +247,29 @@ public class SiteService {
 		systemSite.addContent(categories);
 		return repository;
 	}
-	
+
 	/**
-	 * Creates an XML document containing the basic structure of the systemSite repository
+	 * Creates an XML document containing the basic structure of the systemSite
+	 * repository
+	 * 
 	 * @return new repository created
 	 */
 	public Document createSystemSiteRepository() {
 		logger.info("Initialization of system site repository");
-        Document systemSiteRepository = new Document();
-        Element contentNode = new Element("content");
-        systemSiteRepository.setRootElement(contentNode);
-        
-        Element sitesNode = new Element("sites");
-        sitesNode.setAttribute("primaryType", "jnt:virtualsitesFolder", ContentGeneratorCst.NS_JCR);
-        contentNode.addContent(sitesNode);
-        
-        Element systemSiteNode = new Element("systemsite");
-        systemSiteNode.setAttribute("primaryType", "jnt:virtualsite", ContentGeneratorCst.NS_JCR);
-        sitesNode.addContent(systemSiteNode);
-		
+		Document systemSiteRepository = new Document();
+		Element contentNode = new Element("content");
+		systemSiteRepository.setRootElement(contentNode);
+
+		Element sitesNode = new Element("sites");
+		sitesNode.setAttribute("primaryType", "jnt:virtualsitesFolder",
+				ContentGeneratorCst.NS_JCR);
+		contentNode.addContent(sitesNode);
+
+		Element systemSiteNode = new Element("systemsite");
+		systemSiteNode.setAttribute("primaryType", "jnt:virtualsite",
+				ContentGeneratorCst.NS_JCR);
+		sitesNode.addContent(systemSiteNode);
+
 		return systemSiteRepository;
 	}
 }
