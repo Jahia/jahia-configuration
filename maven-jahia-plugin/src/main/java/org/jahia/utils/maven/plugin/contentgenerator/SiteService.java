@@ -208,9 +208,10 @@ public class SiteService {
 	private Element addCategory(int level) {
 		Element category = createCategory(counterCategories);
 		counterCategories--;
-
+		level--;
+		
 		if (level > 0 && counterCategories > 0) {
-			level--;
+			
 			category.addContent(addCategory(level));
 		}
 		return category;
