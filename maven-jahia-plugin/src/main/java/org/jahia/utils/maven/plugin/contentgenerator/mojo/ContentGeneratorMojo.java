@@ -203,6 +203,8 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
         export.setSiteLanguages(Arrays.asList(siteLanguages.split(",")));
 		export.setAddFilesToPage(addFiles);
 
+		// TODO: add "and if called goal is NOT generate-files"
+		// because the execution fails if we want to generate files with jahia.cg.addFiles == none
 		if (ContentGeneratorCst.VALUE_ALL.equals(export.getAddFilesToPage())
 				|| ContentGeneratorCst.VALUE_RANDOM.equals(export.getAddFilesToPage())) {
 			if (poolDirectory == null) {
