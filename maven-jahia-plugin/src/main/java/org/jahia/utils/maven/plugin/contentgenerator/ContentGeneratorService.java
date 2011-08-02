@@ -93,6 +93,7 @@ public class ContentGeneratorService {
         }
 
         FileService fileService = new FileService();
+        logger.debug(export.getFilesDirectory().getAbsolutePath());
         List<String> filesNamesAvailable = fileService.getFileNamesAvailable(export.getFilesDirectory());
         export.setFileNames(filesNamesAvailable);
 
@@ -151,7 +152,7 @@ public class ContentGeneratorService {
 
             export.getMapFile().delete();
 
-
+            SiteService siteService = new SiteService();            
             for (int i = 0; i < export.getNumberOfSites(); i++) {
                 // as we create a full site we will need a home page
                 export.setRootPageName(ContentGeneratorCst.ROOT_PAGE_NAME);
@@ -160,7 +161,7 @@ public class ContentGeneratorService {
                 export.setSiteKey(siteKey);
                 site.setSiteKey(siteKey);
 
-                SiteService siteService = new SiteService();
+                
 
                 generatePages(export);
 
@@ -207,13 +208,28 @@ public class ContentGeneratorService {
                 String zipFileName = siteKey + ".zip";
                 File siteArchive = os.createSiteArchive(zipFileName, export.getOutputDir(), filesToZip);
 
-                // Users archive
                 filesToZip.clear();
+                
+             // Global site archive
                 globalFilesToZip.add(siteArchive);
             }
 
-            // Global site archive
+            // system site
+            Document systemSiteRepository = siteService.createSystemSiteRepository();
+                        
+            // TODO SI CATEGORIES
+            Element categories = siteService.createCategories(111, 5);
+            siteService.insertCategoriesIntoSiteRepository(systemSiteRepository, categories);
+            
+            String systemSiteRepositoryFileName = "repository.xml";
+            File systemSiteRepositoryFile = new File(export.getOutputDir(), systemSiteRepositoryFileName);
+            os.writeJdomDocumentToFile(systemSiteRepository, systemSiteRepositoryFile);
 
+            // zip systemsite
+            filesToZip.add(systemSiteRepositoryFile);
+            File systemSiteArchive = os.createSiteArchive("systemsite.zip", export.getOutputDir(), filesToZip);          
+            globalFilesToZip.add(systemSiteArchive);
+            logger.info("System site archive created");
 
             File globalArchive = os.createSiteArchive("import.zip", export.getOutputDir(), globalFilesToZip);
             globalArchivePath = globalArchive.getAbsolutePath();

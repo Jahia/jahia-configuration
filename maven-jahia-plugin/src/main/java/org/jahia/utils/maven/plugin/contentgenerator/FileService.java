@@ -55,6 +55,7 @@ public class FileService {
 	 */
 	public List<String> getFileNamesAvailable(File filesDirectory) {
 		List<String> fileNames = new ArrayList<String>();
+		System.out.println(filesDirectory.getAbsolutePath());
 		File[] files = filesDirectory.listFiles();
 		Arrays.sort(files);
 
