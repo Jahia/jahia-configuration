@@ -164,8 +164,19 @@ public class PageService {
             acls.put("u:user"+random.nextInt(export.getNumberOfUsers()), Arrays.asList("editor"));
         }
 
+        // mapping to category
+        Integer idCategory = null;
+        float firstThird = export.getTotalPages() / 3;
+        if (ContentGeneratorService.currentPageIndex <= firstThird && export.getNumberOfCategories() > 0) {
+        	idCategory = random.nextInt(export.getNumberOfCategories());
+        	if (idCategory == 0) {
+        		idCategory++;
+        	}
+        	logger.debug("Add " + pageName + " to category " +idCategory);
+        }
+        
         PageBO page = new PageBO(pageName, articlesMap, level, subPages,
-				export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls);
+				export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory);
 		ContentGeneratorService.currentPageIndex = ContentGeneratorService.currentPageIndex + 1;
 		return page;
 	}

@@ -1,10 +1,11 @@
 package org.jahia.utils.maven.plugin.contentgenerator.bo;
 
-import org.apache.commons.lang.StringUtils;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.jdom.Element;
 
 public class PageBO {
 	private String uniqueName;
@@ -17,6 +18,11 @@ public class PageBO {
 	private String fileName;
 	private Integer numberBigText;
 	private Map<String, List<String>> acls;
+	private Integer idCategory;
+
+	public void setIdCategory(Integer idCategory) {
+		this.idCategory = idCategory;
+	}
 
 	public String getUniqueName() {
 		return uniqueName;
@@ -95,7 +101,7 @@ public class PageBO {
     }
 
     public PageBO(final String pUniqueName, Map<String, ArticleBO> articles, final int pLevel, final List<PageBO> pSubPages, Boolean pHasVanity,
-			String pSiteKey, String pFileName, Integer pNumberBigText, Map<String, List<String>> acls) {
+			String pSiteKey, String pFileName, Integer pNumberBigText, Map<String, List<String>> acls, Integer idCategory) {
 		this.articles = articles;
 		this.level = pLevel;
 		this.subPages = pSubPages;
@@ -105,6 +111,7 @@ public class PageBO {
 		this.fileName = pFileName;
 		this.numberBigText = pNumberBigText;
         this.acls = acls;
+        this.idCategory = idCategory;
 	}
 
 	public String getHeader() {
@@ -118,7 +125,16 @@ public class PageBO {
 		if (this.getHasVanity()) {
 			sb.append("jmix:vanityUrlMapped ");
 		}
-		sb.append(" jmix:sitemap\" jcr:primaryType=\"jnt:page\" priority=\"0.5\">\n");
+
+		sb.append(" jmix:sitemap\" jcr:primaryType=\"jnt:page\" priority=\"0.5\"");
+		
+		
+		if (this.idCategory != null) {
+			sb.append(" j:defaultCategory=\"/sites/systemsite/categories/category" + idCategory + "\" ");
+		}
+		sb.append(">\n");
+		// end page tag
+		
         for (Map.Entry<String, ArticleBO> entry : articles.entrySet()) {
             sb.append("		<j:translation_"+entry.getKey()+" jcr:language=\""+entry.getKey()+"\" jcr:mixinTypes=\"mix:title\" jcr:primaryType=\"jnt:translation\" jcr:title=\""
 				+ formatForXml(entry.getValue().getTitle()) + "\" />\n");

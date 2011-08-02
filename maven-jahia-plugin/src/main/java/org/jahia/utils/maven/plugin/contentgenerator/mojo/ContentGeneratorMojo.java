@@ -139,6 +139,16 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
      * @parameter expression="${jahia.cg.numberOfSites}" default-value="1"
      */
     protected Integer numberOfSites;
+    
+    /**
+     * @parameter expression="${jahia.cg.numberOfCategories}" default-value="1"
+     */
+    protected Integer numberOfCategories;
+    
+    /**
+     * @parameter expression="${jahia.cg.numberOfCategoryLevels}" default-value="1"
+     */
+    protected Integer numberOfCategoryLevels;
 
 	public abstract void execute() throws MojoExecutionException, MojoFailureException;
 
@@ -183,7 +193,6 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
         export.setNbSubLevels(nbSubLevels);
         export.setNbSubPagesPerPage(nbPagesPerLevel);
 
-		String pathSeparator = System.getProperty("file.separator");
 		if (outputDirectory == null) {
 			throw new MojoExecutionException("outputDirectory property can not be null");
 		}
@@ -230,6 +239,10 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
         export.setGroupAclRatio(groupAclRatio);
         export.setUsersAclRatio(usersAclRatio);
         export.setNumberOfSites(numberOfSites);
+        
+        export.setNumberOfCategories(numberOfCategories);
+        export.setNumberOfCategoryLevels(numberOfCategoryLevels);
+        
 		Integer totalPages = contentGeneratorService.getTotalNumberOfPagesNeeded(nbPagesOnTopLevel, nbSubLevels,
 				nbPagesPerLevel);
 		export.setTotalPages(totalPages);

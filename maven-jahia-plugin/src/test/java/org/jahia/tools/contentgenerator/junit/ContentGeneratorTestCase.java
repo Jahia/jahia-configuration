@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.jahia.utils.maven.plugin.contentgenerator.ContentGeneratorService;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ArticleBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.PageBO;
@@ -12,6 +13,8 @@ import org.junit.After;
 import org.junit.Before;
 
 public abstract class ContentGeneratorTestCase {
+	protected ContentGeneratorService contentGeneratorService;
+	
 	protected ExportBO export_default;
 	
 	protected List<ArticleBO> articles;
@@ -31,6 +34,7 @@ public abstract class ContentGeneratorTestCase {
 	
 	@Before
 	public void setUp() throws Exception {
+		contentGeneratorService = ContentGeneratorService.getInstance();
 		createPages();
 		createArticles();
 		createExport();
@@ -45,7 +49,7 @@ public abstract class ContentGeneratorTestCase {
         HashMap<String, ArticleBO> articleBOHashMap = new HashMap<String, ArticleBO>();
         articleBOHashMap.put("en", new ArticleBO(0,"Title " + pageID, "Content " + pageID));
         articleBOHashMap.put("fr", new ArticleBO(0,"Titre " + pageID, "Contenu " + pageID));
-        PageBO page = new PageBO("page" + pageID, articleBOHashMap, 0, subPages, hasVanity, SITE_KEY, null, 2, new HashMap<String, List<String>>());
+        PageBO page = new PageBO("page" + pageID, articleBOHashMap, 0, subPages, hasVanity, SITE_KEY, null, 2, new HashMap<String, List<String>>(), 1);
 		return page;
 	}
 	
@@ -95,8 +99,16 @@ public abstract class ContentGeneratorTestCase {
 	}
 	
 	private void createExport() {
+		Integer nbPagesTopLevel = Integer.valueOf(1);
+		Integer nbLevels = Integer.valueOf(2);
+		Integer nbPagesPerLevel = Integer.valueOf(3);
+		
 		export_default = new ExportBO();
 		export_default.setAddFilesToPage(ContentGeneratorCst.VALUE_NONE);
 		export_default.setPagesHaveVanity(Boolean.FALSE);
+		export_default.setNumberOfCategories(2);
+		
+		Integer totalPages = contentGeneratorService.getTotalNumberOfPagesNeeded(nbPagesTopLevel, nbLevels, nbPagesPerLevel);
+		export_default.setTotalPages(totalPages);
 	}
 }
