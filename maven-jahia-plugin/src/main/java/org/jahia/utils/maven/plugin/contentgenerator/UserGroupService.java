@@ -24,7 +24,6 @@ public class UserGroupService {
     ;
 
     public Document createUsersRepository(List<UserBO> users) {
-        String jcrDate = ContentGeneratorService.getInstance().getDateForJcrImport(null);
 
         Document doc = new Document();
         Element contentNode = new Element("content");
