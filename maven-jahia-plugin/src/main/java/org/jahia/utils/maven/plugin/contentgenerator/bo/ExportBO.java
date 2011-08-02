@@ -56,6 +56,10 @@ public class ExportBO {
     private double usersAclRatio;
 
     private Integer numberOfSites;
+    
+    private Integer numberOfCategories;
+    
+    private Integer numberOfCategoryLevels;
 
 	public File getOutputFile() {
 		return outputFile;
@@ -241,7 +245,23 @@ public class ExportBO {
         this.numberOfSites = numberOfSites;
     }
 
-    public ExportBO() {
+    public Integer getNumberOfCategories() {
+		return numberOfCategories;
+	}
+
+	public void setNumberOfCategories(Integer numberOfCategories) {
+		this.numberOfCategories = numberOfCategories;
+	}
+
+	public Integer getNumberOfCategoryLevels() {
+		return numberOfCategoryLevels;
+	}
+
+	public void setNumberOfCategoryLevels(Integer numberOfCategoryLevels) {
+		this.numberOfCategoryLevels = numberOfCategoryLevels;
+	}
+
+	public ExportBO() {
 
 	}
 

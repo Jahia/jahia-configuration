@@ -217,8 +217,7 @@ public class ContentGeneratorService {
             // system site
             Document systemSiteRepository = siteService.createSystemSiteRepository();
                         
-            // TODO SI CATEGORIES
-            Element categories = siteService.createCategories(111, 5);
+            Element categories = siteService.createCategories(export.getNumberOfCategories(), export.getNumberOfCategoryLevels());
             siteService.insertCategoriesIntoSiteRepository(systemSiteRepository, categories);
             
             String systemSiteRepositoryFileName = "repository.xml";

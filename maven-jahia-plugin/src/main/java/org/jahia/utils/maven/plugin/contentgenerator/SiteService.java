@@ -222,7 +222,7 @@ public class SiteService {
 	 * @return
 	 */
 	public Element createCategories(Integer nbCategories, Integer nbLevelsCategories) {
-		logger.info("Creation of categories...");
+		logger.info("Creation of " + nbCategories + " categories on " + nbLevelsCategories + " levels");
 		counterCategories = nbCategories;
 		Element categories = new Element("categories");
 		
