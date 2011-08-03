@@ -175,8 +175,14 @@ public class PageService {
         	logger.debug("Add " + pageName + " to category " +idCategory);
         }
         
+        Integer idTag = null;
+        if (ContentGeneratorService.currentPageIndex <= firstThird && export.getNumberOfTags() > 0) {
+        	idTag = random.nextInt(export.getNumberOfTags());
+        	logger.debug("Tag " + pageName + " with tag " + idTag);
+        }
+        
         PageBO page = new PageBO(pageName, articlesMap, level, subPages,
-				export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory);
+				export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory, idTag);
 		ContentGeneratorService.currentPageIndex = ContentGeneratorService.currentPageIndex + 1;
 		return page;
 	}

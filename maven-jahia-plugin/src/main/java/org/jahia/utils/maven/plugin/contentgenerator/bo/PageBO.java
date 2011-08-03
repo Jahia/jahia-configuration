@@ -19,6 +19,7 @@ public class PageBO {
 	private Integer numberBigText;
 	private Map<String, List<String>> acls;
 	private Integer idCategory;
+	private Integer idTag;
 
 	public void setIdCategory(Integer idCategory) {
 		this.idCategory = idCategory;
@@ -100,8 +101,16 @@ public class PageBO {
         this.acls = acls;
     }
 
-    public PageBO(final String pUniqueName, Map<String, ArticleBO> articles, final int pLevel, final List<PageBO> pSubPages, Boolean pHasVanity,
-			String pSiteKey, String pFileName, Integer pNumberBigText, Map<String, List<String>> acls, Integer idCategory) {
+    public Integer getIdTag() {
+		return idTag;
+	}
+
+	public void setIdTag(Integer idTag) {
+		this.idTag = idTag;
+	}
+
+	public PageBO(final String pUniqueName, Map<String, ArticleBO> articles, final int pLevel, final List<PageBO> pSubPages, Boolean pHasVanity,
+			String pSiteKey, String pFileName, Integer pNumberBigText, Map<String, List<String>> acls, Integer idCategory, Integer idTag) {
 		this.articles = articles;
 		this.level = pLevel;
 		this.subPages = pSubPages;
@@ -112,6 +121,7 @@ public class PageBO {
 		this.numberBigText = pNumberBigText;
         this.acls = acls;
         this.idCategory = idCategory;
+        this.idTag = idTag;
 	}
 
 	public String getHeader() {
@@ -130,8 +140,13 @@ public class PageBO {
 		
 		
 		if (this.idCategory != null) {
-			sb.append(" j:defaultCategory=\"/sites/systemsite/categories/category" + idCategory + "\" ");
+			sb.append(" j:defaultCategory=\"/sites/systemsite/categorieto tags/category" + idCategory + "\" ");
 		}
+		
+		if (this.idTag != null) {
+			sb.append(" j:tags=\"/sites/" + siteKey + "/tags/tag" + idTag + "\"");
+		}
+		
 		sb.append(">\n");
 		// end page tag
 		
