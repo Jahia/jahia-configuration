@@ -59,6 +59,9 @@ public class HelpMojo extends AbstractMojo {
 		getLog().info("* jahia.cg.numberOfSites: Total number of sites in final import file. ");
 		getLog().info("* jahia.cg.groupsAclRatio: Percentage of page having specific ACL on a random group. (between 0 and 1)");
 		getLog().info("* jahia.cg.usersAclRatio: Percentage of page having specific ACL on a random user. (between 0 and 1)");
+		getLog().info("* jahia.cg.numberOfCategories: Total number of categories to create. The first third of the created pages will have a random category associated.");
+		getLog().info("* jahia.cg.numberOfCategoryLevels: Number of subcategories levels for each top category");
+		getLog().info("* jahia.cg.numberOfTags: Total number of tags to create. The first third of created page will have a tag associated.");
 
 		getLog().info("");
 		getLog().info("NB:");
