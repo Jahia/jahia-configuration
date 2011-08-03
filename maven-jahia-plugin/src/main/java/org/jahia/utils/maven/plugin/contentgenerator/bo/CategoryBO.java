@@ -18,10 +18,11 @@ public class CategoryBO {
 	private Element categoryElement;
 
 	public CategoryBO(Integer idCategory) {
+		this.idCategory = idCategory;
 		this.categoryName = categoryNamePrefix + idCategory;
 	}
 
-	public String getTagName() {
+	public String getCategoryName() {
 		return this.categoryName;
 	}
 
@@ -49,7 +50,7 @@ public class CategoryBO {
 					ContentGeneratorCst.NS_JCR);
 			translation_fr.setAttribute("primaryType", "jnt:translation",
 					ContentGeneratorCst.NS_JCR);
-			translation_fr.setAttribute("title", "Categorie " + idCategory,
+			translation_fr.setAttribute("title", "Category " + this.idCategory,
 					ContentGeneratorCst.NS_JCR);
 			this.categoryElement.addContent(translation_fr);
 
@@ -63,7 +64,7 @@ public class CategoryBO {
 					ContentGeneratorCst.NS_JCR);
 			translation_en.setAttribute("primaryType", "jnt:translation",
 					ContentGeneratorCst.NS_JCR);
-			translation_en.setAttribute("title", "Category " + idCategory,
+			translation_en.setAttribute("title", "Category " + this.idCategory,
 					ContentGeneratorCst.NS_JCR);
 			
 			this.categoryElement.addContent(translation_en);
