@@ -28,15 +28,17 @@ public class SiteService {
 	}
 
 	public File createAndPopulateRepositoryFile(File tempOutputDir,
-			SiteBO site, File pagesFile, File filesFile, File groupsFile)
+			SiteBO site, File pagesFile, File filesFile, File groupsFile, File tagsFile)
 			throws IOException {
 		File repositoryFile = new File(tempOutputDir, "repository.xml");
 
 		FileOutputStream output = new FileOutputStream(repositoryFile, true);
 		IOUtils.write(site.getHeader(), output);
 		IOUtils.copy(new FileInputStream(filesFile), output);
-		IOUtils.copy(new FileInputStream(pagesFile), output);
 		IOUtils.copy(new FileInputStream(groupsFile), output);
+		IOUtils.copy(new FileInputStream(tagsFile), output);
+		IOUtils.copy(new FileInputStream(pagesFile), output);
+		
 		IOUtils.write(site.getFooter(), output);
 
 		return repositoryFile;
