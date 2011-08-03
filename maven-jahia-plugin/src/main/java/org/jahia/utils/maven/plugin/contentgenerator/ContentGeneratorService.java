@@ -224,7 +224,7 @@ public class ContentGeneratorService {
 
 				// Tags
 				Element tagList = tagService.createTagListElement();
-				List tags = tagService.createTags(5); // TODO dynamic
+				List tags = tagService.createTags(export.getNumberOfTags());
 				tagList.addContent(tags);
 
 				Document tagsDoc = new Document(tagList);

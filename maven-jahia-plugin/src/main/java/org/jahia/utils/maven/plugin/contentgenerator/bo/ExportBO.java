@@ -60,6 +60,8 @@ public class ExportBO {
     private Integer numberOfCategories;
     
     private Integer numberOfCategoryLevels;
+    
+    private Integer numberOfTags;
 
 	public File getOutputFile() {
 		return outputFile;
@@ -259,6 +261,14 @@ public class ExportBO {
 
 	public void setNumberOfCategoryLevels(Integer numberOfCategoryLevels) {
 		this.numberOfCategoryLevels = numberOfCategoryLevels;
+	}
+
+	public Integer getNumberOfTags() {
+		return numberOfTags;
+	}
+
+	public void setNumberOfTags(Integer numberOfTags) {
+		this.numberOfTags = numberOfTags;
 	}
 
 	public ExportBO() {

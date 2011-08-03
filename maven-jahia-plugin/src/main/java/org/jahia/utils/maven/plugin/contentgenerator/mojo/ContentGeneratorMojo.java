@@ -149,6 +149,11 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
      * @parameter expression="${jahia.cg.numberOfCategoryLevels}" default-value="1"
      */
     protected Integer numberOfCategoryLevels;
+    
+    /**
+     * @parameter expression="${jahia.cg.numberOfTags}" default-value="1"
+     */
+    protected Integer numberOfTags;
 
 	public abstract void execute() throws MojoExecutionException, MojoFailureException;
 
@@ -242,6 +247,8 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
         
         export.setNumberOfCategories(numberOfCategories);
         export.setNumberOfCategoryLevels(numberOfCategoryLevels);
+        
+        export.setNumberOfTags(numberOfTags);
         
 		Integer totalPages = contentGeneratorService.getTotalNumberOfPagesNeeded(nbPagesOnTopLevel, nbSubLevels,
 				nbPagesPerLevel);
