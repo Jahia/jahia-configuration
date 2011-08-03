@@ -167,6 +167,7 @@ public class ContentGeneratorService {
 
 			SiteService siteService = new SiteService();
 			TagService tagService = new TagService();
+			CategoryService categoryService = new CategoryService();
 			for (int i = 0; i < export.getNumberOfSites(); i++) {
 				// as we create a full site we will need a home page
 				export.setRootPageName(ContentGeneratorCst.ROOT_PAGE_NAME);
@@ -253,10 +254,10 @@ public class ContentGeneratorService {
 			Document systemSiteRepository = siteService
 					.createSystemSiteRepository();
 
-			Element categories = siteService.createCategories(
+			Element categories = categoryService.createCategories(
 					export.getNumberOfCategories(),
 					export.getNumberOfCategoryLevels());
-			siteService.insertCategoriesIntoSiteRepository(
+			categoryService.insertCategoriesIntoSiteRepository(
 					systemSiteRepository, categories);
 
 			String systemSiteRepositoryFileName = "repository.xml";

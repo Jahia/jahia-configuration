@@ -136,11 +136,15 @@ public class PageBO {
 			sb.append("jmix:vanityUrlMapped ");
 		}
 
+		if (this.idCategory != null) {
+			sb.append(" jmix:categorized ");
+		}
+		
 		sb.append(" jmix:sitemap\" jcr:primaryType=\"jnt:page\" priority=\"0.5\"");
 		
 		
 		if (this.idCategory != null) {
-			sb.append(" j:defaultCategory=\"/sites/systemsite/categorieto tags/category" + idCategory + "\" ");
+			sb.append(" j:defaultCategory=\"/sites/systemsite/categories/category" + idCategory + "\" ");
 		}
 		
 		if (this.idTag != null) {

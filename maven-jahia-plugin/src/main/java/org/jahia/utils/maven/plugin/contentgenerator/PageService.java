@@ -169,9 +169,6 @@ public class PageService {
         float firstThird = export.getTotalPages() / 3;
         if (ContentGeneratorService.currentPageIndex <= firstThird && export.getNumberOfCategories() > 0) {
         	idCategory = random.nextInt(export.getNumberOfCategories());
-        	if (idCategory == 0) {
-        		idCategory++;
-        	}
         	logger.debug("Add " + pageName + " to category " +idCategory);
         }
         
