@@ -33,7 +33,11 @@ public class SiteService {
 
 		FileOutputStream output = new FileOutputStream(repositoryFile, true);
 		IOUtils.write(site.getHeader(), output);
-		IOUtils.copy(new FileInputStream(filesFile), output);
+		
+		// there is an XML files for attachments only if we requested some
+		if (filesFile != null) {
+			IOUtils.copy(new FileInputStream(filesFile), output);
+		}
 		IOUtils.copy(new FileInputStream(groupsFile), output);
 		IOUtils.copy(new FileInputStream(tagsFile), output);
 		IOUtils.copy(new FileInputStream(pagesFile), output);
