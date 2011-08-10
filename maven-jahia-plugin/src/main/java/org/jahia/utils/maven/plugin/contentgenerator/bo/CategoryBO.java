@@ -1,5 +1,8 @@
 package org.jahia.utils.maven.plugin.contentgenerator.bo;
 
+import java.util.Iterator;
+import java.util.List;
+
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jdom.Element;
 
@@ -16,10 +19,13 @@ public class CategoryBO {
 	private String categoryName;
 
 	private Element categoryElement;
+	
+	private List<String> siteLanguages;
 
-	public CategoryBO(Integer idCategory) {
+	public CategoryBO(Integer idCategory, List<String> siteLanguages) {
 		this.idCategory = idCategory;
 		this.categoryName = categoryNamePrefix + idCategory;
+		this.siteLanguages = siteLanguages;
 	}
 
 	public String getCategoryName() {
@@ -39,35 +45,24 @@ public class CategoryBO {
 			this.categoryElement.setAttribute("primaryType", "jnt:category",
 					ContentGeneratorCst.NS_JCR);
 
-			// TODO: manage languages
-			Element translation_fr = new Element("translation_fr",
-					ContentGeneratorCst.NS_J);
-			translation_fr.setAttribute("published", "true",
-					ContentGeneratorCst.NS_J);
-			translation_fr.setAttribute("language", "fr",
-					ContentGeneratorCst.NS_JCR);
-			translation_fr.setAttribute("mixinTypes", "mix:title",
-					ContentGeneratorCst.NS_JCR);
-			translation_fr.setAttribute("primaryType", "jnt:translation",
-					ContentGeneratorCst.NS_JCR);
-			translation_fr.setAttribute("title", "Category " + this.idCategory,
-					ContentGeneratorCst.NS_JCR);
-			this.categoryElement.addContent(translation_fr);
-
-			Element translation_en = new Element("translation_en",
-					ContentGeneratorCst.NS_J);
-			translation_en.setAttribute("published", "true",
-					ContentGeneratorCst.NS_J);
-			translation_en.setAttribute("language", "en",
-					ContentGeneratorCst.NS_JCR);
-			translation_en.setAttribute("mixinTypes", "mix:title",
-					ContentGeneratorCst.NS_JCR);
-			translation_en.setAttribute("primaryType", "jnt:translation",
-					ContentGeneratorCst.NS_JCR);
-			translation_en.setAttribute("title", "Category " + this.idCategory,
-					ContentGeneratorCst.NS_JCR);
-			
-			this.categoryElement.addContent(translation_en);
+			for (Iterator<String> iterator = siteLanguages.iterator(); iterator.hasNext();) {
+				String language = (String) iterator.next();
+				
+				Element translation = new Element("translation_" + language,
+						ContentGeneratorCst.NS_J);
+				translation.setAttribute("published", "true",
+						ContentGeneratorCst.NS_J);
+				translation.setAttribute("language", language,
+						ContentGeneratorCst.NS_JCR);
+				translation.setAttribute("mixinTypes", "mix:title",
+						ContentGeneratorCst.NS_JCR);
+				translation.setAttribute("primaryType", "jnt:translation",
+						ContentGeneratorCst.NS_JCR);
+				translation.setAttribute("title", "Category " + this.idCategory + " (" + language + ")",
+						ContentGeneratorCst.NS_JCR);
+				
+				this.categoryElement.addContent(translation);
+			}
 		}
 
 		return this.categoryElement;

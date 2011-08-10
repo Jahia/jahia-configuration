@@ -256,7 +256,7 @@ public class ContentGeneratorService {
 
 			Element categories = categoryService.createCategories(
 					export.getNumberOfCategories(),
-					export.getNumberOfCategoryLevels());
+					export.getNumberOfCategoryLevels(), export);
 			categoryService.insertCategoriesIntoSiteRepository(
 					systemSiteRepository, categories);
 
