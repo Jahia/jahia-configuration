@@ -40,6 +40,7 @@ public class HelpMojo extends AbstractMojo {
 		getLog().info("* jahia.cg.pagesHaveVanity (optional, default = " + ContentGeneratorCst.HAS_VANITY_DEFAULT + ")");
 		getLog().info("  if true, add a vanity URL to each page, on the template \"/page<n>\"");
 
+		getLog().info("* jahia.cg.siteLanguages (optional, default = en,fr)");
 		getLog().info("* jahia.cg.siteKey (optional, default = " + ContentGeneratorCst.SITE_KEY_DEFAULT + ")");
 
 		getLog().info(
