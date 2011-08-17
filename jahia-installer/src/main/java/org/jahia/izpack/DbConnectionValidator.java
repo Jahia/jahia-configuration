@@ -94,7 +94,6 @@ public class DbConnectionValidator implements DataValidator {
         } catch (Exception e) {
             passed = false;
             Debug.trace("Validation did not pass, error: " + e.getMessage());
-            e.printStackTrace();
             String key = "dbSettings.connection.error";
             errorMsg = adata.langpack.getString(key);
             errorMsg = errorMsg == null || errorMsg.length() == 0
@@ -102,6 +101,7 @@ public class DbConnectionValidator implements DataValidator {
                     : errorMsg;
             errorMsg = errorMsg + "\n" + e.getClass().getName() + ": "
                     + e.getMessage();
+            System.out.println("\n" + errorMsg + "\n");
         }
 
         return passed;
