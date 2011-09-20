@@ -1,5 +1,6 @@
 package org.jahia.configuration.configurators;
 
+import org.jahia.configuration.logging.AbstractLogger;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -19,6 +20,10 @@ import java.util.List;
 public abstract class AbstractXMLConfigurator extends AbstractConfigurator {
     public AbstractXMLConfigurator(Map dbProps, JahiaConfigInterface jahiaConfigInterface) {
         super(dbProps, jahiaConfigInterface);
+    }
+
+    public AbstractXMLConfigurator(Map dbProps, JahiaConfigInterface jahiaConfigInterface, AbstractLogger logger) {
+        super(dbProps, jahiaConfigInterface, logger);
     }
 
     /**
@@ -124,4 +129,19 @@ public abstract class AbstractXMLConfigurator extends AbstractConfigurator {
         }
     }
 
+    /**
+     * Removes matching elements from the document.
+     * 
+     * @param scopeElement
+     *            the root element to start search from
+     * @param xPathExpression
+     *            the XPath search expression
+     * @throws JDOMException
+     *             in case of an JDOM navigation error
+     */
+    protected void removeAllElements(Element scopeElement, String xPathExpression) throws JDOMException {
+        for (Element el : getElements(scopeElement, xPathExpression)) {
+            el.getParent().removeContent(el);
+        }
+    }
 }

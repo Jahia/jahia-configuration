@@ -95,6 +95,8 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
      */
     private String overwritedb = "true";
     private String storeFilesInDB = "false";
+    private boolean useDataStore;
+    private String fileDataStorePath = "";
     private String targetConfigurationDirectory = "";
     private String jahiaToolManagerPassword = "jahia";
     private String jahiaToolManagerUsername = "password";
@@ -108,6 +110,10 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String externalizedConfigClassifier = null;
     private String externalizedConfigFinalName = "jahia-config";
     
+    public void setFileDataStorePath(String fileDataStorePath) {
+        this.fileDataStorePath = fileDataStorePath;
+    }
+
     public JahiaConfigInterface clone() throws CloneNotSupportedException {
         return (JahiaConfigInterface) super.clone();
     }
@@ -579,5 +585,17 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public void setExternalizedConfigFinalName(String externalizedConfigFinalName) {
         this.externalizedConfigFinalName = externalizedConfigFinalName;
+    }
+
+    public boolean isUseDataStore() {
+        return useDataStore;
+    }
+
+    public void setUseDataStore(boolean useDataStore) {
+        this.useDataStore = useDataStore;
+    }
+
+    public String getFileDataStorePath() {
+        return fileDataStorePath;
     }
 }

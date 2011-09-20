@@ -123,6 +123,22 @@ public interface JahiaConfigInterface {
      *         (corresponding Jackrabbit property: externalBlobs).
      */
     String getStoreFilesInDB();
+    
+    /**
+     * Returns true if a DataStore should be use for Jackarbbit binary data storage. Otherwise a persistence manager store is used. The type
+     * of the DataStore is determined by the {@link #getStoreFilesInDB()} value. If {@link #getStoreFilesInDB()} is set to true, the
+     * DbDataStore is used, otherwise the FileDataStore.
+     * 
+     * @return true if a DataStore should be use for Jackarbbit binary data storage. Otherwise a persistence manager store is used.
+     */
+    boolean isUseDataStore();
+    
+    /**
+     * Returns a filesystem path to the folder, where the FileDataStore will put the binary data.
+     * 
+     * @return a filesystem path to the folder, where the FileDataStore will put the binary data
+     */
+    String getFileDataStorePath();
 
     String getTargetConfigurationDirectory();
 

@@ -162,7 +162,7 @@ public class JahiaGlobalConfigurator {
 
         FileSystemManager fsManager = VFS.getManager();
 
-        new JackrabbitConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,sourceWebAppPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml"), webappPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml");
+        new JackrabbitConfigurator(dbProps, jahiaConfigInterface, getLogger()).updateConfiguration(new VFSConfigFile(fsManager,sourceWebAppPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml"), webappPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml");
         new TomcatContextXmlConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,sourceWebAppPath + "/META-INF/context.xml"), webappPath + "/META-INF/context.xml");
         new RootUserConfigurator(dbProps, jahiaConfigInterface, encryptPassword(jahiaConfigInterface.getJahiaRootPassword())).updateConfiguration(new VFSConfigFile(fsManager,sourceWebAppPath + "/WEB-INF/etc/repository/root.xml"), webappPath + "/WEB-INF/etc/repository/root.xml");
         if ("jboss".equalsIgnoreCase(jahiaConfigInterface.getTargetServerType())) {
@@ -266,6 +266,8 @@ public class JahiaGlobalConfigurator {
             dbProps.load(is);
             // we override these just as the configuration wizard does
             dbProps.put("storeFilesInDB", jahiaConfig.getStoreFilesInDB());
+            dbProps.put("useDataStore", String.valueOf(jahiaConfig.isUseDataStore()));
+            dbProps.put("fileDataStorePath", jahiaConfig.getFileDataStorePath() != null ? jahiaConfig.getFileDataStorePath() : "");
             dbProps.put("jahia.database.url", dbUrl);
             dbProps.put("jahia.database.user", jahiaConfig.getDatabaseUsername());
             dbProps.put("jahia.database.pass", jahiaConfig.getDatabasePassword());
