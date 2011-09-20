@@ -444,17 +444,17 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * @parameter expression="${jahia.configure.toolManagerUsername}" default-value="jahia"
      */
-	protected String jahiaToolManagerUsername;
+    protected String jahiaToolManagerUsername;
 
     /**
      * @parameter expression="${jahia.configure.toolManagerPassword}" default-value="password"
      */
-	private String jahiaToolManagerPassword;
+    protected String jahiaToolManagerPassword;
 
     /**
      * @parameter expression="${jahia.configure.ldapActivated}" default-value="false"
      */
-    private String ldapActivated;
+    protected String ldapActivated;
 
     /**
      * @parameter expression="${jahia.configure.groupLdapProviderProperties}"
@@ -478,27 +478,42 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      *
      * @parameter expression="${jahia.config.externalizedActivated}" default-value="false"
      */
-    private boolean externalizedConfigActivated;
+    protected boolean externalizedConfigActivated;
 
     /**
      * The location at which the externalized configuration JAR will be generated.
      * @parameter expression="${jahia.config.externalizedTargetPath}"
      */
-    private String externalizedConfigTargetPath;
+    protected String externalizedConfigTargetPath;
 
     /**
      * Allows to specify a classifier on the configuration, usually used to identify cluster node configurations, such
      * as jahiaNode1, jahiaNode2, etc...
      * @parameter expression="${jahia.config.externalizedClassifier}" default-value=""
      */
-    private String externalizedConfigClassifier;
+    protected String externalizedConfigClassifier;
 
     /**
      * The name of the JAR file (without the extension)
      *
      * @parameter expression="${jahia.config.externalizedActivated}" default-value="jahia-config"
      */
-    private String externalizedConfigFinalName;
+    protected String externalizedConfigFinalName;
+
+    /**
+     * Activates the usage of the DataStore for Jackrabbit binary data storage.
+     *
+     * @parameter expression="${jahia.configure.useDataStore}" default-value="false"
+     */
+    protected boolean useDataStore;
+    
+
+    /**
+     * A filesystem path to the folder, where Jackrabbit FileDataStore puts the binary content.
+     *
+     * @parameter expression="${jahia.configure.fileDataStorePath}" default-value=""
+     */
+    protected String fileDataStorePath;
 
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
@@ -857,5 +872,13 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public String getExternalizedConfigFinalName() {
         return externalizedConfigFinalName;
+    }
+
+    public boolean isUseDataStore() {
+        return useDataStore;
+    }
+
+    public String getFileDataStorePath() {
+        return fileDataStorePath;
     }
 }

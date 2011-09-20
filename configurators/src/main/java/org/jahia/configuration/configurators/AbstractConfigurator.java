@@ -1,8 +1,9 @@
 package org.jahia.configuration.configurators;
 
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.Map;
+
+import org.jahia.configuration.logging.AbstractLogger;
 
 /**
  * Base configurator implementation. A configurator is responsible for configuring a sub-system of Jahia. It should
@@ -16,8 +17,18 @@ import java.util.Map;
  */
 public abstract class AbstractConfigurator {
 
+    protected static String getValue(Map values, String key) {
+        String replacement = (String) values.get(key);
+        if (replacement == null) {
+            return "";
+        }
+        replacement = replacement.trim();
+        return replacement;
+    }
+    
     protected Map dbProperties = Collections.emptyMap();
     protected JahiaConfigInterface jahiaConfigInterface;
+    private AbstractLogger logger;
 
     public AbstractConfigurator(JahiaConfigInterface jahiaConfigInterface) {
         this.jahiaConfigInterface = jahiaConfigInterface;
@@ -27,20 +38,24 @@ public abstract class AbstractConfigurator {
         this(jahiaConfigInterface);
         this.dbProperties = dbProps;
     }
+    
+    public AbstractConfigurator(Map dbProps, JahiaConfigInterface jahiaConfigInterface, AbstractLogger logger) {
+        this(jahiaConfigInterface);
+        this.dbProperties = dbProps;
+        this.logger = logger;
+    }
 
     public abstract void updateConfiguration(ConfigFile sourceConfigFile, String destFileName) throws Exception;
-
-    protected static String getValue(Map values, String key) {
-        String replacement = (String) values.get(key);
-        if (replacement == null) {
-            return "";
-        }
-        replacement = replacement.trim();
-        return replacement;
-    }
 
     protected String getDBProperty(String key) {
         return getValue(dbProperties, key);
     }
 
+    public AbstractLogger getLogger() {
+        return logger;
+    }
+
+    public void setLogger(AbstractLogger logger) {
+        this.logger = logger;
+    }
 }

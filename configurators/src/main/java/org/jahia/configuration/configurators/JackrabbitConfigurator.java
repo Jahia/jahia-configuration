@@ -33,6 +33,8 @@
 
 package org.jahia.configuration.configurators;
 
+import org.codehaus.plexus.util.StringUtils;
+import org.jahia.configuration.logging.AbstractLogger;
 import org.jdom.*;
 import org.jdom.output.XMLOutputter;
 import org.jdom.output.Format;
@@ -55,6 +57,10 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
 
     public JackrabbitConfigurator(Map dbProperties, JahiaConfigInterface jahiaConfigInterface) {
         super(dbProperties, jahiaConfigInterface);
+    }
+   
+    public JackrabbitConfigurator(Map dbProperties, JahiaConfigInterface jahiaConfigInterface, AbstractLogger logger) {
+        super(dbProperties, jahiaConfigInterface, logger);
     }
    
     public void updateConfiguration(ConfigFile sourceConfigFile, String destFileName) throws Exception {
@@ -83,16 +89,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
                 journalElement.setAttribute("class", getValue(dbProperties, "jahia.jackrabbit.journal"));
             }
             
-            String storeFilesInDB = getValue(dbProperties, "storeFilesInDB");
-            String externalBLOBsValue = "true";
-            if (Boolean.valueOf(storeFilesInDB)) {
-                externalBLOBsValue = "false";
-            }
-            XPath externalBlobsXPath = XPath.newInstance("//param[@name=\"externalBLOBs\"]");
-            List<Element> externalBlobsList = (List<Element>) externalBlobsXPath.selectNodes(jdomDocument);
-            for (Element paramElement : externalBlobsList) {
-                paramElement.setAttribute("value", externalBLOBsValue);
-            }
+            configureBinaryStorage(repositoryElement, namespace, dbProperties);
 
             setElementAttribute(repositoryElement, "/Repository/FileSystem", "class", getValue(dbProperties, "jahia.jackrabbit.filesystem"));
             setElementAttribute(repositoryElement, "//PersistenceManager", "class", getValue(dbProperties, "jahia.jackrabbit.persistence"));
@@ -124,6 +121,104 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
 
         } catch (JDOMException jdome) {
             throw new Exception("Error while updating configuration file " + sourceConfigFile, jdome);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void configureBinaryStorage(Element repositoryElement, Namespace namespace, Map dbProperties)
+            throws JDOMException {
+
+        boolean storeFilesInDB = Boolean.valueOf(getValue(dbProperties, "storeFilesInDB"));
+        boolean useDataStore = Boolean.valueOf(getValue(dbProperties, "useDataStore"));
+        String fileDataStorePath = getValue(dbProperties, "fileDataStorePath");
+
+        getLogger().info(
+                "Configuring Jackrabbit binary storage. Using data store: "
+                        + useDataStore
+                        + ". Store files in DB: "
+                        + storeFilesInDB
+                        + "."
+                        + (useDataStore && !storeFilesInDB ? " File data store path: "
+                                + (StringUtils.isNotEmpty(fileDataStorePath) ? fileDataStorePath
+                                        : "${rep.home}/datastore") + "." : ""));
+
+        if (useDataStore) {
+            // data store will be used
+
+            // remove externalBLOBs attributes
+            removeAllElements(repositoryElement, "//param[@name=\"externalBLOBs\"]");
+
+            if (storeFilesInDB) {
+                // We will use the DB-based data store
+
+                // remove the FileDataStore if present
+                removeAllElements(repositoryElement,
+                        "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.FileDataStore\"]");
+
+                // get the DbDataStore element
+                Element store = getElement(repositoryElement,
+                        "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.db.DbDataStore\"]");
+                if (store == null) {
+                    // DbDataStore element not found -> create it
+                    store = new Element("DataStore", namespace);
+                    store.setAttribute("class", "org.apache.jackrabbit.core.data.db.DbDataStore");
+                    store.addContent(new Element("param").setAttribute("name", "dataSourceName")
+                            .setAttribute("value", "jahiaDS"));
+                    store.addContent(new Element("param").setAttribute("name", "schemaObjectPrefix")
+                            .setAttribute("value", "jr_"));
+                    store.addContent(new Element("param").setAttribute("name", "schemaCheckEnabled")
+                            .setAttribute("value", "false"));
+                    store.addContent(new Element("param").setAttribute("name", "copyWhenReading")
+                            .setAttribute("value", "true"));
+                    store.addContent(new Element("param").setAttribute("name", "minRecordLength")
+                            .setAttribute("value", "1024"));
+                    repositoryElement.addContent(store);
+                }
+            } else {
+                // We will use the filesystem-based data store
+
+                // remove the DbDataStore if present
+                removeAllElements(repositoryElement,
+                        "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.db.DbDataStore\"]");
+
+                // get the FileDataStore element
+                Element store = getElement(repositoryElement,
+                        "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.FileDataStore\"]");
+                Element pathParam = null;
+                if (store == null) {
+                    // FileDataStore element not found -> create it
+                    store = new Element("DataStore", namespace);
+                    store.setAttribute("class", "org.apache.jackrabbit.core.data.FileDataStore");
+                    store.addContent(new Element("param").setAttribute("name", "minRecordLength")
+                            .setAttribute("value", "1024"));
+                    pathParam = new Element("param").setAttribute("name", "path").setAttribute("value", "");
+                    store.addContent(pathParam);
+                    repositoryElement.addContent(store);
+                } else {
+                    pathParam = getElement(store, "//param[@name=\"path\"]");
+                }
+                if (fileDataStorePath != null && fileDataStorePath.length() > 0) {
+                    pathParam.setAttribute("value", fileDataStorePath);
+                }
+                if (StringUtils.isEmpty(pathParam.getAttributeValue("value"))) {
+                    pathParam.setAttribute("value", "${rep.home}/datastore");
+                }
+            }
+        } else {
+            // we will use persistence manager store (no data store)
+
+            // remove the FileDataStore if present
+            removeAllElements(repositoryElement,
+                    "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.FileDataStore\"]");
+            // remove the DbDataStore if present
+            removeAllElements(repositoryElement,
+                    "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.db.DbDataStore\"]");
+
+            // set externalBLOBs to true if the files should not be stored in the DB
+            for (Element paramElement : (List<Element>) XPath.selectNodes(repositoryElement,
+                    "//param[@name=\"externalBLOBs\"]")) {
+                paramElement.setAttribute("value", storeFilesInDB ? "false" : "true");
+            }
         }
     }
 }
