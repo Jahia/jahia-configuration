@@ -165,7 +165,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
                     store.addContent(new Element("param").setAttribute("name", "dataSourceName")
                             .setAttribute("value", "jahiaDS"));
                     store.addContent(new Element("param").setAttribute("name", "schemaObjectPrefix")
-                            .setAttribute("value", "jr_"));
+                            .setAttribute("value", "JR_"));
                     store.addContent(new Element("param").setAttribute("name", "schemaCheckEnabled")
                             .setAttribute("value", "false"));
                     store.addContent(new Element("param").setAttribute("name", "copyWhenReading")
