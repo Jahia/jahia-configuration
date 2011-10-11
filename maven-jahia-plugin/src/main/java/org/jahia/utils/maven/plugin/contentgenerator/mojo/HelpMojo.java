@@ -23,46 +23,68 @@ public class HelpMojo extends AbstractMojo {
 		getLog().info("");
 		
 		getLog().info("Parameters:");
-		getLog().info("* jahia.cg.mysql.host (optional, default = " + ContentGeneratorCst.MYSQL_HOST_DEFAULT + ")");
-		getLog().info("* jahia.cg.mysql.login");
-		getLog().info("* jahia.cg.mysql.password");
-		getLog().info("* jahia.cg.mysql_db");
-		getLog().info("* jahia.cg.mysql_table (optional, default = " + ContentGeneratorCst.MYSQL_TABLE_DEFAULT + ")");
+		getLog().info("* Configuration");
+		getLog().info(" * jahia.cg.mysql.host (optional, default = " + ContentGeneratorCst.MYSQL_HOST_DEFAULT + ")");
+		getLog().info(" * jahia.cg.mysql.login");
+		getLog().info(" * jahia.cg.mysql.password");
+		getLog().info(" * jahia.cg.mysql_db");
+		getLog().info(" * jahia.cg.mysql_table (optional, default = " + ContentGeneratorCst.MYSQL_TABLE_DEFAULT + ")");
+		getLog().info(" * jahia.cg.outputDirectory (optional, default = output)");
+		getLog().info(" * jahia.cg.outputFileName (optional, default = " + ContentGeneratorCst.OUTPUT_FILE_DEFAULT + ")");
+		
+		getLog().info("");
+		getLog().info("* Content ");
 		getLog().info(
-				"* jahia.cg.nbPagesOnTopLevel (optional, default = " + ContentGeneratorCst.NB_PAGES_TOP_LEVEL_DEFAULT
+				" * jahia.cg.nbPagesOnTopLevel (optional, default = " + ContentGeneratorCst.NB_PAGES_TOP_LEVEL_DEFAULT
 						+ ")");
-		getLog().info("* jahia.cg.nbSubLevels (optional, default = " + ContentGeneratorCst.NB_SUB_LEVELS_DEFAULT + ")");
+		getLog().info(" * jahia.cg.nbSubLevels (optional, default = " + ContentGeneratorCst.NB_SUB_LEVELS_DEFAULT + ")");
 		getLog().info(
-				"* jahia.cg.nbPagesPerLevel (optional, default = " + ContentGeneratorCst.NB_SUBPAGES_PER_PAGE_DEFAULT
-						+ ")");
-		getLog().info("* jahia.cg.outputDirectory (optional, default = output)");
-		getLog().info("* jahia.cg.outputFileName (optional, default = " + ContentGeneratorCst.OUTPUT_FILE_DEFAULT + ")");
-		getLog().info("* jahia.cg.pagesHaveVanity (optional, default = " + ContentGeneratorCst.HAS_VANITY_DEFAULT + ")");
-		getLog().info("  if true, add a vanity URL to each page, on the template \"/page<n>\"");
-
-		getLog().info("* jahia.cg.siteLanguages (optional, default = en,fr)");
-		getLog().info("* jahia.cg.siteKey (optional, default = " + ContentGeneratorCst.SITE_KEY_DEFAULT + ")");
-
+				" * jahia.cg.nbPagesPerLevel (optional, default = " + ContentGeneratorCst.NB_SUBPAGES_PER_PAGE_DEFAULT
+						+ ")");	
+		getLog().info(" * jahia.cg.pagesHaveVanity (optional, default = " + ContentGeneratorCst.HAS_VANITY_DEFAULT + ")");
+		getLog().info("   if true, add a vanity URL to each page, on the template \"/page<n>\"");
 		getLog().info(
-				"* jahia.cg.addFiles (optional, default = " + ContentGeneratorCst.ADD_FILE_TO_PAGE_DEFAULT
+				" * jahia.cg.addFiles (optional, default = " + ContentGeneratorCst.ADD_FILE_TO_PAGE_DEFAULT
 						+ ", other values:" + ContentGeneratorCst.VALUE_ALL + ", " + ContentGeneratorCst.VALUE_RANDOM
 						+ ")");
 		getLog().info(
 				"  Add a <publication> bloc to the generated pages. The content generator will pick all the files available from the pool directory, at least once.");
 		getLog().info("  If there is less files than required, it will process the files list from the beginning.");
+		
+		getLog().info("");
+		getLog().info("* Site ");
+		getLog().info(" * jahia.cg.numberOfSites: Total number of sites in final import file. ");
+		getLog().info(" * jahia.cg.siteLanguages (optional, default = en,fr)");
+		getLog().info(" * jahia.cg.siteKey (optional, default = " + ContentGeneratorCst.SITE_KEY_DEFAULT + ")");
 
-		getLog().info("* jahia.cg.poolDirectory (required if jahia.cg.addFiles != " + ContentGeneratorCst.VALUE_NONE + ")");
-		getLog().info("* jahia.cg.numberOfFilesToGenerate required for file generation. Files will be generated in poolDirectory path.");
-		getLog().info("* jahia.cg.numberOfBigTextPerPage (optional, default = 1)");
-		getLog().info("* jahia.cg.numberOfUsers: generate user1 to user${numberOfUsers}. Password is \"password\"");
-		getLog().info("* jahia.cg.numberOfGroups: generate group1 to group${numberOfGroups}.");
-		getLog().info("* jahia.cg.numberOfUsersPerGroup: Size of each generated group. ");
-		getLog().info("* jahia.cg.numberOfSites: Total number of sites in final import file. ");
-		getLog().info("* jahia.cg.groupsAclRatio: Percentage of page having specific ACL on a random group. (between 0 and 1)");
-		getLog().info("* jahia.cg.usersAclRatio: Percentage of page having specific ACL on a random user. (between 0 and 1)");
-		getLog().info("* jahia.cg.numberOfCategories: Total number of categories to create. The first third of the created pages will have a random category associated.");
-		getLog().info("* jahia.cg.numberOfCategoryLevels: Number of subcategories levels for each top category");
-		getLog().info("* jahia.cg.numberOfTags: Total number of tags to create. The first third of created page will have a tag associated.");
+		getLog().info("");
+		getLog().info("* Files ");
+		getLog().info(" * jahia.cg.poolDirectory (required if jahia.cg.addFiles != " + ContentGeneratorCst.VALUE_NONE + ")");
+		getLog().info(" * jahia.cg.numberOfFilesToGenerate required for file generation. Files will be generated in poolDirectory path.");
+		getLog().info(" * jahia.cg.numberOfBigTextPerPage (optional, default = 1)");
+		
+		getLog().info("");
+		getLog().info("* Users and Groups ");
+		getLog().info(" * jahia.cg.numberOfUsers: generate user1 to user${numberOfUsers}. Password is \"password\"");
+		getLog().info(" * jahia.cg.numberOfGroups: generate group1 to group${numberOfGroups}.");
+		getLog().info(" * jahia.cg.numberOfUsersPerGroup: Size of each generated group. ");
+		
+		getLog().info("");
+		getLog().info("* Acl");
+		getLog().info(" * jahia.cg.groupsAclRatio: Percentage of page having specific ACL on a random group. (between 0 and 1)");
+		getLog().info(" * jahia.cg.usersAclRatio: Percentage of page having specific ACL on a random user. (between 0 and 1)");
+		
+		getLog().info("");
+		getLog().info("* Categories and Tags");
+		getLog().info(" * jahia.cg.numberOfCategories: Total number of categories to create. The first third of the created pages will have a random category associated.");
+		getLog().info(" * jahia.cg.numberOfCategoryLevels: Number of subcategories levels for each top category");
+		getLog().info(" * jahia.cg.numberOfTags: Total number of tags to create. The first third of created page will have a tag associated.");
+		
+		getLog().info("");
+		getLog().info("* Visibility");
+		getLog().info(" * jahia.cg.visibilityEnabled: Enable visibility mechanism the first third of the pages (default false)");
+		getLog().info(" * jahia.cg.visibilityStartDate: JCR format sYYYY-MM-DDThh:mm:ss.sssTZD 9http://www.day.com/specs/jcr/1.0/6.2.5.1_Date.html)");
+		getLog().info(" * jahia.cg.visibilityEndDate");
 
 		getLog().info("");
 		getLog().info("NB:");

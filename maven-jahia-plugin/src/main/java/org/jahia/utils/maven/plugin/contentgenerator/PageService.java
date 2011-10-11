@@ -178,8 +178,15 @@ public class PageService {
         	logger.debug("Tag " + pageName + " with tag " + idTag);
         }
         
+        // visibility
+        Boolean visibilityOnPage = Boolean.FALSE;
+        if (ContentGeneratorService.currentPageIndex <= firstThird && export.getVisibilityEnabled()) {
+        	visibilityOnPage = Boolean.TRUE;
+        	logger.debug("Visibility enabled");
+        }
+        
         PageBO page = new PageBO(pageName, articlesMap, level, subPages,
-				export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory, idTag);
+				export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory, idTag,  visibilityOnPage, export.getVisibilityStartDate(), export.getVisibilityEndDate());
 		ContentGeneratorService.currentPageIndex = ContentGeneratorService.currentPageIndex + 1;
 		return page;
 	}

@@ -1,5 +1,10 @@
 package org.jahia.utils.maven.plugin.contentgenerator.mojo;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -8,10 +13,6 @@ import org.jahia.utils.maven.plugin.contentgenerator.FileService;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.DatabaseProperties;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * @goal generate
@@ -154,6 +155,21 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
      * @parameter expression="${jahia.cg.numberOfTags}" default-value="1"
      */
     protected Integer numberOfTags;
+    
+    /**
+     * @parameter expression="${jahia.cg.visibilityEnabled}" default-value="false"
+     */
+    protected Boolean visibilityEnabled;
+    
+    /**
+     * @parameter expression="${jahia.cg.visibilityStartDate}"
+     */
+    protected String visibilityStartDate;
+    
+    /**
+     * @parameter expression="${jahia.cg.visibilityEndDate}"
+     */
+    protected String visibilityEndDate;
 
 	public abstract void execute() throws MojoExecutionException, MojoFailureException;
 
@@ -249,6 +265,14 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
         export.setNumberOfCategoryLevels(numberOfCategoryLevels);
         
         export.setNumberOfTags(numberOfTags);
+        
+        if (visibilityEnabled == null) {
+        	visibilityEnabled = Boolean.FALSE;
+        }
+       
+        export.setVisibilityEnabled(visibilityEnabled);
+        export.setVisibilityStartDate(visibilityStartDate);
+        export.setVisibilityEndDate(visibilityEndDate);
         
 		Integer totalPages = contentGeneratorService.getTotalNumberOfPagesNeeded(nbPagesOnTopLevel, nbSubLevels,
 				nbPagesPerLevel);

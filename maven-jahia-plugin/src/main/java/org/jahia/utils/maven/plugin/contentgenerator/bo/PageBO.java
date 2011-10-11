@@ -1,11 +1,11 @@
 package org.jahia.utils.maven.plugin.contentgenerator.bo;
 
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import org.jdom.Element;
 
 public class PageBO {
 	private String uniqueName;
@@ -20,9 +20,16 @@ public class PageBO {
 	private Map<String, List<String>> acls;
 	private Integer idCategory;
 	private Integer idTag;
+	private Boolean visibilityEnabled;
+	private String visibilityStartDate;	
+	private String visibilityEndDate;
 
 	public void setIdCategory(Integer idCategory) {
 		this.idCategory = idCategory;
+	}
+
+	public void setUniqueName(String uniqueName) {
+		this.uniqueName = uniqueName;
 	}
 
 	public String getUniqueName() {
@@ -108,9 +115,21 @@ public class PageBO {
 	public void setIdTag(Integer idTag) {
 		this.idTag = idTag;
 	}
+	
+	public void setVisibilityEnabled(Boolean visibilityEnabled) {
+		this.visibilityEnabled = visibilityEnabled;
+	}
+
+	public void setVisibilityStartDate(String visibilityStartDate) {
+		this.visibilityStartDate = visibilityStartDate;
+	}
+
+	public void setVisibilityEndDate(String visibilityEndDate) {
+		this.visibilityEndDate = visibilityEndDate;
+	}
 
 	public PageBO(final String pUniqueName, Map<String, ArticleBO> articles, final int pLevel, final List<PageBO> pSubPages, Boolean pHasVanity,
-			String pSiteKey, String pFileName, Integer pNumberBigText, Map<String, List<String>> acls, Integer idCategory, Integer idTag) {
+			String pSiteKey, String pFileName, Integer pNumberBigText, Map<String, List<String>> acls, Integer idCategory, Integer idTag, Boolean visibilityEnabled, String visibilityStartDate, String visibilityEndDate) {
 		this.articles = articles;
 		this.level = pLevel;
 		this.subPages = pSubPages;
@@ -122,8 +141,12 @@ public class PageBO {
         this.acls = acls;
         this.idCategory = idCategory;
         this.idTag = idTag;
+        this.visibilityEnabled = visibilityEnabled;
+        this.visibilityStartDate = visibilityStartDate;
+        this.visibilityEndDate = visibilityEndDate;
 	}
 
+	
 	public String getHeader() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("	<!-- generated page (level " + this.getLevel() + ") -->\n");
@@ -204,6 +227,14 @@ public class PageBO {
 					+ this.getUniqueName()
 					+ "\" jcr:language=\"en\" jcr:primaryType=\"jnt:vanityUrl\" />"
 					+ "		</vanityUrlMapping>");
+		}
+		
+		
+		if (this.visibilityEnabled) {
+		   sb.append("<j:conditionalVisibility j:forceMatchAllConditions=\"true\" jcr:primaryType=\"jnt:conditionalVisibility\">");
+		   sb.append("	<jnt:startEndDateCondition0 end=\"" + this.visibilityEndDate + "\" jcr:primaryType=\"jnt:startEndDateCondition\" start=\"" + this.visibilityStartDate + "\" />");
+		   sb.append("</j:conditionalVisibility>");
+		  
 		}
 		return sb.toString();
 

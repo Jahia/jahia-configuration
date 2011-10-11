@@ -1,6 +1,7 @@
 package org.jahia.utils.maven.plugin.contentgenerator.bo;
 
 import java.io.File;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -62,6 +63,12 @@ public class ExportBO {
     private Integer numberOfCategoryLevels;
     
     private Integer numberOfTags;
+    
+    private Boolean visibilityEnabled;
+    
+    private String visibilityStartDate;
+    
+    private String visibilityEndDate;
 
 	public File getOutputFile() {
 		return outputFile;
@@ -269,6 +276,30 @@ public class ExportBO {
 
 	public void setNumberOfTags(Integer numberOfTags) {
 		this.numberOfTags = numberOfTags;
+	}
+
+	public Boolean getVisibilityEnabled() {
+		return visibilityEnabled;
+	}
+
+	public void setVisibilityEnabled(Boolean visibilityEnabled) {
+		this.visibilityEnabled = visibilityEnabled;
+	}
+
+	public String getVisibilityStartDate() {
+		return visibilityStartDate;
+	}
+
+	public void setVisibilityStartDate(String visibilityStartDate) {
+		this.visibilityStartDate = visibilityStartDate;
+	}
+
+	public String getVisibilityEndDate() {
+		return visibilityEndDate;
+	}
+
+	public void setVisibilityEndDate(String visibilityEndDate) {
+		this.visibilityEndDate = visibilityEndDate;
 	}
 
 	public ExportBO() {
