@@ -42,7 +42,7 @@ public class PageServiceTest extends ContentGeneratorTestCase {
 		
 	}	
 
-	@Test
+	//@Test
 	public void testCreateNewPage() {
 		String pageName = "myPage";
 		Integer totalBigText = Integer.valueOf(5);
@@ -60,7 +60,7 @@ public class PageServiceTest extends ContentGeneratorTestCase {
 		assertTrue(StringUtils.contains(sPage, "<bigText_5"));
 	}
 	
-	@Test
+	//@Test
 	public void testCreateNewPageZeroBigText() {
 		String pageName = "myPage";
 		Integer totalBigText = Integer.valueOf(0);
