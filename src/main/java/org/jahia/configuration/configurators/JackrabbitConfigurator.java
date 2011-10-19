@@ -195,7 +195,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
                     store.addContent(pathParam);
                     repositoryElement.addContent(store);
                 } else {
-                    pathParam = getElement(store, "//param[@name=\"path\"]");
+                    pathParam = getElement(store, "//DataStore/param[@name=\"path\"]");
                 }
                 if (fileDataStorePath != null && fileDataStorePath.length() > 0) {
                     pathParam.setAttribute("value", fileDataStorePath);
