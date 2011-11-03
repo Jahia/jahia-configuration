@@ -45,7 +45,7 @@
     <parent>
         <groupId>org.jahia.patches</groupId>
         <artifactId>patches-root</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>maven-release-plugin</artifactId>
@@ -72,6 +72,14 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>2.1</version>
                 <executions>
@@ -95,37 +103,28 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>truezip-maven-plugin</artifactId>
-                <version>1.0-beta-4</version>
-                <executions>
-                    <execution>
-                        <id>copy</id>
-                        <goals>
-                          <goal>cp</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <from>${project.build.directory}/${sourceArtifact.artifactId}-${sourceArtifact.version}.jar</from>
-                            <to>${project.build.directory}/${sourceArtifact.artifactId}-${sourceArtifact.version}.${jahia.patch.version}.jar</to>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>patch</id>
-                        <goals>
-                          <goal>copy</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                          <fileset>
-                            <directory>${project.build.directory}/classes</directory>
-                            <outputDirectory>${project.build.directory}/${sourceArtifact.artifactId}-${sourceArtifact.version}.${jahia.patch.version}.jar</outputDirectory>
-                          </fileset>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.6</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<configuration>
+							<tasks>
+								<copy file="${project.build.directory}/${sourceArtifact.artifactId}-${sourceArtifact.version}.jar"
+									tofile="${project.build.directory}/${sourceArtifact.artifactId}-${sourceArtifact.version}.${jahia.patch.version}.jar"
+									overwrite="true" />
+								<jar destfile="${project.build.directory}/${sourceArtifact.artifactId}-${sourceArtifact.version}.${jahia.patch.version}.jar"
+									update="true" basedir="${project.build.directory}/classes"/>
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
         </plugins>
     </build>
     
