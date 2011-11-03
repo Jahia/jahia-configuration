@@ -852,6 +852,14 @@ public abstract class AbstractRewritePomsPhase
     {
         Map versionsMap = (Map) resolvedSnapshots.get( artifactVersionlessKey );
 
+        if (versionsMap == null && artifactVersionlessKey != null && artifactVersionlessKey.indexOf(":") != -1)
+        {
+            versionsMap = (Map) resolvedSnapshots.get(org.apache.commons.lang.StringUtils.substringBeforeLast(artifactVersionlessKey, ":") + ":*");
+            if (versionsMap == null ) {
+                versionsMap = (Map) resolvedSnapshots.get("*:" + org.apache.commons.lang.StringUtils.substringAfterLast(artifactVersionlessKey, ":"));
+            }
+        }
+        
         if ( versionsMap != null )
         {
             return (String) ( versionsMap.get( ReleaseDescriptor.ORIGINAL_VERSION ) );
