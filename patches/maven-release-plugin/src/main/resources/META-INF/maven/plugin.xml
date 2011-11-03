@@ -1,0 +1,2760 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <name>Maven Release Plugin</name>
+  <description>This plugin is used to release a project with Maven, saving a lot of repetitive, manual work.</description>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-release-plugin</artifactId>
+  <version>2.2.1.jahia1</version>
+  <goalPrefix>release</goalPrefix>
+  <isolatedRealm>false</isolatedRealm>
+  <inheritedByDefault>true</inheritedByDefault>
+  <mojos>
+    <mojo>
+      <goal>clean</goal>
+      <description>Clean up after a release preparation. This is done automatically after a successful &lt;tt&gt;release:perform&lt;/tt&gt;,
+so is best served for cleaning up a failed or abandoned release, or a dry run. Note that only the working copy
+is cleaned up, no previous steps are rolled back.
+For more info see &lt;a href=&quot;http://maven.apache.org/plugins/maven-release-plugin/examples/clean-release.html&quot;&gt;http://maven.apache.org/plugins/maven-release-plugin/examples/clean-release.html&lt;/a&gt;.</description>
+      <requiresDirectInvocation>false</requiresDirectInvocation>
+      <requiresProject>true</requiresProject>
+      <requiresReports>false</requiresReports>
+      <aggregator>true</aggregator>
+      <requiresOnline>false</requiresOnline>
+      <inheritedByDefault>true</inheritedByDefault>
+      <implementation>org.apache.maven.plugins.release.CleanReleaseMojo</implementation>
+      <language>java</language>
+      <instantiationStrategy>per-lookup</instantiationStrategy>
+      <executionStrategy>once-per-session</executionStrategy>
+      <threadSafe>false</threadSafe>
+      <parameters>
+        <parameter>
+          <name>arguments</name>
+          <alias>prepareVerifyArgs</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Additional arguments to pass to the Maven executions, separated by spaces.</description>
+        </parameter>
+        <parameter>
+          <name>basedir</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>javaHome</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The JAVA_HOME parameter to use for forked Maven invocations.</description>
+        </parameter>
+        <parameter>
+          <name>localCheckout</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Use a local checkout instead of doing a checkout from the upstream repository.
+ATTENTION: This will only work with distributed SCMs which support the file:// protocol
+like e.g. git, jgit or hg!
+
+TODO: we should think about having the defaults for the various SCM providers provided via modello!</description>
+        </parameter>
+        <parameter>
+          <name>localRepoDirectory</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The command-line local repository directory in use for this build (if specified).</description>
+        </parameter>
+        <parameter>
+          <name>mavenExecutorId</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Role hint of the {@link org.apache.maven.shared.release.exec.MavenExecutor} implementation to use.</description>
+        </parameter>
+        <parameter>
+          <name>mavenHome</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The M2_HOME parameter to use for forked Maven invocations.</description>
+        </parameter>
+        <parameter>
+          <name>password</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM password to use.</description>
+        </parameter>
+        <parameter>
+          <name>pomFileName</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The file name of the POM to execute any goals against.</description>
+        </parameter>
+        <parameter>
+          <name>project</name>
+          <type>org.apache.maven.project.MavenProject</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>providerImplementations</name>
+          <type>java.util.Map</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>List of provider implementations.</description>
+        </parameter>
+        <parameter>
+          <name>pushChanges</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Implemented with git will or not push changes to the upstream repository.
+&lt;code&gt;true&lt;/code&gt; by default to preserve backward compatibility.</description>
+        </parameter>
+        <parameter>
+          <name>reactorProjects</name>
+          <type>java.util.List</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>scmCommentPrefix</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The message prefix to use for all SCM changes.</description>
+        </parameter>
+        <parameter>
+          <name>session</name>
+          <type>org.apache.maven.execution.MavenSession</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>settings</name>
+          <type>org.apache.maven.settings.Settings</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>tag</name>
+          <alias>releaseLabel</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM tag to use.</description>
+        </parameter>
+        <parameter>
+          <name>tagBase</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The tag base directory in SVN, you must define it if you don&apos;t use the standard svn layout (trunk/tags/branches).
+For example, &lt;code&gt;http://svn.apache.org/repos/asf/maven/plugins/tags&lt;/code&gt;. The URL is an SVN URL and does not
+include the SCM provider and protocol.</description>
+        </parameter>
+        <parameter>
+          <name>tagNameFormat</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Format to use when generating the tag name if none is specified. Property interpolation is performed on the
+tag, but in order to ensure that the interpolation occurs during release, you must use &lt;code&gt;@{...}&lt;/code&gt;
+to reference the properties rather than &lt;code&gt;${...}&lt;/code&gt;. The following properties are available:
+&lt;ul&gt;
+    &lt;li&gt;&lt;code&gt;groupId&lt;/code&gt; or &lt;code&gt;project.groupId&lt;/code&gt; - The groupId of the root project.
+    &lt;li&gt;&lt;code&gt;artifactId&lt;/code&gt; or &lt;code&gt;project.artifactId&lt;/code&gt; - The artifactId of the root project.
+    &lt;li&gt;&lt;code&gt;version&lt;/code&gt; or &lt;code&gt;project.version&lt;/code&gt; - The release version of the root project.
+&lt;/ul&gt;</description>
+        </parameter>
+        <parameter>
+          <name>username</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM username to use.</description>
+        </parameter>
+      </parameters>
+      <configuration>
+        <arguments implementation="java.lang.String">${arguments}</arguments>
+        <basedir implementation="java.io.File">${basedir}</basedir>
+        <javaHome implementation="java.io.File" default-value="${java.home}"/>
+        <localCheckout implementation="boolean" default-value="false">${localCheckout}</localCheckout>
+        <localRepoDirectory implementation="java.io.File" default-value="${maven.repo.local}"/>
+        <mavenExecutorId implementation="java.lang.String" default-value="invoker">${mavenExecutorId}</mavenExecutorId>
+        <mavenHome implementation="java.io.File" default-value="${maven.home}"/>
+        <password implementation="java.lang.String">${password}</password>
+        <pomFileName implementation="java.lang.String">${pomFileName}</pomFileName>
+        <project implementation="org.apache.maven.project.MavenProject">${project}</project>
+        <pushChanges implementation="boolean" default-value="true">${pushChanges}</pushChanges>
+        <reactorProjects implementation="java.util.List">${reactorProjects}</reactorProjects>
+        <scmCommentPrefix implementation="java.lang.String" default-value="[maven-release-plugin] ">${scmCommentPrefix}</scmCommentPrefix>
+        <session implementation="org.apache.maven.execution.MavenSession">${session}</session>
+        <settings implementation="org.apache.maven.settings.Settings">${settings}</settings>
+        <tag implementation="java.lang.String">${tag}</tag>
+        <tagBase implementation="java.lang.String">${tagBase}</tagBase>
+        <tagNameFormat implementation="java.lang.String" default-value="@{project.artifactId}-@{project.version}">${tagNameFormat}</tagNameFormat>
+        <username implementation="java.lang.String">${username}</username>
+      </configuration>
+      <requirements>
+        <requirement>
+          <role>org.apache.maven.shared.release.ReleaseManager</role>
+          <field-name>releaseManager</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.scm.manager.ScmManager</role>
+          <field-name>scmManager</field-name>
+        </requirement>
+      </requirements>
+    </mojo>
+    <mojo>
+      <goal>rollback</goal>
+      <description>Rollback changes made by a previous release. This requires that the previous release descriptor &lt;tt&gt;release.properties&lt;/tt&gt;
+is still available in the local working copy.
+For more info see &lt;a href=&quot;http://maven.apache.org/plugins/maven-release-plugin/examples/rollback-release.html&quot;&gt;http://maven.apache.org/plugins/maven-release-plugin/examples/rollback-release.html&lt;/a&gt;.</description>
+      <requiresDirectInvocation>false</requiresDirectInvocation>
+      <requiresProject>true</requiresProject>
+      <requiresReports>false</requiresReports>
+      <aggregator>true</aggregator>
+      <requiresOnline>false</requiresOnline>
+      <inheritedByDefault>true</inheritedByDefault>
+      <implementation>org.apache.maven.plugins.release.RollbackReleaseMojo</implementation>
+      <language>java</language>
+      <instantiationStrategy>per-lookup</instantiationStrategy>
+      <executionStrategy>once-per-session</executionStrategy>
+      <threadSafe>false</threadSafe>
+      <parameters>
+        <parameter>
+          <name>arguments</name>
+          <alias>prepareVerifyArgs</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Additional arguments to pass to the Maven executions, separated by spaces.</description>
+        </parameter>
+        <parameter>
+          <name>basedir</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>javaHome</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The JAVA_HOME parameter to use for forked Maven invocations.</description>
+        </parameter>
+        <parameter>
+          <name>localCheckout</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Use a local checkout instead of doing a checkout from the upstream repository.
+ATTENTION: This will only work with distributed SCMs which support the file:// protocol
+like e.g. git, jgit or hg!
+
+TODO: we should think about having the defaults for the various SCM providers provided via modello!</description>
+        </parameter>
+        <parameter>
+          <name>localRepoDirectory</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The command-line local repository directory in use for this build (if specified).</description>
+        </parameter>
+        <parameter>
+          <name>mavenExecutorId</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Role hint of the {@link org.apache.maven.shared.release.exec.MavenExecutor} implementation to use.</description>
+        </parameter>
+        <parameter>
+          <name>mavenHome</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The M2_HOME parameter to use for forked Maven invocations.</description>
+        </parameter>
+        <parameter>
+          <name>password</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM password to use.</description>
+        </parameter>
+        <parameter>
+          <name>pomFileName</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The file name of the POM to execute any goals against.</description>
+        </parameter>
+        <parameter>
+          <name>project</name>
+          <type>org.apache.maven.project.MavenProject</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>providerImplementations</name>
+          <type>java.util.Map</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>List of provider implementations.</description>
+        </parameter>
+        <parameter>
+          <name>pushChanges</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Implemented with git will or not push changes to the upstream repository.
+&lt;code&gt;true&lt;/code&gt; by default to preserve backward compatibility.</description>
+        </parameter>
+        <parameter>
+          <name>reactorProjects</name>
+          <type>java.util.List</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>scmCommentPrefix</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The message prefix to use for all SCM changes.</description>
+        </parameter>
+        <parameter>
+          <name>session</name>
+          <type>org.apache.maven.execution.MavenSession</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>settings</name>
+          <type>org.apache.maven.settings.Settings</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>tag</name>
+          <alias>releaseLabel</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM tag to use.</description>
+        </parameter>
+        <parameter>
+          <name>tagBase</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The tag base directory in SVN, you must define it if you don&apos;t use the standard svn layout (trunk/tags/branches).
+For example, &lt;code&gt;http://svn.apache.org/repos/asf/maven/plugins/tags&lt;/code&gt;. The URL is an SVN URL and does not
+include the SCM provider and protocol.</description>
+        </parameter>
+        <parameter>
+          <name>tagNameFormat</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Format to use when generating the tag name if none is specified. Property interpolation is performed on the
+tag, but in order to ensure that the interpolation occurs during release, you must use &lt;code&gt;@{...}&lt;/code&gt;
+to reference the properties rather than &lt;code&gt;${...}&lt;/code&gt;. The following properties are available:
+&lt;ul&gt;
+    &lt;li&gt;&lt;code&gt;groupId&lt;/code&gt; or &lt;code&gt;project.groupId&lt;/code&gt; - The groupId of the root project.
+    &lt;li&gt;&lt;code&gt;artifactId&lt;/code&gt; or &lt;code&gt;project.artifactId&lt;/code&gt; - The artifactId of the root project.
+    &lt;li&gt;&lt;code&gt;version&lt;/code&gt; or &lt;code&gt;project.version&lt;/code&gt; - The release version of the root project.
+&lt;/ul&gt;</description>
+        </parameter>
+        <parameter>
+          <name>username</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM username to use.</description>
+        </parameter>
+      </parameters>
+      <configuration>
+        <arguments implementation="java.lang.String">${arguments}</arguments>
+        <basedir implementation="java.io.File">${basedir}</basedir>
+        <javaHome implementation="java.io.File" default-value="${java.home}"/>
+        <localCheckout implementation="boolean" default-value="false">${localCheckout}</localCheckout>
+        <localRepoDirectory implementation="java.io.File" default-value="${maven.repo.local}"/>
+        <mavenExecutorId implementation="java.lang.String" default-value="invoker">${mavenExecutorId}</mavenExecutorId>
+        <mavenHome implementation="java.io.File" default-value="${maven.home}"/>
+        <password implementation="java.lang.String">${password}</password>
+        <pomFileName implementation="java.lang.String">${pomFileName}</pomFileName>
+        <project implementation="org.apache.maven.project.MavenProject">${project}</project>
+        <pushChanges implementation="boolean" default-value="true">${pushChanges}</pushChanges>
+        <reactorProjects implementation="java.util.List">${reactorProjects}</reactorProjects>
+        <scmCommentPrefix implementation="java.lang.String" default-value="[maven-release-plugin] ">${scmCommentPrefix}</scmCommentPrefix>
+        <session implementation="org.apache.maven.execution.MavenSession">${session}</session>
+        <settings implementation="org.apache.maven.settings.Settings">${settings}</settings>
+        <tag implementation="java.lang.String">${tag}</tag>
+        <tagBase implementation="java.lang.String">${tagBase}</tagBase>
+        <tagNameFormat implementation="java.lang.String" default-value="@{project.artifactId}-@{project.version}">${tagNameFormat}</tagNameFormat>
+        <username implementation="java.lang.String">${username}</username>
+      </configuration>
+      <requirements>
+        <requirement>
+          <role>org.apache.maven.shared.release.ReleaseManager</role>
+          <field-name>releaseManager</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.scm.manager.ScmManager</role>
+          <field-name>scmManager</field-name>
+        </requirement>
+      </requirements>
+    </mojo>
+    <mojo>
+      <goal>branch</goal>
+      <description>Branch a project in SCM, using the same steps as the &lt;tt&gt;release:prepare&lt;/tt&gt; goal, creating a branch instead of a tag.
+For more info see &lt;a href=&quot;http://maven.apache.org/plugins/maven-release-plugin/examples/branch.html&quot;&gt;http://maven.apache.org/plugins/maven-release-plugin/examples/branch.html&lt;/a&gt;.</description>
+      <requiresDirectInvocation>false</requiresDirectInvocation>
+      <requiresProject>true</requiresProject>
+      <requiresReports>false</requiresReports>
+      <aggregator>true</aggregator>
+      <requiresOnline>false</requiresOnline>
+      <inheritedByDefault>true</inheritedByDefault>
+      <implementation>org.apache.maven.plugins.release.BranchReleaseMojo</implementation>
+      <language>java</language>
+      <instantiationStrategy>per-lookup</instantiationStrategy>
+      <executionStrategy>once-per-session</executionStrategy>
+      <threadSafe>false</threadSafe>
+      <parameters>
+        <parameter>
+          <name>addSchema</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to add a schema to the POM if it was previously missing on release.</description>
+        </parameter>
+        <parameter>
+          <name>arguments</name>
+          <alias>prepareVerifyArgs</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Additional arguments to pass to the Maven executions, separated by spaces.</description>
+        </parameter>
+        <parameter>
+          <name>autoVersionSubmodules</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to automatically assign submodules the parent version.  If set to false,
+the user will be prompted for the version of each submodules.</description>
+        </parameter>
+        <parameter>
+          <name>basedir</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>branchBase</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The branch base directory in SVN, you must define it if you don&apos;t use the standard svn layout (trunk/tags/branches).
+For example, &lt;code&gt;http://svn.apache.org/repos/asf/maven/plugins/branches&lt;/code&gt;. The URL is an SVN URL and does not
+include the SCM provider and protocol.</description>
+        </parameter>
+        <parameter>
+          <name>branchName</name>
+          <type>java.lang.String</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>The branch name to use.</description>
+        </parameter>
+        <parameter>
+          <name>checkModificationExcludeList</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Command-line version of checkModificationExcludes</description>
+        </parameter>
+        <parameter>
+          <name>checkModificationExcludes</name>
+          <type>java.lang.String[]</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Additional files that will skipped when checking for
+modifications on the working copy.
+
+Is ignored, when checkModificationExcludes is set.</description>
+        </parameter>
+        <parameter>
+          <name>developmentVersion</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Default version to use for new local working copy.</description>
+        </parameter>
+        <parameter>
+          <name>dryRun</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Dry run: don&apos;t checkin or tag anything in the scm repository, or modify the checkout.
+Running &lt;code&gt;mvn -DdryRun=true release:prepare&lt;/code&gt; is useful in order to check that modifications to
+poms and scm operations (only listed on the console) are working as expected.
+Modified POMs are written alongside the originals without modifying them.</description>
+        </parameter>
+        <parameter>
+          <name>javaHome</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The JAVA_HOME parameter to use for forked Maven invocations.</description>
+        </parameter>
+        <parameter>
+          <name>localCheckout</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Use a local checkout instead of doing a checkout from the upstream repository.
+ATTENTION: This will only work with distributed SCMs which support the file:// protocol
+like e.g. git, jgit or hg!
+
+TODO: we should think about having the defaults for the various SCM providers provided via modello!</description>
+        </parameter>
+        <parameter>
+          <name>localRepoDirectory</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The command-line local repository directory in use for this build (if specified).</description>
+        </parameter>
+        <parameter>
+          <name>mavenExecutorId</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Role hint of the {@link org.apache.maven.shared.release.exec.MavenExecutor} implementation to use.</description>
+        </parameter>
+        <parameter>
+          <name>mavenHome</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The M2_HOME parameter to use for forked Maven invocations.</description>
+        </parameter>
+        <parameter>
+          <name>password</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM password to use.</description>
+        </parameter>
+        <parameter>
+          <name>pomFileName</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The file name of the POM to execute any goals against.</description>
+        </parameter>
+        <parameter>
+          <name>project</name>
+          <type>org.apache.maven.project.MavenProject</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>providerImplementations</name>
+          <type>java.util.Map</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>List of provider implementations.</description>
+        </parameter>
+        <parameter>
+          <name>pushChanges</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Implemented with git will or not push changes to the upstream repository.
+&lt;code&gt;true&lt;/code&gt; by default to preserve backward compatibility.</description>
+        </parameter>
+        <parameter>
+          <name>reactorProjects</name>
+          <type>java.util.List</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>releaseVersion</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Default version to use when preparing a release or a branch.</description>
+        </parameter>
+        <parameter>
+          <name>remoteTagging</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>currently only implemented with svn scm. Enable a workaround to prevent issue
+due to svn client &gt; 1.5.0 (http://jira.codehaus.org/browse/SCM-406)</description>
+        </parameter>
+        <parameter>
+          <name>scmCommentPrefix</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The message prefix to use for all SCM changes.</description>
+        </parameter>
+        <parameter>
+          <name>session</name>
+          <type>org.apache.maven.execution.MavenSession</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>settings</name>
+          <type>org.apache.maven.settings.Settings</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>suppressCommitBeforeBranch</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to suppress a commit of changes to the working copy
+before the tag is created.
+&lt;br/&gt;
+&lt;br/&gt;This requires &lt;code&gt;remoteTagging&lt;/code&gt; to be set to false.
+&lt;br/&gt;
+&lt;br/&gt;&lt;code&gt;suppressCommitBeforeBranch&lt;/code&gt; is useful when you want
+to avoid poms with released versions in all revisions of your
+trunk or development branch.</description>
+        </parameter>
+        <parameter>
+          <name>tag</name>
+          <alias>releaseLabel</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM tag to use.</description>
+        </parameter>
+        <parameter>
+          <name>tagBase</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The tag base directory in SVN, you must define it if you don&apos;t use the standard svn layout (trunk/tags/branches).
+For example, &lt;code&gt;http://svn.apache.org/repos/asf/maven/plugins/tags&lt;/code&gt;. The URL is an SVN URL and does not
+include the SCM provider and protocol.</description>
+        </parameter>
+        <parameter>
+          <name>tagNameFormat</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Format to use when generating the tag name if none is specified. Property interpolation is performed on the
+tag, but in order to ensure that the interpolation occurs during release, you must use &lt;code&gt;@{...}&lt;/code&gt;
+to reference the properties rather than &lt;code&gt;${...}&lt;/code&gt;. The following properties are available:
+&lt;ul&gt;
+    &lt;li&gt;&lt;code&gt;groupId&lt;/code&gt; or &lt;code&gt;project.groupId&lt;/code&gt; - The groupId of the root project.
+    &lt;li&gt;&lt;code&gt;artifactId&lt;/code&gt; or &lt;code&gt;project.artifactId&lt;/code&gt; - The artifactId of the root project.
+    &lt;li&gt;&lt;code&gt;version&lt;/code&gt; or &lt;code&gt;project.version&lt;/code&gt; - The release version of the root project.
+&lt;/ul&gt;</description>
+        </parameter>
+        <parameter>
+          <name>updateBranchVersions</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to update versions in the branch.</description>
+        </parameter>
+        <parameter>
+          <name>updateDependencies</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to update dependencies version to the next development version.</description>
+        </parameter>
+        <parameter>
+          <name>updateVersionsToSnapshot</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to update versions to SNAPSHOT in the branch.</description>
+        </parameter>
+        <parameter>
+          <name>updateWorkingCopyVersions</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to update versions in the working copy.</description>
+        </parameter>
+        <parameter>
+          <name>useEditMode</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to use &quot;edit&quot; mode on the SCM, to lock the file for editing during SCM operations.</description>
+        </parameter>
+        <parameter>
+          <name>username</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM username to use.</description>
+        </parameter>
+      </parameters>
+      <configuration>
+        <addSchema implementation="boolean" default-value="true">${addSchema}</addSchema>
+        <arguments implementation="java.lang.String">${arguments}</arguments>
+        <autoVersionSubmodules implementation="boolean" default-value="false">${autoVersionSubmodules}</autoVersionSubmodules>
+        <basedir implementation="java.io.File">${basedir}</basedir>
+        <branchBase implementation="java.lang.String">${branchBase}</branchBase>
+        <branchName implementation="java.lang.String">${branchName}</branchName>
+        <checkModificationExcludeList implementation="java.lang.String">${checkModificationExcludeList}</checkModificationExcludeList>
+        <developmentVersion implementation="java.lang.String">${developmentVersion}</developmentVersion>
+        <dryRun implementation="boolean" default-value="false">${dryRun}</dryRun>
+        <javaHome implementation="java.io.File" default-value="${java.home}"/>
+        <localCheckout implementation="boolean" default-value="false">${localCheckout}</localCheckout>
+        <localRepoDirectory implementation="java.io.File" default-value="${maven.repo.local}"/>
+        <mavenExecutorId implementation="java.lang.String" default-value="invoker">${mavenExecutorId}</mavenExecutorId>
+        <mavenHome implementation="java.io.File" default-value="${maven.home}"/>
+        <password implementation="java.lang.String">${password}</password>
+        <pomFileName implementation="java.lang.String">${pomFileName}</pomFileName>
+        <project implementation="org.apache.maven.project.MavenProject">${project}</project>
+        <pushChanges implementation="boolean" default-value="true">${pushChanges}</pushChanges>
+        <reactorProjects implementation="java.util.List">${reactorProjects}</reactorProjects>
+        <releaseVersion implementation="java.lang.String">${releaseVersion}</releaseVersion>
+        <remoteTagging implementation="boolean" default-value="true">${remoteTagging}</remoteTagging>
+        <scmCommentPrefix implementation="java.lang.String" default-value="[maven-release-plugin] ">${scmCommentPrefix}</scmCommentPrefix>
+        <session implementation="org.apache.maven.execution.MavenSession">${session}</session>
+        <settings implementation="org.apache.maven.settings.Settings">${settings}</settings>
+        <suppressCommitBeforeBranch implementation="boolean" default-value="false">${suppressCommitBeforeBranch}</suppressCommitBeforeBranch>
+        <tag implementation="java.lang.String">${tag}</tag>
+        <tagBase implementation="java.lang.String">${tagBase}</tagBase>
+        <tagNameFormat implementation="java.lang.String" default-value="@{project.artifactId}-@{project.version}">${tagNameFormat}</tagNameFormat>
+        <updateBranchVersions implementation="boolean" default-value="false">${updateBranchVersions}</updateBranchVersions>
+        <updateDependencies implementation="boolean" default-value="true">${updateDependencies}</updateDependencies>
+        <updateVersionsToSnapshot implementation="boolean" default-value="true">${updateVersionsToSnapshot}</updateVersionsToSnapshot>
+        <updateWorkingCopyVersions implementation="boolean" default-value="true">${updateWorkingCopyVersions}</updateWorkingCopyVersions>
+        <useEditMode implementation="boolean" default-value="false">${useEditMode}</useEditMode>
+        <username implementation="java.lang.String">${username}</username>
+      </configuration>
+      <requirements>
+        <requirement>
+          <role>org.apache.maven.shared.release.ReleaseManager</role>
+          <field-name>releaseManager</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.scm.manager.ScmManager</role>
+          <field-name>scmManager</field-name>
+        </requirement>
+      </requirements>
+    </mojo>
+    <mojo>
+      <goal>stage</goal>
+      <description>Perform a release from SCM to a staging repository.</description>
+      <requiresDirectInvocation>false</requiresDirectInvocation>
+      <requiresProject>false</requiresProject>
+      <requiresReports>false</requiresReports>
+      <aggregator>true</aggregator>
+      <requiresOnline>false</requiresOnline>
+      <inheritedByDefault>true</inheritedByDefault>
+      <implementation>org.apache.maven.plugins.release.StageReleaseMojo</implementation>
+      <language>java</language>
+      <instantiationStrategy>per-lookup</instantiationStrategy>
+      <executionStrategy>once-per-session</executionStrategy>
+      <threadSafe>false</threadSafe>
+      <parameters>
+        <parameter>
+          <name>arguments</name>
+          <alias>prepareVerifyArgs</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Additional arguments to pass to the Maven executions, separated by spaces.</description>
+        </parameter>
+        <parameter>
+          <name>basedir</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>connectionUrl</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM URL to checkout from. If omitted, the one from the &lt;code&gt;release.properties&lt;/code&gt; file is used, followed
+by the URL from the current POM.</description>
+        </parameter>
+        <parameter>
+          <name>goals</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>A comma or space separated list of goals to execute on deployment. Default value is either &lt;code&gt;deploy&lt;/code&gt; or
+&lt;code&gt;deploy site-deploy&lt;/code&gt;, if the project has a &amp;lt;distributionManagement&amp;gt;/&amp;lt;site&amp;gt; element.</description>
+        </parameter>
+        <parameter>
+          <name>javaHome</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The JAVA_HOME parameter to use for forked Maven invocations.</description>
+        </parameter>
+        <parameter>
+          <name>localCheckout</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Use a local checkout instead of doing a checkout from the upstream repository.
+ATTENTION: This will only work with distributed SCMs which support the file:// protocol
+like e.g. git, jgit or hg!
+
+TODO: we should think about having the defaults for the various SCM providers provided via modello!</description>
+        </parameter>
+        <parameter>
+          <name>localRepoDirectory</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The command-line local repository directory in use for this build (if specified).</description>
+        </parameter>
+        <parameter>
+          <name>mavenExecutorId</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Role hint of the {@link org.apache.maven.shared.release.exec.MavenExecutor} implementation to use.</description>
+        </parameter>
+        <parameter>
+          <name>mavenHome</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The M2_HOME parameter to use for forked Maven invocations.</description>
+        </parameter>
+        <parameter>
+          <name>password</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM password to use.</description>
+        </parameter>
+        <parameter>
+          <name>pomFileName</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The file name of the POM to execute any goals against.</description>
+        </parameter>
+        <parameter>
+          <name>project</name>
+          <type>org.apache.maven.project.MavenProject</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>providerImplementations</name>
+          <type>java.util.Map</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>List of provider implementations.</description>
+        </parameter>
+        <parameter>
+          <name>pushChanges</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Implemented with git will or not push changes to the upstream repository.
+&lt;code&gt;true&lt;/code&gt; by default to preserve backward compatibility.</description>
+        </parameter>
+        <parameter>
+          <name>reactorProjects</name>
+          <type>java.util.List</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>releaseProfiles</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Comma separated profiles to enable on deployment, in addition to active profiles for project execution.</description>
+        </parameter>
+        <parameter>
+          <name>scmCommentPrefix</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The message prefix to use for all SCM changes.</description>
+        </parameter>
+        <parameter>
+          <name>session</name>
+          <type>org.apache.maven.execution.MavenSession</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>settings</name>
+          <type>org.apache.maven.settings.Settings</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>stagingRepository</name>
+          <type>java.lang.String</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>URL of the staging repository to use.</description>
+        </parameter>
+        <parameter>
+          <name>tag</name>
+          <alias>releaseLabel</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM tag to use.</description>
+        </parameter>
+        <parameter>
+          <name>tagBase</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The tag base directory in SVN, you must define it if you don&apos;t use the standard svn layout (trunk/tags/branches).
+For example, &lt;code&gt;http://svn.apache.org/repos/asf/maven/plugins/tags&lt;/code&gt;. The URL is an SVN URL and does not
+include the SCM provider and protocol.</description>
+        </parameter>
+        <parameter>
+          <name>tagNameFormat</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Format to use when generating the tag name if none is specified. Property interpolation is performed on the
+tag, but in order to ensure that the interpolation occurs during release, you must use &lt;code&gt;@{...}&lt;/code&gt;
+to reference the properties rather than &lt;code&gt;${...}&lt;/code&gt;. The following properties are available:
+&lt;ul&gt;
+    &lt;li&gt;&lt;code&gt;groupId&lt;/code&gt; or &lt;code&gt;project.groupId&lt;/code&gt; - The groupId of the root project.
+    &lt;li&gt;&lt;code&gt;artifactId&lt;/code&gt; or &lt;code&gt;project.artifactId&lt;/code&gt; - The artifactId of the root project.
+    &lt;li&gt;&lt;code&gt;version&lt;/code&gt; or &lt;code&gt;project.version&lt;/code&gt; - The release version of the root project.
+&lt;/ul&gt;</description>
+        </parameter>
+        <parameter>
+          <name>useReleaseProfile</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to use the release profile that adds sources and javadocs to the released artifact, if appropriate.</description>
+        </parameter>
+        <parameter>
+          <name>username</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM username to use.</description>
+        </parameter>
+        <parameter>
+          <name>workingDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>The checkout directory.</description>
+        </parameter>
+      </parameters>
+      <configuration>
+        <arguments implementation="java.lang.String">${arguments}</arguments>
+        <basedir implementation="java.io.File">${basedir}</basedir>
+        <connectionUrl implementation="java.lang.String">${connectionUrl}</connectionUrl>
+        <goals implementation="java.lang.String">${goals}</goals>
+        <javaHome implementation="java.io.File" default-value="${java.home}"/>
+        <localCheckout implementation="boolean" default-value="false">${localCheckout}</localCheckout>
+        <localRepoDirectory implementation="java.io.File" default-value="${maven.repo.local}"/>
+        <mavenExecutorId implementation="java.lang.String" default-value="invoker">${mavenExecutorId}</mavenExecutorId>
+        <mavenHome implementation="java.io.File" default-value="${maven.home}"/>
+        <password implementation="java.lang.String">${password}</password>
+        <pomFileName implementation="java.lang.String">${pomFileName}</pomFileName>
+        <project implementation="org.apache.maven.project.MavenProject">${project}</project>
+        <pushChanges implementation="boolean" default-value="true">${pushChanges}</pushChanges>
+        <reactorProjects implementation="java.util.List">${reactorProjects}</reactorProjects>
+        <releaseProfiles implementation="java.lang.String">${releaseProfiles}</releaseProfiles>
+        <scmCommentPrefix implementation="java.lang.String" default-value="[maven-release-plugin] ">${scmCommentPrefix}</scmCommentPrefix>
+        <session implementation="org.apache.maven.execution.MavenSession">${session}</session>
+        <settings implementation="org.apache.maven.settings.Settings">${settings}</settings>
+        <stagingRepository implementation="java.lang.String">${stagingRepository}</stagingRepository>
+        <tag implementation="java.lang.String">${tag}</tag>
+        <tagBase implementation="java.lang.String">${tagBase}</tagBase>
+        <tagNameFormat implementation="java.lang.String" default-value="@{project.artifactId}-@{project.version}">${tagNameFormat}</tagNameFormat>
+        <useReleaseProfile implementation="boolean" default-value="true">${useReleaseProfile}</useReleaseProfile>
+        <username implementation="java.lang.String">${username}</username>
+        <workingDirectory implementation="java.io.File" default-value="${project.build.directory}/checkout">${workingDirectory}</workingDirectory>
+      </configuration>
+      <requirements>
+        <requirement>
+          <role>org.apache.maven.shared.release.ReleaseManager</role>
+          <field-name>releaseManager</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.scm.manager.ScmManager</role>
+          <field-name>scmManager</field-name>
+        </requirement>
+      </requirements>
+    </mojo>
+    <mojo>
+      <goal>help</goal>
+      <description>Display help information on maven-release-plugin.&lt;br/&gt; Call &lt;pre&gt;  mvn release:help -Ddetail=true -Dgoal=&amp;lt;goal-name&amp;gt;&lt;/pre&gt; to display parameter details.</description>
+      <requiresDirectInvocation>false</requiresDirectInvocation>
+      <requiresProject>false</requiresProject>
+      <requiresReports>false</requiresReports>
+      <aggregator>false</aggregator>
+      <requiresOnline>false</requiresOnline>
+      <inheritedByDefault>true</inheritedByDefault>
+      <implementation>org.apache.maven.plugins.release.HelpMojo</implementation>
+      <language>java</language>
+      <instantiationStrategy>per-lookup</instantiationStrategy>
+      <executionStrategy>once-per-session</executionStrategy>
+      <threadSafe>true</threadSafe>
+      <parameters>
+        <parameter>
+          <name>detail</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>If &lt;code&gt;true&lt;/code&gt;, display all settable properties for each goal.</description>
+        </parameter>
+        <parameter>
+          <name>goal</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The name of the goal for which to show help. If unspecified, all goals will be displayed.</description>
+        </parameter>
+        <parameter>
+          <name>indentSize</name>
+          <type>int</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The number of spaces per indentation level, should be positive.</description>
+        </parameter>
+        <parameter>
+          <name>lineLength</name>
+          <type>int</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The maximum length of a display line, should be positive.</description>
+        </parameter>
+      </parameters>
+      <configuration>
+        <detail implementation="boolean" default-value="false">${detail}</detail>
+        <goal implementation="java.lang.String">${goal}</goal>
+        <indentSize implementation="int" default-value="2">${indentSize}</indentSize>
+        <lineLength implementation="int" default-value="80">${lineLength}</lineLength>
+      </configuration>
+    </mojo>
+    <mojo>
+      <goal>perform</goal>
+      <description>Perform a release from SCM, either from a specified tag, or the tag representing the previous release in
+the working copy created by &lt;tt&gt;release:prepare&lt;/tt&gt;.
+For more info see &lt;a href=&quot;http://maven.apache.org/plugins/maven-release-plugin/examples/perform-release.html&quot;&gt;http://maven.apache.org/plugins/maven-release-plugin/examples/perform-release.html&lt;/a&gt;.</description>
+      <requiresDirectInvocation>false</requiresDirectInvocation>
+      <requiresProject>false</requiresProject>
+      <requiresReports>false</requiresReports>
+      <aggregator>true</aggregator>
+      <requiresOnline>false</requiresOnline>
+      <inheritedByDefault>true</inheritedByDefault>
+      <implementation>org.apache.maven.plugins.release.PerformReleaseMojo</implementation>
+      <language>java</language>
+      <instantiationStrategy>per-lookup</instantiationStrategy>
+      <executionStrategy>once-per-session</executionStrategy>
+      <threadSafe>false</threadSafe>
+      <parameters>
+        <parameter>
+          <name>arguments</name>
+          <alias>prepareVerifyArgs</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Additional arguments to pass to the Maven executions, separated by spaces.</description>
+        </parameter>
+        <parameter>
+          <name>basedir</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>connectionUrl</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM URL to checkout from. If omitted, the one from the &lt;code&gt;release.properties&lt;/code&gt; file is used, followed
+by the URL from the current POM.</description>
+        </parameter>
+        <parameter>
+          <name>goals</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>A space separated list of goals to execute on deployment. Default value is either &lt;code&gt;deploy&lt;/code&gt; or
+&lt;code&gt;deploy site-deploy&lt;/code&gt;, if the project has a &amp;lt;distributionManagement&amp;gt;/&amp;lt;site&amp;gt; element.</description>
+        </parameter>
+        <parameter>
+          <name>javaHome</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The JAVA_HOME parameter to use for forked Maven invocations.</description>
+        </parameter>
+        <parameter>
+          <name>localCheckout</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Use a local checkout instead of doing a checkout from the upstream repository.
+ATTENTION: This will only work with distributed SCMs which support the file:// protocol
+like e.g. git, jgit or hg!
+
+TODO: we should think about having the defaults for the various SCM providers provided via modello!</description>
+        </parameter>
+        <parameter>
+          <name>localRepoDirectory</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The command-line local repository directory in use for this build (if specified).</description>
+        </parameter>
+        <parameter>
+          <name>mavenExecutorId</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Role hint of the {@link org.apache.maven.shared.release.exec.MavenExecutor} implementation to use.</description>
+        </parameter>
+        <parameter>
+          <name>mavenHome</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The M2_HOME parameter to use for forked Maven invocations.</description>
+        </parameter>
+        <parameter>
+          <name>password</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM password to use.</description>
+        </parameter>
+        <parameter>
+          <name>pomFileName</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The file name of the POM to execute any goals against.</description>
+        </parameter>
+        <parameter>
+          <name>project</name>
+          <type>org.apache.maven.project.MavenProject</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>providerImplementations</name>
+          <type>java.util.Map</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>List of provider implementations.</description>
+        </parameter>
+        <parameter>
+          <name>pushChanges</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Implemented with git will or not push changes to the upstream repository.
+&lt;code&gt;true&lt;/code&gt; by default to preserve backward compatibility.</description>
+        </parameter>
+        <parameter>
+          <name>reactorProjects</name>
+          <type>java.util.List</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>releaseProfiles</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Comma separated profiles to enable on deployment, in addition to active profiles for project execution.</description>
+        </parameter>
+        <parameter>
+          <name>scmCommentPrefix</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The message prefix to use for all SCM changes.</description>
+        </parameter>
+        <parameter>
+          <name>session</name>
+          <type>org.apache.maven.execution.MavenSession</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>settings</name>
+          <type>org.apache.maven.settings.Settings</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>tag</name>
+          <alias>releaseLabel</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM tag to use.</description>
+        </parameter>
+        <parameter>
+          <name>tagBase</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The tag base directory in SVN, you must define it if you don&apos;t use the standard svn layout (trunk/tags/branches).
+For example, &lt;code&gt;http://svn.apache.org/repos/asf/maven/plugins/tags&lt;/code&gt;. The URL is an SVN URL and does not
+include the SCM provider and protocol.</description>
+        </parameter>
+        <parameter>
+          <name>tagNameFormat</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Format to use when generating the tag name if none is specified. Property interpolation is performed on the
+tag, but in order to ensure that the interpolation occurs during release, you must use &lt;code&gt;@{...}&lt;/code&gt;
+to reference the properties rather than &lt;code&gt;${...}&lt;/code&gt;. The following properties are available:
+&lt;ul&gt;
+    &lt;li&gt;&lt;code&gt;groupId&lt;/code&gt; or &lt;code&gt;project.groupId&lt;/code&gt; - The groupId of the root project.
+    &lt;li&gt;&lt;code&gt;artifactId&lt;/code&gt; or &lt;code&gt;project.artifactId&lt;/code&gt; - The artifactId of the root project.
+    &lt;li&gt;&lt;code&gt;version&lt;/code&gt; or &lt;code&gt;project.version&lt;/code&gt; - The release version of the root project.
+&lt;/ul&gt;</description>
+        </parameter>
+        <parameter>
+          <name>useReleaseProfile</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to use the release profile that adds sources and javadocs to the released artifact, if appropriate.</description>
+        </parameter>
+        <parameter>
+          <name>username</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM username to use.</description>
+        </parameter>
+        <parameter>
+          <name>workingDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>The checkout directory.</description>
+        </parameter>
+      </parameters>
+      <configuration>
+        <arguments implementation="java.lang.String">${arguments}</arguments>
+        <basedir implementation="java.io.File">${basedir}</basedir>
+        <connectionUrl implementation="java.lang.String">${connectionUrl}</connectionUrl>
+        <goals implementation="java.lang.String">${goals}</goals>
+        <javaHome implementation="java.io.File" default-value="${java.home}"/>
+        <localCheckout implementation="boolean" default-value="false">${localCheckout}</localCheckout>
+        <localRepoDirectory implementation="java.io.File" default-value="${maven.repo.local}"/>
+        <mavenExecutorId implementation="java.lang.String" default-value="invoker">${mavenExecutorId}</mavenExecutorId>
+        <mavenHome implementation="java.io.File" default-value="${maven.home}"/>
+        <password implementation="java.lang.String">${password}</password>
+        <pomFileName implementation="java.lang.String">${pomFileName}</pomFileName>
+        <project implementation="org.apache.maven.project.MavenProject">${project}</project>
+        <pushChanges implementation="boolean" default-value="true">${pushChanges}</pushChanges>
+        <reactorProjects implementation="java.util.List">${reactorProjects}</reactorProjects>
+        <releaseProfiles implementation="java.lang.String">${releaseProfiles}</releaseProfiles>
+        <scmCommentPrefix implementation="java.lang.String" default-value="[maven-release-plugin] ">${scmCommentPrefix}</scmCommentPrefix>
+        <session implementation="org.apache.maven.execution.MavenSession">${session}</session>
+        <settings implementation="org.apache.maven.settings.Settings">${settings}</settings>
+        <tag implementation="java.lang.String">${tag}</tag>
+        <tagBase implementation="java.lang.String">${tagBase}</tagBase>
+        <tagNameFormat implementation="java.lang.String" default-value="@{project.artifactId}-@{project.version}">${tagNameFormat}</tagNameFormat>
+        <useReleaseProfile implementation="boolean" default-value="true">${useReleaseProfile}</useReleaseProfile>
+        <username implementation="java.lang.String">${username}</username>
+        <workingDirectory implementation="java.io.File" default-value="${project.build.directory}/checkout">${workingDirectory}</workingDirectory>
+      </configuration>
+      <requirements>
+        <requirement>
+          <role>org.apache.maven.shared.release.ReleaseManager</role>
+          <field-name>releaseManager</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.scm.manager.ScmManager</role>
+          <field-name>scmManager</field-name>
+        </requirement>
+      </requirements>
+    </mojo>
+    <mojo>
+      <goal>prepare</goal>
+      <description>Prepare for a release in SCM. Steps through several phases to ensure the POM is ready to be
+released and then prepares SCM to eventually contain a tagged version of the release and a record
+in the local copy of the parameters used. This can be followed by a call to &lt;tt&gt;release:perform&lt;/tt&gt;.
+For more info see &lt;a href=&quot;http://maven.apache.org/plugins/maven-release-plugin/examples/prepare-release.html&quot;&gt;http://maven.apache.org/plugins/maven-release-plugin/examples/prepare-release.html&lt;/a&gt;.</description>
+      <requiresDirectInvocation>false</requiresDirectInvocation>
+      <requiresProject>true</requiresProject>
+      <requiresReports>false</requiresReports>
+      <aggregator>true</aggregator>
+      <requiresOnline>false</requiresOnline>
+      <inheritedByDefault>true</inheritedByDefault>
+      <implementation>org.apache.maven.plugins.release.PrepareReleaseMojo</implementation>
+      <language>java</language>
+      <instantiationStrategy>per-lookup</instantiationStrategy>
+      <executionStrategy>once-per-session</executionStrategy>
+      <threadSafe>false</threadSafe>
+      <parameters>
+        <parameter>
+          <name>addSchema</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to add a schema to the POM if it was previously missing on release.</description>
+        </parameter>
+        <parameter>
+          <name>allowReleasePluginSnapshot</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>false</editable>
+          <description>Whether to allow usage of a SNAPSHOT version of the Release Plugin. This in an internal property used to support
+testing of the plugin itself in batch mode.</description>
+        </parameter>
+        <parameter>
+          <name>allowTimestampedSnapshots</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to allow timestamped SNAPSHOT dependencies. Default is to fail when finding any SNAPSHOT.</description>
+        </parameter>
+        <parameter>
+          <name>arguments</name>
+          <alias>prepareVerifyArgs</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Additional arguments to pass to the Maven executions, separated by spaces.</description>
+        </parameter>
+        <parameter>
+          <name>autoVersionSubmodules</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to automatically assign submodules the parent version. If set to false, the user will be prompted for the
+version of each submodules.</description>
+        </parameter>
+        <parameter>
+          <name>basedir</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>checkModificationExcludeList</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Command-line version of checkModificationExcludes</description>
+        </parameter>
+        <parameter>
+          <name>checkModificationExcludes</name>
+          <type>java.lang.String[]</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Additional files that will skipped when checking for
+modifications on the working copy.
+
+Is ignored, when checkModificationExcludes is set.</description>
+        </parameter>
+        <parameter>
+          <name>commitByProject</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Commits to do are atomic or by project.</description>
+        </parameter>
+        <parameter>
+          <name>completionGoals</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Goals to run on completion of the preparation step, after transformation back to the next development version
+but before committing. Space delimited.</description>
+        </parameter>
+        <parameter>
+          <name>developmentVersion</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Default version to use for new local working copy.</description>
+        </parameter>
+        <parameter>
+          <name>dryRun</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Dry run: don&apos;t checkin or tag anything in the scm repository, or modify the checkout. Running
+&lt;code&gt;mvn -DdryRun=true release:prepare&lt;/code&gt; is useful in order to check that modifications to poms and scm
+operations (only listed on the console) are working as expected. Modified POMs are written alongside the
+originals without modifying them.</description>
+        </parameter>
+        <parameter>
+          <name>generateReleasePoms</name>
+          <type>boolean</type>
+          <deprecated>Please use release:prepare-with-pom instead.</deprecated>
+          <required>false</required>
+          <editable>true</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>javaHome</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The JAVA_HOME parameter to use for forked Maven invocations.</description>
+        </parameter>
+        <parameter>
+          <name>localCheckout</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Use a local checkout instead of doing a checkout from the upstream repository.
+ATTENTION: This will only work with distributed SCMs which support the file:// protocol
+like e.g. git, jgit or hg!
+
+TODO: we should think about having the defaults for the various SCM providers provided via modello!</description>
+        </parameter>
+        <parameter>
+          <name>localRepoDirectory</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The command-line local repository directory in use for this build (if specified).</description>
+        </parameter>
+        <parameter>
+          <name>mavenExecutorId</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Role hint of the {@link org.apache.maven.shared.release.exec.MavenExecutor} implementation to use.</description>
+        </parameter>
+        <parameter>
+          <name>mavenHome</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The M2_HOME parameter to use for forked Maven invocations.</description>
+        </parameter>
+        <parameter>
+          <name>password</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM password to use.</description>
+        </parameter>
+        <parameter>
+          <name>pomFileName</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The file name of the POM to execute any goals against.</description>
+        </parameter>
+        <parameter>
+          <name>preparationGoals</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Goals to run as part of the preparation step, after transformation but before committing. Space delimited.</description>
+        </parameter>
+        <parameter>
+          <name>project</name>
+          <type>org.apache.maven.project.MavenProject</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>providerImplementations</name>
+          <type>java.util.Map</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>List of provider implementations.</description>
+        </parameter>
+        <parameter>
+          <name>pushChanges</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Implemented with git will or not push changes to the upstream repository.
+&lt;code&gt;true&lt;/code&gt; by default to preserve backward compatibility.</description>
+        </parameter>
+        <parameter>
+          <name>reactorProjects</name>
+          <type>java.util.List</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>releaseVersion</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Default version to use when preparing a release or a branch.</description>
+        </parameter>
+        <parameter>
+          <name>remoteTagging</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Currently only implemented with svn scm.
+
+&lt;ul&gt;
+  &lt;li&gt;Enables a workaround to prevent issue
+due to svn client &gt; 1.5.0 (fixed in 1.6.5)
+(http://jira.codehaus.org/browse/SCM-406)&lt;/li&gt;
+  &lt;li&gt;You may not want to use this in conjunction
+with &lt;code&gt;suppressCommitBeforeTag&lt;/code&gt;, such that no poms with
+released versions are committed to the working
+copy ever.&lt;/li&gt;
+&lt;/ul&gt;</description>
+        </parameter>
+        <parameter>
+          <name>resume</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Resume a previous release attempt from the point where it was stopped.</description>
+        </parameter>
+        <parameter>
+          <name>scmCommentPrefix</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The message prefix to use for all SCM changes.</description>
+        </parameter>
+        <parameter>
+          <name>session</name>
+          <type>org.apache.maven.execution.MavenSession</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>settings</name>
+          <type>org.apache.maven.settings.Settings</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>suppressCommitBeforeTag</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to suppress a commit of changes to the working copy
+before the tag is created.
+&lt;br/&gt;
+&lt;br/&gt;This requires &lt;code&gt;remoteTagging&lt;/code&gt; to be set to false.
+&lt;br/&gt;
+&lt;br/&gt;&lt;code&gt;suppressCommitBeforeTag&lt;/code&gt; is useful when you want
+to avoid poms with released versions in all revisions of your
+trunk or development branch.</description>
+        </parameter>
+        <parameter>
+          <name>tag</name>
+          <alias>releaseLabel</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM tag to use.</description>
+        </parameter>
+        <parameter>
+          <name>tagBase</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The tag base directory in SVN, you must define it if you don&apos;t use the standard svn layout (trunk/tags/branches).
+For example, &lt;code&gt;http://svn.apache.org/repos/asf/maven/plugins/tags&lt;/code&gt;. The URL is an SVN URL and does not
+include the SCM provider and protocol.</description>
+        </parameter>
+        <parameter>
+          <name>tagNameFormat</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Format to use when generating the tag name if none is specified. Property interpolation is performed on the
+tag, but in order to ensure that the interpolation occurs during release, you must use &lt;code&gt;@{...}&lt;/code&gt;
+to reference the properties rather than &lt;code&gt;${...}&lt;/code&gt;. The following properties are available:
+&lt;ul&gt;
+    &lt;li&gt;&lt;code&gt;groupId&lt;/code&gt; or &lt;code&gt;project.groupId&lt;/code&gt; - The groupId of the root project.
+    &lt;li&gt;&lt;code&gt;artifactId&lt;/code&gt; or &lt;code&gt;project.artifactId&lt;/code&gt; - The artifactId of the root project.
+    &lt;li&gt;&lt;code&gt;version&lt;/code&gt; or &lt;code&gt;project.version&lt;/code&gt; - The release version of the root project.
+&lt;/ul&gt;</description>
+        </parameter>
+        <parameter>
+          <name>updateDependencies</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to update dependencies version to the next development version.</description>
+        </parameter>
+        <parameter>
+          <name>updateWorkingCopyVersions</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to bump the working copy versions to &lt;code&gt;developmentVersion&lt;/code&gt;.</description>
+        </parameter>
+        <parameter>
+          <name>useEditMode</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to use &quot;edit&quot; mode on the SCM, to lock the file for editing during SCM operations.</description>
+        </parameter>
+        <parameter>
+          <name>username</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM username to use.</description>
+        </parameter>
+        <parameter>
+          <name>waitBeforeTagging</name>
+          <type>int</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Wait the specified number of second before creating the tag.
+&lt;br/&gt;&lt;code&gt;waitBeforeTagging&lt;/code&gt; is useful when your source repository
+is synced between several instances and access to it is determined by
+geographical location, like the SVN repository at the Apache Software
+Foundation.</description>
+        </parameter>
+      </parameters>
+      <configuration>
+        <addSchema implementation="boolean" default-value="true">${addSchema}</addSchema>
+        <allowReleasePluginSnapshot implementation="boolean" default-value="false">${allowReleasePluginSnapshot}</allowReleasePluginSnapshot>
+        <allowTimestampedSnapshots implementation="boolean" default-value="false">${ignoreSnapshots}</allowTimestampedSnapshots>
+        <arguments implementation="java.lang.String">${arguments}</arguments>
+        <autoVersionSubmodules implementation="boolean" default-value="false">${autoVersionSubmodules}</autoVersionSubmodules>
+        <basedir implementation="java.io.File">${basedir}</basedir>
+        <checkModificationExcludeList implementation="java.lang.String">${checkModificationExcludeList}</checkModificationExcludeList>
+        <commitByProject implementation="boolean" default-value="false">${commitByProject}</commitByProject>
+        <completionGoals implementation="java.lang.String" default-value="">${completionGoals}</completionGoals>
+        <developmentVersion implementation="java.lang.String">${developmentVersion}</developmentVersion>
+        <dryRun implementation="boolean" default-value="false">${dryRun}</dryRun>
+        <generateReleasePoms implementation="boolean" default-value="false">${generateReleasePoms}</generateReleasePoms>
+        <javaHome implementation="java.io.File" default-value="${java.home}"/>
+        <localCheckout implementation="boolean" default-value="false">${localCheckout}</localCheckout>
+        <localRepoDirectory implementation="java.io.File" default-value="${maven.repo.local}"/>
+        <mavenExecutorId implementation="java.lang.String" default-value="invoker">${mavenExecutorId}</mavenExecutorId>
+        <mavenHome implementation="java.io.File" default-value="${maven.home}"/>
+        <password implementation="java.lang.String">${password}</password>
+        <pomFileName implementation="java.lang.String">${pomFileName}</pomFileName>
+        <preparationGoals implementation="java.lang.String" default-value="clean verify">${preparationGoals}</preparationGoals>
+        <project implementation="org.apache.maven.project.MavenProject">${project}</project>
+        <pushChanges implementation="boolean" default-value="true">${pushChanges}</pushChanges>
+        <reactorProjects implementation="java.util.List">${reactorProjects}</reactorProjects>
+        <releaseVersion implementation="java.lang.String">${releaseVersion}</releaseVersion>
+        <remoteTagging implementation="boolean" default-value="true">${remoteTagging}</remoteTagging>
+        <resume implementation="boolean" default-value="true">${resume}</resume>
+        <scmCommentPrefix implementation="java.lang.String" default-value="[maven-release-plugin] ">${scmCommentPrefix}</scmCommentPrefix>
+        <session implementation="org.apache.maven.execution.MavenSession">${session}</session>
+        <settings implementation="org.apache.maven.settings.Settings">${settings}</settings>
+        <suppressCommitBeforeTag implementation="boolean" default-value="false">${suppressCommitBeforeTag}</suppressCommitBeforeTag>
+        <tag implementation="java.lang.String">${tag}</tag>
+        <tagBase implementation="java.lang.String">${tagBase}</tagBase>
+        <tagNameFormat implementation="java.lang.String" default-value="@{project.artifactId}-@{project.version}">${tagNameFormat}</tagNameFormat>
+        <updateDependencies implementation="boolean" default-value="true">${updateDependencies}</updateDependencies>
+        <updateWorkingCopyVersions implementation="boolean" default-value="true">${updateWorkingCopyVersions}</updateWorkingCopyVersions>
+        <useEditMode implementation="boolean" default-value="false">${useEditMode}</useEditMode>
+        <username implementation="java.lang.String">${username}</username>
+        <waitBeforeTagging implementation="int" default-value="0">${waitBeforeTagging}</waitBeforeTagging>
+      </configuration>
+      <requirements>
+        <requirement>
+          <role>org.apache.maven.shared.release.ReleaseManager</role>
+          <field-name>releaseManager</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.scm.manager.ScmManager</role>
+          <field-name>scmManager</field-name>
+        </requirement>
+      </requirements>
+    </mojo>
+    <mojo>
+      <goal>prepare-with-pom</goal>
+      <description>Prepare for a release in SCM, fully resolving dependencies for the purpose of producing a &quot;release POM&quot;.</description>
+      <requiresDependencyResolution>test</requiresDependencyResolution>
+      <requiresDirectInvocation>false</requiresDirectInvocation>
+      <requiresProject>true</requiresProject>
+      <requiresReports>false</requiresReports>
+      <aggregator>true</aggregator>
+      <requiresOnline>false</requiresOnline>
+      <inheritedByDefault>true</inheritedByDefault>
+      <implementation>org.apache.maven.plugins.release.PrepareWithPomReleaseMojo</implementation>
+      <language>java</language>
+      <instantiationStrategy>per-lookup</instantiationStrategy>
+      <executionStrategy>once-per-session</executionStrategy>
+      <threadSafe>false</threadSafe>
+      <parameters>
+        <parameter>
+          <name>addSchema</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to add a schema to the POM if it was previously missing on release.</description>
+        </parameter>
+        <parameter>
+          <name>allowReleasePluginSnapshot</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>false</editable>
+          <description>Whether to allow usage of a SNAPSHOT version of the Release Plugin. This in an internal property used to support
+testing of the plugin itself in batch mode.</description>
+        </parameter>
+        <parameter>
+          <name>allowTimestampedSnapshots</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to allow timestamped SNAPSHOT dependencies. Default is to fail when finding any SNAPSHOT.</description>
+        </parameter>
+        <parameter>
+          <name>arguments</name>
+          <alias>prepareVerifyArgs</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Additional arguments to pass to the Maven executions, separated by spaces.</description>
+        </parameter>
+        <parameter>
+          <name>autoVersionSubmodules</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to automatically assign submodules the parent version. If set to false, the user will be prompted for the
+version of each submodules.</description>
+        </parameter>
+        <parameter>
+          <name>basedir</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>checkModificationExcludeList</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Command-line version of checkModificationExcludes</description>
+        </parameter>
+        <parameter>
+          <name>checkModificationExcludes</name>
+          <type>java.lang.String[]</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Additional files that will skipped when checking for
+modifications on the working copy.
+
+Is ignored, when checkModificationExcludes is set.</description>
+        </parameter>
+        <parameter>
+          <name>commitByProject</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Commits to do are atomic or by project.</description>
+        </parameter>
+        <parameter>
+          <name>completionGoals</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Goals to run on completion of the preparation step, after transformation back to the next development version
+but before committing. Space delimited.</description>
+        </parameter>
+        <parameter>
+          <name>developmentVersion</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Default version to use for new local working copy.</description>
+        </parameter>
+        <parameter>
+          <name>dryRun</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Dry run: don&apos;t checkin or tag anything in the scm repository, or modify the checkout. Running
+&lt;code&gt;mvn -DdryRun=true release:prepare&lt;/code&gt; is useful in order to check that modifications to poms and scm
+operations (only listed on the console) are working as expected. Modified POMs are written alongside the
+originals without modifying them.</description>
+        </parameter>
+        <parameter>
+          <name>generateReleasePoms</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to generate &lt;code&gt;release-pom.xml&lt;/code&gt; files that contain resolved information about the project.</description>
+        </parameter>
+        <parameter>
+          <name>javaHome</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The JAVA_HOME parameter to use for forked Maven invocations.</description>
+        </parameter>
+        <parameter>
+          <name>localCheckout</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Use a local checkout instead of doing a checkout from the upstream repository.
+ATTENTION: This will only work with distributed SCMs which support the file:// protocol
+like e.g. git, jgit or hg!
+
+TODO: we should think about having the defaults for the various SCM providers provided via modello!</description>
+        </parameter>
+        <parameter>
+          <name>localRepoDirectory</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The command-line local repository directory in use for this build (if specified).</description>
+        </parameter>
+        <parameter>
+          <name>mavenExecutorId</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Role hint of the {@link org.apache.maven.shared.release.exec.MavenExecutor} implementation to use.</description>
+        </parameter>
+        <parameter>
+          <name>mavenHome</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The M2_HOME parameter to use for forked Maven invocations.</description>
+        </parameter>
+        <parameter>
+          <name>password</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM password to use.</description>
+        </parameter>
+        <parameter>
+          <name>pomFileName</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The file name of the POM to execute any goals against.</description>
+        </parameter>
+        <parameter>
+          <name>preparationGoals</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Goals to run as part of the preparation step, after transformation but before committing. Space delimited.</description>
+        </parameter>
+        <parameter>
+          <name>project</name>
+          <type>org.apache.maven.project.MavenProject</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>providerImplementations</name>
+          <type>java.util.Map</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>List of provider implementations.</description>
+        </parameter>
+        <parameter>
+          <name>pushChanges</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Implemented with git will or not push changes to the upstream repository.
+&lt;code&gt;true&lt;/code&gt; by default to preserve backward compatibility.</description>
+        </parameter>
+        <parameter>
+          <name>reactorProjects</name>
+          <type>java.util.List</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>releaseVersion</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Default version to use when preparing a release or a branch.</description>
+        </parameter>
+        <parameter>
+          <name>remoteTagging</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Currently only implemented with svn scm.
+
+&lt;ul&gt;
+  &lt;li&gt;Enables a workaround to prevent issue
+due to svn client &gt; 1.5.0 (fixed in 1.6.5)
+(http://jira.codehaus.org/browse/SCM-406)&lt;/li&gt;
+  &lt;li&gt;You may not want to use this in conjunction
+with &lt;code&gt;suppressCommitBeforeTag&lt;/code&gt;, such that no poms with
+released versions are committed to the working
+copy ever.&lt;/li&gt;
+&lt;/ul&gt;</description>
+        </parameter>
+        <parameter>
+          <name>resume</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Resume a previous release attempt from the point where it was stopped.</description>
+        </parameter>
+        <parameter>
+          <name>scmCommentPrefix</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The message prefix to use for all SCM changes.</description>
+        </parameter>
+        <parameter>
+          <name>session</name>
+          <type>org.apache.maven.execution.MavenSession</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>settings</name>
+          <type>org.apache.maven.settings.Settings</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>suppressCommitBeforeTag</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to suppress a commit of changes to the working copy
+before the tag is created.
+&lt;br/&gt;
+&lt;br/&gt;This requires &lt;code&gt;remoteTagging&lt;/code&gt; to be set to false.
+&lt;br/&gt;
+&lt;br/&gt;&lt;code&gt;suppressCommitBeforeTag&lt;/code&gt; is useful when you want
+to avoid poms with released versions in all revisions of your
+trunk or development branch.</description>
+        </parameter>
+        <parameter>
+          <name>tag</name>
+          <alias>releaseLabel</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM tag to use.</description>
+        </parameter>
+        <parameter>
+          <name>tagBase</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The tag base directory in SVN, you must define it if you don&apos;t use the standard svn layout (trunk/tags/branches).
+For example, &lt;code&gt;http://svn.apache.org/repos/asf/maven/plugins/tags&lt;/code&gt;. The URL is an SVN URL and does not
+include the SCM provider and protocol.</description>
+        </parameter>
+        <parameter>
+          <name>tagNameFormat</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Format to use when generating the tag name if none is specified. Property interpolation is performed on the
+tag, but in order to ensure that the interpolation occurs during release, you must use &lt;code&gt;@{...}&lt;/code&gt;
+to reference the properties rather than &lt;code&gt;${...}&lt;/code&gt;. The following properties are available:
+&lt;ul&gt;
+    &lt;li&gt;&lt;code&gt;groupId&lt;/code&gt; or &lt;code&gt;project.groupId&lt;/code&gt; - The groupId of the root project.
+    &lt;li&gt;&lt;code&gt;artifactId&lt;/code&gt; or &lt;code&gt;project.artifactId&lt;/code&gt; - The artifactId of the root project.
+    &lt;li&gt;&lt;code&gt;version&lt;/code&gt; or &lt;code&gt;project.version&lt;/code&gt; - The release version of the root project.
+&lt;/ul&gt;</description>
+        </parameter>
+        <parameter>
+          <name>updateDependencies</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to update dependencies version to the next development version.</description>
+        </parameter>
+        <parameter>
+          <name>updateWorkingCopyVersions</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to bump the working copy versions to &lt;code&gt;developmentVersion&lt;/code&gt;.</description>
+        </parameter>
+        <parameter>
+          <name>useEditMode</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to use &quot;edit&quot; mode on the SCM, to lock the file for editing during SCM operations.</description>
+        </parameter>
+        <parameter>
+          <name>username</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM username to use.</description>
+        </parameter>
+        <parameter>
+          <name>waitBeforeTagging</name>
+          <type>int</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Wait the specified number of second before creating the tag.
+&lt;br/&gt;&lt;code&gt;waitBeforeTagging&lt;/code&gt; is useful when your source repository
+is synced between several instances and access to it is determined by
+geographical location, like the SVN repository at the Apache Software
+Foundation.</description>
+        </parameter>
+      </parameters>
+      <configuration>
+        <addSchema implementation="boolean" default-value="true">${addSchema}</addSchema>
+        <allowReleasePluginSnapshot implementation="boolean" default-value="false">${allowReleasePluginSnapshot}</allowReleasePluginSnapshot>
+        <allowTimestampedSnapshots implementation="boolean" default-value="false">${ignoreSnapshots}</allowTimestampedSnapshots>
+        <arguments implementation="java.lang.String">${arguments}</arguments>
+        <autoVersionSubmodules implementation="boolean" default-value="false">${autoVersionSubmodules}</autoVersionSubmodules>
+        <basedir implementation="java.io.File">${basedir}</basedir>
+        <checkModificationExcludeList implementation="java.lang.String">${checkModificationExcludeList}</checkModificationExcludeList>
+        <commitByProject implementation="boolean" default-value="false">${commitByProject}</commitByProject>
+        <completionGoals implementation="java.lang.String" default-value="">${completionGoals}</completionGoals>
+        <developmentVersion implementation="java.lang.String">${developmentVersion}</developmentVersion>
+        <dryRun implementation="boolean" default-value="false">${dryRun}</dryRun>
+        <generateReleasePoms implementation="boolean" default-value="true">${generateReleasePoms}</generateReleasePoms>
+        <javaHome implementation="java.io.File" default-value="${java.home}"/>
+        <localCheckout implementation="boolean" default-value="false">${localCheckout}</localCheckout>
+        <localRepoDirectory implementation="java.io.File" default-value="${maven.repo.local}"/>
+        <mavenExecutorId implementation="java.lang.String" default-value="invoker">${mavenExecutorId}</mavenExecutorId>
+        <mavenHome implementation="java.io.File" default-value="${maven.home}"/>
+        <password implementation="java.lang.String">${password}</password>
+        <pomFileName implementation="java.lang.String">${pomFileName}</pomFileName>
+        <preparationGoals implementation="java.lang.String" default-value="clean verify">${preparationGoals}</preparationGoals>
+        <project implementation="org.apache.maven.project.MavenProject">${project}</project>
+        <pushChanges implementation="boolean" default-value="true">${pushChanges}</pushChanges>
+        <reactorProjects implementation="java.util.List">${reactorProjects}</reactorProjects>
+        <releaseVersion implementation="java.lang.String">${releaseVersion}</releaseVersion>
+        <remoteTagging implementation="boolean" default-value="true">${remoteTagging}</remoteTagging>
+        <resume implementation="boolean" default-value="true">${resume}</resume>
+        <scmCommentPrefix implementation="java.lang.String" default-value="[maven-release-plugin] ">${scmCommentPrefix}</scmCommentPrefix>
+        <session implementation="org.apache.maven.execution.MavenSession">${session}</session>
+        <settings implementation="org.apache.maven.settings.Settings">${settings}</settings>
+        <suppressCommitBeforeTag implementation="boolean" default-value="false">${suppressCommitBeforeTag}</suppressCommitBeforeTag>
+        <tag implementation="java.lang.String">${tag}</tag>
+        <tagBase implementation="java.lang.String">${tagBase}</tagBase>
+        <tagNameFormat implementation="java.lang.String" default-value="@{project.artifactId}-@{project.version}">${tagNameFormat}</tagNameFormat>
+        <updateDependencies implementation="boolean" default-value="true">${updateDependencies}</updateDependencies>
+        <updateWorkingCopyVersions implementation="boolean" default-value="true">${updateWorkingCopyVersions}</updateWorkingCopyVersions>
+        <useEditMode implementation="boolean" default-value="false">${useEditMode}</useEditMode>
+        <username implementation="java.lang.String">${username}</username>
+        <waitBeforeTagging implementation="int" default-value="0">${waitBeforeTagging}</waitBeforeTagging>
+      </configuration>
+      <requirements>
+        <requirement>
+          <role>org.apache.maven.shared.release.ReleaseManager</role>
+          <field-name>releaseManager</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.scm.manager.ScmManager</role>
+          <field-name>scmManager</field-name>
+        </requirement>
+      </requirements>
+    </mojo>
+    <mojo>
+      <goal>update-versions</goal>
+      <description>Update the POM versions for a project. This performs the normal version updates of the &lt;tt&gt;release:prepare&lt;/tt&gt;
+goal without making other modifications to the SCM such as tagging.
+For more info see &lt;a href=&quot;http://maven.apache.org/plugins/maven-release-plugin/examples/update-versions.html&quot;&gt;http://maven.apache.org/plugins/maven-release-plugin/examples/update-versions.html&lt;/a&gt;.</description>
+      <requiresDirectInvocation>false</requiresDirectInvocation>
+      <requiresProject>true</requiresProject>
+      <requiresReports>false</requiresReports>
+      <aggregator>true</aggregator>
+      <requiresOnline>false</requiresOnline>
+      <inheritedByDefault>true</inheritedByDefault>
+      <implementation>org.apache.maven.plugins.release.UpdateVersionsMojo</implementation>
+      <language>java</language>
+      <instantiationStrategy>per-lookup</instantiationStrategy>
+      <executionStrategy>once-per-session</executionStrategy>
+      <threadSafe>false</threadSafe>
+      <parameters>
+        <parameter>
+          <name>addSchema</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to add a schema to the POM if it was previously missing on release.</description>
+        </parameter>
+        <parameter>
+          <name>arguments</name>
+          <alias>prepareVerifyArgs</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Additional arguments to pass to the Maven executions, separated by spaces.</description>
+        </parameter>
+        <parameter>
+          <name>autoVersionSubmodules</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to automatically assign submodules the parent version. If set to false, the user will be prompted for the
+version of each submodules.</description>
+        </parameter>
+        <parameter>
+          <name>basedir</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>developmentVersion</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Default version to use for new local working copy.</description>
+        </parameter>
+        <parameter>
+          <name>javaHome</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The JAVA_HOME parameter to use for forked Maven invocations.</description>
+        </parameter>
+        <parameter>
+          <name>localCheckout</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Use a local checkout instead of doing a checkout from the upstream repository.
+ATTENTION: This will only work with distributed SCMs which support the file:// protocol
+like e.g. git, jgit or hg!
+
+TODO: we should think about having the defaults for the various SCM providers provided via modello!</description>
+        </parameter>
+        <parameter>
+          <name>localRepoDirectory</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The command-line local repository directory in use for this build (if specified).</description>
+        </parameter>
+        <parameter>
+          <name>mavenExecutorId</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Role hint of the {@link org.apache.maven.shared.release.exec.MavenExecutor} implementation to use.</description>
+        </parameter>
+        <parameter>
+          <name>mavenHome</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The M2_HOME parameter to use for forked Maven invocations.</description>
+        </parameter>
+        <parameter>
+          <name>password</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM password to use.</description>
+        </parameter>
+        <parameter>
+          <name>pomFileName</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The file name of the POM to execute any goals against.</description>
+        </parameter>
+        <parameter>
+          <name>project</name>
+          <type>org.apache.maven.project.MavenProject</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>providerImplementations</name>
+          <type>java.util.Map</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>List of provider implementations.</description>
+        </parameter>
+        <parameter>
+          <name>pushChanges</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Implemented with git will or not push changes to the upstream repository.
+&lt;code&gt;true&lt;/code&gt; by default to preserve backward compatibility.</description>
+        </parameter>
+        <parameter>
+          <name>reactorProjects</name>
+          <type>java.util.List</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>scmCommentPrefix</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The message prefix to use for all SCM changes.</description>
+        </parameter>
+        <parameter>
+          <name>session</name>
+          <type>org.apache.maven.execution.MavenSession</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>settings</name>
+          <type>org.apache.maven.settings.Settings</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>tag</name>
+          <alias>releaseLabel</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM tag to use.</description>
+        </parameter>
+        <parameter>
+          <name>tagBase</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The tag base directory in SVN, you must define it if you don&apos;t use the standard svn layout (trunk/tags/branches).
+For example, &lt;code&gt;http://svn.apache.org/repos/asf/maven/plugins/tags&lt;/code&gt;. The URL is an SVN URL and does not
+include the SCM provider and protocol.</description>
+        </parameter>
+        <parameter>
+          <name>tagNameFormat</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Format to use when generating the tag name if none is specified. Property interpolation is performed on the
+tag, but in order to ensure that the interpolation occurs during release, you must use &lt;code&gt;@{...}&lt;/code&gt;
+to reference the properties rather than &lt;code&gt;${...}&lt;/code&gt;. The following properties are available:
+&lt;ul&gt;
+    &lt;li&gt;&lt;code&gt;groupId&lt;/code&gt; or &lt;code&gt;project.groupId&lt;/code&gt; - The groupId of the root project.
+    &lt;li&gt;&lt;code&gt;artifactId&lt;/code&gt; or &lt;code&gt;project.artifactId&lt;/code&gt; - The artifactId of the root project.
+    &lt;li&gt;&lt;code&gt;version&lt;/code&gt; or &lt;code&gt;project.version&lt;/code&gt; - The release version of the root project.
+&lt;/ul&gt;</description>
+        </parameter>
+        <parameter>
+          <name>username</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The SCM username to use.</description>
+        </parameter>
+      </parameters>
+      <configuration>
+        <addSchema implementation="boolean" default-value="true">${addSchema}</addSchema>
+        <arguments implementation="java.lang.String">${arguments}</arguments>
+        <autoVersionSubmodules implementation="boolean" default-value="false">${autoVersionSubmodules}</autoVersionSubmodules>
+        <basedir implementation="java.io.File">${basedir}</basedir>
+        <developmentVersion implementation="java.lang.String">${developmentVersion}</developmentVersion>
+        <javaHome implementation="java.io.File" default-value="${java.home}"/>
+        <localCheckout implementation="boolean" default-value="false">${localCheckout}</localCheckout>
+        <localRepoDirectory implementation="java.io.File" default-value="${maven.repo.local}"/>
+        <mavenExecutorId implementation="java.lang.String" default-value="invoker">${mavenExecutorId}</mavenExecutorId>
+        <mavenHome implementation="java.io.File" default-value="${maven.home}"/>
+        <password implementation="java.lang.String">${password}</password>
+        <pomFileName implementation="java.lang.String">${pomFileName}</pomFileName>
+        <project implementation="org.apache.maven.project.MavenProject">${project}</project>
+        <pushChanges implementation="boolean" default-value="true">${pushChanges}</pushChanges>
+        <reactorProjects implementation="java.util.List">${reactorProjects}</reactorProjects>
+        <scmCommentPrefix implementation="java.lang.String" default-value="[maven-release-plugin] ">${scmCommentPrefix}</scmCommentPrefix>
+        <session implementation="org.apache.maven.execution.MavenSession">${session}</session>
+        <settings implementation="org.apache.maven.settings.Settings">${settings}</settings>
+        <tag implementation="java.lang.String">${tag}</tag>
+        <tagBase implementation="java.lang.String">${tagBase}</tagBase>
+        <tagNameFormat implementation="java.lang.String" default-value="@{project.artifactId}-@{project.version}">${tagNameFormat}</tagNameFormat>
+        <username implementation="java.lang.String">${username}</username>
+      </configuration>
+      <requirements>
+        <requirement>
+          <role>org.apache.maven.shared.release.ReleaseManager</role>
+          <field-name>releaseManager</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.scm.manager.ScmManager</role>
+          <field-name>scmManager</field-name>
+        </requirement>
+      </requirements>
+    </mojo>
+  </mojos>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <type>jar</type>
+      <version>2.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.release</groupId>
+      <artifactId>maven-release-manager</artifactId>
+      <type>jar</type>
+      <version>2.2.1.jahia1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-container-default</artifactId>
+      <type>jar</type>
+      <version>1.0-alpha-9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-interactivity-api</artifactId>
+      <type>jar</type>
+      <version>1.0-alpha-6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-interpolation</artifactId>
+      <type>jar</type>
+      <version>1.14</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.plexus</groupId>
+      <artifactId>plexus-sec-dispatcher</artifactId>
+      <type>jar</type>
+      <version>1.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.plexus</groupId>
+      <artifactId>plexus-cipher</artifactId>
+      <type>jar</type>
+      <version>1.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact</artifactId>
+      <type>jar</type>
+      <version>2.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact-manager</artifactId>
+      <type>jar</type>
+      <version>2.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>maven-invoker</artifactId>
+      <type>jar</type>
+      <version>2.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <type>jar</type>
+      <version>2.4</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-cli</groupId>
+      <artifactId>commons-cli</artifactId>
+      <type>jar</type>
+      <version>1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <type>jar</type>
+      <version>1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-providers-standard</artifactId>
+      <type>pom</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-accurev</artifactId>
+      <type>jar</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-bazaar</artifactId>
+      <type>jar</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>regexp</groupId>
+      <artifactId>regexp</artifactId>
+      <type>jar</type>
+      <version>1.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-clearcase</artifactId>
+      <type>jar</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-cvsexe</artifactId>
+      <type>jar</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-cvs-commons</artifactId>
+      <type>jar</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-cvsjava</artifactId>
+      <type>jar</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.netbeans.lib</groupId>
+      <artifactId>cvsclient</artifactId>
+      <type>jar</type>
+      <version>20060125</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.ethz.ganymed</groupId>
+      <artifactId>ganymed-ssh2</artifactId>
+      <type>jar</type>
+      <version>build210</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-gitexe</artifactId>
+      <type>jar</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-git-commons</artifactId>
+      <type>jar</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-hg</artifactId>
+      <type>jar</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-perforce</artifactId>
+      <type>jar</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-starteam</artifactId>
+      <type>jar</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-svnexe</artifactId>
+      <type>jar</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-synergy</artifactId>
+      <type>jar</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-vss</artifactId>
+      <type>jar</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-tfs</artifactId>
+      <type>jar</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-manager-plexus</artifactId>
+      <type>jar</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-svn-commons</artifactId>
+      <type>jar</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>jaxen</groupId>
+      <artifactId>jaxen</artifactId>
+      <type>jar</type>
+      <version>1.1-beta-8</version>
+    </dependency>
+    <dependency>
+      <groupId>jdom</groupId>
+      <artifactId>jdom</artifactId>
+      <type>jar</type>
+      <version>1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-model</artifactId>
+      <type>jar</type>
+      <version>2.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+      <type>jar</type>
+      <version>2.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.wagon</groupId>
+      <artifactId>wagon-file</artifactId>
+      <type>jar</type>
+      <version>1.0-beta-2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-parameter-documenter</artifactId>
+      <type>jar</type>
+      <version>2.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.wagon</groupId>
+      <artifactId>wagon-webdav</artifactId>
+      <type>jar</type>
+      <version>1.0-beta-2</version>
+    </dependency>
+    <dependency>
+      <groupId>slide</groupId>
+      <artifactId>slide-webdavlib</artifactId>
+      <type>jar</type>
+      <version>2.1</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-httpclient</groupId>
+      <artifactId>commons-httpclient</artifactId>
+      <type>jar</type>
+      <version>2.0.2</version>
+    </dependency>
+    <dependency>
+      <groupId>de.zeigermann.xml</groupId>
+      <artifactId>xml-im-exporter</artifactId>
+      <type>jar</type>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.wagon</groupId>
+      <artifactId>wagon-http-lightweight</artifactId>
+      <type>jar</type>
+      <version>1.0-beta-2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.wagon</groupId>
+      <artifactId>wagon-http-shared</artifactId>
+      <type>jar</type>
+      <version>1.0-beta-2</version>
+    </dependency>
+    <dependency>
+      <groupId>jtidy</groupId>
+      <artifactId>jtidy</artifactId>
+      <type>jar</type>
+      <version>4aug2000r7-dev</version>
+    </dependency>
+    <dependency>
+      <groupId>xml-apis</groupId>
+      <artifactId>xml-apis</artifactId>
+      <type>jar</type>
+      <version>1.0.b2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.reporting</groupId>
+      <artifactId>maven-reporting-api</artifactId>
+      <type>jar</type>
+      <version>2.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.doxia</groupId>
+      <artifactId>doxia-sink-api</artifactId>
+      <type>jar</type>
+      <version>1.0-alpha-10</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-profile</artifactId>
+      <type>jar</type>
+      <version>2.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.wagon</groupId>
+      <artifactId>wagon-provider-api</artifactId>
+      <type>jar</type>
+      <version>1.0-beta-2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-repository-metadata</artifactId>
+      <type>jar</type>
+      <version>2.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-error-diagnostics</artifactId>
+      <type>jar</type>
+      <version>2.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.wagon</groupId>
+      <artifactId>wagon-ssh-external</artifactId>
+      <type>jar</type>
+      <version>1.0-beta-2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.wagon</groupId>
+      <artifactId>wagon-ssh-common</artifactId>
+      <type>jar</type>
+      <version>1.0-beta-2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-descriptor</artifactId>
+      <type>jar</type>
+      <version>2.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-monitor</artifactId>
+      <type>jar</type>
+      <version>2.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.wagon</groupId>
+      <artifactId>wagon-ssh</artifactId>
+      <type>jar</type>
+      <version>1.0-beta-2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.jcraft</groupId>
+      <artifactId>jsch</artifactId>
+      <type>jar</type>
+      <version>0.1.27</version>
+    </dependency>
+    <dependency>
+      <groupId>classworlds</groupId>
+      <artifactId>classworlds</artifactId>
+      <type>jar</type>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-project</artifactId>
+      <type>jar</type>
+      <version>2.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-registry</artifactId>
+      <type>jar</type>
+      <version>2.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-settings</artifactId>
+      <type>jar</type>
+      <version>2.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-api</artifactId>
+      <type>jar</type>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-utils</artifactId>
+      <type>jar</type>
+      <version>1.5.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jdom</groupId>
+      <artifactId>jdom</artifactId>
+      <type>jar</type>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <type>jar</type>
+      <version>3.8.1</version>
+    </dependency>
+  </dependencies>
+</plugin>
