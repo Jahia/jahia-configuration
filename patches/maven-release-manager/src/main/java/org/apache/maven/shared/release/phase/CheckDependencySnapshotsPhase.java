@@ -284,6 +284,15 @@ public class CheckDependencySnapshotsPhase
         // it's version will be updated
         boolean result = artifact.isSnapshot() &&
             !artifact.getBaseVersion().equals( originalVersions.get( versionlessArtifactKey ) );
+        
+        if (result) {
+            // check if the artifact snapshot resolution is present
+            if (releaseDescriptor.getResolvedSnapshotDependencies() != null && releaseDescriptor.getResolvedSnapshotDependencies().containsKey(versionlessArtifactKey))
+            {
+                Map versionMap = (Map) releaseDescriptor.getResolvedSnapshotDependencies().get(versionlessArtifactKey);
+                result = versionMap == null || versionMap.get( ReleaseDescriptor.RELEASE_KEY ) == null;
+            }
+        }
 
         // If we have a snapshot but allowTimestampedSnapshots is true, accept the artifact if the version
         // indicates that it is a timestamped snapshot.

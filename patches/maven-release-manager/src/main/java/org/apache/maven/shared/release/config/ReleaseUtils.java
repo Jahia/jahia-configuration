@@ -109,6 +109,10 @@ public class ReleaseUtils
         {
             mergeInto.getDevelopmentVersions().putAll( toBeMerged.getDevelopmentVersions() );
         }
+        if ( toBeMerged.getResolvedSnapshotDependencies() != null )
+        {
+            mergeInto.getResolvedSnapshotDependencies().putAll( toBeMerged.getResolvedSnapshotDependencies() );
+        }
         // These must be overridden, as they are not stored
         mergeInto.setWorkingDirectory(
             mergeOverride( mergeInto.getWorkingDirectory(), toBeMerged.getWorkingDirectory() ) );
@@ -231,14 +235,19 @@ public class ReleaseUtils
                 String versionType;
 
                 versionMap = new HashMap();
-                startIndex = propertyName.lastIndexOf( "dependency." );
+                startIndex = propertyName.lastIndexOf( "dependency." ) + "dependency.".length();
 
                 if ( propertyName.indexOf( ".development" ) != -1 )
                 {
                     endIndex = propertyName.indexOf( ".development" );
                     versionType = ReleaseDescriptor.DEVELOPMENT_KEY;
                 }
-                else
+                else if ( propertyName.indexOf( ".original" ) != -1 )
+                {
+                    endIndex = propertyName.indexOf( ".original" );
+                    versionType = ReleaseDescriptor.ORIGINAL_VERSION;
+                }
+                else 
                 {
                     endIndex = propertyName.indexOf( ".release" );
                     versionType = ReleaseDescriptor.RELEASE_KEY;
