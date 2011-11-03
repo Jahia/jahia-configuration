@@ -247,6 +247,14 @@ public class RewritePomsForReleasePhase
     {
         Map versionsMap = (Map) resolvedSnapshotsMap.get( artifactVersionlessKey );
 
+        if (versionsMap == null && artifactVersionlessKey != null && artifactVersionlessKey.indexOf(":") != -1)
+        {
+            versionsMap = (Map) resolvedSnapshotsMap.get(org.apache.commons.lang.StringUtils.substringBeforeLast(artifactVersionlessKey, ":") + ":*");
+            if (versionsMap == null ) {
+                versionsMap = (Map) resolvedSnapshotsMap.get("*:" + org.apache.commons.lang.StringUtils.substringAfterLast(artifactVersionlessKey, ":"));
+            }
+        }
+        
         if ( versionsMap != null )
         {
             return (String) ( versionsMap.get( ReleaseDescriptor.RELEASE_KEY ) );

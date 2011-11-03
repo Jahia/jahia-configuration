@@ -287,11 +287,18 @@ public class CheckDependencySnapshotsPhase
         
         if (result) {
             // check if the artifact snapshot resolution is present
-            if (releaseDescriptor.getResolvedSnapshotDependencies() != null && releaseDescriptor.getResolvedSnapshotDependencies().containsKey(versionlessArtifactKey))
+            Map deps = releaseDescriptor.getResolvedSnapshotDependencies();
+            if (deps != null)
             {
-                Map versionMap = (Map) releaseDescriptor.getResolvedSnapshotDependencies().get(versionlessArtifactKey);
+                Map versionMap = (Map) (deps.containsKey(versionlessArtifactKey) ? deps
+                        .get(versionlessArtifactKey) : deps.get(artifact.getGroupId() + ":*"));
+                if (versionMap == null)
+                {
+                    versionMap = (Map) deps.get("*:" + artifact.getArtifactId());
+                }
                 result = versionMap == null || versionMap.get( ReleaseDescriptor.RELEASE_KEY ) == null;
-                if (!result && !versionMap.containsKey(ReleaseDescriptor.ORIGINAL_VERSION)) {
+                if (!result && !versionMap.containsKey(ReleaseDescriptor.ORIGINAL_VERSION))
+                {
                     versionMap.put(ReleaseDescriptor.ORIGINAL_VERSION, artifact.getVersion());
                 }
             }

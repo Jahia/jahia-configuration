@@ -22,6 +22,7 @@ package org.apache.maven.shared.release.phase;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.maven.model.Scm;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.scm.repository.ScmRepository;
@@ -107,6 +108,13 @@ public class RewritePomsForDevelopmentPhase
     protected String getResolvedSnapshotVersion( String artifactVersionlessKey, Map resolvedSnapshotsMap )
     {
         Map versionsMap = (Map) resolvedSnapshotsMap.get( artifactVersionlessKey );
+        if (versionsMap == null && artifactVersionlessKey != null && artifactVersionlessKey.indexOf(":") != -1)
+        {
+            versionsMap = (Map) resolvedSnapshotsMap.get(StringUtils.substringBeforeLast(artifactVersionlessKey, ":") + ":*");
+            if (versionsMap == null ) {
+                versionsMap = (Map) resolvedSnapshotsMap.get("*:" + StringUtils.substringAfterLast(artifactVersionlessKey, ":"));
+            }
+        }
 
         if ( versionsMap != null )
         {
