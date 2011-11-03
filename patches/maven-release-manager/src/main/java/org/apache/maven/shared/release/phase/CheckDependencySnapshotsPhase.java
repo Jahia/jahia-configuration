@@ -291,6 +291,9 @@ public class CheckDependencySnapshotsPhase
             {
                 Map versionMap = (Map) releaseDescriptor.getResolvedSnapshotDependencies().get(versionlessArtifactKey);
                 result = versionMap == null || versionMap.get( ReleaseDescriptor.RELEASE_KEY ) == null;
+                if (!result && !versionMap.containsKey(ReleaseDescriptor.ORIGINAL_VERSION)) {
+                    versionMap.put(ReleaseDescriptor.ORIGINAL_VERSION, artifact.getVersion());
+                }
             }
         }
 
