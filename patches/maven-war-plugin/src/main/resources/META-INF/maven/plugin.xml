@@ -1,0 +1,1386 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <name>Maven WAR Plugin</name>
+  <description>Builds a Web Application Archive (WAR) file from the project output and its dependencies.</description>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-war-plugin</artifactId>
+  <version>2.1.1.jahia1</version>
+  <goalPrefix>war</goalPrefix>
+  <isolatedRealm>false</isolatedRealm>
+  <inheritedByDefault>true</inheritedByDefault>
+  <mojos>
+    <mojo>
+      <goal>help</goal>
+      <description>Display help information on maven-war-plugin.&lt;br/&gt; Call &lt;pre&gt;  mvn war:help -Ddetail=true -Dgoal=&amp;lt;goal-name&amp;gt;&lt;/pre&gt; to display parameter details.</description>
+      <requiresDirectInvocation>false</requiresDirectInvocation>
+      <requiresProject>false</requiresProject>
+      <requiresReports>false</requiresReports>
+      <aggregator>false</aggregator>
+      <requiresOnline>false</requiresOnline>
+      <inheritedByDefault>true</inheritedByDefault>
+      <implementation>org.apache.maven.plugin.war.HelpMojo</implementation>
+      <language>java</language>
+      <instantiationStrategy>per-lookup</instantiationStrategy>
+      <executionStrategy>once-per-session</executionStrategy>
+      <threadSafe>false</threadSafe>
+      <parameters>
+        <parameter>
+          <name>detail</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>If &lt;code&gt;true&lt;/code&gt;, display all settable properties for each goal.</description>
+        </parameter>
+        <parameter>
+          <name>goal</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The name of the goal for which to show help. If unspecified, all goals will be displayed.</description>
+        </parameter>
+        <parameter>
+          <name>indentSize</name>
+          <type>int</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The number of spaces per indentation level, should be positive.</description>
+        </parameter>
+        <parameter>
+          <name>lineLength</name>
+          <type>int</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The maximum length of a display line, should be positive.</description>
+        </parameter>
+      </parameters>
+      <configuration>
+        <detail implementation="boolean" default-value="false">${detail}</detail>
+        <goal implementation="java.lang.String">${goal}</goal>
+        <indentSize implementation="int" default-value="2">${indentSize}</indentSize>
+        <lineLength implementation="int" default-value="80">${lineLength}</lineLength>
+      </configuration>
+    </mojo>
+    <mojo>
+      <goal>manifest</goal>
+      <description>Generate a manifest for this webapp. The manifest file is created in the
+&lt;code&gt;warSourceDirectory&lt;/code&gt;.</description>
+      <requiresDependencyResolution>runtime</requiresDependencyResolution>
+      <requiresDirectInvocation>false</requiresDirectInvocation>
+      <requiresProject>true</requiresProject>
+      <requiresReports>false</requiresReports>
+      <aggregator>false</aggregator>
+      <requiresOnline>false</requiresOnline>
+      <inheritedByDefault>true</inheritedByDefault>
+      <phase>process-resources</phase>
+      <implementation>org.apache.maven.plugin.war.WarManifestMojo</implementation>
+      <language>java</language>
+      <instantiationStrategy>per-lookup</instantiationStrategy>
+      <executionStrategy>once-per-session</executionStrategy>
+      <threadSafe>true</threadSafe>
+      <parameters>
+        <parameter>
+          <name>archive</name>
+          <type>org.apache.maven.archiver.MavenArchiveConfiguration</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The archive configuration to use.
+See &lt;a href=&quot;http://maven.apache.org/shared/maven-archiver/index.html&quot;&gt;Maven Archiver Reference&lt;/a&gt;.</description>
+        </parameter>
+        <parameter>
+          <name>archiveClasses</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether a JAR file will be created for the classes in the webapp. Using this optional configuration
+parameter will make the compiled classes to be archived into a JAR file
+and the classes directory will then be excluded from the webapp.</description>
+        </parameter>
+        <parameter>
+          <name>cacheFile</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>The file containing the webapp structure cache.</description>
+        </parameter>
+        <parameter>
+          <name>classesDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description>The directory containing compiled classes.</description>
+        </parameter>
+        <parameter>
+          <name>containerConfigXML</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The path to a configuration file for the servlet container. Note that
+the file name may be different for different servlet containers.
+Apache Tomcat uses a configuration file named context.xml. The file will
+be copied to the META-INF directory.</description>
+        </parameter>
+        <parameter>
+          <name>dependentWarExcludes</name>
+          <type>java.lang.String</type>
+          <deprecated>Use &amp;lt;overlay&amp;gt;/&amp;lt;excludes&amp;gt; instead</deprecated>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The comma separated list of tokens to exclude when doing
+a WAR overlay.</description>
+        </parameter>
+        <parameter>
+          <name>dependentWarIncludes</name>
+          <type>java.lang.String</type>
+          <deprecated>Use &amp;lt;overlay&amp;gt;/&amp;lt;includes&amp;gt; instead</deprecated>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The comma separated list of tokens to include when doing
+a WAR overlay.
+Default is &apos;**&apos;</description>
+        </parameter>
+        <parameter>
+          <name>escapeString</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Expression preceded with this String won&apos;t be interpolated.
+&lt;code&gt;\${foo}&lt;/code&gt; will be replaced with &lt;code&gt;${foo}&lt;/code&gt;.</description>
+        </parameter>
+        <parameter>
+          <name>escapedBackslashesInFilePath</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>To escape interpolated values with Windows path
+&lt;code&gt;c:\foo\bar&lt;/code&gt; will be replaced with &lt;code&gt;c:\\foo\\bar&lt;/code&gt;.</description>
+        </parameter>
+        <parameter>
+          <name>filteringDeploymentDescriptors</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>To filter deployment descriptors. &lt;b&gt;Disabled by default.&lt;/b&gt;</description>
+        </parameter>
+        <parameter>
+          <name>filters</name>
+          <type>java.util.List</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Filters (property files) to include during the interpolation of the pom.xml.</description>
+        </parameter>
+        <parameter>
+          <name>nonFilteredFileExtensions</name>
+          <type>java.util.List</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>A list of file extensions that should not be filtered.
+&lt;b&gt;Will be used when filtering webResources and overlays.&lt;/b&gt;</description>
+        </parameter>
+        <parameter>
+          <name>outputFileNameMapping</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The file name mapping to use when copying libraries and TLDs. If no file mapping is
+set (default) the files are copied with their standard names.</description>
+        </parameter>
+        <parameter>
+          <name>overlays</name>
+          <type>java.util.List</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The overlays to apply.</description>
+        </parameter>
+        <parameter>
+          <name>project</name>
+          <type>org.apache.maven.project.MavenProject</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description>The Maven project.</description>
+        </parameter>
+        <parameter>
+          <name>session</name>
+          <type>org.apache.maven.execution.MavenSession</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>useCache</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether the cache should be used to save the status of the webapp
+across multiple runs. Experimental feature so disabled by default.</description>
+        </parameter>
+        <parameter>
+          <name>warSourceDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>Single directory for extra files to include in the WAR. This is where
+you place your JSP files.</description>
+        </parameter>
+        <parameter>
+          <name>warSourceExcludes</name>
+          <alias>excludes</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The comma separated list of tokens to exclude when copying the content
+of the warSourceDirectory.</description>
+        </parameter>
+        <parameter>
+          <name>warSourceIncludes</name>
+          <alias>includes</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The comma separated list of tokens to include when copying the content
+of the warSourceDirectory.</description>
+        </parameter>
+        <parameter>
+          <name>webResources</name>
+          <type>org.apache.maven.model.Resource[]</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The list of webResources we want to transfer.</description>
+        </parameter>
+        <parameter>
+          <name>webXml</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The path to the web.xml file to use.</description>
+        </parameter>
+        <parameter>
+          <name>webappDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>The directory where the webapp is built.</description>
+        </parameter>
+        <parameter>
+          <name>workDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>Directory to unpack dependent WARs into if needed.</description>
+        </parameter>
+      </parameters>
+      <configuration>
+        <archiveClasses implementation="boolean" default-value="false">${archiveClasses}</archiveClasses>
+        <cacheFile implementation="java.io.File" default-value="${project.build.directory}/war/work/webapp-cache.xml"/>
+        <classesDirectory implementation="java.io.File" default-value="${project.build.outputDirectory}"/>
+        <containerConfigXML implementation="java.io.File">${maven.war.containerConfigXML}</containerConfigXML>
+        <escapeString implementation="java.lang.String">${maven.war.escapeString}</escapeString>
+        <escapedBackslashesInFilePath implementation="boolean" default-value="false">${maven.war.escapedBackslashesInFilePath}</escapedBackslashesInFilePath>
+        <filteringDeploymentDescriptors implementation="boolean" default-value="false">${maven.war.filteringDeploymentDescriptors}</filteringDeploymentDescriptors>
+        <project implementation="org.apache.maven.project.MavenProject" default-value="${project}"/>
+        <session implementation="org.apache.maven.execution.MavenSession" default-value="${session}"/>
+        <useCache implementation="boolean" default-value="false">${useCache}</useCache>
+        <warSourceDirectory implementation="java.io.File" default-value="${basedir}/src/main/webapp"/>
+        <warSourceIncludes implementation="java.lang.String" default-value="**"/>
+        <webXml implementation="java.io.File">${maven.war.webxml}</webXml>
+        <webappDirectory implementation="java.io.File" default-value="${project.build.directory}/${project.build.finalName}"/>
+        <workDirectory implementation="java.io.File" default-value="${project.build.directory}/war/work"/>
+      </configuration>
+      <requirements>
+        <requirement>
+          <role>org.codehaus.plexus.archiver.manager.ArchiverManager</role>
+          <field-name>archiverManager</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.artifact.factory.ArtifactFactory</role>
+          <field-name>artifactFactory</field-name>
+        </requirement>
+        <requirement>
+          <role>org.codehaus.plexus.archiver.Archiver</role>
+          <role-hint>jar</role-hint>
+          <field-name>jarArchiver</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.shared.filtering.MavenFileFilter</role>
+          <role-hint>default</role-hint>
+          <field-name>mavenFileFilter</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.shared.filtering.MavenResourcesFiltering</role>
+          <role-hint>default</role-hint>
+          <field-name>mavenResourcesFiltering</field-name>
+        </requirement>
+        <requirement>
+          <role>org.codehaus.plexus.archiver.Archiver</role>
+          <role-hint>war</role-hint>
+          <field-name>warArchiver</field-name>
+        </requirement>
+      </requirements>
+    </mojo>
+    <mojo>
+      <goal>inplace</goal>
+      <description>Generate the webapp in the WAR source directory.</description>
+      <requiresDependencyResolution>runtime</requiresDependencyResolution>
+      <requiresDirectInvocation>false</requiresDirectInvocation>
+      <requiresProject>true</requiresProject>
+      <requiresReports>false</requiresReports>
+      <aggregator>false</aggregator>
+      <requiresOnline>false</requiresOnline>
+      <inheritedByDefault>true</inheritedByDefault>
+      <implementation>org.apache.maven.plugin.war.WarInPlaceMojo</implementation>
+      <language>java</language>
+      <instantiationStrategy>per-lookup</instantiationStrategy>
+      <executionStrategy>once-per-session</executionStrategy>
+      <threadSafe>true</threadSafe>
+      <parameters>
+        <parameter>
+          <name>archive</name>
+          <type>org.apache.maven.archiver.MavenArchiveConfiguration</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The archive configuration to use.
+See &lt;a href=&quot;http://maven.apache.org/shared/maven-archiver/index.html&quot;&gt;Maven Archiver Reference&lt;/a&gt;.</description>
+        </parameter>
+        <parameter>
+          <name>archiveClasses</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether a JAR file will be created for the classes in the webapp. Using this optional configuration
+parameter will make the compiled classes to be archived into a JAR file
+and the classes directory will then be excluded from the webapp.</description>
+        </parameter>
+        <parameter>
+          <name>cacheFile</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>The file containing the webapp structure cache.</description>
+        </parameter>
+        <parameter>
+          <name>classesDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description>The directory containing compiled classes.</description>
+        </parameter>
+        <parameter>
+          <name>containerConfigXML</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The path to a configuration file for the servlet container. Note that
+the file name may be different for different servlet containers.
+Apache Tomcat uses a configuration file named context.xml. The file will
+be copied to the META-INF directory.</description>
+        </parameter>
+        <parameter>
+          <name>dependentWarExcludes</name>
+          <type>java.lang.String</type>
+          <deprecated>Use &amp;lt;overlay&amp;gt;/&amp;lt;excludes&amp;gt; instead</deprecated>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The comma separated list of tokens to exclude when doing
+a WAR overlay.</description>
+        </parameter>
+        <parameter>
+          <name>dependentWarIncludes</name>
+          <type>java.lang.String</type>
+          <deprecated>Use &amp;lt;overlay&amp;gt;/&amp;lt;includes&amp;gt; instead</deprecated>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The comma separated list of tokens to include when doing
+a WAR overlay.
+Default is &apos;**&apos;</description>
+        </parameter>
+        <parameter>
+          <name>escapeString</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Expression preceded with this String won&apos;t be interpolated.
+&lt;code&gt;\${foo}&lt;/code&gt; will be replaced with &lt;code&gt;${foo}&lt;/code&gt;.</description>
+        </parameter>
+        <parameter>
+          <name>escapedBackslashesInFilePath</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>To escape interpolated values with Windows path
+&lt;code&gt;c:\foo\bar&lt;/code&gt; will be replaced with &lt;code&gt;c:\\foo\\bar&lt;/code&gt;.</description>
+        </parameter>
+        <parameter>
+          <name>filteringDeploymentDescriptors</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>To filter deployment descriptors. &lt;b&gt;Disabled by default.&lt;/b&gt;</description>
+        </parameter>
+        <parameter>
+          <name>filters</name>
+          <type>java.util.List</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Filters (property files) to include during the interpolation of the pom.xml.</description>
+        </parameter>
+        <parameter>
+          <name>nonFilteredFileExtensions</name>
+          <type>java.util.List</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>A list of file extensions that should not be filtered.
+&lt;b&gt;Will be used when filtering webResources and overlays.&lt;/b&gt;</description>
+        </parameter>
+        <parameter>
+          <name>outputFileNameMapping</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The file name mapping to use when copying libraries and TLDs. If no file mapping is
+set (default) the files are copied with their standard names.</description>
+        </parameter>
+        <parameter>
+          <name>overlays</name>
+          <type>java.util.List</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The overlays to apply.</description>
+        </parameter>
+        <parameter>
+          <name>project</name>
+          <type>org.apache.maven.project.MavenProject</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description>The Maven project.</description>
+        </parameter>
+        <parameter>
+          <name>session</name>
+          <type>org.apache.maven.execution.MavenSession</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>useCache</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether the cache should be used to save the status of the webapp
+across multiple runs. Experimental feature so disabled by default.</description>
+        </parameter>
+        <parameter>
+          <name>warSourceDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>Single directory for extra files to include in the WAR. This is where
+you place your JSP files.</description>
+        </parameter>
+        <parameter>
+          <name>warSourceExcludes</name>
+          <alias>excludes</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The comma separated list of tokens to exclude when copying the content
+of the warSourceDirectory.</description>
+        </parameter>
+        <parameter>
+          <name>warSourceIncludes</name>
+          <alias>includes</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The comma separated list of tokens to include when copying the content
+of the warSourceDirectory.</description>
+        </parameter>
+        <parameter>
+          <name>webResources</name>
+          <type>org.apache.maven.model.Resource[]</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The list of webResources we want to transfer.</description>
+        </parameter>
+        <parameter>
+          <name>webXml</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The path to the web.xml file to use.</description>
+        </parameter>
+        <parameter>
+          <name>webappDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>The directory where the webapp is built.</description>
+        </parameter>
+        <parameter>
+          <name>workDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>Directory to unpack dependent WARs into if needed.</description>
+        </parameter>
+      </parameters>
+      <configuration>
+        <archiveClasses implementation="boolean" default-value="false">${archiveClasses}</archiveClasses>
+        <cacheFile implementation="java.io.File" default-value="${project.build.directory}/war/work/webapp-cache.xml"/>
+        <classesDirectory implementation="java.io.File" default-value="${project.build.outputDirectory}"/>
+        <containerConfigXML implementation="java.io.File">${maven.war.containerConfigXML}</containerConfigXML>
+        <escapeString implementation="java.lang.String">${maven.war.escapeString}</escapeString>
+        <escapedBackslashesInFilePath implementation="boolean" default-value="false">${maven.war.escapedBackslashesInFilePath}</escapedBackslashesInFilePath>
+        <filteringDeploymentDescriptors implementation="boolean" default-value="false">${maven.war.filteringDeploymentDescriptors}</filteringDeploymentDescriptors>
+        <project implementation="org.apache.maven.project.MavenProject" default-value="${project}"/>
+        <session implementation="org.apache.maven.execution.MavenSession" default-value="${session}"/>
+        <useCache implementation="boolean" default-value="false">${useCache}</useCache>
+        <warSourceDirectory implementation="java.io.File" default-value="${basedir}/src/main/webapp"/>
+        <warSourceIncludes implementation="java.lang.String" default-value="**"/>
+        <webXml implementation="java.io.File">${maven.war.webxml}</webXml>
+        <webappDirectory implementation="java.io.File" default-value="${project.build.directory}/${project.build.finalName}"/>
+        <workDirectory implementation="java.io.File" default-value="${project.build.directory}/war/work"/>
+      </configuration>
+      <requirements>
+        <requirement>
+          <role>org.codehaus.plexus.archiver.manager.ArchiverManager</role>
+          <field-name>archiverManager</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.artifact.factory.ArtifactFactory</role>
+          <field-name>artifactFactory</field-name>
+        </requirement>
+        <requirement>
+          <role>org.codehaus.plexus.archiver.Archiver</role>
+          <role-hint>jar</role-hint>
+          <field-name>jarArchiver</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.shared.filtering.MavenFileFilter</role>
+          <role-hint>default</role-hint>
+          <field-name>mavenFileFilter</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.shared.filtering.MavenResourcesFiltering</role>
+          <role-hint>default</role-hint>
+          <field-name>mavenResourcesFiltering</field-name>
+        </requirement>
+      </requirements>
+    </mojo>
+    <mojo>
+      <goal>war</goal>
+      <description>Build a WAR file.</description>
+      <requiresDependencyResolution>runtime</requiresDependencyResolution>
+      <requiresDirectInvocation>false</requiresDirectInvocation>
+      <requiresProject>true</requiresProject>
+      <requiresReports>false</requiresReports>
+      <aggregator>false</aggregator>
+      <requiresOnline>false</requiresOnline>
+      <inheritedByDefault>true</inheritedByDefault>
+      <phase>package</phase>
+      <implementation>org.apache.maven.plugin.war.WarMojo</implementation>
+      <language>java</language>
+      <instantiationStrategy>per-lookup</instantiationStrategy>
+      <executionStrategy>once-per-session</executionStrategy>
+      <threadSafe>true</threadSafe>
+      <parameters>
+        <parameter>
+          <name>archive</name>
+          <type>org.apache.maven.archiver.MavenArchiveConfiguration</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The archive configuration to use.
+See &lt;a href=&quot;http://maven.apache.org/shared/maven-archiver/index.html&quot;&gt;Maven Archiver Reference&lt;/a&gt;.</description>
+        </parameter>
+        <parameter>
+          <name>archiveClasses</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether a JAR file will be created for the classes in the webapp. Using this optional configuration
+parameter will make the compiled classes to be archived into a JAR file
+and the classes directory will then be excluded from the webapp.</description>
+        </parameter>
+        <parameter>
+          <name>attachClasses</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether classes (that is the content of the WEB-INF/classes directory) should be attached to the
+project.</description>
+        </parameter>
+        <parameter>
+          <name>cacheFile</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>The file containing the webapp structure cache.</description>
+        </parameter>
+        <parameter>
+          <name>classesClassifier</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The classifier to use for the attached classes artifact.</description>
+        </parameter>
+        <parameter>
+          <name>classesDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description>The directory containing compiled classes.</description>
+        </parameter>
+        <parameter>
+          <name>classifier</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Classifier to add to the generated WAR. If given, the artifact will be an attachment instead.
+The classifier will not be applied to the JAR file of the project - only to the WAR file.</description>
+        </parameter>
+        <parameter>
+          <name>containerConfigXML</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The path to a configuration file for the servlet container. Note that
+the file name may be different for different servlet containers.
+Apache Tomcat uses a configuration file named context.xml. The file will
+be copied to the META-INF directory.</description>
+        </parameter>
+        <parameter>
+          <name>dependentWarExcludes</name>
+          <type>java.lang.String</type>
+          <deprecated>Use &amp;lt;overlay&amp;gt;/&amp;lt;excludes&amp;gt; instead</deprecated>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The comma separated list of tokens to exclude when doing
+a WAR overlay.</description>
+        </parameter>
+        <parameter>
+          <name>dependentWarIncludes</name>
+          <type>java.lang.String</type>
+          <deprecated>Use &amp;lt;overlay&amp;gt;/&amp;lt;includes&amp;gt; instead</deprecated>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The comma separated list of tokens to include when doing
+a WAR overlay.
+Default is &apos;**&apos;</description>
+        </parameter>
+        <parameter>
+          <name>escapeString</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Expression preceded with this String won&apos;t be interpolated.
+&lt;code&gt;\${foo}&lt;/code&gt; will be replaced with &lt;code&gt;${foo}&lt;/code&gt;.</description>
+        </parameter>
+        <parameter>
+          <name>escapedBackslashesInFilePath</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>To escape interpolated values with Windows path
+&lt;code&gt;c:\foo\bar&lt;/code&gt; will be replaced with &lt;code&gt;c:\\foo\\bar&lt;/code&gt;.</description>
+        </parameter>
+        <parameter>
+          <name>failOnMissingWebXml</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether or not to fail the build if the &lt;code&gt;web.xml&lt;/code&gt; file is missing. Set to &lt;code&gt;false&lt;/code&gt;
+if you want you WAR built without a &lt;code&gt;web.xml&lt;/code&gt; file.
+This may be useful if you are building an overlay that has no web.xml file.</description>
+        </parameter>
+        <parameter>
+          <name>filteringDeploymentDescriptors</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>To filter deployment descriptors. &lt;b&gt;Disabled by default.&lt;/b&gt;</description>
+        </parameter>
+        <parameter>
+          <name>filters</name>
+          <type>java.util.List</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Filters (property files) to include during the interpolation of the pom.xml.</description>
+        </parameter>
+        <parameter>
+          <name>nonFilteredFileExtensions</name>
+          <type>java.util.List</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>A list of file extensions that should not be filtered.
+&lt;b&gt;Will be used when filtering webResources and overlays.&lt;/b&gt;</description>
+        </parameter>
+        <parameter>
+          <name>outputDirectory</name>
+          <type>java.lang.String</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>The directory for the generated WAR.</description>
+        </parameter>
+        <parameter>
+          <name>outputFileNameMapping</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The file name mapping to use when copying libraries and TLDs. If no file mapping is
+set (default) the files are copied with their standard names.</description>
+        </parameter>
+        <parameter>
+          <name>overlays</name>
+          <type>java.util.List</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The overlays to apply.</description>
+        </parameter>
+        <parameter>
+          <name>packagingExcludes</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The comma separated list of tokens to exclude from the WAR before
+packaging. This option may be used to implement the skinny WAR use
+case.</description>
+        </parameter>
+        <parameter>
+          <name>packagingIncludes</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The comma separated list of tokens to include in the WAR before
+packaging. By default everything is included. This option may be used
+to implement the skinny WAR use case.</description>
+        </parameter>
+        <parameter>
+          <name>primaryArtifact</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether this is the main artifact being built. Set to &lt;code&gt;false&lt;/code&gt; if you don&apos;t want to install or
+deploy it to the local repository instead of the default one in an execution.</description>
+        </parameter>
+        <parameter>
+          <name>project</name>
+          <type>org.apache.maven.project.MavenProject</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description>The Maven project.</description>
+        </parameter>
+        <parameter>
+          <name>session</name>
+          <type>org.apache.maven.execution.MavenSession</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>useCache</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether the cache should be used to save the status of the webapp
+across multiple runs. Experimental feature so disabled by default.</description>
+        </parameter>
+        <parameter>
+          <name>warName</name>
+          <type>java.lang.String</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>The name of the generated WAR.</description>
+        </parameter>
+        <parameter>
+          <name>warSourceDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>Single directory for extra files to include in the WAR. This is where
+you place your JSP files.</description>
+        </parameter>
+        <parameter>
+          <name>warSourceExcludes</name>
+          <alias>excludes</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The comma separated list of tokens to exclude when copying the content
+of the warSourceDirectory.</description>
+        </parameter>
+        <parameter>
+          <name>warSourceIncludes</name>
+          <alias>includes</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The comma separated list of tokens to include when copying the content
+of the warSourceDirectory.</description>
+        </parameter>
+        <parameter>
+          <name>webResources</name>
+          <type>org.apache.maven.model.Resource[]</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The list of webResources we want to transfer.</description>
+        </parameter>
+        <parameter>
+          <name>webXml</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The path to the web.xml file to use.</description>
+        </parameter>
+        <parameter>
+          <name>webappDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>The directory where the webapp is built.</description>
+        </parameter>
+        <parameter>
+          <name>workDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>Directory to unpack dependent WARs into if needed.</description>
+        </parameter>
+      </parameters>
+      <configuration>
+        <archiveClasses implementation="boolean" default-value="false">${archiveClasses}</archiveClasses>
+        <attachClasses implementation="boolean" default-value="false"/>
+        <cacheFile implementation="java.io.File" default-value="${project.build.directory}/war/work/webapp-cache.xml"/>
+        <classesClassifier implementation="java.lang.String" default-value="classes"/>
+        <classesDirectory implementation="java.io.File" default-value="${project.build.outputDirectory}"/>
+        <containerConfigXML implementation="java.io.File">${maven.war.containerConfigXML}</containerConfigXML>
+        <escapeString implementation="java.lang.String">${maven.war.escapeString}</escapeString>
+        <escapedBackslashesInFilePath implementation="boolean" default-value="false">${maven.war.escapedBackslashesInFilePath}</escapedBackslashesInFilePath>
+        <failOnMissingWebXml implementation="boolean" default-value="true">${failOnMissingWebXml}</failOnMissingWebXml>
+        <filteringDeploymentDescriptors implementation="boolean" default-value="false">${maven.war.filteringDeploymentDescriptors}</filteringDeploymentDescriptors>
+        <outputDirectory implementation="java.lang.String" default-value="${project.build.directory}"/>
+        <primaryArtifact implementation="boolean" default-value="true">${primaryArtifact}</primaryArtifact>
+        <project implementation="org.apache.maven.project.MavenProject" default-value="${project}"/>
+        <session implementation="org.apache.maven.execution.MavenSession" default-value="${session}"/>
+        <useCache implementation="boolean" default-value="false">${useCache}</useCache>
+        <warName implementation="java.lang.String" default-value="${project.build.finalName}"/>
+        <warSourceDirectory implementation="java.io.File" default-value="${basedir}/src/main/webapp"/>
+        <warSourceIncludes implementation="java.lang.String" default-value="**"/>
+        <webXml implementation="java.io.File">${maven.war.webxml}</webXml>
+        <webappDirectory implementation="java.io.File" default-value="${project.build.directory}/${project.build.finalName}"/>
+        <workDirectory implementation="java.io.File" default-value="${project.build.directory}/war/work"/>
+      </configuration>
+      <requirements>
+        <requirement>
+          <role>org.codehaus.plexus.archiver.manager.ArchiverManager</role>
+          <field-name>archiverManager</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.artifact.factory.ArtifactFactory</role>
+          <field-name>artifactFactory</field-name>
+        </requirement>
+        <requirement>
+          <role>org.codehaus.plexus.archiver.Archiver</role>
+          <role-hint>jar</role-hint>
+          <field-name>jarArchiver</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.shared.filtering.MavenFileFilter</role>
+          <role-hint>default</role-hint>
+          <field-name>mavenFileFilter</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.shared.filtering.MavenResourcesFiltering</role>
+          <role-hint>default</role-hint>
+          <field-name>mavenResourcesFiltering</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.project.MavenProjectHelper</role>
+          <field-name>projectHelper</field-name>
+        </requirement>
+        <requirement>
+          <role>org.codehaus.plexus.archiver.Archiver</role>
+          <role-hint>war</role-hint>
+          <field-name>warArchiver</field-name>
+        </requirement>
+      </requirements>
+    </mojo>
+    <mojo>
+      <goal>exploded</goal>
+      <description>Create an exploded webapp in a specified directory.</description>
+      <requiresDependencyResolution>runtime</requiresDependencyResolution>
+      <requiresDirectInvocation>false</requiresDirectInvocation>
+      <requiresProject>true</requiresProject>
+      <requiresReports>false</requiresReports>
+      <aggregator>false</aggregator>
+      <requiresOnline>false</requiresOnline>
+      <inheritedByDefault>true</inheritedByDefault>
+      <phase>package</phase>
+      <implementation>org.apache.maven.plugin.war.WarExplodedMojo</implementation>
+      <language>java</language>
+      <instantiationStrategy>per-lookup</instantiationStrategy>
+      <executionStrategy>once-per-session</executionStrategy>
+      <threadSafe>true</threadSafe>
+      <parameters>
+        <parameter>
+          <name>archive</name>
+          <type>org.apache.maven.archiver.MavenArchiveConfiguration</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The archive configuration to use.
+See &lt;a href=&quot;http://maven.apache.org/shared/maven-archiver/index.html&quot;&gt;Maven Archiver Reference&lt;/a&gt;.</description>
+        </parameter>
+        <parameter>
+          <name>archiveClasses</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether a JAR file will be created for the classes in the webapp. Using this optional configuration
+parameter will make the compiled classes to be archived into a JAR file
+and the classes directory will then be excluded from the webapp.</description>
+        </parameter>
+        <parameter>
+          <name>cacheFile</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>The file containing the webapp structure cache.</description>
+        </parameter>
+        <parameter>
+          <name>classesDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description>The directory containing compiled classes.</description>
+        </parameter>
+        <parameter>
+          <name>containerConfigXML</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The path to a configuration file for the servlet container. Note that
+the file name may be different for different servlet containers.
+Apache Tomcat uses a configuration file named context.xml. The file will
+be copied to the META-INF directory.</description>
+        </parameter>
+        <parameter>
+          <name>dependentWarExcludes</name>
+          <type>java.lang.String</type>
+          <deprecated>Use &amp;lt;overlay&amp;gt;/&amp;lt;excludes&amp;gt; instead</deprecated>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The comma separated list of tokens to exclude when doing
+a WAR overlay.</description>
+        </parameter>
+        <parameter>
+          <name>dependentWarIncludes</name>
+          <type>java.lang.String</type>
+          <deprecated>Use &amp;lt;overlay&amp;gt;/&amp;lt;includes&amp;gt; instead</deprecated>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The comma separated list of tokens to include when doing
+a WAR overlay.
+Default is &apos;**&apos;</description>
+        </parameter>
+        <parameter>
+          <name>escapeString</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Expression preceded with this String won&apos;t be interpolated.
+&lt;code&gt;\${foo}&lt;/code&gt; will be replaced with &lt;code&gt;${foo}&lt;/code&gt;.</description>
+        </parameter>
+        <parameter>
+          <name>escapedBackslashesInFilePath</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>To escape interpolated values with Windows path
+&lt;code&gt;c:\foo\bar&lt;/code&gt; will be replaced with &lt;code&gt;c:\\foo\\bar&lt;/code&gt;.</description>
+        </parameter>
+        <parameter>
+          <name>filteringDeploymentDescriptors</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>To filter deployment descriptors. &lt;b&gt;Disabled by default.&lt;/b&gt;</description>
+        </parameter>
+        <parameter>
+          <name>filters</name>
+          <type>java.util.List</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Filters (property files) to include during the interpolation of the pom.xml.</description>
+        </parameter>
+        <parameter>
+          <name>nonFilteredFileExtensions</name>
+          <type>java.util.List</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>A list of file extensions that should not be filtered.
+&lt;b&gt;Will be used when filtering webResources and overlays.&lt;/b&gt;</description>
+        </parameter>
+        <parameter>
+          <name>outputFileNameMapping</name>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The file name mapping to use when copying libraries and TLDs. If no file mapping is
+set (default) the files are copied with their standard names.</description>
+        </parameter>
+        <parameter>
+          <name>overlays</name>
+          <type>java.util.List</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The overlays to apply.</description>
+        </parameter>
+        <parameter>
+          <name>project</name>
+          <type>org.apache.maven.project.MavenProject</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description>The Maven project.</description>
+        </parameter>
+        <parameter>
+          <name>session</name>
+          <type>org.apache.maven.execution.MavenSession</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description></description>
+        </parameter>
+        <parameter>
+          <name>useCache</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether the cache should be used to save the status of the webapp
+across multiple runs. Experimental feature so disabled by default.</description>
+        </parameter>
+        <parameter>
+          <name>warSourceDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>Single directory for extra files to include in the WAR. This is where
+you place your JSP files.</description>
+        </parameter>
+        <parameter>
+          <name>warSourceExcludes</name>
+          <alias>excludes</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The comma separated list of tokens to exclude when copying the content
+of the warSourceDirectory.</description>
+        </parameter>
+        <parameter>
+          <name>warSourceIncludes</name>
+          <alias>includes</alias>
+          <type>java.lang.String</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The comma separated list of tokens to include when copying the content
+of the warSourceDirectory.</description>
+        </parameter>
+        <parameter>
+          <name>webResources</name>
+          <type>org.apache.maven.model.Resource[]</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The list of webResources we want to transfer.</description>
+        </parameter>
+        <parameter>
+          <name>webXml</name>
+          <type>java.io.File</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The path to the web.xml file to use.</description>
+        </parameter>
+        <parameter>
+          <name>webappDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>The directory where the webapp is built.</description>
+        </parameter>
+        <parameter>
+          <name>workDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>Directory to unpack dependent WARs into if needed.</description>
+        </parameter>
+      </parameters>
+      <configuration>
+        <archiveClasses implementation="boolean" default-value="false">${archiveClasses}</archiveClasses>
+        <cacheFile implementation="java.io.File" default-value="${project.build.directory}/war/work/webapp-cache.xml"/>
+        <classesDirectory implementation="java.io.File" default-value="${project.build.outputDirectory}"/>
+        <containerConfigXML implementation="java.io.File">${maven.war.containerConfigXML}</containerConfigXML>
+        <escapeString implementation="java.lang.String">${maven.war.escapeString}</escapeString>
+        <escapedBackslashesInFilePath implementation="boolean" default-value="false">${maven.war.escapedBackslashesInFilePath}</escapedBackslashesInFilePath>
+        <filteringDeploymentDescriptors implementation="boolean" default-value="false">${maven.war.filteringDeploymentDescriptors}</filteringDeploymentDescriptors>
+        <project implementation="org.apache.maven.project.MavenProject" default-value="${project}"/>
+        <session implementation="org.apache.maven.execution.MavenSession" default-value="${session}"/>
+        <useCache implementation="boolean" default-value="false">${useCache}</useCache>
+        <warSourceDirectory implementation="java.io.File" default-value="${basedir}/src/main/webapp"/>
+        <warSourceIncludes implementation="java.lang.String" default-value="**"/>
+        <webXml implementation="java.io.File">${maven.war.webxml}</webXml>
+        <webappDirectory implementation="java.io.File" default-value="${project.build.directory}/${project.build.finalName}"/>
+        <workDirectory implementation="java.io.File" default-value="${project.build.directory}/war/work"/>
+      </configuration>
+      <requirements>
+        <requirement>
+          <role>org.codehaus.plexus.archiver.manager.ArchiverManager</role>
+          <field-name>archiverManager</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.artifact.factory.ArtifactFactory</role>
+          <field-name>artifactFactory</field-name>
+        </requirement>
+        <requirement>
+          <role>org.codehaus.plexus.archiver.Archiver</role>
+          <role-hint>jar</role-hint>
+          <field-name>jarArchiver</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.shared.filtering.MavenFileFilter</role>
+          <role-hint>default</role-hint>
+          <field-name>mavenFileFilter</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.shared.filtering.MavenResourcesFiltering</role>
+          <role-hint>default</role-hint>
+          <field-name>mavenResourcesFiltering</field-name>
+        </requirement>
+      </requirements>
+    </mojo>
+  </mojos>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <type>jar</type>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact</artifactId>
+      <type>jar</type>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-utils</artifactId>
+      <type>jar</type>
+      <version>2.0.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-model</artifactId>
+      <type>jar</type>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-project</artifactId>
+      <type>jar</type>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-settings</artifactId>
+      <type>jar</type>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-container-default</artifactId>
+      <type>jar</type>
+      <version>1.0-alpha-9-stable-1</version>
+    </dependency>
+    <dependency>
+      <groupId>classworlds</groupId>
+      <artifactId>classworlds</artifactId>
+      <type>jar</type>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-profile</artifactId>
+      <type>jar</type>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact-manager</artifactId>
+      <type>jar</type>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-repository-metadata</artifactId>
+      <type>jar</type>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.wagon</groupId>
+      <artifactId>wagon-provider-api</artifactId>
+      <type>jar</type>
+      <version>1.0-beta-2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-registry</artifactId>
+      <type>jar</type>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+      <type>jar</type>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.wagon</groupId>
+      <artifactId>wagon-file</artifactId>
+      <type>jar</type>
+      <version>1.0-beta-2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-parameter-documenter</artifactId>
+      <type>jar</type>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.wagon</groupId>
+      <artifactId>wagon-http-lightweight</artifactId>
+      <type>jar</type>
+      <version>1.0-beta-2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.wagon</groupId>
+      <artifactId>wagon-http-shared</artifactId>
+      <type>jar</type>
+      <version>1.0-beta-2</version>
+    </dependency>
+    <dependency>
+      <groupId>jtidy</groupId>
+      <artifactId>jtidy</artifactId>
+      <type>jar</type>
+      <version>4aug2000r7-dev</version>
+    </dependency>
+    <dependency>
+      <groupId>xml-apis</groupId>
+      <artifactId>xml-apis</artifactId>
+      <type>jar</type>
+      <version>1.0.b2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.reporting</groupId>
+      <artifactId>maven-reporting-api</artifactId>
+      <type>jar</type>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.doxia</groupId>
+      <artifactId>doxia-sink-api</artifactId>
+      <type>jar</type>
+      <version>1.0-alpha-7</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-error-diagnostics</artifactId>
+      <type>jar</type>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-cli</groupId>
+      <artifactId>commons-cli</artifactId>
+      <type>jar</type>
+      <version>1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.wagon</groupId>
+      <artifactId>wagon-ssh-external</artifactId>
+      <type>jar</type>
+      <version>1.0-beta-2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.wagon</groupId>
+      <artifactId>wagon-ssh-common</artifactId>
+      <type>jar</type>
+      <version>1.0-beta-2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-interactivity-api</artifactId>
+      <type>jar</type>
+      <version>1.0-alpha-4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-descriptor</artifactId>
+      <type>jar</type>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-monitor</artifactId>
+      <type>jar</type>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.wagon</groupId>
+      <artifactId>wagon-ssh</artifactId>
+      <type>jar</type>
+      <version>1.0-beta-2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.jcraft</groupId>
+      <artifactId>jsch</artifactId>
+      <type>jar</type>
+      <version>0.1.27</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-archiver</artifactId>
+      <type>jar</type>
+      <version>2.4.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-archiver</artifactId>
+      <type>jar</type>
+      <version>1.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-io</artifactId>
+      <type>jar</type>
+      <version>1.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-interpolation</artifactId>
+      <type>jar</type>
+      <version>1.13</version>
+    </dependency>
+    <dependency>
+      <groupId>com.thoughtworks.xstream</groupId>
+      <artifactId>xstream</artifactId>
+      <type>jar</type>
+      <version>1.3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>xpp3</groupId>
+      <artifactId>xpp3_min</artifactId>
+      <type>jar</type>
+      <version>1.1.4c</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>maven-filtering</artifactId>
+      <type>jar</type>
+      <version>1.0-beta-2</version>
+    </dependency>
+  </dependencies>
+</plugin>
