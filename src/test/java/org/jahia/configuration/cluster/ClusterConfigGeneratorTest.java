@@ -27,7 +27,7 @@ public class ClusterConfigGeneratorTest extends TestCase {
 
         copyResourcesToDir(tempDir, "cluster", "cluster");
 
-        ClusterConfigGenerator clusterConfigGenerator = new ClusterConfigGenerator(logger, tempDir);
+        ClusterConfigGenerator clusterConfigGenerator = new ClusterConfigGenerator(logger, new File(tempDir, "cluster"));
         clusterConfigGenerator.generateClusterConfiguration();
 
         // now let's validate the generated configuration.
