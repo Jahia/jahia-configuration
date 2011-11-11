@@ -78,7 +78,7 @@ public class ClusterConfigGenerator {
                 }
             }
 
-            logger.info("Copying template files...");
+            logger.info("Copying template files to " + currentNodeDirectory + "...");
             FileUtils.copyDirectoryStructure(templateDirectory, currentNodeDirectory);
 
             jahiaConfigBean.setCluster_node_serverId(currentNodeId);
