@@ -16,7 +16,6 @@ public class ClusterConfigBean {
 
     protected AbstractLogger logger;
 
-    private String defaultConfigurationLocation = "cluster";
     private String configurationFileName = "cluster.properties";
 
     private int numberOfNodes = 10;
@@ -32,18 +31,17 @@ public class ClusterConfigBean {
 
     public ClusterConfigBean(AbstractLogger logger, File parentDirectory) throws Exception {
         this.logger = logger;
-        File defaultConfigurationDir = new File(parentDirectory, defaultConfigurationLocation);
-        File configurationFile = new File(defaultConfigurationDir, configurationFileName);
+        File configurationFile = new File(parentDirectory, configurationFileName);
         clusterProperties.load(new FileReader(configurationFile));
 
         numberOfNodes = getIntProp("numberOfNodes", numberOfNodes);
         nodeNamePrefix = getStringProp("nodeNamePrefix", nodeNamePrefix);
         externalHostNames = getStringListProp("externalHostNames", externalHostNames);
         internalIPs = getStringListProp("internalIPs", internalIPs);
-        privateKeyFileLocation = defaultConfigurationDir + File.separator + getStringProp("privateKeyFileLocation", privateKeyFileLocation);
+        privateKeyFileLocation = parentDirectory + File.separator + getStringProp("privateKeyFileLocation", privateKeyFileLocation);
         jahiaAdvancedPropertyRelativeFileLocation = getStringProp("jahiaAdvancedPropertyRelativeFileLocation", jahiaAdvancedPropertyRelativeFileLocation);
-        templateDirectoryName = defaultConfigurationDir + File.separator + getStringProp("templateDirectoryName", templateDirectoryName);
-        nodesDirectoryName = defaultConfigurationDir + File.separator +getStringProp("nodesDirectoryName", nodesDirectoryName);
+        templateDirectoryName = parentDirectory + File.separator + getStringProp("templateDirectoryName", templateDirectoryName);
+        nodesDirectoryName = parentDirectory + File.separator +getStringProp("nodesDirectoryName", nodesDirectoryName);
 
         if (externalHostNames.size() != numberOfNodes) {
             throw new Exception("External host name list size is not equal to number of nodes !");

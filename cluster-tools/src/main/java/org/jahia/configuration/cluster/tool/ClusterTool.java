@@ -17,9 +17,9 @@ public class ClusterTool {
     private ClusterConfigGenerator clusterConfigGenerator;
 
 
-    public ClusterTool(byte loggingLevel) throws Exception {
+    public ClusterTool(byte loggingLevel, String projectDirectory) throws Exception {
         logger = new ConsoleLogger(loggingLevel);
-        clusterConfigGenerator = new ClusterConfigGenerator(logger, new File("."));
+        clusterConfigGenerator = new ClusterConfigGenerator(logger, new File(projectDirectory));
     }
 
     public void run() throws Exception {
@@ -66,7 +66,7 @@ public class ClusterTool {
             if (line.hasOption('l')) {
                 logLevel = Byte.parseByte(line.getOptionValue('l'));
             }
-            ClusterTool application = new ClusterTool(logLevel);
+            ClusterTool application = new ClusterTool(logLevel, lineArgs[0]);
             application.run();
         } catch (ParseException exp) {
             // oops, something went wrong
