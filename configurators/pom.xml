@@ -133,6 +133,21 @@
             <artifactId>json</artifactId>
             <version>20070829</version>
         </dependency>
+
+        <dependency>
+           <groupId>org.springframework</groupId>
+           <artifactId>spring-core</artifactId>
+           <version>3.0.6.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>10.0.1</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
     
     <build>
