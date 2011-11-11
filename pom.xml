@@ -98,6 +98,7 @@
         <module>archivers</module>
         <module>maven-jahia-plugin</module>
         <module>jahia-installer</module>
+        <module>cluster-tools</module>
     </modules>
     
     <repositories>
