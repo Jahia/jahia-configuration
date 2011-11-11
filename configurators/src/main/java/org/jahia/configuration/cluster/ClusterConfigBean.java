@@ -23,6 +23,8 @@ public class ClusterConfigBean {
     private List<String> externalHostNames = new ArrayList<String>();
     private List<String> internalIPs = new ArrayList<String>();
     private String privateKeyFileLocation = "privatekey.pem";
+    private String deploymentUserName = "ec2-user";
+    private String deploymentTargetPath = "/home/ec2-user/Jahia";
     private String jahiaAdvancedPropertyRelativeFileLocation = "tomcat" + File.separator+ "webapps"+File.separator+"ROOT"+File.separator+"WEB-INF" + File.separator + "etc" + File.separator + "config" + File.separator + "jahia.advanced.properties";
     private String templateDirectoryName = "template";
     private String nodesDirectoryName = "nodes";
@@ -38,7 +40,11 @@ public class ClusterConfigBean {
         nodeNamePrefix = getStringProp("nodeNamePrefix", nodeNamePrefix);
         externalHostNames = getStringListProp("externalHostNames", externalHostNames);
         internalIPs = getStringListProp("internalIPs", internalIPs);
+
         privateKeyFileLocation = parentDirectory + File.separator + getStringProp("privateKeyFileLocation", privateKeyFileLocation);
+        deploymentUserName = getStringProp("deploymentUserName", deploymentUserName);
+        deploymentTargetPath = getStringProp("deploymentTargetPath", deploymentTargetPath);
+
         jahiaAdvancedPropertyRelativeFileLocation = getStringProp("jahiaAdvancedPropertyRelativeFileLocation", jahiaAdvancedPropertyRelativeFileLocation);
         templateDirectoryName = parentDirectory + File.separator + getStringProp("templateDirectoryName", templateDirectoryName);
         nodesDirectoryName = parentDirectory + File.separator +getStringProp("nodesDirectoryName", nodesDirectoryName);
@@ -105,5 +111,13 @@ public class ClusterConfigBean {
 
     public String getNodesDirectoryName() {
         return nodesDirectoryName;
+    }
+
+    public String getDeploymentUserName() {
+        return deploymentUserName;
+    }
+
+    public String getDeploymentTargetPath() {
+        return deploymentTargetPath;
     }
 }

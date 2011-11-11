@@ -1,0 +1,41 @@
+=============================================================================
+Jahia Cluster Tools
+=============================================================================
+
+Example command line :
+
+java -jar target/cluster-tools-2.2-with-deps.jar cluster
+
+Setup
+-----------------------------------------------------------------------------
+
+We assume in the above command line that we have the following files in the
+cluster/ sub-directory:
+
+  cluster.properties
+  clustertests-virginia.pem
+  templates/
+
+Here is an example of the contents of a cluster.properties file contents :
+
+numberOfNodes=4
+nodeNamePrefix=jahiaServer
+externalHostNames=ec2-107-20-83-144.compute-1.amazonaws.com,ec2-107-22-39-105.compute-1.amazonaws.com,ec2-50-17-143-113.compute-1.amazonaws.com,ec2-107-20-3-206.compute-1.amazonaws.com
+internalIPs=10.16.36.215,10.16.40.85,10.16.39.81,10.16.37.175
+
+privateKeyFileLocation=clustertests-virginia.pem
+deploymentUserName=ec2-user
+deploymentTargetPath=/home/ec2-user/Ent-Jahia_xCM_v6.5.1.0
+
+jahiaAdvancedPropertyRelativeFileLocation=tomcat/webapps/ROOT/WEB-INF/etc/config/jahia.advanced.properties
+templateDirectoryName=template
+nodesDirectoryName=nodes
+
+Template directory
+-----------------------------------------------------------------------------
+
+The template directory may contain any files that will be copied over to the
+nodes. It must also contain a jahia.advanced.properties files specified at
+the location in the jahiaAdvancedPropertiesRelativeFileLocation in the
+cluster.properties file. This file will be modified for each cluster node
+according to the configuration.
