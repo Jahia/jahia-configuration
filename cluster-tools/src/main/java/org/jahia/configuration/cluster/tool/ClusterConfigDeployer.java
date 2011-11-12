@@ -1,28 +1,18 @@
 package org.jahia.configuration.cluster.tool;
 
 import com.jcraft.jsch.*;
-import org.apache.commons.io.FileUtils;
 import org.jahia.configuration.cluster.ClusterConfigBean;
 import org.jahia.configuration.logging.AbstractLogger;
 
 import java.io.*;
-import java.util.Vector;
 
 /**
  * Configuration deployer to a cluster of Jahia installs.
  */
-public class ConfigDeployer {
+public class ClusterConfigDeployer extends AbstractClusterOperation {
 
-    private AbstractLogger logger;
-    private ClusterConfigBean clusterConfigBean;
-
-    public ConfigDeployer(AbstractLogger logger, ClusterConfigBean clusterConfigBean) {
-        this.logger = logger;
-        this.clusterConfigBean = clusterConfigBean;
-    }
-
-    private byte[] readPrivateKeyFromFile() throws IOException {
-        return FileUtils.readFileToByteArray(new File(clusterConfigBean.getPrivateKeyFileLocation()));
+    public ClusterConfigDeployer(AbstractLogger logger, ClusterConfigBean clusterConfigBean) {
+        super(logger, clusterConfigBean);
     }
 
     public void execute() throws JSchException, SftpException, IOException {
@@ -40,7 +30,7 @@ public class ConfigDeployer {
         for (int i=0; i < clusterConfigBean.getNumberOfNodes(); i++) {
             Session session = jSch.getSession(clusterConfigBean.getDeploymentUserName(), clusterConfigBean.getExternalHostNames().get(i), 22);
             // session.setConfig("");
-            UserInfo ui = new MyUserInfo(logger); // MyUserInfo implements UserInfo
+            UserInfo ui = new ClusterUserInfo(logger);
             session.setUserInfo(ui);
             session.connect();
             Channel channel = session.openChannel("sftp");
@@ -96,44 +86,4 @@ public class ConfigDeployer {
         }
     }
 
-    public class MyUserInfo implements UserInfo {
-
-        private AbstractLogger logger;
-
-        public MyUserInfo(AbstractLogger logger) {
-            this.logger = logger;
-        }
-
-        public String getPassphrase() {
-            logger.info("getPassphrase from UserInfo");
-            return null;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public String getPassword() {
-            logger.info("getPassword from UserInfo");
-            return null;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public boolean promptPassword(String message) {
-            logger.info("Prompt password in UserInfo with message: " + message);
-            logger.info("Sending true result");
-            return true;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public boolean promptPassphrase(String message) {
-            logger.info("Prompt pass phrase in UserInfo with message: " + message);
-            logger.info("Sending true result");
-            return true;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public boolean promptYesNo(String message) {
-            logger.info("Prompt Yes/No in UserInfo with message: " + message);
-            logger.info("Answering YES");
-            return true;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public void showMessage(String message) {
-            logger.info("Show message in UserInfo: " + message);
-        }
-    }
 }

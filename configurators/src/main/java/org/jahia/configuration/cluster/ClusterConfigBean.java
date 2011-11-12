@@ -29,6 +29,11 @@ public class ClusterConfigBean {
     private String templateDirectoryName = "template";
     private String nodesDirectoryName = "nodes";
 
+    private String waitForStartupURL = "http://${hostname}:8080/welcome";
+    private String startupCommandLine = "/home/ec2-user/Jahia/tomcat/bin/startup.sh";
+    private String shutdownCommandLine = "/home/ec2-user/Jahia/tomcat/bin/startup.sh";
+    private String getPidCommandLine = "getPidCommandLine=ps aux | grep bootstrap.jar";
+
     Properties clusterProperties = new Properties();
 
     public ClusterConfigBean(AbstractLogger logger, File parentDirectory) throws Exception {
@@ -48,6 +53,11 @@ public class ClusterConfigBean {
         jahiaAdvancedPropertyRelativeFileLocation = getStringProp("jahiaAdvancedPropertyRelativeFileLocation", jahiaAdvancedPropertyRelativeFileLocation);
         templateDirectoryName = parentDirectory + File.separator + getStringProp("templateDirectoryName", templateDirectoryName);
         nodesDirectoryName = parentDirectory + File.separator +getStringProp("nodesDirectoryName", nodesDirectoryName);
+
+        waitForStartupURL = getStringProp("waitForStartupURL", waitForStartupURL);
+        startupCommandLine = getStringProp("startupCommandLine", startupCommandLine);
+        shutdownCommandLine = getStringProp("shutdownCommandLine", shutdownCommandLine);
+        getPidCommandLine = getStringProp("getPidCommandLine", getPidCommandLine);
 
         if (externalHostNames.size() != numberOfNodes) {
             throw new Exception("External host name list size is not equal to number of nodes !");
@@ -119,5 +129,21 @@ public class ClusterConfigBean {
 
     public String getDeploymentTargetPath() {
         return deploymentTargetPath;
+    }
+
+    public String getWaitForStartupURL() {
+        return waitForStartupURL;
+    }
+
+    public String getStartupCommandLine() {
+        return startupCommandLine;
+    }
+
+    public String getShutdownCommandLine() {
+        return shutdownCommandLine;
+    }
+
+    public String getGetPidCommandLine() {
+        return getPidCommandLine;
     }
 }

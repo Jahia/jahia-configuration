@@ -15,17 +15,17 @@ public class ClusterTool {
 
     private AbstractLogger logger;
     private ClusterConfigGenerator clusterConfigGenerator;
-    private ConfigDeployer configDeployer;
+    private ClusterConfigDeployer clusterConfigDeployer;
 
     public ClusterTool(byte loggingLevel, String projectDirectory) throws Exception {
         logger = new ConsoleLogger(loggingLevel);
         clusterConfigGenerator = new ClusterConfigGenerator(logger, new File(projectDirectory));
-        configDeployer = new ConfigDeployer(logger, clusterConfigGenerator.getClusterConfigBean());
+        clusterConfigDeployer = new ClusterConfigDeployer(logger, clusterConfigGenerator.getClusterConfigBean());
     }
 
     public void run() throws Exception {
         clusterConfigGenerator.generateClusterConfiguration();
-        configDeployer.execute();
+        clusterConfigDeployer.execute();
     }
 
     public static Options buildOptions() {
