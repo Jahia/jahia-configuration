@@ -31,6 +31,11 @@ jahiaAdvancedPropertyRelativeFileLocation=tomcat/webapps/ROOT/WEB-INF/etc/config
 templateDirectoryName=template
 nodesDirectoryName=nodes
 
+waitForStartupURL=http://${hostname}:8080/welcome
+startupCommandLine=/home/ec2-user/Jahia/tomcat/bin/startup.sh
+getPidCommandLine=ps aux | grep bootstrap.jar
+shutdownCommandLine=/home/ec2-user/Jahia/tomcat/bin/shutdown.sh
+
 Template directory
 -----------------------------------------------------------------------------
 
