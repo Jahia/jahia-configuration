@@ -44,3 +44,12 @@ nodes. It must also contain a jahia.advanced.properties files specified at
 the location in the jahiaAdvancedPropertiesRelativeFileLocation in the
 cluster.properties file. This file will be modified for each cluster node
 according to the configuration.
+
+Example project
+-----------------------------------------------------------------------------
+
+In the cluster.example directory you will see a sample project. You can then
+use the project by adding the private key file and launching for example
+with the command :
+
+java -jar target/cluster-tools-2.2-with-deps.jar cluster.example
