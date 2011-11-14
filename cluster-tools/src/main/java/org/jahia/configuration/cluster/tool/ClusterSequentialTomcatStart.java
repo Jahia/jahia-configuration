@@ -78,6 +78,11 @@ public class ClusterSequentialTomcatStart extends AbstractClusterOperation {
                 }
             }
 
+            if (channel.getExitStatus() > 0) {
+                logger.error("Exit status was non-zero, aborting startup of cluster nodes ! ");
+                break;
+            }
+
             channel.disconnect();
             session.disconnect();
 
@@ -90,7 +95,7 @@ public class ClusterSequentialTomcatStart extends AbstractClusterOperation {
                 String waitForStartupURL = clusterConfigBean.getWaitForStartupURL();
                 waitForStartupURL = waitForStartupURL.replaceAll("\\$\\{hostname\\}", clusterConfigBean.getExternalHostNames().get(i));
                 int maxCount = 0;
-                while ((!available) && (maxCount < 10)) {
+                while ((!available) && (maxCount < 30)) {
                     HttpGet httpGet = new HttpGet(waitForStartupURL);
                     HttpResponse response = httpClient.execute(httpGet);
                     if (response.getStatusLine().getStatusCode() == 200) {
