@@ -57,6 +57,8 @@ public class ClusterSequentialTomcatStart extends AbstractClusterOperation {
 
             InputStream in = channel.getInputStream();
 
+            logger.info("Executing remote command: " + clusterConfigBean.getStartupCommandLine());
+
             channel.connect();
 
             byte[] tmp = new byte[1024];
@@ -79,19 +81,37 @@ public class ClusterSequentialTomcatStart extends AbstractClusterOperation {
             channel.disconnect();
             session.disconnect();
 
+            logger.info("Waiting for Tomcat to startup up...");
+
             // now we must wait for Tomcat server to become available before continuing to the next node.
             HttpClient httpClient = new DefaultHttpClient();
-            String waitForStartupURL = clusterConfigBean.getWaitForStartupURL();
-            waitForStartupURL = waitForStartupURL.replaceAll("\\$\\{hostname\\}", clusterConfigBean.getExternalHostNames().get(i));
             boolean available = false;
-            while (!available) {
-                HttpGet httpGet = new HttpGet(waitForStartupURL);
-                HttpResponse response = httpClient.execute(httpGet);
-                if (response.getStatusLine().getStatusCode() == 200) {
-                    available = true;
+            try {
+                String waitForStartupURL = clusterConfigBean.getWaitForStartupURL();
+                waitForStartupURL = waitForStartupURL.replaceAll("\\$\\{hostname\\}", clusterConfigBean.getExternalHostNames().get(i));
+                int maxCount = 0;
+                while ((!available) && (maxCount < 10)) {
+                    HttpGet httpGet = new HttpGet(waitForStartupURL);
+                    HttpResponse response = httpClient.execute(httpGet);
+                    if (response.getStatusLine().getStatusCode() == 200) {
+                        available = true;
+                        break;
+                    }
+                    logger.info("Server returned " + response.getStatusLine().getStatusCode() + " error code, still waiting...");
+                    response.getEntity().getContent().close();
+                    Thread.sleep(1000);
+                    maxCount++;
                 }
+            } catch (InterruptedException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } finally {
+                httpClient.getConnectionManager().shutdown();
             }
-
+            if (!available) {
+                logger.error("Maximum tries of 10 was reached, and server is still not reachable. Aborting cluster startup");
+                i = clusterConfigBean.getNumberOfNodes() + 1;
+                break;
+            }
         }
     }
 }

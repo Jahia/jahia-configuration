@@ -55,6 +55,8 @@ public class ClusterExecute extends AbstractClusterOperation {
 
             InputStream in = channel.getInputStream();
 
+            logger.info("Executing remote command: " + commandLine);
+
             channel.connect();
 
             byte[] tmp = new byte[1024];

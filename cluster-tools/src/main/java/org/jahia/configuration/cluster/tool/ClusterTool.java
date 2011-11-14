@@ -16,16 +16,32 @@ public class ClusterTool {
     private AbstractLogger logger;
     private ClusterConfigGenerator clusterConfigGenerator;
     private ClusterConfigDeployer clusterConfigDeployer;
+    private ClusterSequentialTomcatStart clusterSequentialTomcatStart;
+    private ClusterExecute clusterExecute;
+    private String command = null;
 
-    public ClusterTool(byte loggingLevel, String projectDirectory) throws Exception {
-        logger = new ConsoleLogger(loggingLevel);
+    public ClusterTool(byte loggingLevel, String projectDirectory, String command) throws Exception {
+        this.logger = new ConsoleLogger(loggingLevel);
+        this.command = command;
         clusterConfigGenerator = new ClusterConfigGenerator(logger, new File(projectDirectory));
-        clusterConfigDeployer = new ClusterConfigDeployer(logger, clusterConfigGenerator.getClusterConfigBean());
+        if (command == null) {
+            clusterConfigDeployer = new ClusterConfigDeployer(logger, clusterConfigGenerator.getClusterConfigBean());
+        } else if ("start".equals(command)) {
+            clusterSequentialTomcatStart = new ClusterSequentialTomcatStart(logger, clusterConfigGenerator.getClusterConfigBean());
+        } else if ("stop".equals(command)) {
+            clusterExecute = new ClusterExecute(logger, clusterConfigGenerator.getClusterConfigBean(), clusterConfigGenerator.getClusterConfigBean().getShutdownCommandLine());
+        }
     }
 
     public void run() throws Exception {
-        clusterConfigGenerator.generateClusterConfiguration();
-        clusterConfigDeployer.execute();
+        if (command == null) {
+            clusterConfigGenerator.generateClusterConfiguration();
+            clusterConfigDeployer.execute();
+        } else if ("start".equals(command)) {
+            clusterSequentialTomcatStart.execute();
+        } else if ("stop".equals(command)) {
+            clusterExecute.execute();
+        }
     }
 
     public static Options buildOptions() {
@@ -64,11 +80,16 @@ public class ClusterTool {
                 return;
             }
 
+            String command = null;
+            if (lineArgs.length >= 2) {
+                command = lineArgs[1];
+            }
+
             byte logLevel = ConsoleLogger.LEVEL_INFO;
             if (line.hasOption('l')) {
                 logLevel = Byte.parseByte(line.getOptionValue('l'));
             }
-            ClusterTool application = new ClusterTool(logLevel, lineArgs[0]);
+            ClusterTool application = new ClusterTool(logLevel, lineArgs[0], command);
             application.run();
         } catch (ParseException exp) {
             // oops, something went wrong
