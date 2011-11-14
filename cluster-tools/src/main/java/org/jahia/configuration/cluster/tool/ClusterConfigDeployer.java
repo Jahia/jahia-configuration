@@ -58,15 +58,15 @@ public class ClusterConfigDeployer extends AbstractClusterOperation {
         File listFile[] = dir.listFiles();
         if(listFile != null) {
             for(int i=0; i<listFile.length; i++) {
+                if (listFile[i].getName().startsWith(".")) {
+                    // we ignore hidden files and directories
+                    continue;
+                }
                 if(listFile[i].isDirectory()) {
                     sftp.cd(listFile[i].getName());
                     copy(listFile[i], sftp);
                     sftp.cd("..");
                 } else {
-                    if (listFile[i].getName().startsWith(".")) {
-                        // we ignore hidden files
-                        continue;
-                    }
                     sftp.put(listFile[i].getPath(), listFile[i].getName(), new SftpProgressMonitor() {
                         public void init(int op, String src, String dest, long max) {
                             logger.info("Copying " + src + " to " + dest + " (" + max + " bytes)...");
