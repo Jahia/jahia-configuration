@@ -95,7 +95,7 @@ public class ClusterSequentialTomcatStart extends AbstractClusterOperation {
                 String waitForStartupURL = clusterConfigBean.getWaitForStartupURL();
                 waitForStartupURL = waitForStartupURL.replaceAll("\\$\\{hostname\\}", clusterConfigBean.getExternalHostNames().get(i));
                 int maxCount = 0;
-                while ((!available) && (maxCount < 30)) {
+                while ((!available) && (maxCount < 240)) {
                     HttpGet httpGet = new HttpGet(waitForStartupURL);
                     HttpResponse response = httpClient.execute(httpGet);
                     if (response.getStatusLine().getStatusCode() == 200) {
@@ -113,7 +113,7 @@ public class ClusterSequentialTomcatStart extends AbstractClusterOperation {
                 httpClient.getConnectionManager().shutdown();
             }
             if (!available) {
-                logger.error("Maximum tries of 10 was reached, and server is still not reachable. Aborting cluster startup");
+                logger.error("Maximum tries of 240 was reached, and server is still not reachable. Aborting cluster startup");
                 i = clusterConfigBean.getNumberOfNodes() + 1;
                 break;
             }
