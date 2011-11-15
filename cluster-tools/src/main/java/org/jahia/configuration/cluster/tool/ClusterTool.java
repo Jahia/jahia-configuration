@@ -19,6 +19,8 @@ public class ClusterTool {
     private ClusterSequentialTomcatStart clusterSequentialTomcatStart;
     private ClusterExecute clusterExecute;
     private ClusterKill clusterKill;
+    private ClusterDumpThreads clusterDumpThreads;
+    private ClusterGetLogs clusterGetLogs;
     private String command = null;
 
     public ClusterTool(byte loggingLevel, String projectDirectory, String command) throws Exception {
@@ -37,6 +39,10 @@ public class ClusterTool {
             clusterKill = new ClusterKill(logger, clusterConfigGenerator.getClusterConfigBean(), false);
         } else if ("hardkill".equals(command)) {
             clusterKill = new ClusterKill(logger, clusterConfigGenerator.getClusterConfigBean(), false);
+        } else if ("dumpthreads".equals(command)) {
+            clusterDumpThreads = new ClusterDumpThreads(logger, clusterConfigGenerator.getClusterConfigBean());
+        } else if ("getlogs".equals(command)) {
+            clusterGetLogs = new ClusterGetLogs(logger, clusterConfigGenerator.getClusterConfigBean());
         }
     }
 
@@ -54,6 +60,10 @@ public class ClusterTool {
             clusterKill.execute();
         } else if ("hardkill".equals(command)) {
             clusterKill.execute();
+        } else if ("dumpthreads".equals(command)) {
+            clusterDumpThreads.execute();
+        } else if ("getlogs".equals(command)) {
+            clusterGetLogs.execute();
         }
     }
 
@@ -90,6 +100,14 @@ public class ClusterTool {
                 // automatically generate the help statement
                 HelpFormatter formatter = new HelpFormatter();
                 formatter.printHelp( "cluster-tools [options] project_directory [command]", options );
+                System.out.println("where command may be one of :");
+                System.out.println("- [none] : will generate the configuration for all nodes and deploy to the corresponding servers");
+                System.out.println("- start : will start all Tomcat instances on all the nodes");
+                System.out.println("- stop : will stop (or attempt to stop) all Tomcat instances on all the nodes");
+                System.out.println("- kill : will kill all Tomcat instances on all the nodes");
+                System.out.println("- hardkill : will kill -9 all Tomcat instances on all the nodes");
+                System.out.println("- dumpthreads : will instruct all JVM instances on all the nodes to generate a thread dump in the logs");
+                System.out.println("- getlogs : will retrieve all the logs from all the servers");
                 return;
             }
 

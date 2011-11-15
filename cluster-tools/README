@@ -18,14 +18,14 @@ cluster/ sub-directory:
 
 Here is an example of the contents of a cluster.properties file contents :
 
-numberOfNodes=4
+numberOfNodes=10
 nodeNamePrefix=jahiaServer
-externalHostNames=ec2-107-20-83-144.compute-1.amazonaws.com,ec2-107-22-39-105.compute-1.amazonaws.com,ec2-50-17-143-113.compute-1.amazonaws.com,ec2-107-20-3-206.compute-1.amazonaws.com
-internalIPs=10.16.36.215,10.16.40.85,10.16.39.81,10.16.37.175
+externalHostNames=server1,server2,server3,server4,server5,server6,server7,server8,server9,server10
+internalIPs=10.0.1.1,10.0.1.2,10.0.1.3,10.0.1.4,10.0.1.5,10.0.1.6,10.0.1.7,10.0.1.8,10.0.1.9,10.0.1.10
 
-privateKeyFileLocation=clustertests-virginia.pem
+privateKeyFileLocation=privatekey.pem
 deploymentUserName=ec2-user
-deploymentTargetPath=/home/ec2-user/Ent-Jahia_xCM_v6.5.1.0
+deploymentTargetPath=/home/ec2-user/Jahia
 
 jahiaAdvancedPropertyRelativeFileLocation=tomcat/webapps/ROOT/WEB-INF/etc/config/jahia.advanced.properties
 templateDirectoryName=template
@@ -33,8 +33,11 @@ nodesDirectoryName=nodes
 
 waitForStartupURL=http://${hostname}:8080/welcome
 startupCommandLine=/home/ec2-user/Jahia/tomcat/bin/startup.sh
-getPidCommandLine=ps aux | grep bootstrap.jar
 shutdownCommandLine=/home/ec2-user/Jahia/tomcat/bin/shutdown.sh
+getPidCommandLine=cat /home/ec2-user/Jahia/tomcat/temp/tomcat.pid
+psCommandLine=ps aux | grep bootstrap.jar
+killCommandLine=kill ${tomcatpid}
+hardKillCommandLine=kill -9 ${tomcatpid}
 
 Template directory
 -----------------------------------------------------------------------------
