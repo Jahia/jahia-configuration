@@ -28,6 +28,8 @@ public class ClusterConfigBean {
     private String jahiaAdvancedPropertyRelativeFileLocation = "tomcat" + File.separator+ "webapps"+File.separator+"ROOT"+File.separator+"WEB-INF" + File.separator + "etc" + File.separator + "config" + File.separator + "jahia.advanced.properties";
     private String templateDirectoryName = "template";
     private String nodesDirectoryName = "nodes";
+    private String logsDirectoryName = "logs";
+    private String remoteLogDirectory = "/home/ec2-user/Jahia/tomcat/log";
 
     private String waitForStartupURL = "http://${hostname}:8080/welcome";
     private String startupCommandLine = "/home/ec2-user/Jahia/tomcat/bin/startup.sh";
@@ -36,6 +38,7 @@ public class ClusterConfigBean {
     private String psCommandLine = "ps aux | grep bootstrap.jar";
     private String killCommandLine = "kill ${tomcatpid}";
     private String hardKillCommandLine = "kill -9 ${tomcatpid}";
+    private String dumpThreadsCommandLine = "kill -QUIT ${tomcatpid}";
 
     Properties clusterProperties = new Properties();
 
@@ -56,6 +59,8 @@ public class ClusterConfigBean {
         jahiaAdvancedPropertyRelativeFileLocation = getStringProp("jahiaAdvancedPropertyRelativeFileLocation", jahiaAdvancedPropertyRelativeFileLocation);
         templateDirectoryName = parentDirectory + File.separator + getStringProp("templateDirectoryName", templateDirectoryName);
         nodesDirectoryName = parentDirectory + File.separator +getStringProp("nodesDirectoryName", nodesDirectoryName);
+        logsDirectoryName = parentDirectory + File.separator + getStringProp("logsDirectoryName", logsDirectoryName);
+        remoteLogDirectory = getStringProp("remoteLogDirectory", remoteLogDirectory);
 
         waitForStartupURL = getStringProp("waitForStartupURL", waitForStartupURL);
         startupCommandLine = getStringProp("startupCommandLine", startupCommandLine);
@@ -64,6 +69,7 @@ public class ClusterConfigBean {
         psCommandLine = getStringProp("psCommandLine", psCommandLine);
         killCommandLine = getStringProp("killCommandLine", killCommandLine);
         hardKillCommandLine = getStringProp("hardKillCommandLine", hardKillCommandLine);
+        dumpThreadsCommandLine = getStringProp("dumpThreadsCommandLine", dumpThreadsCommandLine);
 
         if (externalHostNames.size() != numberOfNodes) {
             throw new Exception("External host name list size is not equal to number of nodes !");
@@ -163,5 +169,17 @@ public class ClusterConfigBean {
 
     public String getHardKillCommandLine() {
         return hardKillCommandLine;
+    }
+
+    public String getDumpThreadsCommandLine() {
+        return dumpThreadsCommandLine;
+    }
+
+    public String getLogsDirectoryName() {
+        return logsDirectoryName;
+    }
+
+    public String getRemoteLogDirectory() {
+        return remoteLogDirectory;
     }
 }
