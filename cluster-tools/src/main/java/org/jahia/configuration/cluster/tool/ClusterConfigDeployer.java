@@ -28,6 +28,8 @@ public class ClusterConfigDeployer extends AbstractClusterOperation {
         );
 
         for (int i=0; i < clusterConfigBean.getNumberOfNodes(); i++) {
+            logger.info("Processing server " + Integer.toString(i+1) + " : " + clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1));
+
             Session session = jSch.getSession(clusterConfigBean.getDeploymentUserName(), clusterConfigBean.getExternalHostNames().get(i), 22);
             // session.setConfig("");
             UserInfo ui = new ClusterUserInfo(logger);

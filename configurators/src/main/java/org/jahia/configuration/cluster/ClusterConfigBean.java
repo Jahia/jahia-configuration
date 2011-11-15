@@ -32,7 +32,10 @@ public class ClusterConfigBean {
     private String waitForStartupURL = "http://${hostname}:8080/welcome";
     private String startupCommandLine = "/home/ec2-user/Jahia/tomcat/bin/startup.sh";
     private String shutdownCommandLine = "/home/ec2-user/Jahia/tomcat/bin/startup.sh";
-    private String getPidCommandLine = "getPidCommandLine=ps aux | grep bootstrap.jar";
+    private String getPidCommandLine = "cat /home/ec2-user/Jahia/tomcat/temp/tomcat.pid";
+    private String psCommandLine = "ps aux | grep bootstrap.jar";
+    private String killCommandLine = "kill ${tomcatpid}";
+    private String hardKillCommandLine = "kill -9 ${tomcatpid}";
 
     Properties clusterProperties = new Properties();
 
@@ -58,6 +61,9 @@ public class ClusterConfigBean {
         startupCommandLine = getStringProp("startupCommandLine", startupCommandLine);
         shutdownCommandLine = getStringProp("shutdownCommandLine", shutdownCommandLine);
         getPidCommandLine = getStringProp("getPidCommandLine", getPidCommandLine);
+        psCommandLine = getStringProp("psCommandLine", psCommandLine);
+        killCommandLine = getStringProp("killCommandLine", killCommandLine);
+        hardKillCommandLine = getStringProp("hardKillCommandLine", hardKillCommandLine);
 
         if (externalHostNames.size() != numberOfNodes) {
             throw new Exception("External host name list size is not equal to number of nodes !");
@@ -145,5 +151,17 @@ public class ClusterConfigBean {
 
     public String getGetPidCommandLine() {
         return getPidCommandLine;
+    }
+
+    public String getPsCommandLine() {
+        return psCommandLine;
+    }
+
+    public String getKillCommandLine() {
+        return killCommandLine;
+    }
+
+    public String getHardKillCommandLine() {
+        return hardKillCommandLine;
     }
 }

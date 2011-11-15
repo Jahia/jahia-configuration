@@ -36,6 +36,8 @@ public class ClusterSequentialTomcatStart extends AbstractClusterOperation {
 
         for (int i = 0; i < clusterConfigBean.getNumberOfNodes(); i++) {
 
+            logger.info("Processing server " + Integer.toString(i+1) + " : " + clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1));
+
             Session session = jSch.getSession(clusterConfigBean.getDeploymentUserName(), clusterConfigBean.getExternalHostNames().get(i), 22);
 
             // username and password will be given via UserInfo interface.
@@ -95,15 +97,20 @@ public class ClusterSequentialTomcatStart extends AbstractClusterOperation {
                 String waitForStartupURL = clusterConfigBean.getWaitForStartupURL();
                 waitForStartupURL = waitForStartupURL.replaceAll("\\$\\{hostname\\}", clusterConfigBean.getExternalHostNames().get(i));
                 int maxCount = 0;
-                while ((!available) && (maxCount < 240)) {
+                while ((!available) && (maxCount < 300)) {
                     HttpGet httpGet = new HttpGet(waitForStartupURL);
-                    HttpResponse response = httpClient.execute(httpGet);
-                    if (response.getStatusLine().getStatusCode() == 200) {
-                        available = true;
-                        break;
+                    logger.info("Try #" + maxCount + " to reach server at " + waitForStartupURL + "...");
+                    try {
+                        HttpResponse response = httpClient.execute(httpGet);
+                        if (response.getStatusLine().getStatusCode() == 200) {
+                            available = true;
+                            break;
+                        }
+                        logger.info("Server returned " + response.getStatusLine().getStatusCode() + " error code, still waiting...");
+                        response.getEntity().getContent().close();
+                    } catch (Throwable t) {
+                        logger.info("Error reaching server: " + t.getMessage() + " still waiting...");
                     }
-                    logger.info("Server returned " + response.getStatusLine().getStatusCode() + " error code, still waiting...");
-                    response.getEntity().getContent().close();
                     Thread.sleep(1000);
                     maxCount++;
                 }

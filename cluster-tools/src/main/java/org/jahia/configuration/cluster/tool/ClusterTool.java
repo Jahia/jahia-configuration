@@ -18,6 +18,7 @@ public class ClusterTool {
     private ClusterConfigDeployer clusterConfigDeployer;
     private ClusterSequentialTomcatStart clusterSequentialTomcatStart;
     private ClusterExecute clusterExecute;
+    private ClusterKill clusterKill;
     private String command = null;
 
     public ClusterTool(byte loggingLevel, String projectDirectory, String command) throws Exception {
@@ -30,6 +31,12 @@ public class ClusterTool {
             clusterSequentialTomcatStart = new ClusterSequentialTomcatStart(logger, clusterConfigGenerator.getClusterConfigBean());
         } else if ("stop".equals(command)) {
             clusterExecute = new ClusterExecute(logger, clusterConfigGenerator.getClusterConfigBean(), clusterConfigGenerator.getClusterConfigBean().getShutdownCommandLine());
+        } else if ("ps".equals(command)) {
+            clusterExecute = new ClusterExecute(logger, clusterConfigGenerator.getClusterConfigBean(), clusterConfigGenerator.getClusterConfigBean().getPsCommandLine());
+        } else if ("kill".equals(command)) {
+            clusterKill = new ClusterKill(logger, clusterConfigGenerator.getClusterConfigBean(), false);
+        } else if ("hardkill".equals(command)) {
+            clusterKill = new ClusterKill(logger, clusterConfigGenerator.getClusterConfigBean(), false);
         }
     }
 
@@ -41,6 +48,12 @@ public class ClusterTool {
             clusterSequentialTomcatStart.execute();
         } else if ("stop".equals(command)) {
             clusterExecute.execute();
+        } else if ("ps".equals(command)) {
+            clusterExecute.execute();
+        } else if ("kill".equals(command)) {
+            clusterKill.execute();
+        } else if ("hardkill".equals(command)) {
+            clusterKill.execute();
         }
     }
 
@@ -76,7 +89,7 @@ public class ClusterTool {
             if (lineArgs.length < 1) {
                 // automatically generate the help statement
                 HelpFormatter formatter = new HelpFormatter();
-                formatter.printHelp( "cluster-tools [options] project_directory", options );
+                formatter.printHelp( "cluster-tools [options] project_directory [command]", options );
                 return;
             }
 
