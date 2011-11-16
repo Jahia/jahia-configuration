@@ -1,12 +1,14 @@
 package org.jahia.configuration.cluster.tool;
 
 import org.apache.commons.cli.*;
+import org.jahia.configuration.cluster.ClusterConfigBean;
 import org.jahia.configuration.cluster.ClusterConfigGenerator;
 import org.jahia.configuration.logging.AbstractLogger;
 import org.jahia.configuration.logging.ConsoleLogger;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * Cluster tool main class
@@ -14,62 +16,36 @@ import java.io.IOException;
 public class ClusterTool {
 
     private AbstractLogger logger;
+    private ClusterConfigBean clusterConfigBean;
     private ClusterConfigGenerator clusterConfigGenerator;
-    private ClusterConfigDeployer clusterConfigDeployer;
-    private ClusterSequentialTomcatStart clusterSequentialTomcatStart;
-    private ClusterExecute clusterExecute;
-    private ClusterKill clusterKill;
-    private ClusterDumpThreads clusterDumpThreads;
-    private ClusterGetLogs clusterGetLogs;
-    private AWSGetClusterInstances awsGetClusterInstances;
     private String command = null;
+    private HashMap<String, AbstractClusterOperation> operations = new HashMap<String, AbstractClusterOperation>();
 
     public ClusterTool(byte loggingLevel, String projectDirectory, String command) throws Exception {
         this.logger = new ConsoleLogger(loggingLevel);
         this.command = command;
-        clusterConfigGenerator = new ClusterConfigGenerator(logger, new File(projectDirectory));
-        if (command == null) {
-            clusterConfigDeployer = new ClusterConfigDeployer(logger, clusterConfigGenerator.getClusterConfigBean());
-        } else if ("start".equals(command)) {
-            clusterSequentialTomcatStart = new ClusterSequentialTomcatStart(logger, clusterConfigGenerator.getClusterConfigBean());
-        } else if ("stop".equals(command)) {
-            clusterExecute = new ClusterExecute(logger, clusterConfigGenerator.getClusterConfigBean(), clusterConfigGenerator.getClusterConfigBean().getShutdownCommandLine());
-        } else if ("ps".equals(command)) {
-            clusterExecute = new ClusterExecute(logger, clusterConfigGenerator.getClusterConfigBean(), clusterConfigGenerator.getClusterConfigBean().getPsCommandLine());
-        } else if ("kill".equals(command)) {
-            clusterKill = new ClusterKill(logger, clusterConfigGenerator.getClusterConfigBean(), false);
-        } else if ("hardkill".equals(command)) {
-            clusterKill = new ClusterKill(logger, clusterConfigGenerator.getClusterConfigBean(), false);
-        } else if ("dumpthreads".equals(command)) {
-            clusterDumpThreads = new ClusterDumpThreads(logger, clusterConfigGenerator.getClusterConfigBean());
-        } else if ("getlogs".equals(command)) {
-            clusterGetLogs = new ClusterGetLogs(logger, clusterConfigGenerator.getClusterConfigBean());
-        } else if ("awsgetinstances".equals(command)) {
-            awsGetClusterInstances = new AWSGetClusterInstances(logger, clusterConfigGenerator.getClusterConfigBean());
+        clusterConfigBean = new ClusterConfigBean(logger, new File(projectDirectory));
+
+        clusterConfigGenerator = new ClusterConfigGenerator(logger, clusterConfigBean);
+        operations.put("default", new ClusterConfigDeployer(logger, clusterConfigGenerator.getClusterConfigBean()));
+        operations.put("start", new ClusterSequentialTomcatStart(logger, clusterConfigGenerator.getClusterConfigBean()));
+        operations.put("stop",new ClusterExecute(logger, clusterConfigGenerator.getClusterConfigBean(), clusterConfigGenerator.getClusterConfigBean().getShutdownCommandLine()));
+        operations.put("ps", new ClusterExecute(logger, clusterConfigGenerator.getClusterConfigBean(), clusterConfigGenerator.getClusterConfigBean().getPsCommandLine()));
+        operations.put("kill", new ClusterKill(logger, clusterConfigGenerator.getClusterConfigBean(), false));
+        operations.put("hardkill", new ClusterKill(logger, clusterConfigGenerator.getClusterConfigBean(), false));
+        operations.put("dumpthreads", new ClusterDumpThreads(logger, clusterConfigGenerator.getClusterConfigBean()));
+        operations.put("getlogs", new ClusterGetLogs(logger, clusterConfigGenerator.getClusterConfigBean()));
+        operations.put("awsgetinstances", new AWSGetClusterInstances(logger, clusterConfigGenerator.getClusterConfigBean()));
         }
     }
 
     public void run() throws Exception {
         if (command == null) {
+            command = "default";
             clusterConfigGenerator.generateClusterConfiguration();
-            clusterConfigDeployer.execute();
-        } else if ("start".equals(command)) {
-            clusterSequentialTomcatStart.execute();
-        } else if ("stop".equals(command)) {
-            clusterExecute.execute();
-        } else if ("ps".equals(command)) {
-            clusterExecute.execute();
-        } else if ("kill".equals(command)) {
-            clusterKill.execute();
-        } else if ("hardkill".equals(command)) {
-            clusterKill.execute();
-        } else if ("dumpthreads".equals(command)) {
-            clusterDumpThreads.execute();
-        } else if ("getlogs".equals(command)) {
-            clusterGetLogs.execute();
-        } else if ("awsgetinstances".equals(command)) {
-            awsGetClusterInstances.execute();
         }
+        AbstractClusterOperation operation = operations.get(command);
+        operation.execute();
     }
 
     public static Options buildOptions() {
