@@ -40,6 +40,9 @@ public class ClusterConfigBean {
     private String hardKillCommandLine = "kill -9 ${tomcatpid}";
     private String dumpThreadsCommandLine = "kill -QUIT ${tomcatpid}";
 
+    private String awsAccessKey = null;
+    private String awsSecretKey = null;
+
     Properties clusterProperties = new Properties();
 
     public ClusterConfigBean(AbstractLogger logger, File parentDirectory) throws Exception {
@@ -70,6 +73,9 @@ public class ClusterConfigBean {
         killCommandLine = getStringProp("killCommandLine", killCommandLine);
         hardKillCommandLine = getStringProp("hardKillCommandLine", hardKillCommandLine);
         dumpThreadsCommandLine = getStringProp("dumpThreadsCommandLine", dumpThreadsCommandLine);
+
+        awsAccessKey = getStringProp("awsAccessKey", awsAccessKey);
+        awsSecretKey = getStringProp("awsSecretKey", awsSecretKey);
 
         if (externalHostNames.size() != numberOfNodes) {
             throw new Exception("External host name list size is not equal to number of nodes !");
@@ -181,5 +187,13 @@ public class ClusterConfigBean {
 
     public String getRemoteLogDirectory() {
         return remoteLogDirectory;
+    }
+
+    public String getAwsAccessKey() {
+        return awsAccessKey;
+    }
+
+    public String getAwsSecretKey() {
+        return awsSecretKey;
     }
 }
