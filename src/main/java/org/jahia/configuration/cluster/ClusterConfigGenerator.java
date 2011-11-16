@@ -41,9 +41,9 @@ public class ClusterConfigGenerator {
     protected AbstractLogger logger;
     private ClusterConfigBean clusterConfigBean;
 
-    public ClusterConfigGenerator(AbstractLogger logger, File parentDirectory) throws Exception {
+    public ClusterConfigGenerator(AbstractLogger logger, ClusterConfigBean clusterConfigBean) throws Exception {
         this.logger = logger;
-        clusterConfigBean = new ClusterConfigBean(logger, parentDirectory);
+        this.clusterConfigBean = clusterConfigBean;
     }
 
     public void generateClusterConfiguration() throws Exception {
