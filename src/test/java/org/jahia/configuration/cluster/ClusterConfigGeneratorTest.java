@@ -27,11 +27,11 @@ public class ClusterConfigGeneratorTest extends TestCase {
 
         copyResourcesToDir(tempDir, "cluster", "cluster");
 
-        ClusterConfigGenerator clusterConfigGenerator = new ClusterConfigGenerator(logger, new File(tempDir, "cluster"));
+        ClusterConfigBean clusterConfigBean = new ClusterConfigBean(logger, new File(tempDir, "cluster"));
+        ClusterConfigGenerator clusterConfigGenerator = new ClusterConfigGenerator(logger, clusterConfigBean);
         clusterConfigGenerator.generateClusterConfiguration();
 
         // now let's validate the generated configuration.
-        ClusterConfigBean clusterConfigBean = clusterConfigGenerator.getClusterConfigBean();
         for (int i=0; i < clusterConfigBean.getNumberOfNodes(); i++) {
             String nodeId = clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1);
             File nodeDir = new File(clusterConfigBean.getNodesDirectoryName() + File.separator + nodeId);
