@@ -21,6 +21,7 @@ public class ClusterTool {
     private ClusterKill clusterKill;
     private ClusterDumpThreads clusterDumpThreads;
     private ClusterGetLogs clusterGetLogs;
+    private AWSGetClusterInstances awsGetClusterInstances;
     private String command = null;
 
     public ClusterTool(byte loggingLevel, String projectDirectory, String command) throws Exception {
@@ -43,6 +44,8 @@ public class ClusterTool {
             clusterDumpThreads = new ClusterDumpThreads(logger, clusterConfigGenerator.getClusterConfigBean());
         } else if ("getlogs".equals(command)) {
             clusterGetLogs = new ClusterGetLogs(logger, clusterConfigGenerator.getClusterConfigBean());
+        } else if ("awsgetinstances".equals(command)) {
+            awsGetClusterInstances = new AWSGetClusterInstances(logger, clusterConfigGenerator.getClusterConfigBean());
         }
     }
 
@@ -64,6 +67,8 @@ public class ClusterTool {
             clusterDumpThreads.execute();
         } else if ("getlogs".equals(command)) {
             clusterGetLogs.execute();
+        } else if ("awsgetinstances".equals(command)) {
+            awsGetClusterInstances.execute();
         }
     }
 
@@ -108,6 +113,7 @@ public class ClusterTool {
                 System.out.println("- hardkill : will kill -9 all Tomcat instances on all the nodes");
                 System.out.println("- dumpthreads : will instruct all JVM instances on all the nodes to generate a thread dump in the logs");
                 System.out.println("- getlogs : will retrieve all the logs from all the servers");
+                System.out.println("- awsgetinstances : will retrieve all AWS instances public DNS names and private IP addresses and display them. Useful to quickly populate the cluster.properties file.");
                 return;
             }
 

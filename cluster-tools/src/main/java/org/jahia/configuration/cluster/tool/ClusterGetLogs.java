@@ -7,6 +7,8 @@ import org.jahia.configuration.logging.AbstractLogger;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Vector;
 
 /**
  * Retrieve logs files from all cluster nodes, makes it easy to view them locally
@@ -42,50 +44,54 @@ public class ClusterGetLogs extends AbstractClusterOperation {
 
             logger.info("Connecting to " + clusterConfigBean.getDeploymentUserName() + "@" + clusterConfigBean.getExternalHostNames().get(i) + "...");
             sftp.connect();
-            sftp.cd(clusterConfigBean.getDeploymentTargetPath());
+            logger.info("Current directory = " + sftp.pwd());
+            sftp.cd(clusterConfigBean.getRemoteLogDirectory());
             String currentDirectory = sftp.pwd();
             logger.debug("Current directory on server:" + currentDirectory);
 
             String nodeId = clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1);
-            File nodeDir = new File(clusterConfigBean.getNodesDirectoryName() + File.separator + nodeId);
+            File nodeDir = new File(clusterConfigBean.getLogsDirectoryName(), nodeId);
+            if (!nodeDir.exists()) {
+                nodeDir.mkdirs();
+            }
 
             // now let's copy the local files to each server.
-            copy(nodeDir, sftp);
+            copyFrom(sftp, nodeDir);
 
             sftp.disconnect();
             session.disconnect();
         }
     }
 
-    public void copy(File dir, ChannelSftp sftp) throws SftpException, FileNotFoundException {
+    public void copyFrom(ChannelSftp sftp, File destinationDir) throws SftpException, FileNotFoundException {
 
-        File listFile[] = dir.listFiles();
-        if(listFile != null) {
-            for(int i=0; i<listFile.length; i++) {
-                if (listFile[i].getName().startsWith(".")) {
-                    // we ignore hidden files and directories
-                    continue;
-                }
-                if(listFile[i].isDirectory()) {
-                    sftp.cd(listFile[i].getName());
-                    copy(listFile[i], sftp);
-                    sftp.cd("..");
+        Vector files = sftp.ls(".");
+        Iterator fileIterator = files.iterator();
+        while (fileIterator.hasNext()) {
+            ChannelSftp.LsEntry lsEntry = (ChannelSftp.LsEntry) fileIterator.next();
+            if (lsEntry.getAttrs().isDir()) {
+                if (lsEntry.getFilename().equals(".") || lsEntry.getFilename().equals("..")) {
+                    // let's ignore these directories
                 } else {
-                    sftp.put(listFile[i].getPath(), listFile[i].getName(), new SftpProgressMonitor() {
-                        public void init(int op, String src, String dest, long max) {
-                            logger.info("Copying " + src + " to " + dest + " (" + max + " bytes)...");
-                        }
-
-                        public boolean count(long count) {
-                            logger.info(count + " bytes transferred.");
-                            return true;  //To change body of implemented methods use File | Settings | File Templates.
-                        }
-
-                        public void end() {
-                            logger.info("Transfer completed.");
-                        }
-                    }, ChannelSftp.OVERWRITE);
+                    sftp.cd(lsEntry.getFilename());
+                    copyFrom(sftp, new File(destinationDir,lsEntry.getFilename()));
+                    sftp.cd("..");
                 }
+            } else {
+                sftp.get(lsEntry.getFilename(), new File(destinationDir, lsEntry.getFilename()).toString(), new SftpProgressMonitor() {
+                    public void init(int op, String src, String dest, long max) {
+                        logger.info("Copying " + src + " to " + dest + " (" + max + " bytes)...");
+                    }
+
+                    public boolean count(long count) {
+                        logger.info(count + " bytes transferred.");
+                        return true;  //To change body of implemented methods use File | Settings | File Templates.
+                    }
+
+                    public void end() {
+                        logger.info("Transfer completed.");
+                    }
+                }, ChannelSftp.OVERWRITE);
             }
         }
     }
