@@ -17,34 +17,34 @@ public class ClusterUserInfo implements UserInfo {
     }
 
     public String getPassphrase() {
-        logger.info("getPassphrase from UserInfo");
+        logger.debug("getPassphrase from UserInfo");
         return null;
     }
 
     public String getPassword() {
-        logger.info("getPassword from UserInfo");
+        logger.debug("getPassword from UserInfo");
         return null;
     }
 
     public boolean promptPassword(String message) {
-        logger.info("Prompt password in UserInfo with message: " + message);
-        logger.info("Sending true result");
+        logger.debug("Prompt password in UserInfo with message: " + message);
+        logger.debug("Sending true result");
         return true;
     }
 
     public boolean promptPassphrase(String message) {
-        logger.info("Prompt pass phrase in UserInfo with message: " + message);
-        logger.info("Sending true result");
+        logger.debug("Prompt pass phrase in UserInfo with message: " + message);
+        logger.debug("Sending true result");
         return true;
     }
 
     public boolean promptYesNo(String message) {
-        logger.info("Prompt Yes/No in UserInfo with message: " + message);
-        logger.info("Answering YES");
+        logger.debug("Prompt Yes/No in UserInfo with message: " + message);
+        logger.debug("Answering YES");
         return true;
     }
 
     public void showMessage(String message) {
-        logger.info("Show message in UserInfo: " + message);
+        logger.debug("Show message in UserInfo: " + message);
     }
 }

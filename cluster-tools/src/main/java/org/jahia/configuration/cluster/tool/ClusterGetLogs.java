@@ -79,12 +79,18 @@ public class ClusterGetLogs extends AbstractClusterOperation {
                 }
             } else {
                 sftp.get(lsEntry.getFilename(), new File(destinationDir, lsEntry.getFilename()).toString(), new SftpProgressMonitor() {
+
+                    private long byteCount;
+                    private long fileSize;
+
                     public void init(int op, String src, String dest, long max) {
+                        this.fileSize = max;
                         logger.info("Copying " + src + " to " + dest + " (" + max + " bytes)...");
                     }
 
                     public boolean count(long count) {
-                        logger.info(count + " bytes transferred.");
+                        byteCount += count;
+                        logger.info(byteCount + " / " + fileSize + " bytes transferred.");
                         return true;  //To change body of implemented methods use File | Settings | File Templates.
                     }
 

@@ -5,6 +5,9 @@ import org.jahia.configuration.cluster.ClusterConfigBean;
 import org.jahia.configuration.cluster.ClusterConfigGenerator;
 import org.jahia.configuration.logging.AbstractLogger;
 import org.jahia.configuration.logging.ConsoleLogger;
+import org.jahia.configuration.logging.SLF4JLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,17 +18,18 @@ import java.util.HashMap;
  */
 public class ClusterTool {
 
+    private static final Logger slf4jLogger = LoggerFactory.getLogger(ClusterTool.class);
+
     private AbstractLogger logger;
     private ClusterConfigBean clusterConfigBean;
     private ClusterConfigGenerator clusterConfigGenerator;
     private String command = null;
     private HashMap<String, AbstractClusterOperation> operations = new HashMap<String, AbstractClusterOperation>();
 
-    public ClusterTool(byte loggingLevel, String projectDirectory, String command) throws Exception {
-        this.logger = new ConsoleLogger(loggingLevel);
+    public ClusterTool(String projectDirectory, String command) throws Exception {
+        this.logger = new SLF4JLogger(slf4jLogger);
         this.command = command;
         clusterConfigBean = new ClusterConfigBean(logger, new File(projectDirectory));
-
         clusterConfigGenerator = new ClusterConfigGenerator(logger, clusterConfigBean);
         operations.put("default", new ClusterConfigDeployer(logger, clusterConfigGenerator.getClusterConfigBean()));
         operations.put("start", new ClusterSequentialTomcatStart(logger, clusterConfigGenerator.getClusterConfigBean()));
@@ -36,6 +40,7 @@ public class ClusterTool {
         operations.put("dumpthreads", new ClusterDumpThreads(logger, clusterConfigGenerator.getClusterConfigBean()));
         operations.put("getlogs", new ClusterGetLogs(logger, clusterConfigGenerator.getClusterConfigBean()));
         operations.put("awsgetinstances", new AWSGetClusterInstances(logger, clusterConfigGenerator.getClusterConfigBean()));
+        operations.put("taillogs", new ClusterTailLogs(logger, clusterConfigBean));
     }
 
     public void run() throws Exception {
@@ -44,6 +49,9 @@ public class ClusterTool {
             clusterConfigGenerator.generateClusterConfiguration();
         }
         AbstractClusterOperation operation = operations.get(command);
+        if (operation == null) {
+            operation = new ClusterExecute(logger, clusterConfigBean, command);
+        }
         operation.execute();
     }
 
@@ -89,27 +97,36 @@ public class ClusterTool {
                 System.out.println("- dumpthreads : will instruct all JVM instances on all the nodes to generate a thread dump in the logs");
                 System.out.println("- getlogs : will retrieve all the logs from all the servers");
                 System.out.println("- awsgetinstances : will retrieve all AWS instances public DNS names and private IP addresses and display them. Useful to quickly populate the cluster.properties file.");
+                System.out.println("- taillogs : will issue a tail for the Tomcat logs on all the cluster instances");
+                System.out.println("- [anyother] : will launch any other command on all cluster node instances.");
                 return;
             }
 
             String command = null;
             if (lineArgs.length >= 2) {
-                command = lineArgs[1];
+                StringBuffer commandBuffer = new StringBuffer();
+                for (int i=1; i<lineArgs.length; i++) {
+                    commandBuffer.append(lineArgs[i]);
+                }
+                command = commandBuffer.toString();
+                if ("".equals(command)) {
+                    command = null;
+                }
             }
 
             byte logLevel = ConsoleLogger.LEVEL_INFO;
             if (line.hasOption('l')) {
                 logLevel = Byte.parseByte(line.getOptionValue('l'));
             }
-            ClusterTool application = new ClusterTool(logLevel, lineArgs[0], command);
+            ClusterTool application = new ClusterTool(lineArgs[0], command);
             application.run();
         } catch (ParseException exp) {
             // oops, something went wrong
-            System.err.println("Parsing failed.  Reason: " + exp.getMessage());
+            slf4jLogger.error("Parsing failed.  Reason: ", exp);
         } catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            slf4jLogger.error("Error", e);
         } catch (Exception e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            slf4jLogger.error("Error", e);
         }
     }
 

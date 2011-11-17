@@ -1,13 +1,12 @@
 package org.jahia.configuration.cluster;
 
+import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.jahia.configuration.logging.AbstractLogger;
 
 import java.io.File;
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Cluster configuration bean.
@@ -39,6 +38,7 @@ public class ClusterConfigBean {
     private String killCommandLine = "kill ${tomcatpid}";
     private String hardKillCommandLine = "kill -9 ${tomcatpid}";
     private String dumpThreadsCommandLine = "kill -QUIT ${tomcatpid}";
+    private String tailLogsCommandLine = "tail -f -n 200 /home/ec2-user/Jahia/tomcat/logs/catalina.out";
 
     private String awsAccessKey = null;
     private String awsSecretKey = null;
@@ -73,6 +73,7 @@ public class ClusterConfigBean {
         killCommandLine = getStringProp("killCommandLine", killCommandLine);
         hardKillCommandLine = getStringProp("hardKillCommandLine", hardKillCommandLine);
         dumpThreadsCommandLine = getStringProp("dumpThreadsCommandLine", dumpThreadsCommandLine);
+        tailLogsCommandLine = getStringProp("tailLogsCommandLine", tailLogsCommandLine);
 
         awsAccessKey = getStringProp("awsAccessKey", awsAccessKey);
         awsSecretKey = getStringProp("awsSecretKey", awsSecretKey);
@@ -195,5 +196,9 @@ public class ClusterConfigBean {
 
     public String getAwsSecretKey() {
         return awsSecretKey;
+    }
+
+    public String getTailLogsCommandLine() {
+        return tailLogsCommandLine;
     }
 }
