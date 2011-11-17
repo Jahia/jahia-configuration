@@ -1,4 +1,4 @@
-package org.jahia.configuration.cluster.tool;
+package org.jahia.configuration.cluster.tool.operations;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.ec2.AmazonEC2Client;

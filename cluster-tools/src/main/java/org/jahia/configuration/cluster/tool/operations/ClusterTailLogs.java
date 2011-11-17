@@ -1,7 +1,8 @@
-package org.jahia.configuration.cluster.tool;
+package org.jahia.configuration.cluster.tool.operations;
 
 import com.jcraft.jsch.*;
 import org.jahia.configuration.cluster.ClusterConfigBean;
+import org.jahia.configuration.cluster.tool.ClusterUserInfo;
 import org.jahia.configuration.logging.AbstractLogger;
 
 import java.io.IOException;
@@ -48,7 +49,7 @@ public class ClusterTailLogs extends AbstractClusterOperation {
 
             InputStream in = channel.getInputStream();
 
-            logger.info("Executing remote command: " + clusterConfigBean.getTailLogsCommandLine());
+            logger.info("[" + threadName + "] Executing remote command: " + clusterConfigBean.getTailLogsCommandLine());
 
             channel.connect();
 
@@ -79,7 +80,7 @@ public class ClusterTailLogs extends AbstractClusterOperation {
                 }
                 if (channel.isClosed()) {
                     logger.info("[" + threadName + "] " + curOutputLine);
-                    System.out.println("exit-status: " + channel.getExitStatus());
+                    logger.info("[" + threadName + "] exit-status: " + channel.getExitStatus());
                     break;
                 }
                 try {

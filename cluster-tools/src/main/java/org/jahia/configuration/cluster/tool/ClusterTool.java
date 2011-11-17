@@ -3,6 +3,7 @@ package org.jahia.configuration.cluster.tool;
 import org.apache.commons.cli.*;
 import org.jahia.configuration.cluster.ClusterConfigBean;
 import org.jahia.configuration.cluster.ClusterConfigGenerator;
+import org.jahia.configuration.cluster.tool.operations.*;
 import org.jahia.configuration.logging.AbstractLogger;
 import org.jahia.configuration.logging.ConsoleLogger;
 import org.jahia.configuration.logging.SLF4JLogger;

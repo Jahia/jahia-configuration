@@ -1,4 +1,4 @@
-package org.jahia.configuration.cluster.tool;
+package org.jahia.configuration.cluster.tool.operations;
 
 import com.jcraft.jsch.*;
 import org.apache.http.HttpResponse;
@@ -6,6 +6,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.jahia.configuration.cluster.ClusterConfigBean;
+import org.jahia.configuration.cluster.tool.ClusterUserInfo;
 import org.jahia.configuration.logging.AbstractLogger;
 
 import java.io.IOException;

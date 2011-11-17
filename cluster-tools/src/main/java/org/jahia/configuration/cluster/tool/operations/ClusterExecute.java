@@ -1,7 +1,8 @@
-package org.jahia.configuration.cluster.tool;
+package org.jahia.configuration.cluster.tool.operations;
 
 import com.jcraft.jsch.*;
 import org.jahia.configuration.cluster.ClusterConfigBean;
+import org.jahia.configuration.cluster.tool.ClusterUserInfo;
 import org.jahia.configuration.logging.AbstractLogger;
 
 import java.io.IOException;
@@ -34,11 +35,10 @@ public class ClusterExecute extends AbstractClusterOperation {
 
         for (int i = 0; i < clusterConfigBean.getNumberOfNodes(); i++) {
 
-            logger.info("Processing server " + Integer.toString(i+1) + " : " + clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1));
+            logger.info("-- " + clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1) + " ------------------------------------------------------- ");
 
             Session session = jSch.getSession(clusterConfigBean.getDeploymentUserName(), clusterConfigBean.getExternalHostNames().get(i), 22);
 
-            // username and password will be given via UserInfo interface.
             UserInfo ui = new ClusterUserInfo(logger);
             session.setUserInfo(ui);
             session.connect();
@@ -46,13 +46,8 @@ public class ClusterExecute extends AbstractClusterOperation {
             Channel channel = session.openChannel("exec");
             ((ChannelExec) channel).setCommand(commandLine);
 
-            //channel.setInputStream(System.in);
             channel.setInputStream(null);
 
-            //channel.setOutputStream(System.out);
-
-            //FileOutputStream fos=new FileOutputStream("/tmp/stderr");
-            //((ChannelExec)channel).setErrStream(fos);
             ((ChannelExec) channel).setErrStream(System.err);
 
             InputStream in = channel.getInputStream();

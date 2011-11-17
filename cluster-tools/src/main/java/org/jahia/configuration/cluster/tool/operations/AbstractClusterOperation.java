@@ -1,4 +1,4 @@
-package org.jahia.configuration.cluster.tool;
+package org.jahia.configuration.cluster.tool.operations;
 
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.SftpException;
