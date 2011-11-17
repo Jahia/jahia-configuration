@@ -79,7 +79,7 @@ public class ClusterDumpThreads extends AbstractClusterOperation {
                 System.out.print(output);
             }
             if (channel.isClosed()) {
-                System.out.println("exit-status: " + channel.getExitStatus());
+                System.out.println("Command exit-status: " + channel.getExitStatus());
                 break;
             }
             try {

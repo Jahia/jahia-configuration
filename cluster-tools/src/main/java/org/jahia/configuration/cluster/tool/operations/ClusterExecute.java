@@ -35,7 +35,9 @@ public class ClusterExecute extends AbstractClusterOperation {
 
         for (int i = 0; i < clusterConfigBean.getNumberOfNodes(); i++) {
 
-            logger.info("-- " + clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1) + " ------------------------------------------------------- ");
+            String nodeId = clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1);
+
+            logger.info("-- " + nodeId + " ------------------------------------------------------- ");
 
             Session session = jSch.getSession(clusterConfigBean.getDeploymentUserName(), clusterConfigBean.getExternalHostNames().get(i), 22);
 
@@ -64,7 +66,7 @@ public class ClusterExecute extends AbstractClusterOperation {
                     System.out.print(new String(tmp, 0, j));
                 }
                 if (channel.isClosed()) {
-                    System.out.println("exit-status: " + channel.getExitStatus());
+                    System.out.println("Command exit-status: " + channel.getExitStatus());
                     break;
                 }
                 try {
