@@ -37,7 +37,7 @@ public class ClusterTool {
         operations.put("stop",new ClusterExecute(logger, clusterConfigGenerator.getClusterConfigBean(), clusterConfigGenerator.getClusterConfigBean().getShutdownCommandLine()));
         operations.put("ps", new ClusterExecute(logger, clusterConfigGenerator.getClusterConfigBean(), clusterConfigGenerator.getClusterConfigBean().getPsCommandLine()));
         operations.put("kill", new ClusterKill(logger, clusterConfigGenerator.getClusterConfigBean(), false));
-        operations.put("hardkill", new ClusterKill(logger, clusterConfigGenerator.getClusterConfigBean(), false));
+        operations.put("hardkill", new ClusterKill(logger, clusterConfigGenerator.getClusterConfigBean(), true));
         operations.put("dumpthreads", new ClusterDumpThreads(logger, clusterConfigGenerator.getClusterConfigBean()));
         operations.put("getlogs", new ClusterGetLogs(logger, clusterConfigGenerator.getClusterConfigBean()));
         operations.put("awsgetinstances", new AWSGetClusterInstances(logger, clusterConfigGenerator.getClusterConfigBean()));
