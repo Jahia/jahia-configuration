@@ -42,6 +42,7 @@ public class ClusterTool {
         operations.put("getlogs", new ClusterGetLogs(logger, clusterConfigGenerator.getClusterConfigBean()));
         operations.put("awsgetinstances", new AWSGetClusterInstances(logger, clusterConfigGenerator.getClusterConfigBean()));
         operations.put("taillogs", new ClusterTailLogs(logger, clusterConfigBean));
+        operations.put("updatelocalrevisions", new ClusterUpdateLocalRevisions(logger, clusterConfigBean));
     }
 
     public void run() throws Exception {
@@ -99,6 +100,7 @@ public class ClusterTool {
                 System.out.println("- getlogs : will retrieve all the logs from all the servers");
                 System.out.println("- awsgetinstances : will retrieve all AWS instances public DNS names and private IP addresses and display them. Useful to quickly populate the cluster.properties file.");
                 System.out.println("- taillogs : will issue a tail for the Tomcat logs on all the cluster instances");
+                System.out.println("- updatelocalrevisions : will connect to the database to update all node local revisions to the highest found");
                 System.out.println("- [anyother] : will launch any other command on all cluster node instances.");
                 return;
             }
