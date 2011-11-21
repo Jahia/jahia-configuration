@@ -1,7 +1,5 @@
 package org.jahia.configuration.cluster;
 
-import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.beanutils.PropertyUtils;
 import org.jahia.configuration.logging.AbstractLogger;
 
 import java.io.File;
@@ -43,6 +41,12 @@ public class ClusterConfigBean {
     private String awsAccessKey = null;
     private String awsSecretKey = null;
 
+    private String dbDriverClass = "";
+    private String dbUrl = "";
+    private String dbUser = "jahia";
+    private String dbPassword = "jahia";
+    private String dbLocalRevisionsTableName="JR_J_LOCAL_REVISIONS";
+
     Properties clusterProperties = new Properties();
 
     public ClusterConfigBean(AbstractLogger logger, File parentDirectory) throws Exception {
@@ -77,6 +81,12 @@ public class ClusterConfigBean {
 
         awsAccessKey = getStringProp("awsAccessKey", awsAccessKey);
         awsSecretKey = getStringProp("awsSecretKey", awsSecretKey);
+
+        dbDriverClass = getStringProp("dbDriverClass", dbDriverClass);
+        dbUrl = getStringProp("dbUrl", dbUrl);
+        dbUser = getStringProp("dbUser", dbUser);
+        dbPassword = getStringProp("dbPassword", dbPassword);
+        dbLocalRevisionsTableName = getStringProp("dbLocalRevisionsTableName", dbLocalRevisionsTableName);
 
         if (externalHostNames.size() != numberOfNodes) {
             throw new Exception("External host name list size is not equal to number of nodes !");
@@ -200,5 +210,25 @@ public class ClusterConfigBean {
 
     public String getTailLogsCommandLine() {
         return tailLogsCommandLine;
+    }
+
+    public String getDbDriverClass() {
+        return dbDriverClass;
+    }
+
+    public String getDbUrl() {
+        return dbUrl;
+    }
+
+    public String getDbUser() {
+        return dbUser;
+    }
+
+    public String getDbPassword() {
+        return dbPassword;
+    }
+
+    public String getDbLocalRevisionsTableName() {
+        return dbLocalRevisionsTableName;
     }
 }
