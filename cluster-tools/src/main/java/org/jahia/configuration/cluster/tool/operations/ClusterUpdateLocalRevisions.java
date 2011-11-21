@@ -13,6 +13,8 @@ import java.sql.*;
  */
 public class ClusterUpdateLocalRevisions extends AbstractClusterOperation {
 
+    private boolean forceIncrease = false;
+
     public ClusterUpdateLocalRevisions(AbstractLogger logger, ClusterConfigBean clusterConfigBean) {
         super(logger, clusterConfigBean);
     }
@@ -66,10 +68,15 @@ public class ClusterUpdateLocalRevisions extends AbstractClusterOperation {
                     // we found one, let's update it if it is lower.
                     long curRevisionId = curRevisionResultSet.getLong(1);
                     if (curRevisionId < maximumRevisionId) {
-                        logger.info("Updating existing revision ID " + curRevisionId + " for node " + nodeId + " to value " + maximumRevisionId);
-                        updateRevisionStatement.setLong(1, maximumRevisionId);
-                        updateRevisionStatement.setString(2, nodeId);
-                        int result = updateRevisionStatement.executeUpdate();
+                        if (forceIncrease) {
+                            logger.info("Updating existing revision ID " + curRevisionId + " for node " + nodeId + " to value " + maximumRevisionId);
+                            updateRevisionStatement.setLong(1, maximumRevisionId);
+                            updateRevisionStatement.setString(2, nodeId);
+                            int result = updateRevisionStatement.executeUpdate();
+                        } else {
+                            logger.info("Found lower existing revision ID " + curRevisionId + " for node " + nodeId + ", will not modify it.");
+
+                        }
                     } else {
                         logger.info("Existing revision ID " + curRevisionId + " for node " + nodeId + " is fine, will not modify it.");
 
