@@ -46,6 +46,7 @@ public class ClusterTool {
     }
 
     public void run() throws Exception {
+        long startTime = System.currentTimeMillis();
         if (command == null) {
             command = "default";
             clusterConfigGenerator.generateClusterConfiguration();
@@ -55,6 +56,8 @@ public class ClusterTool {
             operation = new ClusterExecute(logger, clusterConfigBean, command);
         }
         operation.execute();
+        long totalTime = System.currentTimeMillis() - startTime;
+        logger.info("Operations completed in " + totalTime + "ms");
     }
 
     public static Options buildOptions() {
