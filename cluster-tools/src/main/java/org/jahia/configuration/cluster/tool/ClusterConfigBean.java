@@ -1,4 +1,4 @@
-package org.jahia.configuration.cluster;
+package org.jahia.configuration.cluster.tool;
 
 import org.jahia.configuration.logging.AbstractLogger;
 
@@ -27,6 +27,7 @@ public class ClusterConfigBean {
     private String nodesDirectoryName = "nodes";
     private String logsDirectoryName = "logs";
     private String remoteLogDirectory = "/home/ec2-user/Jahia/tomcat/log";
+    private List<String> filesToFilter = new ArrayList<String>();
 
     private String waitForStartupURL = "http://${hostname}:8080/welcome";
     private String startupCommandLine = "/home/ec2-user/Jahia/tomcat/bin/startup.sh";
@@ -68,6 +69,7 @@ public class ClusterConfigBean {
         nodesDirectoryName = parentDirectory + File.separator +getStringProp("nodesDirectoryName", nodesDirectoryName);
         logsDirectoryName = parentDirectory + File.separator + getStringProp("logsDirectoryName", logsDirectoryName);
         remoteLogDirectory = getStringProp("remoteLogDirectory", remoteLogDirectory);
+        filesToFilter = getStringListProp("filesToFilter", filesToFilter);
 
         waitForStartupURL = getStringProp("waitForStartupURL", waitForStartupURL);
         startupCommandLine = getStringProp("startupCommandLine", startupCommandLine);
@@ -230,5 +232,9 @@ public class ClusterConfigBean {
 
     public String getDbLocalRevisionsTableName() {
         return dbLocalRevisionsTableName;
+    }
+
+    public List<String> getFilesToFilter() {
+        return filesToFilter;
     }
 }

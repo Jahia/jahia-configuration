@@ -3,6 +3,8 @@ package org.jahia.configuration.cluster;
 import com.google.common.io.Files;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
+import org.jahia.configuration.cluster.tool.ClusterConfigBean;
+import org.jahia.configuration.cluster.tool.operations.ClusterConfigGenerator;
 import org.jahia.configuration.logging.AbstractLogger;
 import org.jahia.configuration.logging.ConsoleLogger;
 import org.springframework.core.io.Resource;
@@ -29,7 +31,7 @@ public class ClusterConfigGeneratorTest extends TestCase {
 
         ClusterConfigBean clusterConfigBean = new ClusterConfigBean(logger, new File(tempDir, "cluster"));
         ClusterConfigGenerator clusterConfigGenerator = new ClusterConfigGenerator(logger, clusterConfigBean);
-        clusterConfigGenerator.generateClusterConfiguration();
+        clusterConfigGenerator.execute();
 
         // now let's validate the generated configuration.
         for (int i=0; i < clusterConfigBean.getNumberOfNodes(); i++) {

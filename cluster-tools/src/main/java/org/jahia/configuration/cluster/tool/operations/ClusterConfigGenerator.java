@@ -1,25 +1,27 @@
-package org.jahia.configuration.cluster;
+package org.jahia.configuration.cluster.tool.operations;
 
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.SftpException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.vfs.FileSystemException;
-import org.codehaus.plexus.util.FileUtils;
+import org.jahia.configuration.cluster.tool.ClusterConfigBean;
 import org.jahia.configuration.configurators.ConfigFile;
 import org.jahia.configuration.configurators.JahiaAdvancedPropertiesConfigurator;
 import org.jahia.configuration.configurators.JahiaConfigBean;
 import org.jahia.configuration.logging.AbstractLogger;
+import org.mozilla.universalchardet.UniversalDetector;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 
 /**
  * This class generates cluster configuration for a pre-defined list of nodes in separate directories. It can also
  * copy files to various cluster staging directories, ready to be uploaded to each node.
  */
 
-public class ClusterConfigGenerator {
+public class ClusterConfigGenerator extends AbstractClusterOperation {
 
     public class FileConfigFile implements ConfigFile {
 
@@ -38,27 +40,26 @@ public class ClusterConfigGenerator {
         }
     }
 
-    protected AbstractLogger logger;
-    private ClusterConfigBean clusterConfigBean;
+    private String filterStartMarker = "#{";
+    private String filterEndMarker = "}";
 
     public ClusterConfigGenerator(AbstractLogger logger, ClusterConfigBean clusterConfigBean) throws Exception {
-        this.logger = logger;
-        this.clusterConfigBean = clusterConfigBean;
+        super(logger, clusterConfigBean);
     }
 
-    public void generateClusterConfiguration() throws Exception {
-
+    @Override
+    public void execute() throws JSchException, SftpException, IOException {
         JahiaConfigBean jahiaConfigBean = new JahiaConfigBean();
         jahiaConfigBean.setCluster_activated("true");
 
         File templateDirectory = new File(clusterConfigBean.getTemplateDirectoryName());
         if (!templateDirectory.exists()) {
-            throw new Exception("Template directory "+templateDirectory+"does not exist, aborting configuration generation !");
+            throw new IOException("Template directory "+templateDirectory+"does not exist, aborting configuration generation !");
         }
 
         File jahiaAdvancedPropertiesConfigFile = new File(templateDirectory, clusterConfigBean.getJahiaAdvancedPropertyRelativeFileLocation());
         if (!jahiaAdvancedPropertiesConfigFile.exists()) {
-            throw new Exception("Couldn't find Jahia advanced property file template at " + jahiaAdvancedPropertiesConfigFile);
+            throw new IOException("Couldn't find Jahia advanced property file template at " + jahiaAdvancedPropertiesConfigFile);
         }
 
         // first let's create the node directories
@@ -79,7 +80,7 @@ public class ClusterConfigGenerator {
             }
 
             logger.info("Copying template files to " + currentNodeDirectory + "...");
-            FileUtils.copyDirectoryStructure(templateDirectory, currentNodeDirectory);
+            FileUtils.copyDirectory(templateDirectory, currentNodeDirectory);
 
             jahiaConfigBean.setCluster_node_serverId(currentNodeId);
             if (i == 0) {
@@ -98,11 +99,46 @@ public class ClusterConfigGenerator {
             } catch (FileSystemException fse) {
                 // in the case we cannot access the file, it means we should not do the advanced configuration, which is expected for Jahia "core".
             }
+
+            // filter files
+            for (String fileToFilter : clusterConfigBean.getFilesToFilter()) {
+                File targetFile = new File(currentNodeDirectory, fileToFilter);
+                if (!targetFile.exists()) {
+                    logger.warn("No file " + targetFile + " found for filtering, ignoring...");
+                    continue;
+                }
+                String fileEncoding = getFileEncoding(targetFile);
+                if (fileEncoding != null) {
+                    logger.info("Detected encoding " + fileEncoding + " for file " + targetFile);
+                } else {
+                    logger.info("No specific encoding found for file " + targetFile + " will use platform default (" + Charset.defaultCharset() + ")");
+                }
+                String fileContents = FileUtils.readFileToString(targetFile);
+                fileContents = fileContents.replaceAll(filterStartMarker + "cluster.nodeId" + filterEndMarker, currentNodeId);
+                FileUtils.writeStringToFile(targetFile, fileContents);
+            }
+
         }
+    }
+
+    public String getFileEncoding(File file) throws IOException {
+        byte[] buf = new byte[4096];
+        java.io.FileInputStream fis = new java.io.FileInputStream(file);
+
+        UniversalDetector detector = new UniversalDetector(null);
+
+        int nread;
+        while ((nread = fis.read(buf)) > 0 && !detector.isDone()) {
+            detector.handleData(buf, 0, nread);
+        }
+        detector.dataEnd();
+
+        String encoding = detector.getDetectedCharset();
+
+        detector.reset();
+
+        return encoding;
 
     }
 
-    public ClusterConfigBean getClusterConfigBean() {
-        return clusterConfigBean;
-    }
 }

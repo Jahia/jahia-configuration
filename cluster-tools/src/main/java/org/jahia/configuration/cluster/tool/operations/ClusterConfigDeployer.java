@@ -1,7 +1,7 @@
 package org.jahia.configuration.cluster.tool.operations;
 
 import com.jcraft.jsch.*;
-import org.jahia.configuration.cluster.ClusterConfigBean;
+import org.jahia.configuration.cluster.tool.ClusterConfigBean;
 import org.jahia.configuration.cluster.tool.ClusterUserInfo;
 import org.jahia.configuration.logging.AbstractLogger;
 

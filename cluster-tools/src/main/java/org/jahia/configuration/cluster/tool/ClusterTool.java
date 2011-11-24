@@ -1,8 +1,7 @@
 package org.jahia.configuration.cluster.tool;
 
 import org.apache.commons.cli.*;
-import org.jahia.configuration.cluster.ClusterConfigBean;
-import org.jahia.configuration.cluster.ClusterConfigGenerator;
+import org.jahia.configuration.cluster.tool.operations.ClusterConfigGenerator;
 import org.jahia.configuration.cluster.tool.operations.*;
 import org.jahia.configuration.logging.AbstractLogger;
 import org.jahia.configuration.logging.ConsoleLogger;
@@ -23,7 +22,6 @@ public class ClusterTool {
 
     private AbstractLogger logger;
     private ClusterConfigBean clusterConfigBean;
-    private ClusterConfigGenerator clusterConfigGenerator;
     private String command = null;
     private HashMap<String, AbstractClusterOperation> operations = new HashMap<String, AbstractClusterOperation>();
 
@@ -31,16 +29,16 @@ public class ClusterTool {
         this.logger = new SLF4JLogger(slf4jLogger);
         this.command = command;
         clusterConfigBean = new ClusterConfigBean(logger, new File(projectDirectory));
-        clusterConfigGenerator = new ClusterConfigGenerator(logger, clusterConfigBean);
-        operations.put("default", new ClusterConfigDeployer(logger, clusterConfigGenerator.getClusterConfigBean()));
-        operations.put("start", new ClusterSequentialTomcatStart(logger, clusterConfigGenerator.getClusterConfigBean()));
-        operations.put("stop",new ClusterExecute(logger, clusterConfigGenerator.getClusterConfigBean(), clusterConfigGenerator.getClusterConfigBean().getShutdownCommandLine()));
-        operations.put("ps", new ClusterExecute(logger, clusterConfigGenerator.getClusterConfigBean(), clusterConfigGenerator.getClusterConfigBean().getPsCommandLine()));
-        operations.put("kill", new ClusterKill(logger, clusterConfigGenerator.getClusterConfigBean(), false));
-        operations.put("hardkill", new ClusterKill(logger, clusterConfigGenerator.getClusterConfigBean(), true));
-        operations.put("dumpthreads", new ClusterDumpThreads(logger, clusterConfigGenerator.getClusterConfigBean()));
-        operations.put("getlogs", new ClusterGetLogs(logger, clusterConfigGenerator.getClusterConfigBean()));
-        operations.put("awsgetinstances", new AWSGetClusterInstances(logger, clusterConfigGenerator.getClusterConfigBean()));
+        operations.put("configure", new ClusterConfigGenerator(logger, clusterConfigBean));
+        operations.put("deploy", new ClusterConfigDeployer(logger, clusterConfigBean));
+        operations.put("start", new ClusterSequentialTomcatStart(logger, clusterConfigBean));
+        operations.put("stop",new ClusterExecute(logger, clusterConfigBean, clusterConfigBean.getShutdownCommandLine()));
+        operations.put("ps", new ClusterExecute(logger, clusterConfigBean, clusterConfigBean.getPsCommandLine()));
+        operations.put("kill", new ClusterKill(logger, clusterConfigBean, false));
+        operations.put("hardkill", new ClusterKill(logger, clusterConfigBean, true));
+        operations.put("dumpthreads", new ClusterDumpThreads(logger, clusterConfigBean));
+        operations.put("getlogs", new ClusterGetLogs(logger, clusterConfigBean));
+        operations.put("awsgetinstances", new AWSGetClusterInstances(logger, clusterConfigBean));
         operations.put("taillogs", new ClusterTailLogs(logger, clusterConfigBean));
         operations.put("updatelocalrevisions", new ClusterUpdateLocalRevisions(logger, clusterConfigBean));
     }
@@ -48,8 +46,9 @@ public class ClusterTool {
     public void run() throws Exception {
         long startTime = System.currentTimeMillis();
         if (command == null) {
-            command = "default";
-            clusterConfigGenerator.generateClusterConfiguration();
+            command = "deploy";
+            AbstractClusterOperation configureOperation = operations.get("configure");
+            configureOperation.execute();
         }
         AbstractClusterOperation operation = operations.get(command);
         if (operation == null) {
@@ -94,7 +93,9 @@ public class ClusterTool {
                 HelpFormatter formatter = new HelpFormatter();
                 formatter.printHelp( "cluster-tools [options] project_directory [command]", options );
                 System.out.println("where command may be one of :");
-                System.out.println("- [none] : will generate the configuration for all nodes and deploy to the corresponding servers");
+                System.out.println("- [none] : will execute the configure and deploy command below one after the other");
+                System.out.println("- configure : will generate the configuration for all nodes, also copying and filtering files into the nodes directory");
+                System.out.println("- deploy : will deploy the configurations in the node directories to all the remote cluster nodes over an SSH connection.");
                 System.out.println("- start : will start all Tomcat instances on all the nodes");
                 System.out.println("- stop : will stop (or attempt to stop) all Tomcat instances on all the nodes");
                 System.out.println("- kill : will kill all Tomcat instances on all the nodes");
