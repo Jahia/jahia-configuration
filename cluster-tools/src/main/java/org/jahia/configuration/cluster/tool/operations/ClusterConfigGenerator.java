@@ -3,6 +3,7 @@ package org.jahia.configuration.cluster.tool.operations;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.SftpException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs.FileSystemException;
 import org.jahia.configuration.cluster.tool.ClusterConfigBean;
 import org.jahia.configuration.configurators.ConfigFile;
@@ -114,7 +115,7 @@ public class ClusterConfigGenerator extends AbstractClusterOperation {
                     logger.info("No specific encoding found for file " + targetFile + " will use platform default (" + Charset.defaultCharset() + ")");
                 }
                 String fileContents = FileUtils.readFileToString(targetFile);
-                fileContents = fileContents.replaceAll(filterStartMarker + "cluster.nodeId" + filterEndMarker, currentNodeId);
+                fileContents = StringUtils.replace(fileContents, filterStartMarker + "cluster.nodeId" + filterEndMarker, currentNodeId);
                 FileUtils.writeStringToFile(targetFile, fileContents);
             }
 

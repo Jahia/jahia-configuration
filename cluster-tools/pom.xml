@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
         <groupId>org.jahia.configuration</groupId>
         <artifactId>jahia-configuration-root</artifactId>
         <version>2.0</version>
     </parent>
-    
+
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jahia.configuration</groupId>
     <artifactId>cluster-tools</artifactId>
@@ -29,20 +29,20 @@
             <artifactId>configurators</artifactId>
             <version>2.40</version>
         </dependency>
-         <dependency>
-           <groupId>com.jcraft</groupId>
-           <artifactId>jsch</artifactId>
-           <version>0.1.44-1</version>
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+            <version>0.1.44-1</version>
         </dependency>
         <dependency>
-           <groupId>org.apache.httpcomponents</groupId>
-           <artifactId>httpclient</artifactId>
-           <version>4.1.2</version>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.1.2</version>
         </dependency>
         <dependency>
-           <groupId>com.amazonaws</groupId>
-           <artifactId>aws-java-sdk</artifactId>
-           <version>1.2.12</version>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk</artifactId>
+            <version>1.2.12</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -60,9 +60,9 @@
             <version>1.2.16</version>
         </dependency>
         <dependency>
-           <groupId>org.springframework</groupId>
-           <artifactId>spring-core</artifactId>
-           <version>3.0.6.RELEASE</version>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>3.0.6.RELEASE</version>
             <scope>test</scope>
         </dependency>
 
@@ -74,9 +74,9 @@
         </dependency>
 
         <dependency>
-           <groupId>com.googlecode.juniversalchardet</groupId>
-           <artifactId>juniversalchardet</artifactId>
-           <version>1.0.3</version>
+            <groupId>com.googlecode.juniversalchardet</groupId>
+            <artifactId>juniversalchardet</artifactId>
+            <version>1.0.3</version>
         </dependency>
 
         <dependency>
@@ -85,9 +85,14 @@
             <version>2.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.1</version>
+        </dependency>
 
     </dependencies>
-        
+
     <build>
         <plugins>
             <plugin>
@@ -126,29 +131,29 @@
             </plugin>
 
             <plugin>
-              <groupId>org.codehaus.mojo</groupId>
-              <artifactId>buildnumber-maven-plugin</artifactId>
-              <version>1.0-beta-3</version>
-              <executions>
-                <execution>
-                  <phase>validate</phase>
-                  <goals>
-                    <goal>create</goal>
-                  </goals>
-                </execution>
-              </executions>
-              <configuration>
-                <doCheck>false</doCheck>
-                <doUpdate>false</doUpdate>
-                <useLastCommittedRevision>true</useLastCommittedRevision>
-                <getRevisionOnlyOnce>true</getRevisionOnlyOnce>
-                <revisionOnScmFailure>00000</revisionOnScmFailure>
-              </configuration>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>1.0-beta-3</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <doCheck>false</doCheck>
+                    <doUpdate>false</doUpdate>
+                    <useLastCommittedRevision>true</useLastCommittedRevision>
+                    <getRevisionOnlyOnce>true</getRevisionOnlyOnce>
+                    <revisionOnScmFailure>00000</revisionOnScmFailure>
+                </configuration>
             </plugin>
 
         </plugins>
     </build>
-    
+
     <distributionManagement>
         <repository>
             <id>jahiaRepository</id>

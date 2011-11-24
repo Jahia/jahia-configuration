@@ -29,7 +29,9 @@ public class ClusterConfigGeneratorTest extends TestCase {
 
         copyResourcesToDir(tempDir, "cluster", "cluster");
 
-        ClusterConfigBean clusterConfigBean = new ClusterConfigBean(logger, new File(tempDir, "cluster"));
+        File clusterDir = new File(tempDir, "cluster");
+
+        ClusterConfigBean clusterConfigBean = new ClusterConfigBean(logger, clusterDir);
         ClusterConfigGenerator clusterConfigGenerator = new ClusterConfigGenerator(logger, clusterConfigBean);
         clusterConfigGenerator.execute();
 
@@ -57,6 +59,18 @@ public class ClusterConfigGeneratorTest extends TestCase {
             }
 
             // we should add more checks here but for the time being it shall do.
+            for (String fileNameToFilter : clusterConfigBean.getFilesToFilter()) {
+                File fileToFilter = new File(nodeDir, fileNameToFilter);
+                assertTrue("Couldn't find filtered file " + fileToFilter, fileToFilter.exists());
+
+                File templateDir = new File(clusterConfigBean.getTemplateDirectoryName());
+                File originalFile = new File(templateDir, fileNameToFilter);
+                assertTrue("Coulnd't find original file source at " + originalFile, originalFile.exists());
+
+                String originalFileContents = FileUtils.readFileToString(originalFile);
+                String filteredFileContents = FileUtils.readFileToString(fileToFilter);
+                assertTrue("Original and filtered files are the same ! Filtering did not work", !originalFileContents.equals(filteredFileContents));
+            }
 
         }
 
@@ -74,9 +88,9 @@ public class ClusterConfigGeneratorTest extends TestCase {
         logger.info("Copying " + originalRelativeLocation + " files to " + targetCompleteDirectory + "...");
         for (Resource resource : dataTablesResources) {
             String relativePath = resource.getURI().toString();
-            int relativeLocation = relativePath.indexOf(originalRelativeLocation);
+            int relativeLocation = relativePath.lastIndexOf(originalRelativeLocation + File.separator);
             if (relativeLocation > -1) {
-                relativePath = relativePath.substring(relativeLocation + originalRelativeLocation.length());
+                relativePath = relativePath.substring(relativeLocation + originalRelativeLocation.length() + 1);
             }
             File destFile = new File(targetCompleteDirectory, relativePath);
             logger.debug("Copying " + relativePath + " to " + destFile);
