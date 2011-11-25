@@ -28,6 +28,7 @@ public class ClusterConfigBean {
     private String logsDirectoryName = "logs";
     private String remoteLogDirectory = "/home/ec2-user/Jahia/tomcat/log";
     private List<String> filesToFilter = new ArrayList<String>();
+    private String deleteFileNamePrefix = "CLUSTER_DELETE_ME_";
 
     private String waitForStartupURL = "http://${hostname}:8080/welcome";
     private String startupCommandLine = "/home/ec2-user/Jahia/tomcat/bin/startup.sh";
@@ -76,6 +77,7 @@ public class ClusterConfigBean {
         logsDirectoryName = parentDirectory + File.separator + getStringProp("logsDirectoryName", logsDirectoryName);
         remoteLogDirectory = getStringProp("remoteLogDirectory", remoteLogDirectory);
         filesToFilter = getStringListProp("filesToFilter", filesToFilter);
+        deleteFileNamePrefix = getStringProp("deleteFileNamePrefix", deleteFileNamePrefix);
 
         waitForStartupURL = getStringProp("waitForStartupURL", waitForStartupURL);
         startupCommandLine = getStringProp("startupCommandLine", startupCommandLine);
@@ -270,5 +272,9 @@ public class ClusterConfigBean {
 
     public List<String> getFilesToFilter() {
         return filesToFilter;
+    }
+
+    public String getDeleteFileNamePrefix() {
+        return deleteFileNamePrefix;
     }
 }

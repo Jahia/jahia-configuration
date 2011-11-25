@@ -67,25 +67,42 @@ public class ClusterConfigDeployer extends AbstractClusterOperation {
                     // we ignore hidden files and directories
                     continue;
                 }
-                if(listFile[i].isDirectory()) {
-                    sftp.cd(listFile[i].getName());
-                    copy(listFile[i], sftp);
-                    sftp.cd("..");
+                boolean mustBeDeleted = false;
+                if (listFile[i].getName().startsWith(clusterConfigBean.getDeleteFileNamePrefix())) {
+                    // file or directory was marked to be deleted !
+                    mustBeDeleted = true;
+                }
+                if (listFile[i].isDirectory()) {
+                    if (mustBeDeleted) {
+                        // @todo not yet implemented !
+                        String dirName = listFile[i].getName().substring(clusterConfigBean.getDeleteFileNamePrefix().length());
+                        logger.warn("Directory deletion is not yet implemeted. Will not delete directory " + dirName);
+                    } else {
+                        sftp.cd(listFile[i].getName());
+                        copy(listFile[i], sftp);
+                        sftp.cd("..");
+                    }
                 } else {
-                    sftp.put(listFile[i].getPath(), listFile[i].getName(), new SftpProgressMonitor() {
-                        public void init(int op, String src, String dest, long max) {
-                            logger.info("Copying " + src + " to " + dest + " (" + max + " bytes)...");
-                        }
+                    if (mustBeDeleted) {
+                        String fileName = listFile[i].getName().substring(clusterConfigBean.getDeleteFileNamePrefix().length());
+                        logger.info("Deleting file " + fileName + "...");
+                        sftp.rm(fileName);
+                    } else {
+                        sftp.put(listFile[i].getPath(), listFile[i].getName(), new SftpProgressMonitor() {
+                            public void init(int op, String src, String dest, long max) {
+                                logger.info("Copying " + src + " to " + dest + " (" + max + " bytes)...");
+                            }
 
-                        public boolean count(long count) {
-                            logger.info(count + " bytes transferred.");
-                            return true;  //To change body of implemented methods use File | Settings | File Templates.
-                        }
+                            public boolean count(long count) {
+                                logger.info(count + " bytes transferred.");
+                                return true;  //To change body of implemented methods use File | Settings | File Templates.
+                            }
 
-                        public void end() {
-                            logger.info("Transfer completed.");
-                        }
-                    }, ChannelSftp.OVERWRITE);
+                            public void end() {
+                                logger.info("Transfer completed.");
+                            }
+                        }, ChannelSftp.OVERWRITE);
+                    }
                 }
             }
         }
