@@ -37,7 +37,8 @@ public class ClusterSequentialTomcatStart extends AbstractClusterOperation {
 
         for (int i = 0; i < clusterConfigBean.getNumberOfNodes(); i++) {
 
-            logger.info("Processing server " + Integer.toString(i+1) + " : " + clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1));
+            String nodeId = clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1);
+            logger.info("-- " + nodeId + " ------------------------------------------------------- ");
 
             Session session = jSch.getSession(clusterConfigBean.getDeploymentUserName(), clusterConfigBean.getExternalHostNames().get(i), 22);
 

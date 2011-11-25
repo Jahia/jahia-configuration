@@ -31,7 +31,9 @@ public class ClusterConfigDeployer extends AbstractClusterOperation {
         );
 
         for (int i=0; i < clusterConfigBean.getNumberOfNodes(); i++) {
-            logger.info("Processing server " + Integer.toString(i+1) + " : " + clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1));
+
+            String nodeId = clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1);
+            logger.info("-- " + nodeId + " ------------------------------------------------------- ");
 
             Session session = jSch.getSession(clusterConfigBean.getDeploymentUserName(), clusterConfigBean.getExternalHostNames().get(i), 22);
             // session.setConfig("");
@@ -47,7 +49,6 @@ public class ClusterConfigDeployer extends AbstractClusterOperation {
             String currentDirectory = sftp.pwd();
             logger.debug("Current directory on server:" + currentDirectory);
 
-            String nodeId = clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1);
             File nodeDir = new File(clusterConfigBean.getNodesDirectoryName() + File.separator + nodeId);
 
             // now let's copy the local files to each server.
