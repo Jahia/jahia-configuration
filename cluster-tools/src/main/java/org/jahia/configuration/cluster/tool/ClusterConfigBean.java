@@ -1,9 +1,9 @@
 package org.jahia.configuration.cluster.tool;
 
+import org.jahia.configuration.configurators.PropertiesManager;
 import org.jahia.configuration.logging.AbstractLogger;
 
-import java.io.File;
-import java.io.FileReader;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -48,12 +48,18 @@ public class ClusterConfigBean {
     private String dbPassword = "jahia";
     private String dbLocalRevisionsTableName="JR_J_LOCAL_REVISIONS";
 
-    Properties clusterProperties = new Properties();
+    PropertiesManager clusterProperties;
+    File parentDirectory;
+    File configurationFile;
 
     public ClusterConfigBean(AbstractLogger logger, File parentDirectory) throws Exception {
         this.logger = logger;
-        File configurationFile = new File(parentDirectory, configurationFileName);
-        clusterProperties.load(new FileReader(configurationFile));
+        this.parentDirectory = parentDirectory;
+        this.configurationFile = new File(parentDirectory, configurationFileName);
+
+        FileInputStream configStream = new FileInputStream(configurationFile);
+        clusterProperties = new PropertiesManager(configStream);
+        clusterProperties.setUnmodifiedCommentingActivated(false);
 
         numberOfNodes = getIntProp("numberOfNodes", numberOfNodes);
         nodeNamePrefix = getStringProp("nodeNamePrefix", nodeNamePrefix);
@@ -100,26 +106,44 @@ public class ClusterConfigBean {
 
     }
 
+    public void store() throws IOException {
+        FileInputStream configStream = new FileInputStream(configurationFile);
+        clusterProperties.storeProperties(configStream, configurationFile.getPath());
+    }
+
     public int getIntProp(String name, int defaultValue) {
-        if (!clusterProperties.containsKey(name)) {
+        if (!clusterProperties.getPropertiesObject().containsKey(name)) {
             return defaultValue;
         }
         return Integer.parseInt(clusterProperties.getProperty(name));
     }
 
     public String getStringProp(String name, String defaultValue) {
-        if (!clusterProperties.containsKey(name)) {
+        if (!clusterProperties.getPropertiesObject().containsKey(name)) {
             return defaultValue;
         }
         return clusterProperties.getProperty(name);
     }
 
     public List<String> getStringListProp(String name, List<String> defaultValue) {
-        if (!clusterProperties.containsKey(name)) {
+        if (!clusterProperties.getPropertiesObject().containsKey(name)) {
             return defaultValue;
         }
         String[] stringArray = clusterProperties.getProperty(name).split(",");
         return Arrays.asList(stringArray);
+    }
+
+    public void setStringListProp(String name, List<String> stringList) {
+        StringBuffer newValue = new StringBuffer();
+        int i=0;
+        for (String curString : stringList) {
+            newValue.append(curString);
+            if (i < (stringList.size() -1)) {
+                newValue.append(",");
+            }
+            i++;
+        }
+        clusterProperties.setProperty(name, newValue.toString());
     }
 
     public int getNumberOfNodes() {
@@ -136,6 +160,16 @@ public class ClusterConfigBean {
 
     public List<String> getInternalIPs() {
         return internalIPs;
+    }
+
+    public void setExternalHostNames(List<String> externalHostNames) {
+        this.externalHostNames = externalHostNames;
+        setStringListProp("externalHostNames", externalHostNames);
+    }
+
+    public void setInternalIPs(List<String> internalIPs) {
+        this.internalIPs = internalIPs;
+        setStringListProp("internalIPs", internalIPs);
     }
 
     public String getPrivateKeyFileLocation() {
