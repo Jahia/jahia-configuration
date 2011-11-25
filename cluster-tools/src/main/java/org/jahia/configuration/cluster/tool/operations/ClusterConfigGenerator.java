@@ -60,7 +60,7 @@ public class ClusterConfigGenerator extends AbstractClusterOperation {
 
         File jahiaAdvancedPropertiesConfigFile = new File(templateDirectory, clusterConfigBean.getJahiaAdvancedPropertyRelativeFileLocation());
         if (!jahiaAdvancedPropertiesConfigFile.exists()) {
-            throw new IOException("Couldn't find Jahia advanced property file template at " + jahiaAdvancedPropertiesConfigFile);
+            logger.warn("Couldn't find Jahia advanced property file template at " + jahiaAdvancedPropertiesConfigFile + ", will skip node configuration step.");
         }
 
         // first let's create the node directories
@@ -83,22 +83,24 @@ public class ClusterConfigGenerator extends AbstractClusterOperation {
             logger.info("Copying template files to " + currentNodeDirectory + "...");
             FileUtils.copyDirectory(templateDirectory, currentNodeDirectory);
 
-            jahiaConfigBean.setCluster_node_serverId(currentNodeId);
-            if (i == 0) {
-                jahiaConfigBean.setProcessingServer("true");
-            } else {
-                jahiaConfigBean.setProcessingServer("false");
-            }
-            jahiaConfigBean.setClusterStartIpAddress(clusterConfigBean.getInternalIPs().get(i));
-            jahiaConfigBean.setClusterNodes(clusterConfigBean.getInternalIPs());
-            jahiaConfigBean.setClusterTCPEHCacheHibernateHosts(clusterConfigBean.getInternalIPs());
-            jahiaConfigBean.setClusterTCPEHCacheJahiaHosts(clusterConfigBean.getInternalIPs());
-            JahiaAdvancedPropertiesConfigurator jahiaAdvancedPropertiesConfigurator = new JahiaAdvancedPropertiesConfigurator(logger, jahiaConfigBean);
+            if (jahiaAdvancedPropertiesConfigFile.exists()) {
+                jahiaConfigBean.setCluster_node_serverId(currentNodeId);
+                if (i == 0) {
+                    jahiaConfigBean.setProcessingServer("true");
+                } else {
+                    jahiaConfigBean.setProcessingServer("false");
+                }
+                jahiaConfigBean.setClusterStartIpAddress(clusterConfigBean.getInternalIPs().get(i));
+                jahiaConfigBean.setClusterNodes(clusterConfigBean.getInternalIPs());
+                jahiaConfigBean.setClusterTCPEHCacheHibernateHosts(clusterConfigBean.getInternalIPs());
+                jahiaConfigBean.setClusterTCPEHCacheJahiaHosts(clusterConfigBean.getInternalIPs());
+                JahiaAdvancedPropertiesConfigurator jahiaAdvancedPropertiesConfigurator = new JahiaAdvancedPropertiesConfigurator(logger, jahiaConfigBean);
 
-            try {
-                jahiaAdvancedPropertiesConfigurator.updateConfiguration(new FileConfigFile(jahiaAdvancedPropertiesConfigFile), new File(currentNodeDirectory, clusterConfigBean.getJahiaAdvancedPropertyRelativeFileLocation()).getPath());
-            } catch (FileSystemException fse) {
-                // in the case we cannot access the file, it means we should not do the advanced configuration, which is expected for Jahia "core".
+                try {
+                    jahiaAdvancedPropertiesConfigurator.updateConfiguration(new FileConfigFile(jahiaAdvancedPropertiesConfigFile), new File(currentNodeDirectory, clusterConfigBean.getJahiaAdvancedPropertyRelativeFileLocation()).getPath());
+                } catch (FileSystemException fse) {
+                    // in the case we cannot access the file, it means we should not do the advanced configuration, which is expected for Jahia "core".
+                }
             }
 
             // filter files
@@ -108,7 +110,13 @@ public class ClusterConfigGenerator extends AbstractClusterOperation {
                     logger.warn("No file " + targetFile + " found for filtering, ignoring...");
                     continue;
                 }
-                String fileEncoding = getFileEncoding(targetFile);
+                String fileEncoding = null;
+                if (fileToFilter.endsWith(".properties")) {
+                    // always use ISO-8859-1 for properties files.
+                    fileEncoding = "ISO-8859-1";
+                } else {
+                    fileEncoding = getFileEncoding(targetFile);
+                }
                 if (fileEncoding != null) {
                     logger.info("Detected encoding " + fileEncoding + " for file " + targetFile);
                 } else {
