@@ -54,7 +54,7 @@ public class ClusterTool {
         if (operation == null) {
             operation = new ClusterExecute(logger, clusterConfigBean, command);
         }
-        if (!"awsgetinstances".equals(operation)) {
+        if (!"awsgetinstances".equals(command)) {
             clusterConfigBean.checkSizeConsistency();
         }
         operation.execute();
