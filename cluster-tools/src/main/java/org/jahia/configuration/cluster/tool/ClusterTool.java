@@ -54,6 +54,9 @@ public class ClusterTool {
         if (operation == null) {
             operation = new ClusterExecute(logger, clusterConfigBean, command);
         }
+        if (!"awsgetinstances".equals(operation)) {
+            clusterConfigBean.checkSizeConsistency();
+        }
         operation.execute();
         long totalTime = System.currentTimeMillis() - startTime;
         logger.info("Operations completed in " + totalTime + "ms");

@@ -98,6 +98,9 @@ public class ClusterConfigBean {
         dbPassword = getStringProp("dbPassword", dbPassword);
         dbLocalRevisionsTableName = getStringProp("dbLocalRevisionsTableName", dbLocalRevisionsTableName);
 
+    }
+
+    public void checkSizeConsistency() throws Exception {
         if (externalHostNames.size() != numberOfNodes) {
             throw new Exception("External host name list size is not equal to number of nodes !");
         }
@@ -105,7 +108,6 @@ public class ClusterConfigBean {
         if (internalIPs.size() != numberOfNodes) {
             throw new Exception("Internal IPs list size is not equal to number of nodes !");
         }
-
     }
 
     public void store() throws IOException {
