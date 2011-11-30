@@ -120,13 +120,11 @@ public class ClusterTailLogs extends AbstractClusterOperation {
 
         for (int i = 0; i < clusterConfigBean.getNumberOfNodes(); i++) {
 
-            String nodeId = clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1);
+            logger.info("Start tail for server " + Integer.toString(i+1) + " : " + clusterConfigBean.getNodeId(i));
 
-            logger.info("Start tail for server " + Integer.toString(i+1) + " : " + nodeId);
+            ClusterTailLogThread clusterTailLogThread = new ClusterTailLogThread(jSch, logger, clusterConfigBean, clusterConfigBean.getNodeId(i), i );
 
-            ClusterTailLogThread clusterTailLogThread = new ClusterTailLogThread(jSch, logger, clusterConfigBean, nodeId, i );
-
-            Thread serverThread = new Thread(clusterTailLogThread, nodeId);
+            Thread serverThread = new Thread(clusterTailLogThread, clusterConfigBean.getNodeId(i));
             tailThreads.add(serverThread);
             serverThread.start();
 

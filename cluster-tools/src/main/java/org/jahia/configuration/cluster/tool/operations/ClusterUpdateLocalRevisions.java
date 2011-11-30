@@ -59,9 +59,7 @@ public class ClusterUpdateLocalRevisions extends AbstractClusterOperation {
             PreparedStatement insertRevisionStatement = dbConnection.prepareStatement("INSERT INTO " + clusterConfigBean.getDbLocalRevisionsTableName() + " (JOURNAL_ID, REVISION_ID) VALUES (?,?)");
             for (int i = 0; i < clusterConfigBean.getNumberOfNodes(); i++) {
 
-                String nodeId = clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1);
-
-                getCurrentRevisionStatement.setString(1, nodeId);
+                getCurrentRevisionStatement.setString(1, clusterConfigBean.getNodeId(i));
 
                 ResultSet curRevisionResultSet = getCurrentRevisionStatement.executeQuery();
                 if (curRevisionResultSet.next()) {
@@ -69,21 +67,21 @@ public class ClusterUpdateLocalRevisions extends AbstractClusterOperation {
                     long curRevisionId = curRevisionResultSet.getLong(1);
                     if (curRevisionId < maximumRevisionId) {
                         if (forceIncrease) {
-                            logger.info("Updating existing revision ID " + curRevisionId + " for node " + nodeId + " to value " + maximumRevisionId);
+                            logger.info("Updating existing revision ID " + curRevisionId + " for node " + clusterConfigBean.getNodeId(i) + " to value " + maximumRevisionId);
                             updateRevisionStatement.setLong(1, maximumRevisionId);
-                            updateRevisionStatement.setString(2, nodeId);
+                            updateRevisionStatement.setString(2, clusterConfigBean.getNodeId(i));
                             int result = updateRevisionStatement.executeUpdate();
                         } else {
-                            logger.info("Found lower existing revision ID " + curRevisionId + " for node " + nodeId + ", will not modify it.");
+                            logger.info("Found lower existing revision ID " + curRevisionId + " for node " + clusterConfigBean.getNodeId(i) + ", will not modify it.");
 
                         }
                     } else {
-                        logger.info("Existing revision ID " + curRevisionId + " for node " + nodeId + " is fine, will not modify it.");
+                        logger.info("Existing revision ID " + curRevisionId + " for node " + clusterConfigBean.getNodeId(i) + " is fine, will not modify it.");
 
                     }
                 } else {
-                    logger.info("Creating new revision ID " + maximumRevisionId + " for node " + nodeId);
-                    insertRevisionStatement.setString(1, nodeId);
+                    logger.info("Creating new revision ID " + maximumRevisionId + " for node " + clusterConfigBean.getNodeId(i));
+                    insertRevisionStatement.setString(1, clusterConfigBean.getNodeId(i));
                     insertRevisionStatement.setLong(2, maximumRevisionId);
                     int result = insertRevisionStatement.executeUpdate();
                 }

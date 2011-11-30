@@ -70,8 +70,7 @@ public class ClusterConfigGenerator extends AbstractClusterOperation {
         }
 
         for (int i=0; i < clusterConfigBean.getNumberOfNodes(); i++) {
-            String currentNodeId = clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1);
-            File currentNodeDirectory = new File(nodesDirectory, currentNodeId);
+            File currentNodeDirectory = new File(nodesDirectory, clusterConfigBean.getNodeId(i));
             if (!currentNodeDirectory.exists()) {
                 logger.info("Creating node directory " + currentNodeDirectory);
                 boolean nodeDirectoryCreated = currentNodeDirectory.mkdirs();
@@ -84,8 +83,8 @@ public class ClusterConfigGenerator extends AbstractClusterOperation {
             FileUtils.copyDirectory(templateDirectory, currentNodeDirectory);
 
             if (jahiaAdvancedPropertiesConfigFile.exists()) {
-                jahiaConfigBean.setCluster_node_serverId(currentNodeId);
-                if (i == 0) {
+                jahiaConfigBean.setCluster_node_serverId(clusterConfigBean.getNodeId(i));
+                if ("processing".equals(clusterConfigBean.getNodeType(i))) {
                     jahiaConfigBean.setProcessingServer("true");
                 } else {
                     jahiaConfigBean.setProcessingServer("false");
@@ -123,7 +122,7 @@ public class ClusterConfigGenerator extends AbstractClusterOperation {
                     logger.info("No specific encoding found for file " + targetFile + " will use platform default (" + Charset.defaultCharset() + ")");
                 }
                 String fileContents = FileUtils.readFileToString(targetFile);
-                fileContents = StringUtils.replace(fileContents, filterStartMarker + "cluster.nodeId" + filterEndMarker, currentNodeId);
+                fileContents = StringUtils.replace(fileContents, filterStartMarker + "cluster.nodeId" + filterEndMarker, clusterConfigBean.getNodeId(i));
                 FileUtils.writeStringToFile(targetFile, fileContents);
             }
 

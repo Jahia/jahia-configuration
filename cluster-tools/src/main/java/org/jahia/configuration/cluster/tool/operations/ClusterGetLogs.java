@@ -33,8 +33,7 @@ public class ClusterGetLogs extends AbstractClusterOperation {
         );
 
         for (int i=0; i < clusterConfigBean.getNumberOfNodes(); i++) {
-            String nodeId = clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1);
-            logger.info("-- " + nodeId + " ------------------------------------------------------- ");
+            logger.info("-- " + clusterConfigBean.getNodeId(i) + " ------------------------------------------------------- ");
 
             Session session = jSch.getSession(clusterConfigBean.getDeploymentUserName(), clusterConfigBean.getExternalHostNames().get(i), 22);
             // session.setConfig("");
@@ -51,7 +50,7 @@ public class ClusterGetLogs extends AbstractClusterOperation {
             String currentDirectory = sftp.pwd();
             logger.debug("Current directory on server:" + currentDirectory);
 
-            File nodeDir = new File(clusterConfigBean.getLogsDirectoryName(), nodeId);
+            File nodeDir = new File(clusterConfigBean.getLogsDirectoryName(), clusterConfigBean.getNodeId(i));
             if (!nodeDir.exists()) {
                 nodeDir.mkdirs();
             }

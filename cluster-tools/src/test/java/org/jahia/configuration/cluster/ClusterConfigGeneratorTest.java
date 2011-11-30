@@ -37,8 +37,7 @@ public class ClusterConfigGeneratorTest extends TestCase {
 
         // now let's validate the generated configuration.
         for (int i=0; i < clusterConfigBean.getNumberOfNodes(); i++) {
-            String nodeId = clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1);
-            File nodeDir = new File(clusterConfigBean.getNodesDirectoryName() + File.separator + nodeId);
+            File nodeDir = new File(clusterConfigBean.getNodesDirectoryName() + File.separator + clusterConfigBean.getNodeId(i));
             assertTrue("Node directory " + nodeDir + " not found !", nodeDir.exists());
 
             // now we need to check that all the template files were copied properly.
@@ -50,9 +49,9 @@ public class ClusterConfigGeneratorTest extends TestCase {
             jahiaAdvancedProperties.load(new FileReader(new File(nodeDir, clusterConfigBean.getJahiaAdvancedPropertyRelativeFileLocation())));
 
             assertEquals("Cluster configuration is not activated !", "true", jahiaAdvancedProperties.getProperty("cluster.activated"));
-            assertEquals("Node server Id is not correct", nodeId, jahiaAdvancedProperties.getProperty("cluster.node.serverId"));
+            assertEquals("Node server Id is not correct", clusterConfigBean.getNodeId(i), jahiaAdvancedProperties.getProperty("cluster.node.serverId"));
 
-            if (i == 0) {
+            if ("processing".equals(clusterConfigBean.getNodeType(i))) {
                 assertEquals("Node should be a processing server", "true", jahiaAdvancedProperties.getProperty("processingServer"));
             } else {
                 assertEquals("Node should not be a processing server", "false", jahiaAdvancedProperties.getProperty("processingServer"));

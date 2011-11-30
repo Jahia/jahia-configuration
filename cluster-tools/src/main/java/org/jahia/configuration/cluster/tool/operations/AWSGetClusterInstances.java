@@ -42,18 +42,31 @@ public class AWSGetClusterInstances extends AbstractClusterOperation {
                 List<Instance> instanceList = reservation.getInstances();
                 for (Instance instance: instanceList) {
                     if ("running".equals(instance.getState().getName()) && (externalHostNames.size() < clusterConfigBean.getNumberOfNodes())) {
+                        List<Tag> tags = instance.getTags();
+                        boolean ignoreInstance = false;
+                        for (Tag tag : tags) {
+                            if ("Name".equals(tag.getKey())) {
+                                String instanceName = tag.getValue();
+                                for (String instanceNameToIgnore : clusterConfigBean.getAwsInstanceNamesToIgnore()) {
+                                    if (instanceName.startsWith(instanceNameToIgnore)) {
+                                        logger.info("Ignoring instance " + instanceName);
+                                        ignoreInstance = true;
+                                    }
+                                }
+                                if (!ignoreInstance) {
+                                    nameTags.append(instanceName);
+                                }
+                            }
+                        }
+                        if (ignoreInstance) {
+                            continue;
+                        }
                         externalHostNames.add(instance.getPublicDnsName());
                         internalIPs.add(instance.getPrivateIpAddress());
                         publicDnsNames.append(instance.getPublicDnsName());
                         publicDnsNames.append(",");
                         privateIpAddresses.append(instance.getPrivateIpAddress());
                         privateIpAddresses.append(",");
-                        List<Tag> tags = instance.getTags();
-                        for (Tag tag : tags) {
-                            if ("Name".equals(tag.getKey())) {
-                                nameTags.append(tag.getValue());
-                            }
-                        }
                         nameTags.append(",");
                     }
                 }

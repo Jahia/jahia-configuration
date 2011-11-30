@@ -35,8 +35,7 @@ public class ClusterKill extends AbstractClusterOperation {
 
         for (int i = 0; i < clusterConfigBean.getNumberOfNodes(); i++) {
 
-            String nodeId = clusterConfigBean.getNodeNamePrefix() + Integer.toString(i+1);
-            logger.info("-- " + nodeId + " ------------------------------------------------------- ");
+            logger.info("-- " + clusterConfigBean.getNodeId(i) + " ------------------------------------------------------- ");
 
             Session session = jSch.getSession(clusterConfigBean.getDeploymentUserName(), clusterConfigBean.getExternalHostNames().get(i), 22);
 

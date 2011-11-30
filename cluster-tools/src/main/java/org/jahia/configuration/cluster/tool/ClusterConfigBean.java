@@ -15,8 +15,10 @@ public class ClusterConfigBean {
 
     private String configurationFileName = "cluster.properties";
 
-    private int numberOfNodes = 10;
-    private String nodeNamePrefix = "jahiaServer";
+    private List<String> nodeTypes = new ArrayList<String>();
+    private String browsingNodeNamePrefix = "browsing";
+    private String contributionNodeNamePrefix = "contribution";
+    private String processingNodeNamePrefix = "processing";
     private List<String> externalHostNames = new ArrayList<String>();
     private List<String> internalIPs = new ArrayList<String>();
     private String privateKeyFileLocation = "privatekey.pem";
@@ -42,6 +44,7 @@ public class ClusterConfigBean {
 
     private String awsAccessKey = null;
     private String awsSecretKey = null;
+    private List<String> awsInstanceNamesToIgnore = new ArrayList<String>();
 
     private String dbDriverClass = "";
     private String dbUrl = "";
@@ -49,9 +52,14 @@ public class ClusterConfigBean {
     private String dbPassword = "jahia";
     private String dbLocalRevisionsTableName="JR_J_LOCAL_REVISIONS";
 
-    PropertiesManager clusterProperties;
-    File parentDirectory;
-    File configurationFile;
+    private PropertiesManager clusterProperties;
+    private File parentDirectory;
+    private File configurationFile;
+
+    private int processingServerCount = 0;
+    private int contributionServercount = 0;
+    private int browsingServerCount = 0;
+    private List<String> generatedNodeIds = new ArrayList<String>();
 
     public ClusterConfigBean(AbstractLogger logger, File parentDirectory) throws Exception {
         this.logger = logger;
@@ -62,8 +70,10 @@ public class ClusterConfigBean {
         clusterProperties = new PropertiesManager(configStream);
         clusterProperties.setUnmodifiedCommentingActivated(false);
 
-        numberOfNodes = getIntProp("numberOfNodes", numberOfNodes);
-        nodeNamePrefix = getStringProp("nodeNamePrefix", nodeNamePrefix);
+        nodeTypes = getStringListProp("nodeTypes", nodeTypes);
+        browsingNodeNamePrefix = getStringProp("browsingNodeNamePrefix", browsingNodeNamePrefix);
+        contributionNodeNamePrefix = getStringProp("contributionNodeNamePrefix", contributionNodeNamePrefix);
+        processingNodeNamePrefix = getStringProp("", processingNodeNamePrefix);
         externalHostNames = getStringListProp("externalHostNames", externalHostNames);
         internalIPs = getStringListProp("internalIPs", internalIPs);
 
@@ -91,6 +101,7 @@ public class ClusterConfigBean {
 
         awsAccessKey = getStringProp("awsAccessKey", awsAccessKey);
         awsSecretKey = getStringProp("awsSecretKey", awsSecretKey);
+        awsInstanceNamesToIgnore = getStringListProp("awsInstanceNamesToIgnore", awsInstanceNamesToIgnore);
 
         dbDriverClass = getStringProp("dbDriverClass", dbDriverClass);
         dbUrl = getStringProp("dbUrl", dbUrl);
@@ -101,11 +112,11 @@ public class ClusterConfigBean {
     }
 
     public void checkSizeConsistency() throws Exception {
-        if (externalHostNames.size() != numberOfNodes) {
+        if (externalHostNames.size() != nodeTypes.size()) {
             throw new Exception("External host name list size is not equal to number of nodes !");
         }
 
-        if (internalIPs.size() != numberOfNodes) {
+        if (internalIPs.size() != nodeTypes.size()) {
             throw new Exception("Internal IPs list size is not equal to number of nodes !");
         }
     }
@@ -150,12 +161,20 @@ public class ClusterConfigBean {
         clusterProperties.setProperty(name, newValue.toString());
     }
 
-    public int getNumberOfNodes() {
-        return numberOfNodes;
+    public List<String> getNodeTypes() {
+        return nodeTypes;
     }
 
-    public String getNodeNamePrefix() {
-        return nodeNamePrefix;
+    public String getBrowsingNodeNamePrefix() {
+        return browsingNodeNamePrefix;
+    }
+
+    public String getContributionNodeNamePrefix() {
+        return contributionNodeNamePrefix;
+    }
+
+    public String getProcessingNodeNamePrefix() {
+        return processingNodeNamePrefix;
     }
 
     public List<String> getExternalHostNames() {
@@ -248,6 +267,10 @@ public class ClusterConfigBean {
         return awsSecretKey;
     }
 
+    public List<String> getAwsInstanceNamesToIgnore() {
+        return awsInstanceNamesToIgnore;
+    }
+
     public String getTailLogsCommandLine() {
         return tailLogsCommandLine;
     }
@@ -279,4 +302,40 @@ public class ClusterConfigBean {
     public String getDeleteFileNamePrefix() {
         return deleteFileNamePrefix;
     }
+
+    private String generateNewNodeId(String nodeType) {
+        if ("processing".equals(nodeType)) {
+            processingServerCount++;
+            return getProcessingNodeNamePrefix() + processingServerCount;
+        } else if ("contribution".equals(nodeType)) {
+            contributionServercount++;
+            return getContributionNodeNamePrefix() + contributionServercount;
+        } else {
+            browsingServerCount++;
+            return getBrowsingNodeNamePrefix() + browsingServerCount;
+        }
+    }
+
+    public String getNodeType(int index) {
+        return getNodeTypes().get(index);
+    }
+
+    public String getNodeId(int index) {
+        while (generatedNodeIds.size() < getNodeTypes().size()) {
+            generatedNodeIds.add(null);
+        }
+        String nodeId = generatedNodeIds.get(index);
+        if (nodeId != null) {
+            return nodeId;
+        } else {
+            nodeId = generateNewNodeId(getNodeType(index));
+            generatedNodeIds.set(index, nodeId);
+            return nodeId;
+        }
+    }
+
+    public int getNumberOfNodes() {
+        return getNodeTypes().size();
+    }
+
 }
