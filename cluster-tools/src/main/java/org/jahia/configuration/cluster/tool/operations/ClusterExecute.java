@@ -35,7 +35,7 @@ public class ClusterExecute extends AbstractClusterOperation {
 
         for (int i = 0; i < clusterConfigBean.getNumberOfNodes(); i++) {
 
-            logger.info("-- " + clusterConfigBean.getNodeId(i) + " ------------------------------------------------------- ");
+            info(i, "-- " + clusterConfigBean.getNodeId(i) + " ------------------------------------------------------- ");
 
             Session session = jSch.getSession(clusterConfigBean.getDeploymentUserName(), clusterConfigBean.getExternalHostNames().get(i), 22);
 
@@ -52,7 +52,7 @@ public class ClusterExecute extends AbstractClusterOperation {
 
             InputStream in = channel.getInputStream();
 
-            logger.info("Executing remote command: " + commandLine);
+            info(i, "Executing remote command: " + commandLine);
 
             channel.connect();
 
@@ -64,7 +64,7 @@ public class ClusterExecute extends AbstractClusterOperation {
                     System.out.print(new String(tmp, 0, j));
                 }
                 if (channel.isClosed()) {
-                    System.out.println("Command exit-status: " + channel.getExitStatus());
+                    info(i, "Command exit-status: " + channel.getExitStatus());
                     break;
                 }
                 try {

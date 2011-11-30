@@ -33,7 +33,7 @@ public class ClusterGetLogs extends AbstractClusterOperation {
         );
 
         for (int i=0; i < clusterConfigBean.getNumberOfNodes(); i++) {
-            logger.info("-- " + clusterConfigBean.getNodeId(i) + " ------------------------------------------------------- ");
+            info(i, "-- " + clusterConfigBean.getNodeId(i) + " ------------------------------------------------------- ");
 
             Session session = jSch.getSession(clusterConfigBean.getDeploymentUserName(), clusterConfigBean.getExternalHostNames().get(i), 22);
             // session.setConfig("");
@@ -43,12 +43,12 @@ public class ClusterGetLogs extends AbstractClusterOperation {
             Channel channel = session.openChannel("sftp");
             ChannelSftp sftp = (ChannelSftp) channel;
 
-            logger.info("Connecting to " + clusterConfigBean.getDeploymentUserName() + "@" + clusterConfigBean.getExternalHostNames().get(i) + "...");
+            info(i, "Connecting to " + clusterConfigBean.getDeploymentUserName() + "@" + clusterConfigBean.getExternalHostNames().get(i) + "...");
             sftp.connect();
-            logger.info("Current directory = " + sftp.pwd());
+            info(i, "Current directory = " + sftp.pwd());
             sftp.cd(clusterConfigBean.getRemoteLogDirectory());
             String currentDirectory = sftp.pwd();
-            logger.debug("Current directory on server:" + currentDirectory);
+            debug(i, "Current directory on server:" + currentDirectory);
 
             File nodeDir = new File(clusterConfigBean.getLogsDirectoryName(), clusterConfigBean.getNodeId(i));
             if (!nodeDir.exists()) {
@@ -56,14 +56,14 @@ public class ClusterGetLogs extends AbstractClusterOperation {
             }
 
             // now let's copy the local files to each server.
-            copyFrom(sftp, nodeDir);
+            copyFrom(sftp, nodeDir, i);
 
             sftp.disconnect();
             session.disconnect();
         }
     }
 
-    public void copyFrom(ChannelSftp sftp, File destinationDir) throws SftpException, FileNotFoundException {
+    public void copyFrom(ChannelSftp sftp, File destinationDir, final int nodeIndex) throws SftpException, FileNotFoundException {
 
         Vector files = sftp.ls(".");
         Iterator fileIterator = files.iterator();
@@ -74,7 +74,7 @@ public class ClusterGetLogs extends AbstractClusterOperation {
                     // let's ignore these directories
                 } else {
                     sftp.cd(lsEntry.getFilename());
-                    copyFrom(sftp, new File(destinationDir,lsEntry.getFilename()));
+                    copyFrom(sftp, new File(destinationDir,lsEntry.getFilename()), nodeIndex);
                     sftp.cd("..");
                 }
             } else {
@@ -85,17 +85,17 @@ public class ClusterGetLogs extends AbstractClusterOperation {
 
                     public void init(int op, String src, String dest, long max) {
                         this.fileSize = max;
-                        logger.info("Copying " + src + " to " + dest + " (" + max + " bytes)...");
+                        info(nodeIndex, "Copying " + src + " to " + dest + " (" + max + " bytes)...");
                     }
 
                     public boolean count(long count) {
                         byteCount += count;
-                        logger.info(byteCount + " / " + fileSize + " bytes transferred.");
+                        info(nodeIndex, byteCount + " / " + fileSize + " bytes transferred.");
                         return true;  //To change body of implemented methods use File | Settings | File Templates.
                     }
 
                     public void end() {
-                        logger.info("Transfer completed.");
+                        info(nodeIndex, "Transfer completed.");
                     }
                 }, ChannelSftp.OVERWRITE);
             }

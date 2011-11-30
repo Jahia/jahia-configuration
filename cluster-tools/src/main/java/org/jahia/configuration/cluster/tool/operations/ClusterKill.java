@@ -35,7 +35,7 @@ public class ClusterKill extends AbstractClusterOperation {
 
         for (int i = 0; i < clusterConfigBean.getNumberOfNodes(); i++) {
 
-            logger.info("-- " + clusterConfigBean.getNodeId(i) + " ------------------------------------------------------- ");
+            info(i, "-- " + clusterConfigBean.getNodeId(i) + " ------------------------------------------------------- ");
 
             Session session = jSch.getSession(clusterConfigBean.getDeploymentUserName(), clusterConfigBean.getExternalHostNames().get(i), 22);
 
@@ -44,23 +44,23 @@ public class ClusterKill extends AbstractClusterOperation {
             session.setUserInfo(ui);
             session.connect();
 
-            String pidResult = executeCommand(session, clusterConfigBean.getGetPidCommandLine());
+            String pidResult = executeCommand(session, clusterConfigBean.getGetPidCommandLine(), i);
             if ((pidResult == null) || ("".equals(pidResult))) {
-                logger.warn("No valid PID found on this cluster node, skipping kill command...");
+                warn(i, "No valid PID found on this cluster node, skipping kill command...");
             } else {
                 pidResult = pidResult.trim();
                 String killCommand = clusterConfigBean.getKillCommandLine().replaceAll("\\$\\{tomcatpid\\}", pidResult);
                 if (hardKill) {
                     killCommand = clusterConfigBean.getHardKillCommandLine().replaceAll("\\$\\{tomcatpid\\}", pidResult);
                 }
-                String killResult = executeCommand(session, killCommand);
+                String killResult = executeCommand(session, killCommand, i);
             }
 
             session.disconnect();
         }
     }
 
-    private String executeCommand(Session session, String commandLine) throws JSchException, IOException {
+    private String executeCommand(Session session, String commandLine, int nodeIndex) throws JSchException, IOException {
         Channel channel = session.openChannel("exec");
         ((ChannelExec) channel).setCommand(commandLine);
 
@@ -70,7 +70,7 @@ public class ClusterKill extends AbstractClusterOperation {
 
         InputStream in = channel.getInputStream();
 
-        logger.info("Executing remote command: " + commandLine);
+        info(nodeIndex, "Executing remote command: " + commandLine);
 
         channel.connect();
 
@@ -85,7 +85,7 @@ public class ClusterKill extends AbstractClusterOperation {
                 System.out.print(output);
             }
             if (channel.isClosed()) {
-                System.out.println("exit-status: " + channel.getExitStatus());
+                info(nodeIndex, "exit-status: " + channel.getExitStatus());
                 break;
             }
             try {

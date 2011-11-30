@@ -49,7 +49,7 @@ public class ClusterTailLogs extends AbstractClusterOperation {
 
             InputStream in = channel.getInputStream();
 
-            logger.info("[" + threadName + "] Executing remote command: " + clusterConfigBean.getTailLogsCommandLine());
+            info(instanceNumber, "Executing remote command: " + clusterConfigBean.getTailLogsCommandLine());
 
             channel.connect();
 
@@ -68,7 +68,7 @@ public class ClusterTailLogs extends AbstractClusterOperation {
                             String beforeNewLine = output.substring(0, newLinePos);
                             String afterNewLine = output.substring(newLinePos+1);
                             curOutputLine.append(beforeNewLine);
-                            logger.info("[" + threadName + "] " + curOutputLine);
+                            info(instanceNumber, curOutputLine.toString());
                             output = afterNewLine;
                             curOutputLine = new StringBuffer();
                             newLinePos = output.indexOf('\n');
@@ -79,8 +79,8 @@ public class ClusterTailLogs extends AbstractClusterOperation {
                     }
                 }
                 if (channel.isClosed()) {
-                    logger.info("[" + threadName + "] " + curOutputLine);
-                    logger.info("[" + threadName + "] exit-status: " + channel.getExitStatus());
+                    info(instanceNumber, curOutputLine.toString());
+                    info(instanceNumber, "exit-status: " + channel.getExitStatus());
                     break;
                 }
                 try {
@@ -120,7 +120,7 @@ public class ClusterTailLogs extends AbstractClusterOperation {
 
         for (int i = 0; i < clusterConfigBean.getNumberOfNodes(); i++) {
 
-            logger.info("Start tail for server " + Integer.toString(i+1) + " : " + clusterConfigBean.getNodeId(i));
+            info(i, "Start tail for server " + Integer.toString(i+1) );
 
             ClusterTailLogThread clusterTailLogThread = new ClusterTailLogThread(jSch, logger, clusterConfigBean, clusterConfigBean.getNodeId(i), i );
 

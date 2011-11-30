@@ -37,7 +37,7 @@ public class ClusterSequentialTomcatStart extends AbstractClusterOperation {
 
         for (int i = 0; i < clusterConfigBean.getNumberOfNodes(); i++) {
 
-            logger.info("-- " + clusterConfigBean.getNodeId(i) + " ------------------------------------------------------- ");
+            info(i, "-- " + clusterConfigBean.getNodeId(i) + " ------------------------------------------------------- ");
 
             Session session = jSch.getSession(clusterConfigBean.getDeploymentUserName(), clusterConfigBean.getExternalHostNames().get(i), 22);
 
@@ -60,7 +60,7 @@ public class ClusterSequentialTomcatStart extends AbstractClusterOperation {
 
             InputStream in = channel.getInputStream();
 
-            logger.info("Executing remote command: " + clusterConfigBean.getStartupCommandLine());
+            info(i, "Executing remote command: " + clusterConfigBean.getStartupCommandLine());
 
             channel.connect();
 
@@ -72,7 +72,7 @@ public class ClusterSequentialTomcatStart extends AbstractClusterOperation {
                     System.out.print(new String(tmp, 0, j));
                 }
                 if (channel.isClosed()) {
-                    System.out.println("exit-status: " + channel.getExitStatus());
+                    info(i, "exit-status: " + channel.getExitStatus());
                     break;
                 }
                 try {
@@ -82,14 +82,14 @@ public class ClusterSequentialTomcatStart extends AbstractClusterOperation {
             }
 
             if (channel.getExitStatus() > 0) {
-                logger.error("Exit status was non-zero, aborting startup of cluster nodes ! ");
+                error(i, "Exit status was non-zero, aborting startup of cluster nodes ! ");
                 break;
             }
 
             channel.disconnect();
             session.disconnect();
 
-            logger.info("Waiting for Tomcat to startup up...");
+            info(i, "Waiting for Tomcat to startup up...");
 
             // now we must wait for Tomcat server to become available before continuing to the next node.
             HttpClient httpClient = new DefaultHttpClient();
@@ -100,17 +100,17 @@ public class ClusterSequentialTomcatStart extends AbstractClusterOperation {
                 int maxCount = 0;
                 while ((!available) && (maxCount < 300)) {
                     HttpGet httpGet = new HttpGet(waitForStartupURL);
-                    logger.info("Try #" + maxCount + " to reach server at " + waitForStartupURL + "...");
+                    info(i, "Try #" + maxCount + " to reach server at " + waitForStartupURL + "...");
                     try {
                         HttpResponse response = httpClient.execute(httpGet);
                         if (response.getStatusLine().getStatusCode() == 200) {
                             available = true;
                             break;
                         }
-                        logger.info("Server returned " + response.getStatusLine().getStatusCode() + " error code, still waiting...");
+                        info(i, "Server returned " + response.getStatusLine().getStatusCode() + " error code, still waiting...");
                         response.getEntity().getContent().close();
                     } catch (Throwable t) {
-                        logger.info("Error reaching server: " + t.getMessage() + " still waiting...");
+                        info(i, "Error reaching server: " + t.getMessage() + " still waiting...");
                     }
                     Thread.sleep(1000);
                     maxCount++;
@@ -121,7 +121,7 @@ public class ClusterSequentialTomcatStart extends AbstractClusterOperation {
                 httpClient.getConnectionManager().shutdown();
             }
             if (!available) {
-                logger.error("Maximum tries of 240 was reached, and server is still not reachable. Aborting cluster startup");
+                error(i, "Maximum tries of 240 was reached, and server is still not reachable. Aborting cluster startup");
                 i = clusterConfigBean.getNumberOfNodes() + 1;
                 break;
             }

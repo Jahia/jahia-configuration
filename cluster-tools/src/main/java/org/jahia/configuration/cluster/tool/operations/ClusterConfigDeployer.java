@@ -32,7 +32,7 @@ public class ClusterConfigDeployer extends AbstractClusterOperation {
 
         for (int i=0; i < clusterConfigBean.getNumberOfNodes(); i++) {
 
-            logger.info("-- " + clusterConfigBean.getNodeId(i) + " ------------------------------------------------------- ");
+            info(i, "-- " + clusterConfigBean.getNodeId(i) + " ------------------------------------------------------- ");
 
             Session session = jSch.getSession(clusterConfigBean.getDeploymentUserName(), clusterConfigBean.getExternalHostNames().get(i), 22);
             // session.setConfig("");
@@ -42,23 +42,23 @@ public class ClusterConfigDeployer extends AbstractClusterOperation {
             Channel channel = session.openChannel("sftp");
             ChannelSftp sftp = (ChannelSftp) channel;
 
-            logger.info("Connecting to " + clusterConfigBean.getDeploymentUserName() + "@" + clusterConfigBean.getExternalHostNames().get(i) + "...");
+            info(i, "Connecting to " + clusterConfigBean.getDeploymentUserName() + "@" + clusterConfigBean.getExternalHostNames().get(i) + "...");
             sftp.connect();
             sftp.cd(clusterConfigBean.getDeploymentTargetPath());
             String currentDirectory = sftp.pwd();
-            logger.debug("Current directory on server:" + currentDirectory);
+            debug(i, "Current directory on server:" + currentDirectory);
 
             File nodeDir = new File(clusterConfigBean.getNodesDirectoryName() + File.separator + clusterConfigBean.getNodeId(i));
 
             // now let's copy the local files to each server.
-            copy(nodeDir, sftp);
+            copy(nodeDir, sftp, i);
 
             sftp.disconnect();
             session.disconnect();
         }
     }
 
-    public void copy(File dir, ChannelSftp sftp) throws SftpException, FileNotFoundException {
+    public void copy(File dir, ChannelSftp sftp, final int nodeIndex) throws SftpException, FileNotFoundException {
 
         File listFile[] = dir.listFiles();
         if(listFile != null) {
@@ -76,30 +76,30 @@ public class ClusterConfigDeployer extends AbstractClusterOperation {
                     if (mustBeDeleted) {
                         // @todo not yet implemented !
                         String dirName = listFile[i].getName().substring(clusterConfigBean.getDeleteFileNamePrefix().length());
-                        logger.warn("Directory deletion is not yet implemeted. Will not delete directory " + dirName);
+                        warn(nodeIndex, "Directory deletion is not yet implemeted. Will not delete directory " + dirName);
                     } else {
                         sftp.cd(listFile[i].getName());
-                        copy(listFile[i], sftp);
+                        copy(listFile[i], sftp, nodeIndex);
                         sftp.cd("..");
                     }
                 } else {
                     if (mustBeDeleted) {
                         String fileName = listFile[i].getName().substring(clusterConfigBean.getDeleteFileNamePrefix().length());
-                        logger.info("Deleting file " + fileName + "...");
+                        info(nodeIndex, "Deleting file " + fileName + "...");
                         sftp.rm(fileName);
                     } else {
                         sftp.put(listFile[i].getPath(), listFile[i].getName(), new SftpProgressMonitor() {
                             public void init(int op, String src, String dest, long max) {
-                                logger.info("Copying " + src + " to " + dest + " (" + max + " bytes)...");
+                                info(nodeIndex, "Copying " + src + " to " + dest + " (" + max + " bytes)...");
                             }
 
                             public boolean count(long count) {
-                                logger.info(count + " bytes transferred.");
+                                info(nodeIndex, count + " bytes transferred.");
                                 return true;  //To change body of implemented methods use File | Settings | File Templates.
                             }
 
                             public void end() {
-                                logger.info("Transfer completed.");
+                                info(nodeIndex, "Transfer completed.");
                             }
                         }, ChannelSftp.OVERWRITE);
                     }

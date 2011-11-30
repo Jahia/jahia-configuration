@@ -26,5 +26,25 @@ public abstract class AbstractClusterOperation {
         return FileUtils.readFileToByteArray(new File(clusterConfigBean.getPrivateKeyFileLocation()));
     }
 
+    public void info(int index, String message) {
+        String nodeId = clusterConfigBean.getNodeId(index);
+        logger.info("[" + nodeId + "] " + message);
+    }
+
+    public void debug(int index, String message) {
+        String nodeId = clusterConfigBean.getNodeId(index);
+        logger.debug("[" + nodeId + "] " + message);
+    }
+
+    public void warn(int index, String message) {
+        String nodeId = clusterConfigBean.getNodeId(index);
+        logger.warn("[" + nodeId + "] " + message);
+    }
+
+    public void error(int index, String message) {
+        String nodeId = clusterConfigBean.getNodeId(index);
+        logger.error("[" + nodeId + "] " + message);
+    }
+
     public abstract void execute() throws JSchException, SftpException, IOException;
 }

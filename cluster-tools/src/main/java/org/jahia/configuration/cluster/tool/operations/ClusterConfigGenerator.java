@@ -72,14 +72,14 @@ public class ClusterConfigGenerator extends AbstractClusterOperation {
         for (int i=0; i < clusterConfigBean.getNumberOfNodes(); i++) {
             File currentNodeDirectory = new File(nodesDirectory, clusterConfigBean.getNodeId(i));
             if (!currentNodeDirectory.exists()) {
-                logger.info("Creating node directory " + currentNodeDirectory);
+                info(i, "Creating node directory " + currentNodeDirectory);
                 boolean nodeDirectoryCreated = currentNodeDirectory.mkdirs();
                 if (!nodeDirectoryCreated) {
-                    logger.error("Error while creating node directory !");
+                    error(i, "Error while creating node directory !");
                 }
             }
 
-            logger.info("Copying template files to " + currentNodeDirectory + "...");
+            info(i, "Copying template files to " + currentNodeDirectory + "...");
             FileUtils.copyDirectory(templateDirectory, currentNodeDirectory);
 
             if (jahiaAdvancedPropertiesConfigFile.exists()) {
@@ -106,7 +106,7 @@ public class ClusterConfigGenerator extends AbstractClusterOperation {
             for (String fileToFilter : clusterConfigBean.getFilesToFilter()) {
                 File targetFile = new File(currentNodeDirectory, fileToFilter);
                 if (!targetFile.exists()) {
-                    logger.warn("No file " + targetFile + " found for filtering, ignoring...");
+                    warn(i, "No file " + targetFile + " found for filtering, ignoring...");
                     continue;
                 }
                 String fileEncoding = null;
@@ -117,9 +117,9 @@ public class ClusterConfigGenerator extends AbstractClusterOperation {
                     fileEncoding = getFileEncoding(targetFile);
                 }
                 if (fileEncoding != null) {
-                    logger.info("Detected encoding " + fileEncoding + " for file " + targetFile);
+                    info(i, "Detected encoding " + fileEncoding + " for file " + targetFile);
                 } else {
-                    logger.info("No specific encoding found for file " + targetFile + " will use platform default (" + Charset.defaultCharset() + ")");
+                    info(i, "No specific encoding found for file " + targetFile + " will use platform default (" + Charset.defaultCharset() + ")");
                 }
                 String fileContents = FileUtils.readFileToString(targetFile);
                 fileContents = StringUtils.replace(fileContents, filterStartMarker + "cluster.nodeId" + filterEndMarker, clusterConfigBean.getNodeId(i));

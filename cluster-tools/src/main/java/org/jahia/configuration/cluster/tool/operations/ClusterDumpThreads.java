@@ -32,7 +32,7 @@ public class ClusterDumpThreads extends AbstractClusterOperation {
 
         for (int i = 0; i < clusterConfigBean.getNumberOfNodes(); i++) {
 
-            logger.info("-- " + clusterConfigBean.getNodeId(i) + " ------------------------------------------------------- ");
+            info(i, "-- " + clusterConfigBean.getNodeId(i) + " ------------------------------------------------------- ");
 
             Session session = jSch.getSession(clusterConfigBean.getDeploymentUserName(), clusterConfigBean.getExternalHostNames().get(i), 22);
 
@@ -41,20 +41,20 @@ public class ClusterDumpThreads extends AbstractClusterOperation {
             session.setUserInfo(ui);
             session.connect();
 
-            String pidResult = executeCommand(session, clusterConfigBean.getGetPidCommandLine());
+            String pidResult = executeCommand(session, clusterConfigBean.getGetPidCommandLine(), i);
             if ((pidResult == null) || ("".equals(pidResult))) {
-                logger.warn("No valid PID found on this cluster node, skipping thread dump command...");
+                warn(i, "No valid PID found on this cluster node, skipping thread dump command...");
             } else {
                 pidResult = pidResult.trim();
                 String dumpThreadsCommand = clusterConfigBean.getDumpThreadsCommandLine().replaceAll("\\$\\{tomcatpid\\}", pidResult);
-                String dumpThreadsResult = executeCommand(session, dumpThreadsCommand);
+                String dumpThreadsResult = executeCommand(session, dumpThreadsCommand, i);
             }
 
             session.disconnect();
         }
     }
 
-    private String executeCommand(Session session, String commandLine) throws JSchException, IOException {
+    private String executeCommand(Session session, String commandLine, int nodeIndex) throws JSchException, IOException {
         Channel channel = session.openChannel("exec");
         ((ChannelExec) channel).setCommand(commandLine);
 
@@ -64,7 +64,7 @@ public class ClusterDumpThreads extends AbstractClusterOperation {
 
         InputStream in = channel.getInputStream();
 
-        logger.info("Executing remote command: " + commandLine);
+        info(nodeIndex, "Executing remote command: " + commandLine);
 
         channel.connect();
 
@@ -79,7 +79,7 @@ public class ClusterDumpThreads extends AbstractClusterOperation {
                 System.out.print(output);
             }
             if (channel.isClosed()) {
-                System.out.println("Command exit-status: " + channel.getExitStatus());
+                info(nodeIndex, "Command exit-status: " + channel.getExitStatus());
                 break;
             }
             try {
