@@ -57,13 +57,34 @@ public class ClusterExecute extends AbstractClusterOperation {
             channel.connect();
 
             byte[] tmp = new byte[1024];
+            StringBuffer result = new StringBuffer();
+            StringBuffer curOutputLine = new StringBuffer();
             while (true) {
                 while (in.available() > 0) {
                     int j = in.read(tmp, 0, 1024);
                     if (j < 0) break;
-                    System.out.print(new String(tmp, 0, j));
+                    String output = new String(tmp, 0, j);
+                    result.append(output);
+                    int newLinePos = output.indexOf('\n');
+                    if (newLinePos < 0) {
+                        curOutputLine.append(output);
+                    } else {
+                        while (newLinePos > -1) {
+                            String beforeNewLine = output.substring(0, newLinePos);
+                            String afterNewLine = output.substring(newLinePos+1);
+                            curOutputLine.append(beforeNewLine);
+                            info(i, curOutputLine.toString());
+                            output = afterNewLine;
+                            curOutputLine = new StringBuffer();
+                            newLinePos = output.indexOf('\n');
+                            if (newLinePos < 0) {
+                                curOutputLine.append(output);
+                            }
+                        }
+                    }
                 }
                 if (channel.isClosed()) {
+                    info(i, curOutputLine.toString());
                     info(i, "Command exit-status: " + channel.getExitStatus());
                     break;
                 }

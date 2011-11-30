@@ -70,15 +70,33 @@ public class ClusterDumpThreads extends AbstractClusterOperation {
 
         byte[] tmp = new byte[1024];
         StringBuffer result = new StringBuffer();
+        StringBuffer curOutputLine = new StringBuffer();
         while (true) {
             while (in.available() > 0) {
                 int j = in.read(tmp, 0, 1024);
                 if (j < 0) break;
                 String output = new String(tmp, 0, j);
                 result.append(output);
-                System.out.print(output);
+                int newLinePos = output.indexOf('\n');
+                if (newLinePos < 0) {
+                    curOutputLine.append(output);
+                } else {
+                    while (newLinePos > -1) {
+                        String beforeNewLine = output.substring(0, newLinePos);
+                        String afterNewLine = output.substring(newLinePos+1);
+                        curOutputLine.append(beforeNewLine);
+                        info(nodeIndex, curOutputLine.toString());
+                        output = afterNewLine;
+                        curOutputLine = new StringBuffer();
+                        newLinePos = output.indexOf('\n');
+                        if (newLinePos < 0) {
+                            curOutputLine.append(output);
+                        }
+                    }
+                }
             }
             if (channel.isClosed()) {
+                info(nodeIndex, curOutputLine.toString());
                 info(nodeIndex, "Command exit-status: " + channel.getExitStatus());
                 break;
             }
