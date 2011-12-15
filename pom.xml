@@ -99,6 +99,7 @@
         <module>maven-jahia-plugin</module>
         <module>jahia-installer</module>
         <module>cluster-tools</module>
+        <module>jahia-server-utils</module>
     </modules>
     
     <repositories>
