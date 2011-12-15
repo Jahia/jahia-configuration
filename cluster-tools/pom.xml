@@ -21,11 +21,6 @@
         </dependency>
         <dependency>
             <groupId>org.jahia.configuration</groupId>
-            <artifactId>deployers</artifactId>
-            <version>2.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jahia.configuration</groupId>
             <artifactId>configurators</artifactId>
             <version>2.40</version>
         </dependency>
@@ -89,6 +84,12 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.1</version>
+        </dependency>
+
+        <dependency>
+           <groupId>org.json</groupId>
+           <artifactId>json</artifactId>
+           <version>20090211</version>
         </dependency>
 
     </dependencies>

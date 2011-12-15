@@ -51,6 +51,14 @@ public class ClusterConfigBean {
     private String dbUser = "jahia";
     private String dbPassword = "jahia";
     private String dbLocalRevisionsTableName="JR_J_LOCAL_REVISIONS";
+    private String dbGlobalRevisionTableName="JR_J_GLOBAL_REVISION";
+
+    private String loginURL="http://${hostname}:8080/cms/login";
+    private String logoutURL="http://${hostname}:8080/cms/logout";
+    private String loginUserName="root";
+    private String loginPassword="root1234";
+    private String cacheChecksumURL="http://${hostname}:8080/cms/cachetools/checksums";
+    private String cacheKeyFlushURL="http://${hostname}:8080/cms/cachetools/flushkeys";
 
     private PropertiesManager clusterProperties;
     private File parentDirectory;
@@ -108,6 +116,14 @@ public class ClusterConfigBean {
         dbUser = getStringProp("dbUser", dbUser);
         dbPassword = getStringProp("dbPassword", dbPassword);
         dbLocalRevisionsTableName = getStringProp("dbLocalRevisionsTableName", dbLocalRevisionsTableName);
+        dbGlobalRevisionTableName = getStringProp("dbGlobalRevisionTableName", dbGlobalRevisionTableName);
+
+        loginURL = getStringProp("loginURL", loginURL);
+        logoutURL = getStringProp("logoutURL", logoutURL);
+        loginUserName = getStringProp("loginUserName", loginUserName);
+        loginPassword = getStringProp("loginPassword", loginPassword);
+        cacheChecksumURL = getStringProp("", cacheChecksumURL);
+        cacheKeyFlushURL = getStringProp("", cacheKeyFlushURL);
 
     }
 
@@ -293,6 +309,34 @@ public class ClusterConfigBean {
 
     public String getDbLocalRevisionsTableName() {
         return dbLocalRevisionsTableName;
+    }
+
+    public String getDbGlobalRevisionTableName() {
+        return dbGlobalRevisionTableName;
+    }
+
+    public String getLoginURL() {
+        return loginURL;
+    }
+
+    public String getLogoutURL() {
+        return logoutURL;
+    }
+
+    public String getLoginUserName() {
+        return loginUserName;
+    }
+
+    public String getLoginPassword() {
+        return loginPassword;
+    }
+
+    public String getCacheChecksumURL() {
+        return cacheChecksumURL;
+    }
+
+    public String getCacheKeyFlushURL() {
+        return cacheKeyFlushURL;
     }
 
     public List<String> getFilesToFilter() {
