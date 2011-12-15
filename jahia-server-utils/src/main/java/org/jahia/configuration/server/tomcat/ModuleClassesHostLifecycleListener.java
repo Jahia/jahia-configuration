@@ -108,6 +108,14 @@ public class ModuleClassesHostLifecycleListener implements LifecycleListener {
                         log.debug("    deploying " + name);
                     }
                     File target = new File(jahiaDir, name);
+                    File targetFolder = target.getParentFile();
+                    if (!targetFolder.exists()) {
+                        if (!targetFolder.mkdirs()) {
+                            log.error("Unable to create folder " + targetFolder.getPath()
+                                    + ". Skip copying entry " + name);
+                            continue;
+                        }
+                    }
                     BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(target));
                     InputStream in = jar.getInputStream(entry);
                     try {
