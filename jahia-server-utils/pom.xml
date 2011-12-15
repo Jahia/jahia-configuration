@@ -49,6 +49,7 @@
     <name>Jahia Application Server Utilities</name>
     <version>1.0</version>
     <packaging>jar</packaging>
+    
     <repositories>
         <repository>
             <id>jahiaRepository</id>
@@ -56,6 +57,7 @@
             <url>http://maven.jahia.org/maven2</url>
         </repository>
     </repositories>
+    
     <pluginRepositories>
         <pluginRepository>
             <id>jahiaRepository</id>
@@ -63,6 +65,7 @@
             <url>http://maven.jahia.org/maven2</url>
         </pluginRepository>
     </pluginRepositories>
+    
     <dependencies>
         <dependency>
             <groupId>org.apache.tomcat</groupId>
@@ -71,4 +74,18 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+    
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+					<verbose>true</verbose>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>
