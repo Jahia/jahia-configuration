@@ -288,3 +288,13 @@ for you based on the node types you provided. It will also ignore any
 instance name with the prefixes specified (so anything starting with
 "injector" in the above example).
 
+Adding nodes dynamically
+-----------------------------------------------------------------------------
+
+Note that it IS possible to add cluster nodes dynamically, as the list of
+IP addresses does not need to be updated on all the nodes, as in Jahia it
+is only used to describe the initial members of the cluster, you may add
+more at a later time. Removing nodes dynamically should also be possible,
+but if you do not restart the whole cluster, if you remove a node that is
+listed as an initial member you will get a lot of warnings in the logs.
+
