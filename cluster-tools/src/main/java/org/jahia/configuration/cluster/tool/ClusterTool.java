@@ -102,6 +102,7 @@ public class ClusterTool {
                 System.out.println("- deploy : will deploy the configurations in the node directories to all the remote cluster nodes over an SSH connection.");
                 System.out.println("- start : will start all Tomcat instances on all the nodes");
                 System.out.println("- stop : will stop (or attempt to stop) all Tomcat instances on all the nodes");
+                System.out.println("- ps : will display the process state of the Tomcat instances on all the nodes");
                 System.out.println("- kill : will kill all Tomcat instances on all the nodes");
                 System.out.println("- hardkill : will kill -9 all Tomcat instances on all the nodes");
                 System.out.println("- dumpthreads : will instruct all JVM instances on all the nodes to generate a thread dump in the logs");

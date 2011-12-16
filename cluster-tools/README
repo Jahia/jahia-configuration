@@ -2,57 +2,255 @@
 Jahia Cluster Tools
 =============================================================================
 
-Example command line :
-
-java -jar target/cluster-tools-2.2-with-deps.jar cluster
-
-Setup
+Introduction
 -----------------------------------------------------------------------------
+This small command line utility makes it easy to manage large cluster of
+Jahia installations. It has an initial setup to go through which might seem
+a little tedious at first but once it is done you will gain a LOT of time :)
 
-We assume in the above command line that we have the following files in the
-cluster/ sub-directory:
+Command help:
+-----------------------------------------------------------------------------
+To see the available options in the command line, use :
 
-  cluster.properties
-  clustertests-virginia.pem
-  templates/
+java -jar cluster-tools-VERSION-with-deps.jar
 
-Here is an example of the contents of a cluster.properties file contents :
+It is recommended to have a quick look at the possible options, as some of
+them might be very useful to you.
 
-numberOfNodes=10
-nodeNamePrefix=jahiaServer
-externalHostNames=server1,server2,server3,server4,server5,server6,server7,server8,server9,server10
-internalIPs=10.0.1.1,10.0.1.2,10.0.1.3,10.0.1.4,10.0.1.5,10.0.1.6,10.0.1.7,10.0.1.8,10.0.1.9,10.0.1.10
+Complete walkthrough
+-----------------------------------------------------------------------------
+In this section we will give a complete example of using the cluster tools
+software to help configure a cluster quickly and efficiently.
 
-privateKeyFileLocation=privatekey.pem
-deploymentUserName=ec2-user
-deploymentTargetPath=/home/ec2-user/Jahia
+We will be assuming that we have the following machines :
 
+- 192.168.0.1 which will be configured as the processing server
+- 192.168.0.2 which will be configured as a contribution server
+- 192.168.0.3 which will be configured as a browsing server
+
+We will also assume that the Jahia installation will be done in the
+/home/user/jahia directory for the user named "user".
+
+1. First we will need to setup an SSH public/private keypair to use with
+the cluster-tools utility. If you do not know how to do this, here is a
+quick example, to perform from the machine that you will use to run
+the cluster-tools :
+
+ssh-keygen -t rsa
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/user/.ssh/id_rsa):
+Created directory '/home/user/.ssh'.
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /home/user/.ssh/id_rsa.
+Your public key has been saved in /home/user/.ssh/id_rsa.pub.
+The key fingerprint is:
+3e:4f:05:79:3a:9f:96:7c:3b:ad:e9:58:37:bc:37:e4 user@192.168.0.1
+
+Add the id_rsa.pub contents to the /home/user/.ssh/authorizedkeys for
+each machine
+
+2. Install Jahia with the console mode installer on 192.168.0.1 During
+the install, make sure you do NOT use Derby, but a proper shared
+database, make sure you select database storage for the files and
+content and activate the cluster configuration and enter only the IP
+for 192.168.0.1 (although you could enter all of them but this is to
+illustrate that you don't need to know all the IPs during the initial
+installation phase).
+
+2. Start the Jahia on 192.168.0.1 and perform any initial setup you want,
+for example maybe importing a site and publishing it. Once you are done,
+shutdown the Jahia server on the node properly (don't kill it).
+
+3. Copy the cluster.example directory and its content into a new directory,
+for example mycluster
+
+4. Edit the mycluster/cluster.properties file to look like this:
+
+# General config
+nodeTypes=processing,contribution,browsing
+browsingNodeNamePrefix=browsing
+contributionNodeNamePrefix=contribution
+processingNodeNamePrefix=processing
+externalHostNames=192.168.0.1,192.168.0.2,192.168.0.3
+internalIPs=192.168.0.1,192.168.0.2,192.168.0.3
+
+# Auth config
+privateKeyFileLocation=/home/user/.ssh/id_rsa
+deploymentUserName=user
+deploymentTargetPath=/home/user/jahia
+
+# Staging config
 jahiaAdvancedPropertyRelativeFileLocation=tomcat/webapps/ROOT/WEB-INF/etc/config/jahia.advanced.properties
 templateDirectoryName=template
 nodesDirectoryName=nodes
+logsDirectory=logs
+remoteLogDirectory=/home/user/jahia/tomcat/logs
+filesToFilter=
+deleteFileNamePrefix=CLUSTER_DELETE_ME_
 
+# Commands config
 waitForStartupURL=http://${hostname}:8080/welcome
-startupCommandLine=/home/ec2-user/Jahia/tomcat/bin/startup.sh
-shutdownCommandLine=/home/ec2-user/Jahia/tomcat/bin/shutdown.sh
-getPidCommandLine=cat /home/ec2-user/Jahia/tomcat/temp/tomcat.pid
+startupCommandLine=/home/user/jahia/tomcat/bin/startup.sh
+shutdownCommandLine=/home/user/jahia/tomcat/bin/shutdown.sh
+getPidCommandLine=cat /home/user/jahia/tomcat/temp/tomcat.pid
 psCommandLine=ps aux | grep bootstrap.jar
 killCommandLine=kill ${tomcatpid}
 hardKillCommandLine=kill -9 ${tomcatpid}
+dumpThreadCommandLine=kill -QUIT ${tomcatpid}
+tailLogsCommandLine=tail -f /home/user/jahia/tomcat/logs/catalina.out
 
-Template directory
+# Amazon Web Services config
+awsAccessKey=
+awsSecretKey=
+awsInstanceNamesToIgnore=injector
+
+# Database config
+dbDriverClass=
+dbUrl=
+dbUser=jahia
+dbPassword=jahia
+dbLocalRevisionsTableName=JR_J_LOCAL_REVISIONS
+dbGlobalRevisionTableName=JR_J_GLOBAL_REVISIONS
+
+# Integrity checks configuration
+loginURL=http://${hostname}:8080/cms/login
+logoutURL=http://${hostname}:8080/cms/logout
+loginUserName=root
+loginPassword=root1234
+cacheChecksumURL=http://${hostname}:8080/cms/cachetools/checksums
+cacheKeyFlushURL=http://${hostname}:8080/cms/cachetools/flushkeys
+
+Make sure to modify the dbUser and dbPassword values to your database login
+information.
+
+5. On 192.168.0.1, compress the Jahia installation and copy it to the other
+nodes. Don't worry about the processing server configuration, this will be
+automatically modified by the cluster tools utility.
+
+6. Now let's check that the cluster-tools configuration works by simply
+launching :
+
+java -jar cluster-tools-VERSION-with-deps.jar mycluster ps
+
+If all goes well you should see the results of the command :
+  ps aux | grep bootstrap.jar
+
+Make sure you launch this from a directory above the mycluster directory.
+
+for all nodes in the cluster
+
+7. If all works properly, we can now start configuring the cluster. In
+order to do this simply run :
+
+java -jar cluster-tools-VERSION-with-deps.jar mycluster
+
+This will do three things :
+- copy the contents of the templates directory into nodes subdirectories,
+one for each subnode
+- configure the jahia.advanced.properties file for each node, in it's
+respective directory
+- deploy the configuration to each cluster node using SSH file copies
+
+8. Now, before we start the nodes, we must update the database to
+indicate that all the nodes should start at the same revision, otherwise
+they will start replaying modifications since the dawn of time (=install)
+which could take for ever. To do this simply launch :
+
+java -jar cluster-tools-VERSION-with-deps.jar mycluster updatelocalrevisions
+
+9. You can now launch the cluster using the command :
+
+java -jar cluster-tools-VERSION-with-deps.jar mycluster start
+
+This will launch each node sequentially, in the order specified in the
+cluster.properties file. Once the utility completes, all nodes have
+been started.
+
+10. In a seperate terminal window, you can launch :
+
+java -jar cluster-tools-VERSION-with-deps.jar mycluster taillogs
+
+This will tail the logs of all the nodes simultaneously, prefixing each line
+with the name of the node.
+
+11. To stop the cluster, simply launch :
+
+java -jar cluster-tools-VERSION-with-deps.jar mycluster stop
+
+check the status with the following command :
+
+java -jar cluster-tools-VERSION-with-deps.jar mycluster ps
+
+If for some reasons the nodes do not properly shutdown, you can first try :
+
+java -jar cluster-tools-VERSION-with-deps.jar mycluster kill
+
+and if that still doesn't work you can use :
+
+java -jar cluster-tools-VERSION-with-deps.jar mycluster hardkill
+
+Beware : that last command will initiate a kill -9 on the Jahia process, so
+it might lead to data loss and/or corruption.
+
+Deploying a new module to a cluster
 -----------------------------------------------------------------------------
 
-The template directory may contain any files that will be copied over to the
-nodes. It must also contain a jahia.advanced.properties files specified at
-the location in the jahiaAdvancedPropertiesRelativeFileLocation in the
-cluster.properties file. This file will be modified for each cluster node
-according to the configuration.
+In this section we assume that you have completed the above steps in the
+complete walkthrough.
 
-Example project
+1. Copy your mycluster directory to a new directory we will call newapp
+
+2. Copy the new module into the following directory :
+
+newapp/templates/tomcat/webapps/ROOT/WEB-INF/var/shared_modules
+
+3. Remove the jahia.advanced.properties file from the directory
+
+newapp/templates/tomcat/webapps/ROOT/WEB-INF/etc/config
+
+4. Launch :
+
+java -jar cluster-tools-VERSION-with-deps.jar newapp
+
+Using this technique, you can see that it is very easy to generate seperate
+projects for deployment to the cluster.
+
+If you have deployed a module that embeds libraries or taglibs, you will need
+to restart your cluster before you can use it. Simply use the "stop" and
+"start" commands from the cluster-tools utility.
+
+Filtering files
 -----------------------------------------------------------------------------
 
-In the cluster.example directory you will see a sample project. You can then
-use the project by adding the private key file and launching for example
-with the command :
+If you need to filter files to insert the node identifier into them, you can
+do so by listing them in the cluster.properties file like in the following
+example :
 
-java -jar target/cluster-tools-2.2-with-deps.jar cluster.example
+filesToFilter=tomcat/bin/startup_with_yjp.sh
+
+You can specify multiple files simply by seperating them with a comma.
+
+So if the startup_with_yjp.sh contains the following marker :
+
+#{cluster.nodeId}
+
+like in the following example :
+
+JAVA_OPTS="-agentpath:/home/user/yjp-9.5.6/bin/linux-x86-64/libyjpagent.so=disablestacktelemetry,disableexceptiontelemetry,builtinprobes=none,delay=10000,sessionname=#{cluster.nodeId} $JAVA_OPTS"
+
+this will become for example (for the 7th browsing node) :
+
+JAVA_OPTS="-agentpath:/home/ec2-user/yjp-9.5.6/bin/linux-x86-64/libyjpagent.so=disablestacktelemetry,disableexceptiontelemetry,builtinprobes=none,delay=10000,sessionname=browsing7 $JAVA_OPTS"
+
+For the moment only the #{cluster.nodeId} variable is supported, but we
+might add more over time.
+
+The filtering happens automatically when you launch the following command:
+
+java -jar cluster-tools-VERSION-with-deps.jar mycluster
+
+or if you prefer to check before deployment :
+
+java -jar cluster-tools-VERSION-with-deps.jar mycluster configure
+
