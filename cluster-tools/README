@@ -254,3 +254,37 @@ or if you prefer to check before deployment :
 
 java -jar cluster-tools-VERSION-with-deps.jar mycluster configure
 
+Using with Amazon Web Services
+-----------------------------------------------------------------------------
+
+In this section we do not cover full installation of Jahia on Amazon EC2,
+we only specify the configuration specific to using the cluster-tools utility
+with an existing cluster.
+
+If you want to use the cluster-tools to configure and deploy to Amazon EC2
+instances, make sure you have setup Jahia with for example an Amazon RDS
+database, and make sure to configure the AWS secret key and access key in
+ the cluster.properties files as illustrated below :
+
+awsAccessKey=
+awsSecretKey=
+awsInstanceNamesToIgnore=injector
+
+The awsInstanceNamesToIgnore is a prefix for an instance name that will be
+ignore on all AWS specific operations.
+
+Also, make sure you modify the cluster.properties configuration to use
+the keypair private file for authentification and change the user name
+to ec2-user or whatever the default is for your instances.
+
+You can for example automatically retrieve all running instances in an AWS
+cluster (using the default region, we don't support any other for the moment)
+with the following command :
+
+java -jar cluster-tools-VERSION-with-deps.jar mycluster awsgetinstances
+
+This will automatically populate the externalHostNames and internalIP lists
+for you based on the node types you provided. It will also ignore any
+instance name with the prefixes specified (so anything starting with
+"injector" in the above example).
+
