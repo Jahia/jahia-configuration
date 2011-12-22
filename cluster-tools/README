@@ -8,6 +8,31 @@ This small command line utility makes it easy to manage large cluster of
 Jahia installations. It has an initial setup to go through which might seem
 a little tedious at first but once it is done you will gain a LOT of time :)
 
+Features
+-----------------------------------------------------------------------------
+- Generates the jahia.advanced.properties file for all the nodes in the
+cluster based on a single cluster.properties configuration file. Makes it
+easy to modify all the files at once
+- Uses a template directory to copy any file to all cluster nodes
+- Can run command on the cluster nodes such as start,stop,kill,ps or any
+other UNIX command.
+- Starts the Tomcat instances sequentially, waiting for each to finish
+starting up before starting the next (which is the proper way to start a
+cluster)
+- Makes it easy to deploy a new module to the whole cluster
+- Supports filtering of template files to insert the cluster identifier
+in configuration or script files (like the YourKit startup_with_yjp.sh
+startup script for example).
+- Can tail the logs and aggregate them into a single terminal window
+- Can retrieve the external host names and internal IPs of Amazon EC 2
+instances.
+
+Limitations
+-----------------------------------------------------------------------------
+- Assumes that all cluster nodes will deploy Jahia to the same directory
+- Assumes that all cluster nodes are accessible through SSH using public
+/private key pairs
+
 Command help:
 -----------------------------------------------------------------------------
 To see the available options in the command line, use :
@@ -58,27 +83,69 @@ for 192.168.0.1 (although you could enter all of them but this is to
 illustrate that you don't need to know all the IPs during the initial
 installation phase).
 
-2. Start the Jahia on 192.168.0.1 and perform any initial setup you want,
+3. Start the Jahia on 192.168.0.1 and perform any initial setup you want,
 for example maybe importing a site and publishing it. Once you are done,
 shutdown the Jahia server on the node properly (don't kill it).
 
-3. Copy the cluster.example directory and its content into a new directory,
-for example mycluster
+4. Copy the cluster.example directory from the config-tools ZIP package
+and its content into a new directory, for example mycluster. You will
+want to create the new directory in the same directory as the cluster-tools*.jar
+so it's easy to reference it on the command line.
 
-4. Edit the mycluster/cluster.properties file to look like this:
+5. In the mycluster/cluster.properties modify the nodeTypes value :
 
 # General config
 nodeTypes=processing,contribution,browsing
+
+Basically you should have a nodeType for each of your nodes. These nodes
+types will be used to identify the processing server, and also to generate
+the node names. The possible node type values are : processing,
+contribution or browsing. For example, let's imagine you have the following
+configuration :
+
+nodeTypes=processing,contribution,contribution,browsing,browsing,contribution,browsing
+
+The cluster configuration will generate the following names :
+
+  - processing1
+  - contribution1
+  - contribution2
+  - browsing1
+  - browsing2
+  - contribution3
+  - browsing3
+
+Remember that only one processing server is allowed !
+
+If you need to customize the prefixes generated, you can do so with the next
+parameters in the cluster.properties file.
+
 browsingNodeNamePrefix=browsing
 contributionNodeNamePrefix=contribution
 processingNodeNamePrefix=processing
+
+Usually you will not need to change these.
+
+6. Enter the host names and internal IPs (usually the same, but in some cases like
+the case of Amazon EC2 deployment they might be different). Also remember that they
+must match the number of node types you configured in step 5.
+
 externalHostNames=192.168.0.1,192.168.0.2,192.168.0.3
 internalIPs=192.168.0.1,192.168.0.2,192.168.0.3
+
+7. Configure the SSH authentification section. Point it to the private key you generated,
+as well as the user name you will be using to connect using SSH. Basically the SSH connection
+to each node will be done like this SSH equivalent :
+
+ssh -i ${privateKeyFileLocation} ${deploymentUserName}@${externalHostName}:${deploymentTargetPath}
 
 # Auth config
 privateKeyFileLocation=/home/user/.ssh/id_rsa
 deploymentUserName=user
 deploymentTargetPath=/home/user/jahia
+
+8. In the staging configuration, you can keep the defaults, you will just want to adjust the remote
+log directory to match the deployment target path.
 
 # Staging config
 jahiaAdvancedPropertyRelativeFileLocation=tomcat/webapps/ROOT/WEB-INF/etc/config/jahia.advanced.properties
@@ -88,6 +155,9 @@ logsDirectory=logs
 remoteLogDirectory=/home/user/jahia/tomcat/logs
 filesToFilter=
 deleteFileNamePrefix=CLUSTER_DELETE_ME_
+
+9. In the commands config, again change the (/home/user/jahia) deployment target path to whatever you
+use on your servers. You can leave the rest as it is.
 
 # Commands config
 waitForStartupURL=http://${hostname}:8080/welcome
@@ -100,10 +170,17 @@ hardKillCommandLine=kill -9 ${tomcatpid}
 dumpThreadCommandLine=kill -QUIT ${tomcatpid}
 tailLogsCommandLine=tail -f /home/user/jahia/tomcat/logs/catalina.out
 
+10. If you don't use Amazon EC 2 for deploment, you can safely ignore this following section.
+
 # Amazon Web Services config
 awsAccessKey=
 awsSecretKey=
 awsInstanceNamesToIgnore=injector
+
+11. The database configuration is used to synchronize the journal revision (that is to say the last
+modification that the backend storage has seen), which will speed up first startup of the node. Here
+to populate this the best thing is to copy the values from the first nodes tomcat/conf/Catalina/localhost/ROOT.xml
+file. You do not need to change the dbLocalRevisionsTableName or dbGlobalRevisionTableName
 
 # Database config
 dbDriverClass=
@@ -113,6 +190,9 @@ dbPassword=jahia
 dbLocalRevisionsTableName=JR_J_LOCAL_REVISIONS
 dbGlobalRevisionTableName=JR_J_GLOBAL_REVISIONS
 
+12. The integrity checks section defaults should be fine, simply change the login user name and password to match
+the administrator's login information.
+
 # Integrity checks configuration
 loginURL=http://${hostname}:8080/cms/login
 logoutURL=http://${hostname}:8080/cms/logout
@@ -121,14 +201,11 @@ loginPassword=root1234
 cacheChecksumURL=http://${hostname}:8080/cms/cachetools/checksums
 cacheKeyFlushURL=http://${hostname}:8080/cms/cachetools/flushkeys
 
-Make sure to modify the dbUser and dbPassword values to your database login
-information.
-
-5. On 192.168.0.1, compress the Jahia installation and copy it to the other
+13. On 192.168.0.1, compress the Jahia installation and copy it to the other
 nodes. Don't worry about the processing server configuration, this will be
 automatically modified by the cluster tools utility.
 
-6. Now let's check that the cluster-tools configuration works by simply
+14. Now let's check that the cluster-tools configuration works by simply
 launching :
 
 java -jar cluster-tools-VERSION-with-deps.jar mycluster ps
@@ -140,7 +217,7 @@ Make sure you launch this from a directory above the mycluster directory.
 
 for all nodes in the cluster
 
-7. If all works properly, we can now start configuring the cluster. In
+15. If all works properly, we can now start configuring the cluster. In
 order to do this simply run :
 
 java -jar cluster-tools-VERSION-with-deps.jar mycluster
@@ -152,14 +229,14 @@ one for each subnode
 respective directory
 - deploy the configuration to each cluster node using SSH file copies
 
-8. Now, before we start the nodes, we must update the database to
+16. Now, before we start the nodes, we must update the database to
 indicate that all the nodes should start at the same revision, otherwise
 they will start replaying modifications since the dawn of time (=install)
 which could take for ever. To do this simply launch :
 
 java -jar cluster-tools-VERSION-with-deps.jar mycluster updatelocalrevisions
 
-9. You can now launch the cluster using the command :
+17. You can now launch the cluster using the command :
 
 java -jar cluster-tools-VERSION-with-deps.jar mycluster start
 
@@ -167,14 +244,14 @@ This will launch each node sequentially, in the order specified in the
 cluster.properties file. Once the utility completes, all nodes have
 been started.
 
-10. In a seperate terminal window, you can launch :
+18. In a seperate terminal window, you can launch :
 
 java -jar cluster-tools-VERSION-with-deps.jar mycluster taillogs
 
 This will tail the logs of all the nodes simultaneously, prefixing each line
 with the name of the node.
 
-11. To stop the cluster, simply launch :
+19. To stop the cluster, simply launch :
 
 java -jar cluster-tools-VERSION-with-deps.jar mycluster stop
 
