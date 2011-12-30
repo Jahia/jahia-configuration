@@ -396,7 +396,7 @@ public class JahiaGlobalConfigurator {
             File[] files = new File(webappDir + "/WEB-INF/var/repository")
                     .listFiles(new FilenameFilter() {
                         public boolean accept(File dir, String name) {
-                            return name == null || name.startsWith("indexing_configuration") && name.endsWith(".xml");
+                            return name == null || !(name.startsWith("indexing_configuration") && name.endsWith(".xml"));
                         }
                     });
             if (files != null) {
