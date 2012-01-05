@@ -85,7 +85,7 @@ public class ClusterConfigBean {
         externalHostNames = getStringListProp("externalHostNames", externalHostNames);
         internalIPs = getStringListProp("internalIPs", internalIPs);
 
-        privateKeyFileLocation = parentDirectory + File.separator + getStringProp("privateKeyFileLocation", privateKeyFileLocation);
+        privateKeyFileLocation = (getStringProp("privateKeyFileLocation", privateKeyFileLocation).startsWith("/") ? "" : (parentDirectory + File.separator)) + getStringProp("privateKeyFileLocation", privateKeyFileLocation);
         deploymentUserName = getStringProp("deploymentUserName", deploymentUserName);
         deploymentTargetPath = getStringProp("deploymentTargetPath", deploymentTargetPath);
 

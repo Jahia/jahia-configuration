@@ -103,7 +103,7 @@ public class ClusterSequentialTomcatStart extends AbstractClusterOperation {
                     info(i, "Try #" + maxCount + " to reach server at " + waitForStartupURL + "...");
                     try {
                         HttpResponse response = httpClient.execute(httpGet);
-                        if (response.getStatusLine().getStatusCode() == 200) {
+                        if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 401) {
                             available = true;
                             break;
                         }
