@@ -32,10 +32,9 @@
 
 package org.jahia.izpack;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.izforge.izpack.installer.AutomatedInstallData;
 import com.izforge.izpack.installer.DataValidator;
@@ -70,17 +69,18 @@ public class DbConnectionValidator implements DataValidator {
         String dbmsType = adata.getVariable(getVar(adata,
                 "DbConnectionValidationPanelAction.dbmsTypeVariable",
                 "dbSettings.dbms.type"));
-        if (dbmsType.length() > 0) {
-            dbmsType = "." + dbmsType;
+        String dbmsSuffix = dbmsType;
+        if (dbmsSuffix.length() > 0) {
+            dbmsSuffix = "." + dbmsSuffix;
         }
         String driver = adata.getVariable(getVar(adata,
                 "DbConnectionValidationPanelAction.driverVariable",
                 "dbSettings.connection.driver")
-                + dbmsType);
+                + dbmsSuffix);
         String url = adata.getVariable(getVar(adata,
                 "DbConnectionValidationPanelAction.urlVariable",
                 "dbSettings.connection.url")
-                + dbmsType);
+                + dbmsSuffix);
         String username = adata.getVariable(getVar(adata,
                 "DbConnectionValidationPanelAction.usernameVariable",
                 "dbSettings.connection.username"));
@@ -90,21 +90,26 @@ public class DbConnectionValidator implements DataValidator {
 
         // perform connection settings validation
         try {
-            passed = validateDbConnection(driver, url, username, password);
+            passed = validateDbConnection(driver, url, username, password, dbmsType, adata);
         } catch (Exception e) {
             passed = false;
             Debug.trace("Validation did not pass, error: " + e.getMessage());
             String key = "dbSettings.connection.error";
-            errorMsg = adata.langpack.getString(key);
-            errorMsg = errorMsg == null || errorMsg.length() == 0
-                    || key.equals(errorMsg) ? "An error occurred while establishing the connection to the database"
-                    : errorMsg;
+            errorMsg = getMessage(adata, key);
             errorMsg = errorMsg + "\n" + e.getClass().getName() + ": "
                     + e.getMessage();
             System.out.println("\n" + errorMsg + "\n");
         }
 
         return passed;
+    }
+
+    private String getMessage(AutomatedInstallData adata, String key) {
+        String errorMsg = adata.langpack.getString(key);
+        errorMsg = errorMsg == null || errorMsg.length() == 0
+                || key.equals(errorMsg) ? "An error occurred while establishing the connection to the database"
+                : errorMsg;
+        return errorMsg;
     }
 
     public boolean getDefaultAnswer() {
@@ -124,7 +129,7 @@ public class DbConnectionValidator implements DataValidator {
     }
 
     private boolean validateDbConnection(String driver, String url,
-            String username, String password) throws ClassNotFoundException,
+                                         String username, String password, String dbmsType, AutomatedInstallData adata) throws ClassNotFoundException,
             SQLException, InstantiationException, IllegalAccessException {
         boolean valid = true;
 
@@ -132,6 +137,10 @@ public class DbConnectionValidator implements DataValidator {
         Connection theConnection = DriverManager.getConnection(url, username,
                 password);
         Statement theStatement = theConnection.createStatement();
+
+        errorMsg = checkDatabase(dbmsType, theStatement, adata);
+        valid = (errorMsg == null);
+        
         try {
             theStatement.close();
         } catch (Exception e) {
@@ -145,5 +154,34 @@ public class DbConnectionValidator implements DataValidator {
 
         return valid;
     }
+
+    private String checkDatabase(String databaseType, Statement statement,AutomatedInstallData adata) throws SQLException{
+        if (databaseType.equals("mysql")) {
+            Map<String, String> properties = new HashMap<String, String>();
+            ResultSet rs = statement.executeQuery("SHOW VARIABLES");
+            while (rs.next()) {
+                properties.put(rs.getString(1), rs.getString(2));
+            }
+            rs.close();
+
+            if (properties.containsKey("max_allowed_packet")) {
+                if (Long.parseLong(properties.get("max_allowed_packet")) < (1024 * 1024 * 100)) {
+                    return getMessage(adata,"dbSettings.connection.error.maxallowedpackets");
+                }
+            }
+
+            if (properties.containsKey("version") && properties.containsKey("version_compile_os")) {
+                String[] v = properties.get("version").split("[^0-9]");
+                if (v[0].equals("5") && v[1].equals("5") && Long.parseLong(v[2]) >= 9 && Long.parseLong(v[2]) <= 12) {
+                    if (!"1".equals(properties.get("lower_case_table_names"))) {
+                        return getMessage(adata,"dbSettings.connection.error.lowercasetablenames");
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+
 
 }
