@@ -170,7 +170,8 @@ public class DbConnectionValidator implements DataValidator {
                 }
             }
 
-            if (properties.containsKey("version") && properties.containsKey("version_compile_os")) {
+            if (properties.containsKey("version") && properties.containsKey("version_compile_os") &&
+                    properties.get("version_compile_os").toLowerCase().contains("darwin")) {
                 String[] v = properties.get("version").split("[^0-9]");
                 if (v[0].equals("5") && v[1].equals("5") && Long.parseLong(v[2]) >= 9 && Long.parseLong(v[2]) <= 12) {
                     if (!"1".equals(properties.get("lower_case_table_names"))) {
