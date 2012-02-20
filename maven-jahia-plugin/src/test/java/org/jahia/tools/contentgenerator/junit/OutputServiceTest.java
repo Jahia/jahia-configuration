@@ -42,7 +42,8 @@ public class OutputServiceTest extends ContentGeneratorTestCase {
 		try {			
 			os.initOutputFile(testFile);
 			assertTrue(testFile.exists());
-			assertTrue(FileUtils.readFileToString(testFile).isEmpty());
+			String content = FileUtils.readFileToString(testFile);
+                        assertTrue(content == null || content.length() == 0);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -58,7 +59,8 @@ public class OutputServiceTest extends ContentGeneratorTestCase {
 			
 			os.initOutputFile(testFile);
 			assertTrue(testFile.exists());
-			assertTrue(FileUtils.readFileToString(testFile).isEmpty());
+                        String content = FileUtils.readFileToString(testFile);
+                        assertTrue(content == null || content.length() == 0);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
