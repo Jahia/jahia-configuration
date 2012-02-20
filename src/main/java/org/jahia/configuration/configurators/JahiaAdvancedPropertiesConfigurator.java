@@ -34,12 +34,12 @@
 package org.jahia.configuration.configurators;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import org.codehaus.plexus.util.PropertyUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.jahia.configuration.logging.AbstractLogger;
 
@@ -67,8 +67,9 @@ public class JahiaAdvancedPropertiesConfigurator extends AbstractConfigurator {
         File targetJahiaFile = new File(targetJahiaPath);
         Properties existingProperties = new Properties();
         if (targetJahiaFile.exists()) {
-            existingProperties.load(new FileReader(targetJahiaFile));
-            for (String propertyName : existingProperties.stringPropertyNames()) {
+            existingProperties.putAll(PropertyUtils.loadProperties(targetJahiaFile));
+            for (Object key : existingProperties.keySet()) {
+                String propertyName = String.valueOf(key);
                 properties.setProperty(propertyName, existingProperties.getProperty(propertyName));
             }
         }
