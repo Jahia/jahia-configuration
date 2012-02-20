@@ -25,6 +25,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -249,14 +251,17 @@ public class JahiaGlobalConfigurator {
         }
         
         String dbUrl = jahiaConfig.getDatabaseUrl();
-        if (jahiaConfig.getDatabaseType().equals("derby_embedded")) {
-        	if (jahiaConfig.getDatabaseUrl().contains("$context")) {
-        		dbUrl = StringUtils.replace(dbUrl, "$context", StringUtils.replace(sourceWebappPath, "\\", "/"));
-        	} else {
-        		System.setProperty("derby.system.home", StringUtils.replace(sourceWebappPath, "\\", "/") + "/WEB-INF/var/dbdata"); 
-        	}
+        boolean isEmbeddedDerby = jahiaConfig.getDatabaseType().equals("derby_embedded");
+        if (isEmbeddedDerby) {
+            if (jahiaConfig.getDatabaseUrl().contains("$context")) {
+                dbUrl = StringUtils.replace(dbUrl, "$context",
+                        StringUtils.replace(sourceWebappPath, "\\", "/"));
+            } else {
+                System.setProperty("derby.system.home", StringUtils.replace(sourceWebappPath, "\\", "/")
+                        + "/WEB-INF/var/dbdata");
+            }
         }
-        
+
         dbProps = new Properties();
         //database script always ends with a .script
         databaseScript = new File(sourceWebappPath + "/WEB-INF/var/db/" + jahiaConfig.getDatabaseType() + ".script");
@@ -302,6 +307,22 @@ public class JahiaGlobalConfigurator {
                     db.databaseOpen(dbProps.getProperty("jahia.database.driver"), jahiaConfig.getDatabaseUrl(), jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
                 }
                 createDBTables(databaseScript);
+                
+                if (isEmbeddedDerby) {
+                    // shutdown embedded Derby
+                    getLogger().info("Shutting down embedded Derby...");
+                    try {
+                        DriverManager.getConnection("jdbc:derby:;shutdown=true",
+                                jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
+                    } catch (Exception e) {
+                        if (!(e instanceof SQLException) || e.getMessage() == null
+                                || !e.getMessage().contains("Derby system shutdown")) {
+                            logger.warn(e.getMessage(), e);
+                        } else {
+                            getLogger().info("...done shutting down Derby.");
+                        }
+                    }
+                }
             }
 
             deleteRepositoryAndIndexes();
@@ -565,8 +586,6 @@ public class JahiaGlobalConfigurator {
                 }
             }
         }
-
-
     }
 // end createDBTables()
 

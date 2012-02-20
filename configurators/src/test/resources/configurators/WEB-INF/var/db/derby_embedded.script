@@ -1,8 +1,8 @@
 # Jahia Derby Database configuration file
 
-jahia.database.name     =  Sun JavaDB / Apache Derby database engine (server)
+jahia.database.name     =  Sun JavaDB / Apache Derby (embedded)
 jahia.database.driver   =  org.apache.derby.jdbc.EmbeddedDriver
-jahia.database.url      =  jdbc:derby:jahia;create=true
+jahia.database.url      =  jdbc:derby:directory:jahia;create=true
 jahia.database.user     =
 jahia.database.pass     =
 jahia.database.validationQuery = values(1)
@@ -12,10 +12,8 @@ jahia.database.popuplationscriptdir = sql/population
 jahia.database.datasource = jdbc/jahia
 jahia.database.hibernate.dialect = org.hibernate.dialect.DerbyDialect
 jahia.nested_transaction_allowed = false
-jahia.quartz.selectWithLockSQL = SELECT * FROM {0}LOCKS WHERE LOCK_NAME = ?
 jahia.quartz.jdbcDelegate = org.quartz.impl.jdbcjobstore.StdJDBCDelegate
-jahia.quartz.serializable = false
-jahia.jackrabbit.persistence = org.apache.jackrabbit.core.persistence.bundle.DerbyPersistenceManager
+jahia.jackrabbit.persistence = org.apache.jackrabbit.core.persistence.pool.DerbyPersistenceManager
 jahia.jackrabbit.filesystem = org.apache.jackrabbit.core.fs.db.DerbyFileSystem
 jahia.jackrabbit.journal = org.apache.jackrabbit.core.journal.DatabaseJournal
 jahia.jackrabbit.schema = default
