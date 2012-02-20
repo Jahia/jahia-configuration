@@ -37,7 +37,7 @@ public class JahiaGlobalConfiguratorTest extends TestCase {
         File configuratorsFile = new File(configuratorsResourceURL.toURI());
 
         websphereDerbyConfigBean = new JahiaConfigBean();
-        websphereDerbyConfigBean.setDatabaseType("derby");
+        websphereDerbyConfigBean.setDatabaseType("derby_embedded");
         websphereDerbyConfigBean.setTargetServerType("was");
         websphereDerbyConfigBean.setTargetServerVersion("6.1.0.25");
         websphereDerbyConfigBean.setTargetConfigurationDirectory(configuratorsFile.toString());
@@ -73,7 +73,7 @@ public class JahiaGlobalConfiguratorTest extends TestCase {
         File configuratorsFile = new File(configuratorsResourceURL.toURI());
 
         websphereDerbyConfigBean = new JahiaConfigBean();
-        websphereDerbyConfigBean.setDatabaseType("derby");
+        websphereDerbyConfigBean.setDatabaseType("derby_embedded");
         websphereDerbyConfigBean.setTargetServerType("was");
         websphereDerbyConfigBean.setTargetServerVersion("6.1.0.25");
         websphereDerbyConfigBean.setTargetConfigurationDirectory(configuratorsFile.toString());
