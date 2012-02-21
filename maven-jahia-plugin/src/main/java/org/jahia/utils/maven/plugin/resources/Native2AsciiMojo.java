@@ -33,7 +33,13 @@
 package org.jahia.utils.maven.plugin.resources;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -110,11 +116,34 @@ public class Native2AsciiMojo extends AbstractMojo {
      */
     protected MavenProject project;
 
+
+    /**
+     * In case the default locale is provided, create properties file for the default locale if it does not exist.
+     * 
+     * @parameter
+     */
+    protected String defaultPropertiesFileLocale;
+
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (src == null || !src.exists()) {
             getLog().info("Folder " + src + " does not exist. Skipping native2ascii task.");
             return;
         }
+
+        boolean inplace = src != null && dest != null && src.equals(dest);
+        if (inplace) {
+            dest = new File(FileUtils.getTempDirectory(), "native2ascii-" + System.currentTimeMillis());
+            dest.mkdir();
+            try {
+                FileUtils.deleteDirectory(dest);
+            } catch (IOException e) {
+                // ignore
+            }
+        }
+        
+        // create native2ascii folder for backward compatibility with Jahia 6.5.x.x/6.6.0.0
+        new File(project.getBuild().getDirectory() + "/native2ascii").mkdirs();
+
         Project antProject = new Project();
         antProject.setName("native2ascii");
 
@@ -130,10 +159,51 @@ public class Native2AsciiMojo extends AbstractMojo {
 
         antTask.execute();
 
+        if (inplace) {
+            try {
+                FileUtils.copyDirectory(dest, src);
+            } catch (IOException e) {
+                getLog().error(e.getMessage(), e);
+            } finally {
+                dest = src;
+            }
+        }
+        
+        if (defaultPropertiesFileLocale != null) {
+            createFilesForDefaultLocale();
+        }
+
         if (addToProjectResources) {
             Resource resource = new Resource();
             resource.setDirectory(dest.getPath());
             this.project.addResource(resource);
+        }
+    }
+
+    private void createFilesForDefaultLocale() {
+        List<File> propertyFiles = new LinkedList<File>(FileUtils.listFiles(dest,
+                new String[] { "properties" }, false));
+        if (propertyFiles.isEmpty()) {
+            return;
+        }
+
+        Collections.sort(propertyFiles);
+
+        String suffix = "_" + defaultPropertiesFileLocale + ".properties";
+
+        for (File file : propertyFiles) {
+            if (file.getName().endsWith(suffix)) {
+                File defFile = new File(dest, StringUtils.substringBefore(file.getName(), suffix)
+                        + ".properties");
+                if (!defFile.exists()) {
+                    getLog().info("Copying file " + file + " to " + defFile);
+                    try {
+                        FileUtils.copyFile(file, defFile);
+                    } catch (IOException e) {
+                        getLog().error(e.getMessage(), e);
+                    }
+                }
+            }
         }
     }
 }
