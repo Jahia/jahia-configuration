@@ -160,7 +160,9 @@ public class DeployMojo extends AbstractManagementMojo {
         } else if (project.getPackaging().equals("sar") || project.getPackaging().equals("jboss-sar") || project.getPackaging().equals("rar")) {
             deploySarRarProject();
         } else if (project.getPackaging().equals("jar")) {
-            deployJarProject();
+            if (deployTests || !project.getGroupId().equals("org.jahia.test")) {
+                deployJarProject();
+            }
         } else if (project.getPackaging().equals("pom")) {
             deployPomProject();
         }
