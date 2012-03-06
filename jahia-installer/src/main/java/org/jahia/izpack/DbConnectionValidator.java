@@ -98,6 +98,9 @@ public class DbConnectionValidator implements DataValidator {
             errorMsg = getMessage(adata, key);
             errorMsg = errorMsg + "\n" + e.getClass().getName() + ": "
                     + e.getMessage();
+        }
+        
+        if (errorMsg != null) {
             System.out.println("\n" + errorMsg + "\n");
         }
 
