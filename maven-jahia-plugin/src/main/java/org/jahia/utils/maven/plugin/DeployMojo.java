@@ -156,11 +156,23 @@ public class DeployMojo extends AbstractManagementMojo {
                 } else {
                 	deployTemplateProject();
                 }
+            } else if (project.getGroupId().equals("org.jahia.test") && !deployTests) {
+                getLog().info(
+                        "Deployment of test projects "
+                                + "(with groupId 'org.jahia.test') is disabled by default. "
+                                + "You can enable it by specifying -Djahia.deploy.deployTests"
+                                + " option for the 'mvn jahia:deploy' command");
             }
         } else if (project.getPackaging().equals("sar") || project.getPackaging().equals("jboss-sar") || project.getPackaging().equals("rar")) {
             deploySarRarProject();
         } else if (project.getPackaging().equals("jar")) {
-            if (deployTests || !project.getGroupId().equals("org.jahia.test")) {
+            if (project.getGroupId().equals("org.jahia.test") && !deployTests) {
+                getLog().info(
+                        "Deployment of test projects "
+                                + "(with groupId 'org.jahia.test') is disabled by default. "
+                                + "You can enable it by specifying -Djahia.deploy.deployTests"
+                                + " option for the 'mvn jahia:deploy' command");
+            } else {
                 deployJarProject();
             }
         } else if (project.getPackaging().equals("pom")) {
