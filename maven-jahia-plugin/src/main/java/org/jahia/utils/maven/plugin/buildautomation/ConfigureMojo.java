@@ -515,6 +515,16 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      */
     protected String fileDataStorePath;
 
+    /**
+     * @parameter expression="${jahia.configure.jahiaAdvancedProperties}"
+     */
+    protected Map<String, String> jahiaAdvancedProperties;
+
+    /**
+     * @parameter expression="${jahia.configure.jahiaProperties}"
+     */
+    protected Map<String, String> jahiaProperties;
+
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
         	if (getProjectStructureVersion() == 2) {
@@ -880,5 +890,25 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public String getFileDataStorePath() {
         return fileDataStorePath;
+    }
+
+    public Map<String, String> getJahiaAdvancedProperties() {
+        return jahiaAdvancedProperties;
+    }
+
+    public Map<String, String> getJahiaProperties() {
+        return jahiaProperties;
+    }
+
+    public void setJahiaAdvancedProperties(String jahiaAdvancedProperties) {
+        if (jahiaAdvancedProperties != null) {
+            this.jahiaAdvancedProperties = JahiaGlobalConfigurator.fromJSON(jahiaAdvancedProperties);
+        }
+    }
+
+    public void setJahiaProperties(String jahiaProperties) {
+        if (jahiaProperties != null) {
+            this.jahiaProperties = JahiaGlobalConfigurator.fromJSON(jahiaProperties);
+        }
     }
 }

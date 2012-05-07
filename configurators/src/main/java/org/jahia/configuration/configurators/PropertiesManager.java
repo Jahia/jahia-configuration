@@ -46,6 +46,8 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
+import org.codehaus.plexus.util.StringUtils;
+
 /**
  * desc:  This class provides to you a *super interface* for properties.
  * It allows you to create a new properties file, set properties, remove
@@ -196,13 +198,13 @@ public class PropertiesManager {
                                     modifiedProperties.contains(currentPropertyName)) {
                                 thisLineBuffer.append(currentLine.substring(0, equalPosition + 1));
                                 thisLineBuffer.append(" ");
-                                thisLineBuffer.append(propValue);
+                                thisLineBuffer.append(escapeValue(propValue));
                             } else {
                                 // this property was not modified, we comment it out
                                 thisLineBuffer.append("#");
                                 thisLineBuffer.append(currentLine.substring(0, equalPosition + 1));
                                 thisLineBuffer.append(" ");
-                                thisLineBuffer.append(propValue);
+                                thisLineBuffer.append(escapeValue(propValue));
                             }
                             outputLineList.add(thisLineBuffer.toString());
                         } else if (removedPropertyNames.contains(currentPropertyName)) {
@@ -233,7 +235,7 @@ public class PropertiesManager {
                     specialLineBuffer.append(" ");
                 }
                 specialLineBuffer.append("=   ");
-                specialLineBuffer.append(properties.getProperty(restantPropertyName));
+                specialLineBuffer.append(escapeValue(properties.getProperty(restantPropertyName)));
                 outputLineList.add(specialLineBuffer.toString());
             }
 
@@ -321,5 +323,18 @@ public class PropertiesManager {
      */
     public void setAdditionalPropertiesMessage(String additionalPropertiesMessage) {
         this.additionalPropertiesMessage = additionalPropertiesMessage;
+    }
+
+    /**
+     * Converts unicodes to encoded &#92;uxxxx and escapes
+     * special characters with a preceding slash
+     * 
+     * @see Properties
+     */
+    private String escapeValue(String theString) {
+        if (theString == null || theString.length() == 0 || !theString.contains("\\")) {
+            return theString;
+        }
+        return StringUtils.replace(theString, "\\", "\\\\");
     }
 }

@@ -65,8 +65,8 @@ public class JahiaGlobalConfigurator {
     public static Map<String, String> fromJSON(String json) {
         Map<String, String> values = new HashMap<String, String>();
         try {
-            JSONObject obj = new JSONObject(json.contains("{") ? json : "{" + json
-                    + "}");
+            JSONObject obj = new JSONObject(json.contains("{") ? StringUtils.replace(json, "\\", "\\\\")
+                    : "{" + StringUtils.replace(json, "\\", "\\\\") + "}");
             for (Iterator<?> iterator = obj.keys(); iterator.hasNext();) {
                 String key = (String) iterator.next();
                 values.put(key, obj.getString(key));

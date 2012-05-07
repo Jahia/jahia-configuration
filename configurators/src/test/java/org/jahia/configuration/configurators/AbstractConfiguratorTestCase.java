@@ -61,6 +61,11 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
         websphereOracleConfigBean.setJahiaRootLastname("Root");
         websphereOracleConfigBean.setJahiaRootEmail("root@jahia.org");
         
+        websphereOracleConfigBean.getJahiaProperties().put("jahia.dm.viewer.enabled", "true");
+        websphereOracleConfigBean.getJahiaProperties().put("jahia.dm.viewer.pdf2swf", "c:\\Program Files (x86)\\SWFTools\\pdf2swf.exe");
+        
+        websphereOracleConfigBean.getJahiaAdvancedProperties().put("auth.spnego.bypassForUrls", "/(administration|cms/login|cms/logout|css)((\\?|/).*)?");
+        
         websphereOracleConfigBean.setLdapActivated("true");
         Map<String, String> ldap = new HashMap<String, String>();
         ldap.put("url", "ldap://10.8.37.17:389/");

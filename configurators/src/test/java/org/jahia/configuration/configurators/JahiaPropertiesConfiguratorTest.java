@@ -1,15 +1,11 @@
 package org.jahia.configuration.configurators;
 
-import java.io.InputStream;
 import java.net.URL;
 import java.io.File;
 import java.io.IOException;
 import java.io.FileInputStream;
 import java.util.Properties;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
-import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemManager;
 import org.apache.commons.vfs.VFS;
 import org.jahia.configuration.configurators.JahiaPropertiesConfigurator;
@@ -49,6 +45,11 @@ public class JahiaPropertiesConfiguratorTest extends AbstractConfiguratorTestCas
         assertEquals("4", websphereOracleProperties.getProperty("cluster.tcp.num_initial_members"));
         assertEquals("1.2.3.4[7860],2.3.4.5[8860],3.4.5.6[9860],4.5.6.7[10860]", websphereOracleProperties.getProperty("cluster.tcp.ehcache.hibernate.nodes.ip_address"));
         assertEquals("1.2.3.4[7870],2.3.4.5[8870],3.4.5.6[9870],4.5.6.7[10870]", websphereOracleProperties.getProperty("cluster.tcp.ehcache.jahia.nodes.ip_address"));
+        
+        // test for the additional properties
+        assertEquals("true", websphereOracleProperties.getProperty("jahia.dm.viewer.enabled"));
+        assertEquals("c:\\Program Files (x86)\\SWFTools\\pdf2swf.exe", websphereOracleProperties.getProperty("jahia.dm.viewer.pdf2swf"));
+        assertNotNull(websphereOracleProperties.getProperty("auth.spnego.bypassForUrls"));
 
         JahiaPropertiesConfigurator tomcatMySQLConfigurator = new JahiaPropertiesConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);
         tomcatMySQLConfigurator.updateConfiguration(new VFSConfigFile(fsManager, targetJahiaPropertiesFile), secondTargetJahiaPropertiesFile);

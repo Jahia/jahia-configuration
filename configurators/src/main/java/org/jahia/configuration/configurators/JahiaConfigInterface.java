@@ -57,6 +57,22 @@ public interface JahiaConfigInterface {
      */
     Map<String, String> getGroupLdapProviderProperties();
 
+    /**
+     * Additional properties, that will be used in jahia.advanced.properties. This object covers properties, which have no direct setter in
+     * {@link JahiaConfigInterface} object.
+     * 
+     * @return a map with additional advanced Jahia properties
+     */
+    Map<String, String> getJahiaAdvancedProperties();
+    
+    /**
+     * Additional properties, that will be used in jahia.properties. This object covers properties, which have no direct setter in
+     * {@link JahiaConfigInterface} object.
+     * 
+     * @return a map with additional Jahia properties
+     */
+    Map<String, String> getJahiaProperties();
+    
     String getJahiaEtcDiskPath();
 
     String getJahiaImportsDiskPath();
