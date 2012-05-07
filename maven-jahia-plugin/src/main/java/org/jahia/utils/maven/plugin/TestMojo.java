@@ -107,7 +107,7 @@ public class TestMojo extends AbstractMojo {
 
             long timer = System.currentTimeMillis();
             
-            getLog().info("Star executing all tests...");
+            getLog().info("Start executing all tests (" + targets.size() + ")...");
             for (String s : targets) {
                 executeTest(s);
             }
