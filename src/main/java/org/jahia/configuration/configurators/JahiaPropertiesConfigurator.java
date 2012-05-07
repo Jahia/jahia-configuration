@@ -95,25 +95,30 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         properties.setProperty("hibernate.dialect", getDBProperty("jahia.database.hibernate.dialect"));
         properties.setProperty("nested.transaction.allowed", getDBProperty("jahia.nested_transaction_allowed"));
         
+        if (jahiaConfigInterface.getJahiaProperties() != null) {
+            for (Map.Entry<String, String> entry : jahiaConfigInterface.getJahiaProperties().entrySet()) {
+                properties.setProperty(entry.getKey(), entry.getValue());
+            }
+        }
+
         configureScheduler();
         
         properties.storeProperties(sourceJahiaPath.getInputStream(), targetJahiaPath);
     }
 
-	private void configureScheduler() {
-		String delegate = (String) dbProperties
-				.get("jahia.quartz.jdbcDelegate");
-		if (delegate == null || delegate.length() == 0) {
-			delegate = "org.quartz.impl.jdbcjobstore.StdJDBCDelegate";
-		}
-		
-		if (jahiaConfigInterface.getTargetServerType().startsWith("weblogic")) {
-			delegate = "org.quartz.impl.jdbcjobstore.WebLogicDelegate";
-			if (jahiaConfigInterface.getDatabaseType().equals("oracle")) {
-				delegate = "org.quartz.impl.jdbcjobstore.oracle.weblogic.WebLogicOracleDelegate";
-			}
-		}
+    private void configureScheduler() {
+        String delegate = (String) dbProperties.get("jahia.quartz.jdbcDelegate");
+        if (delegate == null || delegate.length() == 0) {
+            delegate = "org.quartz.impl.jdbcjobstore.StdJDBCDelegate";
+        }
 
-		properties.setProperty("org.quartz.driverDelegateClass", delegate);
-	}
+        if (jahiaConfigInterface.getTargetServerType().startsWith("weblogic")) {
+            delegate = "org.quartz.impl.jdbcjobstore.WebLogicDelegate";
+            if (jahiaConfigInterface.getDatabaseType().equals("oracle")) {
+                delegate = "org.quartz.impl.jdbcjobstore.oracle.weblogic.WebLogicOracleDelegate";
+            }
+        }
+
+        properties.setProperty("org.quartz.driverDelegateClass", delegate);
+    }
 }

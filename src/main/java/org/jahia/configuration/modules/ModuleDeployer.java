@@ -4,7 +4,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.jahia.configuration.logging.AbstractLogger;
-import org.jahia.configuration.logging.ConsoleLogger;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -31,8 +30,9 @@ public class ModuleDeployer {
     }
 
     private void copyJars(File warFile, File targetDir) {
+        JarFile war = null;
         try {
-            JarFile war = new JarFile(warFile);
+            war = new JarFile(warFile);
             int deployed = 0;
             if (war.getJarEntry("WEB-INF/lib") != null) {
                 Enumeration<JarEntry> entries = war.entries();
@@ -62,12 +62,21 @@ public class ModuleDeployer {
             }
         } catch (IOException e) {
             logger.error("Error copying JAR files for module " + warFile, e);
+        } finally {
+            if (war != null) {
+                try {
+                    war.close();
+                } catch (Exception e) {
+                    logger.warn("Unable to close the JAR file " + warFile, e);
+                }
+            }
         }
     }
 
     private void copyDbScripts(File warFile, File targetDir) {
+        JarFile war = null;
         try {
-            JarFile war = new JarFile(warFile);
+            war = new JarFile(warFile);
             if (war.getJarEntry("META-INF/db") != null) {
             	war.close();
             	ZipUnArchiver unarch = new ZipUnArchiver(warFile);
@@ -80,7 +89,15 @@ public class ModuleDeployer {
             }
         } catch (Exception e) {
             logger.error("Error copying database scripts for module " + warFile, e);
-		}
+        } finally {
+            if (war != null) {
+                try {
+                    war.close();
+                } catch (Exception e) {
+                    logger.warn("Unable to close the JAR file " + warFile, e);
+                }
+            }
+        }
     }
 
 

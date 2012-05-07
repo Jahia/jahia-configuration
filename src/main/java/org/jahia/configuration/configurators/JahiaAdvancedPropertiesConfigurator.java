@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.codehaus.plexus.util.PropertyUtils;
@@ -96,6 +97,12 @@ public class JahiaAdvancedPropertiesConfigurator extends AbstractConfigurator {
 
         properties.setProperty("cluster.tcp.num_initial_members",String.valueOf(hibernateHosts.size()));
         
+        if (jahiaConfigInterface.getJahiaAdvancedProperties() != null) {
+            for (Map.Entry<String, String> entry : jahiaConfigInterface.getJahiaAdvancedProperties().entrySet()) {
+                properties.setProperty(entry.getKey(), entry.getValue());
+            }
+        }
+
         properties.storeProperties(sourceJahiaPath.getInputStream(), targetJahiaPath);
     }
 
