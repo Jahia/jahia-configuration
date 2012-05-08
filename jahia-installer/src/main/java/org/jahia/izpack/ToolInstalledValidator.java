@@ -5,10 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
-
-import com.izforge.izpack.installer.InstallData;
-import com.izforge.izpack.panels.PasswordGroup;
+import com.izforge.izpack.installer.AutomatedInstallData;
 import com.izforge.izpack.panels.ProcessingClient;
 import com.izforge.izpack.panels.StringInputProcessingClient;
 import com.izforge.izpack.panels.Validator;
@@ -41,7 +38,7 @@ public class ToolInstalledValidator implements Validator {
     {
         Map<String, String> returnValue = null;
         StringInputProcessingClient context = null;
-        InstallData idata = getIdata(client);
+        AutomatedInstallData idata = getIdata(client);
         VariableSubstitutor vs = new VariableSubstitutor(idata.getVariables());
         try
         {
@@ -68,14 +65,14 @@ public class ToolInstalledValidator implements Validator {
         return returnValue;
     }
 
-    private InstallData getIdata(ProcessingClient client)
+    private AutomatedInstallData getIdata(ProcessingClient client)
     {
         StringInputProcessingClient context = null;
-        InstallData idata = null;
+        AutomatedInstallData idata = null;
         try
         {
             context = (StringInputProcessingClient) client;
-            idata = (InstallData)context.getInstallData();
+            idata = (AutomatedInstallData) context.getInstallData();
         }
         catch (Exception e)
         {
