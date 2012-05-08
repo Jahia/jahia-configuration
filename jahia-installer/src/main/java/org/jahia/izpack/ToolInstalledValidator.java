@@ -23,9 +23,10 @@ public class ToolInstalledValidator implements Validator {
                 // no need to validate
                 return true;
             }
-            File toolDir = new File(pdata.getText());
-            valid = toolDir.exists() && toolDir.isDirectory()
-                    && toolDir.list().length > 0;
+            boolean shouldBeDir = Boolean.valueOf(params.get("directory"));
+            File tool = new File(pdata.getText());
+            valid = tool.exists() && (shouldBeDir ? tool.isDirectory()
+                    && tool.list().length > 0 : tool.isFile());
 
         } catch (Exception e) {
             System.out.println("validate() Failed: " + e);
