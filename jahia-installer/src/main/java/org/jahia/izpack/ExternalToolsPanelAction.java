@@ -122,20 +122,22 @@ public class ExternalToolsPanelAction implements PanelAction {
             return new File(System.getProperty("imagemagick.home"));
         }
         if (isWindows()) {
-            return findToolHome(new String[] { "convert.exe" },
+            return findToolHome(
+                    new String[] { "convert.exe" },
                     new FilenameFilter() {
                         public boolean accept(File dir, String name) {
-                            return name.startsWith("ImageMagick");
+                            return name.toLowerCase().startsWith("imagemagick");
                         }
                     }, false, System.getenv("ProgramFiles(x86)"),
                     System.getenv("ProgramFiles"));
         } else if (isMac()) {
-            return findToolHome(new String[] { "bin/convert.bin" },
+            return findToolHome(new String[] { "convert", "bin/convert" },
                     new FilenameFilter() {
                         public boolean accept(File dir, String name) {
-                            return name.startsWith("ImageMagick");
+                            return name.toLowerCase().startsWith("imagemagick")
+                                    || name.equals("bin");
                         }
-                    }, false, "/Applications");
+                    }, false, "/Applications", "/opt/local");
         } else {
             // Linux or other *nix variants
             return findToolHome(new String[] { "convert" }, null, false,
@@ -152,18 +154,19 @@ public class ExternalToolsPanelAction implements PanelAction {
                     new String[] { "ffmpeg.exe", "bin/ffmpeg.exe" },
                     new FilenameFilter() {
                         public boolean accept(File dir, String name) {
-                            return name.startsWith("ImageMagick")
+                            return name.toLowerCase().startsWith("imagemagick")
                                     || name.toLowerCase().startsWith("ffmpeg");
                         }
                     }, true, System.getenv("ProgramFiles(x86)"),
                     System.getenv("ProgramFiles"));
         } else if (isMac()) {
-            return findToolHome(new String[] { "ffmpeg.bin", "bin/ffmpeg.bin" },
+            return findToolHome(new String[] { "ffmpeg", "bin/ffmpeg" },
                     new FilenameFilter() {
                         public boolean accept(File dir, String name) {
-                            return name.startsWith("ImageMagick");
+                            return name.toLowerCase().startsWith("imagemagick")
+                                    || name.equals("bin");
                         }
-                    }, true, "/Applications", "/opt/local/bin");
+                    }, true, "/Applications", "/opt/local");
         } else {
             // Linux or other *nix variants
             return findToolHome(new String[] { "ffmpeg" }, null, true,
@@ -176,21 +179,20 @@ public class ExternalToolsPanelAction implements PanelAction {
             return new File(System.getProperty("pdf2swf.executable"));
         }
         if (isWindows()) {
-            return findToolHome(
-                    new String[] { "pdf2swf.exe" },
+            return findToolHome(new String[] { "pdf2swf.exe" },
                     new FilenameFilter() {
                         public boolean accept(File dir, String name) {
-                            return name.startsWith("SWFTools");
+                            return name.toLowerCase().startsWith("swftools");
                         }
                     }, true, System.getenv("ProgramFiles(x86)"),
                     System.getenv("ProgramFiles"));
         } else if (isMac()) {
-            return findToolHome(new String[] { "pdf2swf.bin" }, null, true,
+            return findToolHome(new String[] { "pdf2swf" }, null, true,
                     "/opt/local/bin");
         } else {
             // Linux or other *nix variants
             return findToolHome(new String[] { "pdf2swf" }, null, true,
-                    "/usr/bin", "/usr/local/bin");
+                    "/usr/bin", "/usr/local/bin", "/usr/bin/X11");
         }
     }
 
