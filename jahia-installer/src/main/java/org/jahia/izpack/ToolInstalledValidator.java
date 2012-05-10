@@ -27,6 +27,11 @@ public class ToolInstalledValidator implements Validator {
             File tool = new File(pdata.getText());
             valid = tool.exists() && (shouldBeDir ? tool.isDirectory()
                     && tool.list().length > 0 : tool.isFile());
+            String fileName = params.get("fileName");
+            if (fileName != null && fileName.length() > 0) {
+                // additionally validate the required file name
+                valid = valid && validateFileName(tool, shouldBeDir, fileName);
+            }
 
         } catch (Exception e) {
             System.out.println("validate() Failed: " + e);
@@ -35,6 +40,35 @@ public class ToolInstalledValidator implements Validator {
         return valid;
     }
     
+    private boolean validateFileName(File tool, boolean shouldBeDir, String fileName) {
+        if (shouldBeDir) {
+            String[] names = fileName.split(",");
+            for (String name : names) {
+                name = name.trim();
+                File file = new File(tool, name);
+                if (file.exists() && file.isFile()) {
+                    return true;
+                }
+                if (ExternalToolsPanelAction.isWindows()) {
+                    file =  new File(tool, name + ".exe");
+                    if (file.exists() && file.isFile()) {
+                        return true;
+                    }
+                }
+            }
+        } else {
+            String toolName = tool.getName();
+            String[] names = fileName.split(",");
+            for (String name : names) {
+                name = name.trim();
+                if (toolName.equals(name) || ExternalToolsPanelAction.isWindows() && toolName.equals(name + ".exe")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private Map<String, String> getParams(ProcessingClient client)
     {
         Map<String, String> returnValue = null;
