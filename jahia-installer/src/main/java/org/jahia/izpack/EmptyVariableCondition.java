@@ -44,6 +44,8 @@ import com.izforge.izpack.util.Debug;
  * @author Sergiy Shyrkov
  */
 public class EmptyVariableCondition extends Condition {
+    private static final long serialVersionUID = 5693167631780953983L;
+    
     private String variable;
 
     public EmptyVariableCondition() {
