@@ -101,7 +101,7 @@ public class ExternalToolsPanelAction implements PanelAction {
                     new FilenameFilter() {
                         public boolean accept(File dir, String name) {
                             return name
-                                    .matches("(LibreOffice|OpenOffice.org) [3-9].*");
+                                    .matches("(LibreOffice|OpenOffice\\.org) [3-9].*");
                         }
                     }, false, System.getenv("ProgramFiles(x86)"), System
                             .getenv("ProgramFiles"));
