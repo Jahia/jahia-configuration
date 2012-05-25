@@ -202,14 +202,16 @@ public class ExternalToolsPanelAction implements PanelAction {
         for (String path : knownPaths) {
             if (path != null) {
                 File home = new File(path);
-                File[] possibleHomes = filter != null ? home.listFiles(filter)
-                        : new File[] { home };
-                for (File possibleHome : possibleHomes) {
-                    for (String executableName : executableNames) {
-                        File executable = getToolExecutable(executableName,
-                                possibleHome);
-                        if (executable.isFile()) {
-                            return returnExecutable ? executable : possibleHome;
+                if (home.exists()) {
+                    File[] possibleHomes = filter != null ? home.listFiles(filter)
+                            : new File[] { home };
+                    for (File possibleHome : possibleHomes) {
+                        for (String executableName : executableNames) {
+                            File executable = getToolExecutable(executableName,
+                                    possibleHome);
+                            if (executable.isFile()) {
+                                return returnExecutable ? executable : possibleHome;
+                            }
                         }
                     }
                 }
