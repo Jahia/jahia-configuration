@@ -191,7 +191,11 @@ public class DatabaseScripts {
         StringBuffer curSQLStatement = new StringBuffer();
         while((buffer = buffered.readLine()) != null)
         {
-
+            if (buffer != null && buffer.trim().equals("/")) {
+                // '/' indicates the end of the PL/SQL script for Oracle -> skip it here
+                continue;
+            }
+            
             // let's check for comments.
             int commentPos = buffer.indexOf("#");
             if ((commentPos != -1) && (!isInQuotes(buffer, commentPos))) {
