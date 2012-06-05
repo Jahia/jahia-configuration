@@ -174,7 +174,7 @@ public class ModuleClassesHostLifecycleListener implements LifecycleListener {
 
         File[] apps = file.listFiles(DIR_FILTER);
         for (File app : apps) {
-            if (new File(app, "WEB-INF/classes/jahiapublickeystore").isFile()) {
+            if (new File(app, "WEB-INF/classes/jahia-startup-intro.txt").isFile()) {
                 // found Jahia Web application
                 jahiaDir = app;
                 break;
