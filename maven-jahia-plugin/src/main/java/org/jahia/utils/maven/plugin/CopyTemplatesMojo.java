@@ -59,6 +59,11 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
     protected boolean deployTests;
 
     /**
+     * @parameter default-value="true"
+     */
+    protected boolean deployModules;
+    
+    /**
      * @parameter default-value="false"
      */
     protected boolean deployToServer;
@@ -83,7 +88,7 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
         ModuleDeployer deployer = new ModuleDeployer(target, new MojoLogger(getLog()));
         for (Artifact dependencyFile : (Iterable<Artifact>) dependencyFiles) {
             File file = dependencyFile.getFile();
-            if (!deployTests && (dependencyFile.getGroupId().equals("org.jahia.modules") || dependencyFile.getGroupId().equals("org.jahia.templates") || dependencyFile.getGroupId().endsWith(".jahia.modules")) || deployTests && dependencyFile.getGroupId().equals("org.jahia.test")) {
+            if (deployModules && (dependencyFile.getGroupId().equals("org.jahia.modules") || dependencyFile.getGroupId().equals("org.jahia.templates") || dependencyFile.getGroupId().endsWith(".jahia.modules")) || deployTests && dependencyFile.getGroupId().equals("org.jahia.test")) {
                 try {
                     deployer.deployModule(file);
                     dependenciesToRemove.add(dependencyFile);
