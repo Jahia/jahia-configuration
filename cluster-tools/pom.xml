@@ -157,8 +157,13 @@
 
     <distributionManagement>
         <repository>
-            <id>jahiaRepository</id>
-            <url>scpexe://maven.jahia.org/var/www/vhosts/maven.jahia.org/html/maven2</url>
+            <id>jahiaRepository-ee</id>
+            <url>scpexe://10.8.37.241/var/www/html/maven2</url>
         </repository>
+        <site>
+            <id>jahia.website</id>
+            <url>file://${jahia.site.path}</url>
+        </site>
     </distributionManagement>
+
 </project>
