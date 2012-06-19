@@ -75,4 +75,8 @@ public class WebsphereServerDeploymentImpl extends AbstractServerDeploymentImpl 
         return getDeploymentBaseDir() + "/" + name;
     }
 
+    @Override
+    public String getWarExcludes() {
+        return (String) getDeployersProperties().get("websphere");
+    }    
 }
