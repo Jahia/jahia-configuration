@@ -107,7 +107,7 @@ public class PageService {
                     articlesMap.put(language,articleService.getArticle(articles));
                 }
 				PageBO page = createNewPage(export, null, articlesMap, level,
-						createSubPages(export, articles, level.intValue() - 1, maxArticleIndex));
+						createSubPages(export, articles, level.intValue() - 1, maxArticleIndex + 1));
 				listePages.add(page);
 			}
 		}
