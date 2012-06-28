@@ -60,7 +60,8 @@ public class ServerDeploymentFactory {
         addImplementation("jboss5.0.x", new JBoss50ServerDeploymentImpl(targetServerDirectory));
         addImplementation("jboss", getImplementation("jboss4.2.x"));
         addImplementation("was6.1.0.25", new WebsphereServerDeploymentImpl(targetServerDirectory));
-        addImplementation("was", getImplementation("was6.1.0.25"));
+        addImplementation("was7", new WebsphereServerDeploymentImpl(targetServerDirectory));
+        addImplementation("was", getImplementation("was7"));
         addImplementation("weblogic10", new WeblogicServerDeploymentImpl(targetServerDirectory));
         addImplementation("weblogic", getImplementation("weblogic10"));
     }
