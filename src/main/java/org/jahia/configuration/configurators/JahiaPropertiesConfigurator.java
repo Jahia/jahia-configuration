@@ -118,6 +118,11 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
                 delegate = "org.quartz.impl.jdbcjobstore.oracle.weblogic.WebLogicOracleDelegate";
             }
         }
+        
+        if (jahiaConfigInterface.getTargetServerType().startsWith("was")
+                && jahiaConfigInterface.getDatabaseType().equals("oracle")) {
+            delegate = "org.quartz.impl.jdbcjobstore.StdJDBCDelegate";
+        }
 
         properties.setProperty("org.quartz.driverDelegateClass", delegate);
     }
