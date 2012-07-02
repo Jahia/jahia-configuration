@@ -40,8 +40,6 @@ import java.util.Map;
  * Factory that sets up all the different server deployer implementations, and links them to supported versions of
  * the various application servers.
  * @author Serge Huber
- * Date: 26 d�c. 2007
- * Time: 14:04:51
  */
 public class ServerDeploymentFactory {
 
@@ -52,16 +50,18 @@ public class ServerDeploymentFactory {
     private static String targetServerDirectory;
 
     public ServerDeploymentFactory(String targetServerDirectory) {
-        addImplementation("tomcat5.5", new Tomcat55ServerDeploymentImpl(targetServerDirectory));
         addImplementation("tomcat6", new TomcatServerDeploymentImpl(targetServerDirectory));
+        addImplementation("tomcat7", getImplementation("tomcat6"));
         addImplementation("tomcat", getImplementation("tomcat6"));
-        addImplementation("jboss4.0.x", new JBoss40ServerDeploymentImpl(targetServerDirectory));
+        
         addImplementation("jboss4.2.x", new JBossServerDeploymentImpl(targetServerDirectory));
-        addImplementation("jboss5.0.x", new JBoss50ServerDeploymentImpl(targetServerDirectory));
+//        addImplementation("jboss5.0.x", new JBoss50ServerDeploymentImpl(targetServerDirectory));
         addImplementation("jboss", getImplementation("jboss4.2.x"));
+        
         addImplementation("was6.1.0.25", new WebsphereServerDeploymentImpl(targetServerDirectory));
         addImplementation("was7", new WebsphereServerDeploymentImpl(targetServerDirectory));
         addImplementation("was", getImplementation("was7"));
+        
         addImplementation("weblogic10", new WeblogicServerDeploymentImpl(targetServerDirectory));
         addImplementation("weblogic", getImplementation("weblogic10"));
     }
