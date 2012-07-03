@@ -3,6 +3,7 @@ package org.jahia.configuration.cluster.tool.operations;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.SftpException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs.FileSystemException;
 import org.jahia.configuration.cluster.tool.ClusterConfigBean;
@@ -37,7 +38,7 @@ public class ClusterConfigGenerator extends AbstractClusterOperation {
         }
 
         public InputStream getInputStream() throws IOException {
-            return new FileInputStream(configFile);  //To change body of implemented methods use File | Settings | File Templates.
+            return new FileInputStream(configFile);
         }
     }
 
@@ -132,21 +133,24 @@ public class ClusterConfigGenerator extends AbstractClusterOperation {
     public String getFileEncoding(File file) throws IOException {
         byte[] buf = new byte[4096];
         java.io.FileInputStream fis = new java.io.FileInputStream(file);
-
-        UniversalDetector detector = new UniversalDetector(null);
-
-        int nread;
-        while ((nread = fis.read(buf)) > 0 && !detector.isDone()) {
-            detector.handleData(buf, 0, nread);
+        
+        try {
+            UniversalDetector detector = new UniversalDetector(null);
+    
+            int nread;
+            while ((nread = fis.read(buf)) > 0 && !detector.isDone()) {
+                detector.handleData(buf, 0, nread);
+            }
+            detector.dataEnd();
+    
+            String encoding = detector.getDetectedCharset();
+    
+            detector.reset();
+    
+            return encoding;
+        } finally {
+            IOUtils.closeQuietly(fis);
         }
-        detector.dataEnd();
-
-        String encoding = detector.getDetectedCharset();
-
-        detector.reset();
-
-        return encoding;
-
     }
 
 }

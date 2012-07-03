@@ -3,6 +3,7 @@ package org.jahia.configuration.cluster;
 import com.google.common.io.Files;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.jahia.configuration.cluster.tool.ClusterConfigBean;
 import org.jahia.configuration.cluster.tool.operations.ClusterConfigGenerator;
 import org.jahia.configuration.logging.AbstractLogger;
@@ -46,7 +47,12 @@ public class ClusterConfigGeneratorTest extends TestCase {
 
             // now let's check the generated configuration.
             Properties jahiaAdvancedProperties = new Properties();
-            jahiaAdvancedProperties.load(new FileReader(new File(nodeDir, clusterConfigBean.getJahiaAdvancedPropertyRelativeFileLocation())));
+            FileReader reader = new FileReader(new File(nodeDir, clusterConfigBean.getJahiaAdvancedPropertyRelativeFileLocation()));
+            try {
+                jahiaAdvancedProperties.load(reader);
+            } finally {
+                IOUtils.closeQuietly(reader);
+            }
 
             assertEquals("Cluster configuration is not activated !", "true", jahiaAdvancedProperties.getProperty("cluster.activated"));
             assertEquals("Node server Id is not correct", clusterConfigBean.getNodeId(i), jahiaAdvancedProperties.getProperty("cluster.node.serverId"));
@@ -87,7 +93,7 @@ public class ClusterConfigGeneratorTest extends TestCase {
         logger.info("Copying " + originalRelativeLocation + " files to " + targetCompleteDirectory + "...");
         for (Resource resource : dataTablesResources) {
             String relativePath = resource.getURI().toString();
-            int relativeLocation = relativePath.lastIndexOf(originalRelativeLocation + File.separator);
+            int relativeLocation = relativePath.lastIndexOf(originalRelativeLocation + "/");
             if (relativeLocation > -1) {
                 relativePath = relativePath.substring(relativeLocation + originalRelativeLocation.length() + 1);
             }
