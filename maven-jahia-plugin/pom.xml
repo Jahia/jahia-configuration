@@ -5,13 +5,13 @@
     <parent>
         <groupId>org.jahia.configuration</groupId>
         <artifactId>jahia-configuration-root</artifactId>
-        <version>2.0</version>
+        <version>2.1</version>
     </parent>
     
     <groupId>org.jahia.server</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>maven-jahia-plugin</artifactId>
-    <version>2.72</version>
+    <version>2.73</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Jahia Installer Plugin</name>
 
@@ -19,29 +19,6 @@
         <maven.version>2.0.5</maven.version>
         <junit.version>3.8.2</junit.version>
     </properties>
-
-    <repositories>
-        <repository>
-            <id>central</id>
-            <name>Maven Repository Switchboard</name>
-            <layout>default</layout>
-            <url>http://repo1.maven.org/maven2</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <id>jahiaRepository</id>
-            <name>Jahia's Maven Repository</name>
-            <url>http://maven.jahia.org/maven2</url>
-        </repository>
-    </repositories>
 
     <dependencies>
         <dependency>
@@ -52,7 +29,7 @@
         <dependency>
             <groupId>org.jahia.configuration</groupId>
             <artifactId>deployers</artifactId>
-            <version>2.4</version>
+            <version>2.5</version>
         </dependency>
         <dependency>
             <groupId>org.jahia.server</groupId>
@@ -62,7 +39,7 @@
         <dependency>
             <groupId>org.jahia.configuration</groupId>
             <artifactId>configurators</artifactId>
-            <version>2.48</version>
+            <version>2.49</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -234,13 +211,6 @@
           </plugin>
         </plugins>
     </build>
-
-    <distributionManagement>
-        <repository>
-            <id>jahiaRepository</id>
-            <url>scpexe://maven.jahia.org/var/www/vhosts/maven.jahia.org/html/maven2</url>
-        </repository>
-    </distributionManagement>
 
     <reporting>
         <plugins>

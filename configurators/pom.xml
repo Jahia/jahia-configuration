@@ -4,19 +4,19 @@
     <parent>
         <groupId>org.jahia.configuration</groupId>
         <artifactId>jahia-configuration-root</artifactId>
-        <version>2.0</version>
+        <version>2.1</version>
     </parent>
     
     <modelVersion>4.0.0</modelVersion>
     <artifactId>configurators</artifactId>
-    <version>2.48</version>
+    <version>2.49</version>
     <name>Jahia Server Configuration</name>
     
     <dependencies>
         <dependency>
             <groupId>org.jahia.configuration</groupId>
             <artifactId>deployers</artifactId>
-            <version>2.4</version>
+            <version>2.5</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
@@ -91,12 +91,12 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.18</version>
+            <version>5.1.19</version>
         </dependency>
         <dependency>
             <groupId>postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>9.0-801.jdbc3</version>
+            <version>9.1-901.jdbc3</version>
         </dependency>
         <!-- Microsoft SQL Server 2005 -->
         <dependency>
@@ -108,23 +108,23 @@
         <dependency>
             <groupId>com.oracle</groupId>
             <artifactId>ojdbc5</artifactId>
-            <version>11.2.0.2.0</version>
+            <version>11.2.0.3</version>
         </dependency>
            <dependency>
             <groupId>com.oracle</groupId>
             <artifactId>orai18n</artifactId>
-            <version>11.2.0.2.0</version>
+            <version>11.2.0.3</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derbyclient</artifactId>
-            <version>10.8.2.2</version>
+            <version>10.9.1.0</version>
         </dependency>
         <dependency>
            <groupId>org.apache.derby</groupId>
            <artifactId>derby</artifactId>
-           <version>10.8.2.2</version>
+           <version>10.9.1.0</version>
         </dependency>        
 
         <dependency>
@@ -169,7 +169,7 @@
             <plugin>
                 <groupId>org.dstovall</groupId>
                 <artifactId>onejar-maven-plugin</artifactId>
-                <version>1.4.1</version>
+                <version>1.4.4</version>
                 <executions>
                     <execution>
                         <goals>
@@ -222,17 +222,4 @@
         </pluginManagement>
     </build>
     
-    <pluginRepositories>
-        <pluginRepository>
-            <id>onejar-maven-plugin.googlecode.com</id>
-            <url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
-        </pluginRepository>
-    </pluginRepositories>
-    
-    <distributionManagement>
-        <repository>
-            <id>jahiaRepository</id>
-            <url>scpexe://maven.jahia.org/var/www/vhosts/maven.jahia.org/html/maven2</url>
-        </repository>
-    </distributionManagement>
 </project>

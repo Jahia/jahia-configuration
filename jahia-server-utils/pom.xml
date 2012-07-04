@@ -43,28 +43,12 @@
     <parent>
         <groupId>org.jahia.configuration</groupId>
         <artifactId>jahia-configuration-root</artifactId>
-        <version>2.0</version>
+        <version>2.1</version>
     </parent>
     <artifactId>jahia-server-utils</artifactId>
     <name>Jahia Application Server Utilities</name>
-    <version>1.2-SNAPSHOT</version>
+    <version>1.2</version>
     <packaging>jar</packaging>
-    
-    <repositories>
-        <repository>
-            <id>jahiaRepository</id>
-            <name>Jahia's Maven Repository</name>
-            <url>http://maven.jahia.org/maven2</url>
-        </repository>
-    </repositories>
-    
-    <pluginRepositories>
-        <pluginRepository>
-            <id>jahiaRepository</id>
-            <name>Jahia's Maven Repository</name>
-            <url>http://maven.jahia.org/maven2</url>
-        </pluginRepository>
-    </pluginRepositories>
     
     <dependencies>
         <dependency>

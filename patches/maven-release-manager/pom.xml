@@ -45,7 +45,7 @@
     <parent>
         <groupId>org.jahia.patches</groupId>
         <artifactId>patches-root</artifactId>
-        <version>1.0</version>
+        <version>1.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>maven-release-manager</artifactId>

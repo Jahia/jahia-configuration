@@ -7,24 +7,20 @@
     <parent>
         <groupId>org.jahia.configuration</groupId>
         <artifactId>jahia-configuration-root</artifactId>
-        <version>2.0</version>
+        <version>2.1</version>
     </parent>
     
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jahia-installer-lib</artifactId>
-    <version>2.12-SNAPSHOT</version>
+    <version>2.12</version>
     <name>Jahia Installer</name>
     <packaging>jar</packaging>
-    
-    <properties>
-        <izpack.version>4.3.5-jahia-beta3</izpack.version>
-    </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.codehaus.izpack</groupId>
             <artifactId>izpack-standalone-compiler</artifactId>
-            <version>${izpack.version}</version>
+            <version>4.3.5-jahia-beta4</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>

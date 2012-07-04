@@ -3,7 +3,7 @@
     <groupId>org.jahia.configuration</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jahia-configuration-root</artifactId>
-    <version>2.0</version>
+    <version>2.1</version>
     <packaging>pom</packaging>
     <name>Jahia Configuration Root</name>
     <organization>
@@ -104,38 +104,43 @@
     
     <repositories>
         <repository>
+            <id>jahia-public</id>
+            <name>Jahia Public Repository</name>
+            <url>https://devtools.jahia.com/nexus/content/groups/public</url>
             <releases>
                 <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
             </releases>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
-            <id>jahiaRepository</id>
-            <name>Jahia's Maven Repository</name>
-            <url>http://maven.jahia.org/maven2</url>
         </repository>
     </repositories>
 
     <pluginRepositories>
-        <pluginRepository>
+    	<pluginRepository>
+            <id>jahia-public</id>
+            <name>Jahia Public Repository</name>
+            <url>https://devtools.jahia.com/nexus/content/groups/public</url>
             <releases>
                 <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
             </releases>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
-            <id>jahiaRepository</id>
-            <name>Jahia's Maven Repository</name>
-            <url>http://maven.jahia.org/maven2</url>
         </pluginRepository>
     </pluginRepositories>
 
     <distributionManagement>
         <repository>
-            <id>jahiaRepository</id>
-            <url>scpexe://maven.jahia.org/var/www/vhosts/maven.jahia.org/html/maven2</url>
-            <uniqueVersion>false</uniqueVersion>
+            <id>jahia-releases</id>
+            <url>https://devtools.jahia.com/nexus/content/repositories/jahia-releases</url>
         </repository>
+        <snapshotRepository>
+        	<id>jahia-snapshots</id>
+        	<url>https://devtools.jahia.com/nexus/content/repositories/jahia-snapshots</url>
+        </snapshotRepository>
     </distributionManagement>
-
+    
 </project>
