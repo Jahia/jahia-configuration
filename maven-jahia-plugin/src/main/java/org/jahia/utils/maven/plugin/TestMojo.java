@@ -5,6 +5,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.project.MavenProject;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.net.URL;
 import java.net.URLConnection;
@@ -57,7 +58,7 @@ public class TestMojo extends AbstractMojo {
 
 
     public void execute() throws MojoExecutionException, MojoFailureException {
-        if (test == null) {
+        if (StringUtils.isEmpty(test) || test.contains("*")) {
             executeAllTests();
         } else {
             executeTest(test);
@@ -67,7 +68,7 @@ public class TestMojo extends AbstractMojo {
     private void executeAllTests() {
         try {
             List<String> targets = new ArrayList<String>();
-            String url1 = testURL + "/test";
+            String url1 = testURL + "/test" + (StringUtils.isNotEmpty(test) ? "/" + test : "");
             getLog().info("Get tests from : "+url1);
             URLConnection conn = null;
 
