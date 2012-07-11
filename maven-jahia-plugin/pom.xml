@@ -11,7 +11,7 @@
     <groupId>org.jahia.server</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>maven-jahia-plugin</artifactId>
-    <version>2.77</version>
+    <version>2.78</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Jahia Installer Plugin</name>
 
@@ -29,7 +29,7 @@
         <dependency>
             <groupId>org.jahia.configuration</groupId>
             <artifactId>deployers</artifactId>
-            <version>2.5</version>
+            <version>2.6</version>
         </dependency>
         <dependency>
             <groupId>org.jahia.server</groupId>
@@ -39,7 +39,7 @@
         <dependency>
             <groupId>org.jahia.configuration</groupId>
             <artifactId>configurators</artifactId>
-            <version>2.51</version>
+            <version>2.52</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>

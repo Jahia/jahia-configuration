@@ -501,6 +501,42 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     protected String externalizedConfigFinalName;
 
     /**
+     * The location of a JEE application to be configured for deployment in EAR format. If this is
+     * null or empty this means we are not using EAR deployment for Jahia but WAR deployment.
+     *
+     * @parameter expression="${jahia.configure.jeeApplicationLocation}" default-value=""
+     */
+    protected String jeeApplicationLocation;
+
+    /**
+     * The list of modules to be setup in the JEE application.xml deployment descriptor.
+     * List is comma seperated, and each module has the following format:
+     * type:id:arg1:arg2:...
+     *
+     * The arguments are different for each module type. Usually it is just a relative URI to the location of a JAR
+     * or a SAR/RAR but in the case of a web module it is a bit different.
+     *
+     * For a WAR, the format is:
+     *
+     * web:webid:weburi:contextroot
+     *
+     * which will then become in the xml:
+     *
+     * <module id="webid">
+     *     <web>
+     *         <web-uri>weburi</web-uri>
+     *         <context-root>contextroot</context-root>
+     *     </web>
+     * </module>
+     *
+     * The ID is an identifier used to name the module so that we can rewrite the XML more easily, and keep existing
+     * structure should they exist already.
+     *
+     * @parameter expression="${jahia.configure.jeeApplicationModuleList}" default-value=""
+     */
+    protected String jeeApplicationModuleList;
+
+    /**
      * Activates the usage of the DataStore for Jackrabbit binary data storage.
      *
      * @parameter expression="${jahia.configure.useDataStore}" default-value="false"
@@ -882,6 +918,14 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public String getExternalizedConfigFinalName() {
         return externalizedConfigFinalName;
+    }
+
+    public String getJeeApplicationLocation() {
+        return jeeApplicationLocation;
+    }
+
+    public String getJeeApplicationModuleList() {
+        return jeeApplicationModuleList;
     }
 
     public boolean isUseDataStore() {

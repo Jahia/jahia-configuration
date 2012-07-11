@@ -6,6 +6,9 @@ import org.apache.commons.vfs.FileObject;
 import org.jahia.configuration.configurators.JahiaConfigBean;
 import org.jahia.configuration.configurators.JahiaGlobalConfigurator;
 import org.jahia.configuration.logging.SLF4JLogger;
+import org.jdom.*;
+import org.jdom.input.SAXBuilder;
+import org.jdom.xpath.XPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,6 +94,8 @@ public class JahiaGlobalConfiguratorTest extends TestCase {
         websphereDerbyConfigBean.setExternalizedConfigTargetPath(configuratorsFile.getPath());
         websphereDerbyConfigBean.setExternalizedConfigClassifier("jahiaServer1");
         websphereDerbyConfigBean.setExternalizedConfigFinalName("jahia-externalized-config");
+        websphereDerbyConfigBean.setJeeApplicationLocation(configuratorsFile.toString());
+        websphereDerbyConfigBean.setJeeApplicationModuleList("jahia-war:web:jahia.war:jahia,portlet-testsuite:web:websphere-testsuite.war:testsuite,java-example:java:somecode.jar");
 
         JahiaGlobalConfigurator jahiaGlobalConfigurator = new JahiaGlobalConfigurator(new SLF4JLogger(logger), websphereDerbyConfigBean);
         jahiaGlobalConfigurator.execute();
@@ -110,5 +115,44 @@ public class JahiaGlobalConfiguratorTest extends TestCase {
         jahiaProperties.load(jahiaPropsInputStream);
         assertEquals("Server value not correct", "was", jahiaProperties.get("server"));
         assertEquals("Server version value not correct", "6.1.0.25", jahiaProperties.get("serverVersion"));
+
+        // The following tests are NOT exhaustive
+        SAXBuilder saxBuilder = new SAXBuilder();
+        Document jdomDocument = saxBuilder.build(configuratorsFile.toString() + "/META-INF/application.xml");
+        String prefix = "";
+
+        assertAllTextEquals(jdomDocument, "//application/module[@id=\"jahia-war\"]/web/web-uri/text()", prefix, "jahia.war");
+        assertAllTextEquals(jdomDocument, "//application/module[@id=\"jahia-war\"]/web/context-root/text()", prefix, "jahia");
+        assertAllTextEquals(jdomDocument, "//application/module[@id=\"portlet-testsuite\"]/web/web-uri/text()", prefix, "websphere-testsuite.war");
+        assertAllTextEquals(jdomDocument, "//application/module[@id=\"portlet-testsuite\"]/web/context-root/text()", prefix, "testsuite");
+        assertAllTextEquals(jdomDocument, "//application/module[@id=\"java-example\"]/java/text()", prefix, "somecode.jar");
+
     }
+
+    public void assertAllTextEquals(Document jdomDocument, String xPathExpression, String prefix, String value) throws JDOMException {
+        Element rootElement = jdomDocument.getRootElement();
+        String namespaceURI = rootElement.getNamespaceURI();
+        XPath contextParamXPath = XPath.newInstance(xPathExpression);
+        contextParamXPath.addNamespace(prefix, namespaceURI);
+        List resultList = contextParamXPath.selectNodes(jdomDocument);
+        for (Object currentObject : resultList) {
+            if (currentObject instanceof Attribute) {
+                assertEquals(value, ((Attribute) currentObject).getValue());
+            } else if (currentObject instanceof Element) {
+                assertEquals(value, ((Element) currentObject).getText());
+            } else if (currentObject instanceof Text) {
+                assertEquals(value, ((Text) currentObject).getValue());
+            } else if (currentObject instanceof Comment) {
+                assertEquals(value, ((Comment) currentObject).getText());
+            } else if (currentObject instanceof CDATA) {
+                assertEquals(value, ((CDATA) currentObject).getText());
+            } else if (currentObject instanceof ProcessingInstruction) {
+                assertEquals(value, ((ProcessingInstruction) currentObject).getValue());
+            } else {
+                // default fall-back comparison, should rarely be useful.
+                assertEquals(value, currentObject.toString());
+            }
+        }
+    }
+
 }

@@ -111,6 +111,9 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String externalizedConfigFinalName = "jahia-config";
     private Map<String, String> jahiaAdvancedProperties = new HashMap<String, String>();
     private Map<String, String> jahiaProperties = new HashMap<String, String>();
+
+    private String jeeApplicationLocation = null;
+    private String jeeApplicationModuleList = null;
     
     public void setFileDataStorePath(String fileDataStorePath) {
         this.fileDataStorePath = fileDataStorePath;
@@ -583,6 +586,22 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public String getExternalizedConfigFinalName() {
         return externalizedConfigFinalName;
+    }
+
+    public String getJeeApplicationLocation() {
+        return jeeApplicationLocation;
+    }
+
+    public void setJeeApplicationLocation(String jeeApplicationLocation) {
+        this.jeeApplicationLocation = jeeApplicationLocation;
+    }
+
+    public String getJeeApplicationModuleList() {
+        return jeeApplicationModuleList;
+    }
+
+    public void setJeeApplicationModuleList(String jeeApplicationModuleList) {
+        this.jeeApplicationModuleList = jeeApplicationModuleList;
     }
 
     public void setExternalizedConfigFinalName(String externalizedConfigFinalName) {

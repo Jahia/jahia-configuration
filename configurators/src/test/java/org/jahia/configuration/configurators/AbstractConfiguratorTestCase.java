@@ -79,6 +79,8 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
         ldap.put("public.bind.password", "ldapadmin");
         ldap.put("search.name", "dc=jahia");
         websphereOracleConfigBean.setGroupLdapProviderProperties(ldap);
+        websphereOracleConfigBean.setJeeApplicationLocation(configuratorsFile.toString());
+        websphereOracleConfigBean.setJeeApplicationModuleList("jahia-war:web:ROOT.war:,portlet-testsuite:web:websphere-testsuite.war:testsuite");
 
         tomcatMySQLConfigBean = new JahiaConfigBean();
         tomcatMySQLConfigBean.setDatabaseType("mysql");
@@ -89,6 +91,7 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
         tomcatMySQLConfigBean.setCluster_activated("false");
         tomcatMySQLConfigBean.setCluster_node_serverId("jahiaServer1");
         tomcatMySQLConfigBean.setProcessingServer("true");
+        tomcatMySQLConfigBean.setJeeApplicationModuleList(null);
     }
 
     @Override
