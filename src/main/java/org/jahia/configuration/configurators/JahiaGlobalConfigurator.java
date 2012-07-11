@@ -216,6 +216,11 @@ public class JahiaGlobalConfigurator {
 
         String ldapTargetFile = webappPath + "/WEB-INF/var/shared_modules";
         new LDAPConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,sourceWebAppPath), ldapTargetFile);
+
+        String jeeApplicationLocation = jahiaConfigInterface.getJeeApplicationLocation();
+        if (!StringUtils.isEmpty(jeeApplicationLocation)) {
+            new ApplicationXmlConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,jeeApplicationLocation + "/META-INF/application.xml"), jeeApplicationLocation + "/META-INF/application.xml");
+        }
     }
 
     public FileObject findVFSFile(String parentPath, String fileMatchingPattern) {

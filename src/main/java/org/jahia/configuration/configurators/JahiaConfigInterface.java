@@ -200,4 +200,39 @@ public interface JahiaConfigInterface {
      * @return
      */
     String getExternalizedConfigFinalName();
+
+    /**
+     * Returns the location of an exploded EAR with the JEE application structure. If null, this means we are not using
+     * a JEE application format to deploy Jahia.
+     * @return
+     */
+    String getJeeApplicationLocation();
+
+    /**
+     * JEE application.xml module list.
+     *
+     * List is comma seperated, and each module has the following format:
+     * id:type:arg1:arg2:...
+     *
+     * The arguments are different for each module type. Usually it is just a relative URI to the location of a JAR
+     * or a SAR/RAR but in the case of a web module it is a bit different.
+     *
+     * For a WAR, the format is:
+     *
+     * myid:web:weburi:contextroot
+     *
+     * which will then become in the xml:
+     *
+     * <module id="myid">
+     *     <web>
+     *         <web-uri>weburi</web-uri>
+     *         <context-root>contextroot</context-root>
+     *     </web>
+     * </module>
+     *
+     * The ID is an identifier used to name the module so that we can rewrite the XML more easily, and keep existing
+     * structure should they exist already.
+     */
+    String getJeeApplicationModuleList();
+
 }
