@@ -8,6 +8,7 @@ import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGenerator
 import org.jdom.Element;
 
 public class GroupBO {
+	
 	private String name;
 
 	private List<UserBO> users;

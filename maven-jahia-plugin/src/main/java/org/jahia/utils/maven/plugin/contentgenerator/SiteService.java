@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -118,7 +117,7 @@ public class SiteService {
 	 *             file
 	 * @throws IOException
 	 */
-	public File createPropertiesFile(String siteKey, List<String> languages,
+	public File createPropertiesFile(String siteKey, List<String> languages, String templateSet,
 			File tempOutputDir) throws FileNotFoundException, IOException {
 		Properties siteProp = new Properties();
 
@@ -129,11 +128,11 @@ public class SiteService {
 		siteProp.setProperty("description",
 				ContentGeneratorCst.DESCRIPTION_DEFAULT);
 		siteProp.setProperty("templatePackageName",
-				ContentGeneratorCst.TEMPLATE_SET_DEFAULT);
+				templateSet);
 		siteProp.setProperty("mixLanguage", Boolean.FALSE.toString());
 		siteProp.setProperty("defaultLanguage", languages.get(0));
-		siteProp.setProperty("installedModules.1",
-				ContentGeneratorCst.TEMPLATE_SET_DEFAULT);
+		siteProp.setProperty("installedModules.1", "default");
+		siteProp.setProperty("installedModules.2", templateSet);
 		for (String language : languages) {
 			siteProp.setProperty("language." + language + ".activated",
 					Boolean.TRUE.toString());

@@ -54,7 +54,9 @@ public final class ContentGeneratorCst {
 	public static Namespace NS_NT = Namespace.getNamespace("nt", "http://www.jcp.org/jcr/nt/1.0"); 
 	public static Namespace NS_TEST = Namespace.getNamespace("test", "http://www.apache.org/jackrabbit/test"); 
 	public static Namespace NS_SV = Namespace.getNamespace("sv", "http://www.jcp.org/jcr/sv/1.0"); 
-	public static Namespace NS_MIX = Namespace.getNamespace("mix", "http://www.jcp.org/jcr/mix/1.0"); 
+	public static Namespace NS_MIX = Namespace.getNamespace("mix", "http://www.jcp.org/jcr/mix/1.0");
+	
+	public static Namespace NS_DOCNT = Namespace.getNamespace("docnt", "http://www.jahia.org/jahia/docspace/nt/1.0"); 
 	
 	// jcr jnt jmix j
 	private ContentGeneratorCst() {

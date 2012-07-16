@@ -12,63 +12,78 @@ import java.util.List;
  */
 public class ExportBO {
 
-	private File outputFile;
+	protected File outputFile;
 
-	private String outputDir;
+	protected String outputDir;
 
-	private Integer nbPagesTopLevel;
+	protected Integer nbPagesTopLevel;
 
-	private Integer nbSubLevels;
+	protected Integer nbSubLevels;
 
-	private Integer nbSubPagesPerPage;
+	protected Integer nbSubPagesPerPage;
 
-	private Integer totalPages;
+	protected Integer totalPages;
 	
-	private String rootPageName;
+	protected String rootPageName;
 
-	private Integer maxArticleIndex;
+	protected Integer maxArticleIndex;
 
-	private File mapFile;
+	protected File mapFile;
 
-	private Boolean pagesHaveVanity;
+	protected Boolean pagesHaveVanity;
 
-	private String siteKey;
+	protected String siteKey;
 
-	private List<String> siteLanguages;
+	protected List<String> siteLanguages;
 
-	private String addFilesToPage;
+	protected String addFilesToPage;
 
-	private File filesDirectory;
+	protected File filesDirectory;
 
-	private List<String> fileNames;
+	protected List<String> fileNames;
 	
-	private Integer numberOfFilesToGenerate;
+	protected Integer numberOfFilesToGenerate;
 	
-	private Integer numberOfBigTextPerPage;
+	protected Integer numberOfBigTextPerPage;
 	
-	private Integer numberOfUsers;
+	protected Integer numberOfUsers;
 	
-	private Integer numberOfGroups;	
+	protected Integer numberOfGroups;	
 
-    private Integer numberOfUsersPerGroup;
+    protected Integer numberOfUsersPerGroup;
 
-    private double groupAclRatio;
+    protected double groupAclRatio;
 
-    private double usersAclRatio;
+    protected double usersAclRatio;
 
-    private Integer numberOfSites;
+    protected Integer numberOfSites;
     
-    private Integer numberOfCategories;
+    protected Integer numberOfCategories;
     
-    private Integer numberOfCategoryLevels;
+    protected Integer numberOfCategoryLevels;
     
-    private Integer numberOfTags;
+    protected Integer numberOfTags;
     
-    private Boolean visibilityEnabled;
+    protected Boolean visibilityEnabled;
     
-    private String visibilityStartDate;
+    protected String visibilityStartDate;
     
-    private String visibilityEndDate;
+    protected String visibilityEndDate;
+    
+    // Wise
+	protected Integer nbPolls;
+	
+	protected Integer nbTasks;
+	
+	protected Integer nbNotes;
+	
+	protected Integer nbDocspaces;
+	
+	protected Integer nbFoldersPerLevel;
+
+	protected Integer foldersDepth;
+
+	protected Integer nbFilesPerFolder;
 
 	public File getOutputFile() {
 		return outputFile;
@@ -302,6 +317,70 @@ public class ExportBO {
 		this.visibilityEndDate = visibilityEndDate;
 	}
 
+	public void setWiseInstanceKey(String wiseInstanceKey) {
+		this.setSiteKey(wiseInstanceKey);
+	}
+	
+	public String getWiseInstanceKey() {
+		return this.getSiteKey();
+	}
+	
+	public Integer getNbPolls() {
+		return nbPolls;
+	}
+
+	public void setNbPolls(Integer nbPolls) {
+		this.nbPolls = nbPolls;
+	}
+
+	public Integer getNbTasks() {
+		return nbTasks;
+	}
+
+	public void setNbTasks(Integer nbTasks) {
+		this.nbTasks = nbTasks;
+	}
+
+	public Integer getNbNotes() {
+		return nbNotes;
+	}
+
+	public void setNbNotes(Integer nbNotes) {
+		this.nbNotes = nbNotes;
+	}
+
+	public Integer getNbDocspaces() {
+		return nbDocspaces;
+	}
+
+	public void setNbDocspaces(Integer nbDocspaces) {
+		this.nbDocspaces = nbDocspaces;
+	}
+
+	public Integer getNbFoldersPerLevel() {
+		return nbFoldersPerLevel;
+	}
+
+	public void setNbFoldersPerLevel(Integer nbFoldersPerLevel) {
+		this.nbFoldersPerLevel = nbFoldersPerLevel;
+	}
+
+	public Integer getFoldersDepth() {
+		return foldersDepth;
+	}
+
+	public void setFoldersDepth(Integer foldersDepth) {
+		this.foldersDepth = foldersDepth;
+	}
+
+	public Integer getNbFilesPerFolder() {
+		return nbFilesPerFolder;
+	}
+
+	public void setNbFilesPerFolder(Integer nbFilesPerFolder) {
+		this.nbFilesPerFolder = nbFilesPerFolder;
+	}
+	
 	public ExportBO() {
 
 	}

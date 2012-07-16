@@ -1,18 +1,26 @@
 package org.jahia.utils.maven.plugin.contentgenerator;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.util.Iterator;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.PageBO;
 import org.jdom.Document;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
-
-import java.io.*;
-import java.util.Iterator;
-import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 /**
  * Class used to write data into output files/directories
@@ -156,5 +164,16 @@ public class OutputService {
 		is.close();
 		out.flush();
 		out.close();	
+	}
+	
+	/**
+	 * Remove spaces and lower-cases the string
+	 * @param s
+	 * @return String
+	 */
+	public String formatStringForXml(String s) {
+		String s2 = StringUtils.replace(s, " ", "");
+		StringUtils.lowerCase(s2);
+		return s2;
 	}
 }

@@ -240,7 +240,7 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
 			if (poolDirectory == null) {
 				throw new MojoExecutionException("Pool directory property can not be null");
 			}
-			File fPoolDirectory = new File(export.getOutputDir(), poolDirectory);
+			File fPoolDirectory = new File(poolDirectory);
 			if (!fPoolDirectory.exists()) {
 				fPoolDirectory.mkdirs();
 			}

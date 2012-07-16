@@ -187,7 +187,7 @@ public class ContentGeneratorService {
 
 				// create properties file
 				File propertiesFile = siteService.createPropertiesFile(siteKey,
-						export.getSiteLanguages(), tempOutputDir);
+						export.getSiteLanguages(), ContentGeneratorCst.TEMPLATE_SET_DEFAULT, tempOutputDir);
 				filesToZip.add(propertiesFile);
 
 				// create tree dirs for files attachments (if files are not at
@@ -284,7 +284,7 @@ public class ContentGeneratorService {
 		}
 		return globalArchivePath;
 	}
-
+	
 	/**
 	 * Calculates the number of pages needed, used to know how much articles we
 	 * will need
@@ -335,23 +335,5 @@ public class ContentGeneratorService {
 		sbNewDate.append(gc.get(Calendar.MILLISECOND));
 		sbNewDate.append(gc.get(Calendar.ZONE_OFFSET));
 		return sbNewDate.toString();
-	}
-
-	// @TODO a supprimer
-	private Document readXmlFile(File xmlFile) {
-		SAXBuilder builder = new SAXBuilder();
-
-		Document document = null;
-		try {
-			document = builder.build(xmlFile);
-		} catch (JDOMException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return document;
 	}
 }

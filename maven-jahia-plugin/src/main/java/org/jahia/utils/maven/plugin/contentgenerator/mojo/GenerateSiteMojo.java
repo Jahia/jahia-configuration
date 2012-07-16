@@ -15,7 +15,12 @@ import org.w3c.dom.DOMException;
  * 
  */
 public class GenerateSiteMojo extends ContentGeneratorMojo {
-
+	
+	public ExportBO initExport() throws MojoExecutionException {
+		ExportBO export = super.initExport();
+		return export;
+	}
+	
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		ContentGeneratorService contentGeneratorService = ContentGeneratorService.getInstance();
