@@ -68,6 +68,7 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
      */
     protected boolean deployToServer;
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         Set dependencyFiles = project.getDependencyArtifacts();
@@ -77,12 +78,12 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
         File target;
         if(deployToServer) {
             try {
-                target = new File(getWebappDeploymentDir(), (new StringBuilder()).append("WEB-INF/var/shared_").append(getProjectStructureVersion() != 2 ? "templates" : "modules").toString());
+                target = new File(getWebappDeploymentDir(), "WEB-INF/var/shared_modules");
             } catch(Exception e) {
                 throw new MojoExecutionException("Cannot deploy module", e);
             }
         } else {
-            target = new File(output, (new StringBuilder()).append("jahia/WEB-INF/var/shared_").append(getProjectStructureVersion() != 2 ? "templates" : "modules").toString());
+            target = new File(output, "jahia/WEB-INF/var/shared_modules");
         }
 
         ModuleDeployer deployer = new ModuleDeployer(target, new MojoLogger(getLog()));

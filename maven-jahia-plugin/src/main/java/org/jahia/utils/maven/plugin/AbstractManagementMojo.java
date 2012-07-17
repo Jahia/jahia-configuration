@@ -120,11 +120,8 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
      */
     protected ArtifactRepository localRepository;
     
-    private Integer projectStructureVersion;
-    
     public void execute() throws MojoExecutionException, MojoFailureException {
         ServerDeploymentFactory.setTargetServerDirectory(targetServerDirectory);
-        org.jahia.utils.maven.plugin.deployers.ServerDeploymentFactory.setTargetServerDirectory(targetServerDirectory);
 
         doValidate();
         doExecute();
@@ -222,20 +219,6 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
             dir = getWebappDeploymentDir();
         }
         return dir;
-    }
-    
-    public int getProjectStructureVersion() {
-    	if (projectStructureVersion != null) {
-    		return projectStructureVersion;
-    	}
-        int version = 0;
-        if (project.getProperties().containsKey("jahia.project.structure.version")) {
-            version = Integer.parseInt((String)project.getProperties().get("jahia.project.structure.version"));
-        }
-        getLog().info("Jahia project structure version is " + version);
-        projectStructureVersion = version;
-        
-        return projectStructureVersion;
     }
     
 }

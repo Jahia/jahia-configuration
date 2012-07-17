@@ -55,7 +55,7 @@ import org.jahia.configuration.configurators.JahiaGlobalConfigurator;
  * @requiresDependencyResolution runtime
  * @requiresProject false
  */
-public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfigInterface, org.jahia.utils.maven.plugin.configurators.JahiaConfigInterface {
+public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfigInterface {
 
     /**
      * @parameter expression="${jahia.configure.externalConfigPath}"
@@ -563,42 +563,14 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
-        	if (getProjectStructureVersion() == 2) {
-				new JahiaGlobalConfigurator(new MojoLogger(getLog()), this).execute();
-        	} else {
-				new org.jahia.utils.maven.plugin.configurators.JahiaGlobalConfigurator(new MojoLogger(getLog()), this).execute();
-        	}
+            new JahiaGlobalConfigurator(new MojoLogger(getLog()), this).execute();
         } catch (Exception e) {
             throw new MojoExecutionException("Error while configuring Jahia", e);
         }
     }
 
-    public String getJahia_WebApps_Deployer_Service() {
-        return Jahia_WebApps_Deployer_Service;
-    }
-
     public void setJahia_WebApps_Deployer_Service(String jahia_WebApps_Deployer_Service) {
         Jahia_WebApps_Deployer_Service = jahia_WebApps_Deployer_Service;
-    }
-
-    /**
-     * We override this method so that we can have, in the same project, both a targetServerDirectory and a
-     * targetConfigurationDirectory that are not the same, so that we can configure in a directory, and then deploy
-     * to another directory.
-     * @return if the target server directory and configuration directory are the same, the targetServerDirectory value
-     * is returned, otherwise the targetConfigurationDirectory value is return.
-     * @throws Exception can be raised if there is a problem initializing the deployer classes.
-     */
-    public File getWebAppTargetConfigurationDir () throws Exception {
-        if (targetServerDirectory.equals(targetConfigurationDirectory)) {
-            return getWebappDeploymentDir();
-        } else {
-            return new File(targetConfigurationDirectory);
-        }
-    }
-
-    public String getBigtext_service() {
-        return bigtext_service;
     }
 
     public String getCluster_activated() {
@@ -629,24 +601,8 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return JahiaGlobalConfigurator.fromString(clusterTCPEHCacheJahiaHosts);
     }
 
-    public boolean isConfigureBeforePackaging() {
-        return configureBeforePackaging;
-    }
-
-    public String getContainerCacheDefaultExpirationDelay() {
-        return containerCacheDefaultExpirationDelay;
-    }
-
-    public String getContainerCacheLiveModeOnly() {
-        return containerCacheLiveModeOnly;
-    }
-
     public String getDatabasePassword() {
         return databasePassword;
-    }
-
-    public File getDatabaseScript() {
-        return databaseScript;
     }
 
     public String getDatabaseType() {
@@ -661,22 +617,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return databaseUrl;
     }
 
-    public String getDatasource_name() {
-        return datasource_name;
-    }
-
-    public String getDeploymentMode() {
-        return deploymentMode;
-    }
-
-    public String getDefautSite() {
-        return defautSite;
-    }
-
-    public String getDevelopmentMode() {
-        return developmentMode;
-    }
-
     public String getTargetServerDirectory() {
         return targetServerDirectory;
     }
@@ -689,10 +629,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return targetServerVersion;
     }
 
-    public String getEsiCacheActivated() {
-        return esiCacheActivated;
-    }
-
     public String getExternalConfigPath() {
         return externalConfigPath;
     }
@@ -701,88 +637,28 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return webAppDirName;
     }
 
-    public String getJahiaEnginesHttpPath() {
-        return jahiaEnginesHttpPath;
-    }
-
     public String getJahiaEtcDiskPath() {
         return jahiaEtcDiskPath;
-    }
-
-    public String getJahiaFileRepositoryDiskPath() {
-        return jahiaFileRepositoryDiskPath;
-    }
-
-    public String getJahiaFilesBigTextDiskPath() {
-        return jahiaFilesBigTextDiskPath;
-    }
-
-    public String getJahiaFilesTemplatesDiskPath() {
-        return jahiaFilesTemplatesDiskPath;
     }
 
     public String getJahiaImportsDiskPath() {
         return jahiaImportsDiskPath;
     }
 
-    public String getJahiaJavaScriptHttpPath() {
-        return jahiaJavaScriptHttpPath;
-    }
-
     public String getJahiaWebAppsDeployerBaseURL() {
         return jahiaWebAppsDeployerBaseURL;
-    }
-
-    public String getJahiaNewTemplatesDiskPath() {
-        return jahiaNewTemplatesDiskPath;
-    }
-
-    public String getJahiaNewWebAppsDiskPath() {
-        return jahiaNewWebAppsDiskPath;
     }
 
     public String getJahiaRootPassword() {
         return jahiaRootPassword;
     }
 
-    public String getJahiaSharedTemplatesDiskPath() {
-        return jahiaSharedTemplatesDiskPath;
-    }
-
-    public String getJahiaTemplatesHttpPath() {
-        return jahiaTemplatesHttpPath;
-    }
-
     public String getJahiaVarDiskPath() {
         return jahiaVarDiskPath;
     }
 
-    public String getLocalIp() {
-        return localIp;
-    }
-
-    public String getLocalPort() {
-        return localPort;
-    }
-
     public String getDb_script() {
         return getDatabaseType() + ".script";
-    }
-
-    public String getOutputCacheActivated() {
-        return outputCacheActivated;
-    }
-
-    public String getOutputCacheDefaultExpirationDelay() {
-        return outputCacheDefaultExpirationDelay;
-    }
-
-    public String getOutputCacheExpirationOnly() {
-        return outputCacheExpirationOnly;
-    }
-
-    public String getOutputContainerCacheActivated() {
-        return outputContainerCacheActivated;
     }
 
     public String getOverwritedb() {
@@ -791,14 +667,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public String getProcessingServer() {
         return processingServer != null ? processingServer : processingServerLegacy;
-    }
-
-    public String getRelease() {
-        return release;
-    }
-
-    public String getServer() {
-        return targetServerType;
     }
 
     public List<String> getSiteImportLocation() {

@@ -48,11 +48,8 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipEntry;
 
 /**
- * Created by IntelliJ IDEA.
  * User: islam
- * Date: 5 ao�t 2008
  * Time: 14:49:54
- * To change this template use File | Settings | File Templates.
  * @goal copy-jahiawar
  * @requiresDependencyResolution runtime
  */
@@ -71,6 +68,7 @@ public class CopyJahiaWarMojo extends AbstractMojo {
      */
     protected MavenProject project;
 
+    @SuppressWarnings("unchecked")
     public void execute() throws MojoExecutionException, MojoFailureException {
         for (Artifact dependencyFile : (Iterable<Artifact>) project.getDependencyArtifacts()) {
             if ("org.jahia.server".equals(dependencyFile.getGroupId())

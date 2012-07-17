@@ -62,6 +62,7 @@ import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.Bootstrap;
 import com.sun.jdi.ReferenceType;
 import org.jahia.configuration.deployers.ServerDeploymentFactory;
+import org.jahia.configuration.deployers.ServerDeploymentInterface;
 
 /**
  * Jahia server deployment mojo.
@@ -105,7 +106,7 @@ public class DeployMojo extends AbstractManagementMojo {
      */
     private String address;
 
-    protected ServerDeployer serverDeployer;
+    protected ServerDeploymentInterface serverDeployer;
 
     /**
      * @parameter expression="${jahia.deploy.deployTests}" default-value="false"
@@ -124,7 +125,7 @@ public class DeployMojo extends AbstractManagementMojo {
 
     public void doValidate() throws MojoExecutionException, MojoFailureException {
         try {
-            serverDeployer = getProjectStructureVersion() == 2 ? new ServerDeployer(ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion)) : new ServerDeployer(org.jahia.utils.maven.plugin.deployers.ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion));
+            serverDeployer = ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion);
         } catch (Exception e) {
             throw new MojoExecutionException("Error while validating deployers", e);
         }
@@ -151,11 +152,7 @@ public class DeployMojo extends AbstractManagementMojo {
                     || project.getGroupId().equals("org.jahia.templates")
                     || (deployTests && project.getGroupId().equals("org.jahia.test"))
                     || project.getGroupId().endsWith(".jahia.modules")) {
-                if (getProjectStructureVersion() == 2) {
-                	deployModuleProject();
-                } else {
-                	deployTemplateProject();
-                }
+                deployModuleProject();
             } else if (project.getGroupId().equals("org.jahia.test") && !deployTests) {
                 getLog().info(
                         "Deployment of test projects "
@@ -284,48 +281,6 @@ public class DeployMojo extends AbstractManagementMojo {
         }
     }
 
-    /**
-     * Copy template resources from output folder to the jsp/templates and WEB-INF/classes of jahia
-     * @throws Exception
-     */
-    private void deployTemplateProject() throws Exception {
-        File webappDir = getWebappDeploymentDir();
-
-        File source = new File(output, project.getArtifactId()+"-"+project.getVersion());
-
-        String prefix = "templates/";
-        File target = new File(getWebappDeploymentDir(),prefix);
-        if(!target.exists()) {
-            prefix = "jsp/jahia/templates/";
-        }
-
-        File templateXml = new File(source, "WEB-INF/templates.xml");
-        if (!templateXml.exists()) {
-            getLog().info("No template.xml file, bypassing template deployment");
-            return;
-        }
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(templateXml)));
-            String outputDir = null;
-            while (outputDir == null ) {
-                String line = reader.readLine();
-                if (line.trim().startsWith("<root-folder>")) {
-                    outputDir = line.substring(line.indexOf('>')+1, line.lastIndexOf('<'));
-                }
-            }
-
-            target = new File(getWebappDeploymentDir(),prefix+outputDir);
-            getLog().info("Updated template war resources for " + targetServerType + " v" + targetServerVersion + " in directory " + target);
-            int cnt = updateFiles(source, target, "**/WEB-INF,**/WEB-INF/**");
-            cnt += updateFiles(new File(source, "WEB-INF/classes"), new File(webappDir,"WEB-INF/classes"));
-            getLog().info("Copied "+cnt+" files.");
-            FileUtils.copyFileToDirectory(templateXml, target);
-            getLog().info("Updated template descriptor.");
-        } catch (IOException e) {
-            getLog().error("Error while deploying template project", e);
-        }
-    }
-    
     private void deployPrepackagedSiteProject() throws Exception {
         if (project.getAttachedArtifacts().size() > 0) {
             Artifact artifact = (Artifact) project.getAttachedArtifacts().get(project.getAttachedArtifacts().size()-1);
