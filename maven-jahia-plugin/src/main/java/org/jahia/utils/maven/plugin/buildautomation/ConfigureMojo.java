@@ -33,10 +33,8 @@
 
 package org.jahia.utils.maven.plugin.buildautomation;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -63,58 +61,12 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      */
     protected String externalConfigPath;
 
-    // Now for the build automation parameters
-
-    /**
-     * @parameter expression="${jahia.configure.deploymentMode}"
-     * can be clustered or standalone
-     */
-    protected String deploymentMode;
-
-
-    /**
-     * @parameter expression="${jahia.configure.configureBeforePackaging}" default-value="false"
-     * activates the configuration before the packaging of the WAR file, to allow to build a WAR file already
-     * configured.
-     */
-    protected boolean configureBeforePackaging;
-
-
     /**
      * @parameter expression="${basedir}/src/main/webapp"
      * The source directory for the webapp resource when the configureBeforePackaging setting is activated.
      */
     protected String sourceWebAppDir;
 
-
-    //The following are jahia.properties values that are not present in the skeleton but that
-    //do not require to be changed so we set them here but they can easyly be changed
-
-    /**
-     * properties file path
-     *
-     * @parameter default-value="$context/WEB-INF/var/content/filemanager/"
-     */
-    protected String jahiaFileRepositoryDiskPath;
-
-    /**
-     * properties file path
-     *
-     * @parameter default-value="Testing_release"
-     */
-    protected String release;
-    /**
-     * properties file path
-     *
-     * @parameter default-value="${jahia.configure.localIp}"
-     */
-    protected String localIp;
-    /**
-     * properties file path
-     *
-     * @parameter expression="${jahia.configure.localPort}" default-value="8080"
-     */
-    protected String localPort;
     /**
      * properties file path
      *
@@ -128,45 +80,9 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      */
     protected String jahiaVarDiskPath;
     /**
-     * properties file path
-     *
-     * @parameter default-value="$context/WEB-INF/var/new_templates/"
-     */
-    protected String jahiaNewTemplatesDiskPath;
-    /**
-     * properties file path
-     *
-     * @parameter default-value="$context/WEB-INF/var/new_webapps/"
-     */
-    protected String jahiaNewWebAppsDiskPath;
-    /**
-     * properties file path
-     *
-     * @parameter default-value="$context/WEB-INF/var/shared_templates/"
-     */
-    protected String jahiaSharedTemplatesDiskPath;
-    /**
-     * properties file path
-     *
-     * @parameter default-value="$webContext/templates/"
-     */
-    protected String jahiaTemplatesHttpPath;
-    /**
      * @parameter default-value="$context/WEB-INF/var/shared_modules/"
      */
     protected String jahiaSharedModulesDiskPath;
-    /**
-     * properties file path
-     *
-     * @parameter default-value="$webContext/engines/"
-     */
-    protected String jahiaEnginesHttpPath;
-    /**
-     * properties file path
-     *
-     * @parameter default-value="$webContext/javascript/jahia.js"
-     */
-    protected String jahiaJavaScriptHttpPath;
     /**
      * properties file path
      *
@@ -176,63 +92,9 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * properties file path
      *
-     * @parameter default-value="java\\:comp/env/jdbc/jahia"
-     */
-    protected String datasource_name;
-    /**
-     * properties file path
-     *
-     * @parameter default-value="false"
-     */
-    protected String outputCacheActivated;
-    /**
-     * properties file path
-     *
-     * @parameter default-value="-1"
-     */
-    protected String outputCacheDefaultExpirationDelay;
-    /**
-     * properties file path
-     *
-     * @parameter default-value="false"
-     */
-    protected String outputCacheExpirationOnly;
-    /**
-     * properties file path
-     *
-     * @parameter default-value="true"
-     */
-    protected String outputContainerCacheActivated;
-    /**
-     * properties file path
-     *
-     * @parameter default-value="14400"
-     */
-    protected String containerCacheDefaultExpirationDelay;
-    /**
-     * properties file path
-     *
-     * @parameter default-value="false"
-     */
-    protected String containerCacheLiveModeOnly;
-    /**
-     * properties file path
-     *
-     * @parameter default-value="false"
-     */
-    protected String esiCacheActivated;
-    /**
-     * properties file path
-     *
      * @parameter expression="${jahia.configure.webAppsDeployerService}" default-value="org.jahia.services.webapps_deployer.JahiaTomcatWebAppsDeployerBaseService"
      */
     protected String Jahia_WebApps_Deployer_Service;
-    /**
-     * properties file path
-     *
-     * @parameter default-value="mySite"
-     */
-    protected String defautSite;
     /**
      * properties file path
      *
@@ -282,28 +144,9 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * properties file path
      *
-     * @parameter default-value="DBJahiaText"
-     */
-    protected String bigtext_service;
-    /**
-     * properties file path
-     *
-     * @parameter default-value="$context/WEB-INF/var/templates/"
-     */
-    protected String jahiaFilesTemplatesDiskPath;
-    /**
-     * properties file path
-     *
      * @parameter default-value="$context/WEB-INF/var/imports/"
      */
     protected String jahiaImportsDiskPath;
-
-    /**
-     * properties file path
-     *
-     * @parameter default-value="$context/WEB-INF/var/content/bigtext/"
-     */
-    protected String jahiaFilesBigTextDiskPath;
 
     /**
      * List of nodes in the cluster.
@@ -318,12 +161,26 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     protected String clusterStartIpAddress;
 
     /**
+     * The file to get the JGroups stack configuration for Ehcache Hibernate channel from
+     *
+     * @parameter expression="${jahia.configure.clusterTCPEHCacheHibernateFile}"
+     */
+    protected String clusterTCPEHCacheHibernateFile;
+    
+    /**
      * TCP binding port for the EHCache Hibernate channel for this node
      *
      * @parameter expression="${jahia.configure.clusterTCPEHCacheHibernatePort}" default-value="7860"
      */
     protected String clusterTCPEHCacheHibernatePort;
 
+    /**
+     * The file to get the JGroups stack configuration for Ehcache Jahia channel from
+     *
+     * @parameter expression="${jahia.configure.clusterTCPEHCacheJahiaFile}"
+     */
+    protected String clusterTCPEHCacheJahiaFile;
+    
     /**
      * TCP binding port for the EHCache Jahia channel for this node
      *
@@ -391,13 +248,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     protected String overwritedb;
 
     /**
-     * properties developmentMode
-     *
-     * @parameter expression="${jahia.configure.developmentMode}" default-value="true"
-     */
-    protected String developmentMode;
-
-    /**
      * properties storeFilesInDB
      *
      * @parameter expression="${jahia.configure.storeFilesInDB}" default-value="true"
@@ -437,10 +287,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      */
     protected String contextPath;
     
-    File webappDir;
-    Properties dbProps;
-    File databaseScript;
-
     /**
      * @parameter expression="${jahia.configure.toolManagerUsername}" default-value="jahia"
      */
@@ -510,7 +356,7 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     /**
      * The list of modules to be setup in the JEE application.xml deployment descriptor.
-     * List is comma seperated, and each module has the following format:
+     * List is comma separated, and each module has the following format:
      * type:id:arg1:arg2:...
      *
      * The arguments are different for each module type. Usually it is just a relative URI to the location of a JAR
@@ -585,10 +431,18 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return JahiaGlobalConfigurator.fromString(clusterNodes);
     }
 
+    public String getClusterTCPEHCacheHibernateFile() {
+        return clusterTCPEHCacheHibernateFile;
+    }
+
     public String getClusterTCPEHCacheHibernatePort() {
         return clusterTCPEHCacheHibernatePort;
     }
 
+    public String getClusterTCPEHCacheJahiaFile() {
+        return clusterTCPEHCacheJahiaFile;
+    }
+    
     public String getClusterTCPEHCacheJahiaPort() {
         return clusterTCPEHCacheJahiaPort;
     }
@@ -823,4 +677,5 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
             this.jahiaProperties = JahiaGlobalConfigurator.fromJSON(jahiaProperties);
         }
     }
+
 }
