@@ -9,7 +9,7 @@ import org.apache.maven.plugin.logging.Log;
  *         Date: May 11, 2010
  *         Time: 11:29:05 AM
  */
-public class MojoLogger implements AbstractLogger, org.jahia.configuration.logging.AbstractLogger {
+public class MojoLogger implements AbstractLogger {
 
     Log mojoLog;
 

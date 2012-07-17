@@ -48,6 +48,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.plexus.util.SelectorUtils;
+import org.jahia.utils.maven.plugin.deployers.ServerDeploymentFactory;
+import org.jahia.utils.maven.plugin.deployers.ServerDeploymentInterface;
 
 import java.util.*;
 import java.util.zip.ZipInputStream;
@@ -61,7 +63,6 @@ import com.sun.jdi.connect.IllegalConnectorArgumentsException;
 import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.Bootstrap;
 import com.sun.jdi.ReferenceType;
-import org.jahia.configuration.deployers.ServerDeploymentFactory;
 
 /**
  * Jahia server deployment mojo.
@@ -105,7 +106,7 @@ public class DeployMojo extends AbstractManagementMojo {
      */
     private String address;
 
-    protected ServerDeployer serverDeployer;
+    protected ServerDeploymentInterface serverDeployer;
 
     /**
      * @parameter expression="${jahia.deploy.deployTests}" default-value="false"
@@ -124,7 +125,7 @@ public class DeployMojo extends AbstractManagementMojo {
 
     public void doValidate() throws MojoExecutionException, MojoFailureException {
         try {
-            serverDeployer = getProjectStructureVersion() == 2 ? new ServerDeployer(ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion)) : new ServerDeployer(org.jahia.utils.maven.plugin.deployers.ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion));
+            serverDeployer = ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion);
         } catch (Exception e) {
             throw new MojoExecutionException("Error while validating deployers", e);
         }
@@ -151,11 +152,7 @@ public class DeployMojo extends AbstractManagementMojo {
                     || project.getGroupId().equals("org.jahia.templates")
                     || (deployTests && project.getGroupId().equals("org.jahia.test"))
                     || project.getGroupId().endsWith(".jahia.modules")) {
-                if (getProjectStructureVersion() == 2) {
-                	deployModuleProject();
-                } else {
-                	deployTemplateProject();
-                }
+              	deployTemplateProject();
             } else if (project.getGroupId().equals("org.jahia.test") && !deployTests) {
                 getLog().info(
                         "Deployment of test projects "

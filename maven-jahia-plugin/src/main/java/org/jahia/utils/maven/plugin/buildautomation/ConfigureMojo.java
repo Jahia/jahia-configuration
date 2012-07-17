@@ -34,16 +34,18 @@
 package org.jahia.utils.maven.plugin.buildautomation;
 
 import java.io.File;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.jahia.configuration.configurators.JahiaConfigInterface;
+import org.codehaus.plexus.util.StringUtils;
 import org.jahia.utils.maven.plugin.AbstractManagementMojo;
 import org.jahia.utils.maven.plugin.MojoLogger;
-import org.jahia.configuration.configurators.JahiaGlobalConfigurator;
+import org.jahia.utils.maven.plugin.configurators.JahiaConfigInterface;
+import org.jahia.utils.maven.plugin.configurators.JahiaGlobalConfigurator;
 
 /**
  * Implementation of the Jahia's configuration Mojo. 
@@ -55,7 +57,7 @@ import org.jahia.configuration.configurators.JahiaGlobalConfigurator;
  * @requiresDependencyResolution runtime
  * @requiresProject false
  */
-public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfigInterface, org.jahia.utils.maven.plugin.configurators.JahiaConfigInterface {
+public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfigInterface {
 
     /**
      * @parameter expression="${jahia.configure.externalConfigPath}"
@@ -563,11 +565,7 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
-        	if (getProjectStructureVersion() == 2) {
-				new JahiaGlobalConfigurator(new MojoLogger(getLog()), this).execute();
-        	} else {
-				new org.jahia.utils.maven.plugin.configurators.JahiaGlobalConfigurator(new MojoLogger(getLog()), this).execute();
-        	}
+            new JahiaGlobalConfigurator(new MojoLogger(getLog()), this).execute();
         } catch (Exception e) {
             throw new MojoExecutionException("Error while configuring Jahia", e);
         }
@@ -610,7 +608,7 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     }
 
     public List<String> getClusterNodes() {
-        return JahiaGlobalConfigurator.fromString(clusterNodes);
+        return fromString(clusterNodes);
     }
 
     public String getClusterTCPEHCacheHibernatePort() {
@@ -622,11 +620,11 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     }
 
     public List<String> getClusterTCPEHCacheHibernateHosts() {
-        return JahiaGlobalConfigurator.fromString(clusterTCPEHCacheHibernateHosts);
+        return fromString(clusterTCPEHCacheHibernateHosts);
     }
 
     public List<String> getClusterTCPEHCacheJahiaHosts() {
-        return JahiaGlobalConfigurator.fromString(clusterTCPEHCacheJahiaHosts);
+        return fromString(clusterTCPEHCacheJahiaHosts);
     }
 
     public boolean isConfigureBeforePackaging() {
@@ -888,18 +886,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return userLdapProviderProperties;
     }
 
-    public void setGroupLdapProviderProperties(String groupLdapProviderProperties) {
-        if (groupLdapProviderProperties != null) {
-            this.groupLdapProviderProperties = JahiaGlobalConfigurator.fromJSON(groupLdapProviderProperties);
-        }
-    }
-
-    public void setUserLdapProviderProperties(String userLdapProviderProperties) {
-        if (userLdapProviderProperties != null) {
-            this.userLdapProviderProperties = JahiaGlobalConfigurator.fromJSON(userLdapProviderProperties);
-        }
-    }
-    
     public String getOperatingMode() {
         return operatingMode;
     }
@@ -944,15 +930,14 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return jahiaProperties;
     }
 
-    public void setJahiaAdvancedProperties(String jahiaAdvancedProperties) {
-        if (jahiaAdvancedProperties != null) {
-            this.jahiaAdvancedProperties = JahiaGlobalConfigurator.fromJSON(jahiaAdvancedProperties);
+    public static List<String> fromString(String value) {
+        List<String> valueList = new LinkedList<String>();
+        if (value != null && value.length() > 0) {
+            for (String singleValue : StringUtils.split(value, " ,;:")) {
+                valueList.add(singleValue.trim());
+            }
         }
+        return valueList;
     }
-
-    public void setJahiaProperties(String jahiaProperties) {
-        if (jahiaProperties != null) {
-            this.jahiaProperties = JahiaGlobalConfigurator.fromJSON(jahiaProperties);
-        }
-    }
+    
 }

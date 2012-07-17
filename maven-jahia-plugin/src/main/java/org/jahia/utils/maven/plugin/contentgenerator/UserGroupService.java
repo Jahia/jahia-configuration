@@ -3,7 +3,7 @@ package org.jahia.utils.maven.plugin.contentgenerator;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
-import org.jahia.configuration.configurators.JahiaGlobalConfigurator;
+import org.jahia.utils.maven.plugin.configurators.JahiaGlobalConfigurator;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.GroupBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.UserBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
@@ -32,7 +32,7 @@ public class UserGroupService {
         Element usersNode = new Element("users");
         contentNode.addContent(usersNode);
 
-        UserBO rootUser = new UserBO("root", JahiaGlobalConfigurator.encryptPassword("root"), null);
+        UserBO rootUser = new UserBO("root", new JahiaGlobalConfigurator(null, null).encryptPassword("root"), null);
         Element rootUserNode = rootUser.getJcrXml();
         usersNode.addContent(rootUserNode);
 
@@ -120,7 +120,7 @@ public class UserGroupService {
 
             String username = "user" + userid;
             String pathJcr = getPathForUsername(username);
-            UserBO user = new UserBO(username, JahiaGlobalConfigurator.encryptPassword(username), pathJcr);
+            UserBO user = new UserBO(username, new JahiaGlobalConfigurator(null, null).encryptPassword(username), pathJcr);
             users.add(user);
         }
         return users;

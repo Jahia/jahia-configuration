@@ -41,7 +41,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.jahia.configuration.modules.ModuleDeployer;
 
 /**
  * Mojo for copying Jahia modules and pre-packaged sites into Jahia WAR file.
@@ -53,44 +52,20 @@ import org.jahia.configuration.modules.ModuleDeployer;
  */
 public class CopyTemplatesMojo extends AbstractManagementMojo {
 
-    /**
-     * @parameter default-value="false"
-     */
-    protected boolean deployTests;
-
-    /**
-     * @parameter default-value="true"
-     */
-    protected boolean deployModules;
-    
-    /**
-     * @parameter default-value="false"
-     */
-    protected boolean deployToServer;
-
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         Set dependencyFiles = project.getDependencyArtifacts();
         // @todo as we are working around what seems to be a Maven or JVM bug, maybe we should rebuild the list with
         // just the elements we need instead of the hack that we have used at the end of this method.
         Set<Artifact> dependenciesToRemove = new HashSet<Artifact>();
-        File target;
-        if(deployToServer) {
-            try {
-                target = new File(getWebappDeploymentDir(), (new StringBuilder()).append("WEB-INF/var/shared_").append(getProjectStructureVersion() != 2 ? "templates" : "modules").toString());
-            } catch(Exception e) {
-                throw new MojoExecutionException("Cannot deploy module", e);
-            }
-        } else {
-            target = new File(output, (new StringBuilder()).append("jahia/WEB-INF/var/shared_").append(getProjectStructureVersion() != 2 ? "templates" : "modules").toString());
-        }
 
-        ModuleDeployer deployer = new ModuleDeployer(target, new MojoLogger(getLog()));
         for (Artifact dependencyFile : (Iterable<Artifact>) dependencyFiles) {
             File file = dependencyFile.getFile();
-            if (deployModules && (dependencyFile.getGroupId().equals("org.jahia.modules") || dependencyFile.getGroupId().equals("org.jahia.templates") || dependencyFile.getGroupId().endsWith(".jahia.modules")) || deployTests && dependencyFile.getGroupId().equals("org.jahia.test")) {
+            if (dependencyFile.getGroupId().equals("org.jahia.templates")) {
                 try {
-                    deployer.deployModule(file);
+                    FileUtils.copyFileToDirectory(dependencyFile.getFile(), new File(output, "jahia/WEB-INF/var/shared_templates"));
+                    getLog().info("Copy templates jar " + dependencyFile.getFile().getName() + " to shared templates");
                     dependenciesToRemove.add(dependencyFile);
                 } catch (IOException e) {
                     getLog().error("Error when copying file " + file, e);
