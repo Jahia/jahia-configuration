@@ -86,6 +86,13 @@ public class JahiaAdvancedPropertiesConfigurator extends AbstractConfigurator {
         properties.setProperty("cluster.tcp.ehcache.hibernate.port", cfg.getClusterTCPEHCacheHibernatePort());
         properties.setProperty("cluster.tcp.ehcache.jahia.port", cfg.getClusterTCPEHCacheJahiaPort());
         
+        if (StringUtils.isNotEmpty(cfg.getClusterTCPEHCacheHibernateFile()) && properties.getProperty("cluster.tcp.ehcache.hibernate.file") != null) {
+            properties.setProperty("cluster.tcp.ehcache.hibernate.file", cfg.getClusterTCPEHCacheHibernateFile());    
+        }
+        if (StringUtils.isNotEmpty(cfg.getClusterTCPEHCacheJahiaFile()) && properties.getProperty("cluster.tcp.ehcache.jahia.file") != null) {
+            properties.setProperty("cluster.tcp.ehcache.jahia.file", cfg.getClusterTCPEHCacheJahiaFile());    
+        }
+        
         List<String> hibernateHosts = getInitialHosts(cfg.getClusterTCPEHCacheHibernateHosts(), cfg.getClusterNodes(), cfg.getClusterTCPEHCacheHibernatePort());
         List<String> jahiaHosts = getInitialHosts(cfg.getClusterTCPEHCacheJahiaHosts(), cfg.getClusterNodes(), cfg.getClusterTCPEHCacheJahiaPort());
         if (hibernateHosts.size() != jahiaHosts.size()) {

@@ -20,13 +20,17 @@ public interface JahiaConfigInterface {
 
     String getClusterStartIpAddress();
 
+    String getClusterTCPEHCacheHibernateFile();
+    
+    List<String> getClusterTCPEHCacheHibernateHosts();
+    
     String getClusterTCPEHCacheHibernatePort();
 
-    List<String> getClusterTCPEHCacheHibernateHosts();
-
-    String getClusterTCPEHCacheJahiaPort();
+    String getClusterTCPEHCacheJahiaFile();
 
     List<String> getClusterTCPEHCacheJahiaHosts();
+
+    String getClusterTCPEHCacheJahiaPort();
 
     /**
      * Returns the Web application context path Jahia is deployed to. Is empty
