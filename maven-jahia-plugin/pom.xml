@@ -23,12 +23,12 @@
         <dependency>
             <groupId>org.jahia.configuration</groupId>
             <artifactId>deployers</artifactId>
-            <version>2.53-20120717.152731-2</version>
+            <version>2.7-20120717.142040-1</version>
         </dependency>
         <dependency>
             <groupId>org.jahia.configuration</groupId>
             <artifactId>configurators</artifactId>
-            <version>2.53-20120717.144047-1</version>
+            <version>2.53-20120717.152731-2</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
