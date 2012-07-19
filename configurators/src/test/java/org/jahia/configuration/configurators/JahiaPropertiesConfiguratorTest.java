@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.FileInputStream;
 import java.util.Properties;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs.FileSystemManager;
 import org.apache.commons.vfs.VFS;
 import org.jahia.configuration.configurators.JahiaPropertiesConfigurator;
@@ -36,11 +37,18 @@ public class JahiaPropertiesConfiguratorTest extends AbstractConfiguratorTestCas
 
         SLF4JLogger logger = new SLF4JLogger(LoggerFactory.getLogger(JahiaPropertiesConfiguratorTest.class));
 
+        jahiaPropertiesConfigFile = new VFSConfigFile(fsManager.resolveFile("jar:" + jahiaDefaultConfigJARURL.toExternalForm()), "org/jahia/defaults/config/properties/jahia.advanced.properties");
+        targetJahiaPropertiesFile = jahiaDefaultConfigFileParentPath + "jahia.advanced.properties";
         JahiaPropertiesConfigurator websphereOracleConfigurator = new JahiaPropertiesConfigurator(oracleDBProperties, websphereOracleConfigBean);
         websphereOracleConfigurator.updateConfiguration(jahiaPropertiesConfigFile, targetJahiaPropertiesFile);
         new JahiaAdvancedPropertiesConfigurator(logger, websphereOracleConfigBean).updateConfiguration(jahiaPropertiesConfigFile, targetJahiaPropertiesFile);
         Properties websphereOracleProperties = new Properties();
-        websphereOracleProperties.load(new FileInputStream(jahiaDefaultConfigFileParentPath + "jahia.properties"));
+        FileInputStream inStream = new FileInputStream(jahiaDefaultConfigFileParentPath + "jahia.advanced.properties");
+        try {
+            websphereOracleProperties.load(inStream);
+        } finally {
+            IOUtils.closeQuietly(inStream);
+        }
         assertEquals("was", websphereOracleProperties.getProperty("server"));
         assertEquals("4", websphereOracleProperties.getProperty("cluster.tcp.num_initial_members"));
         assertEquals("1.2.3.4[7860],2.3.4.5[8860],3.4.5.6[9860],4.5.6.7[10860]", websphereOracleProperties.getProperty("cluster.tcp.ehcache.hibernate.nodes.ip_address"));
@@ -55,7 +63,12 @@ public class JahiaPropertiesConfiguratorTest extends AbstractConfiguratorTestCas
         tomcatMySQLConfigurator.updateConfiguration(new VFSConfigFile(fsManager, targetJahiaPropertiesFile), secondTargetJahiaPropertiesFile);
         new JahiaAdvancedPropertiesConfigurator(logger, tomcatMySQLConfigBean).updateConfiguration(new VFSConfigFile(fsManager, secondTargetJahiaPropertiesFile), secondTargetJahiaPropertiesFile);
         Properties tomcatMySQLProperties = new Properties();
-        tomcatMySQLProperties.load(new FileInputStream(secondTargetJahiaPropertiesFile));
+        inStream = new FileInputStream(secondTargetJahiaPropertiesFile);
+        try {
+            tomcatMySQLProperties.load(inStream);
+        } finally {
+            IOUtils.closeQuietly(inStream);
+        }
         assertEquals("tomcat", tomcatMySQLProperties.getProperty("server"));
     }
 }
