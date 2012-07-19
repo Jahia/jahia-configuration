@@ -57,12 +57,12 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String processingServer = "true";
     private String jahiaImportsDiskPath = "$context/WEB-INF/var/imports/";
     private List<String> clusterNodes = new ArrayList<String>();
+    private String clusterTCPBindAddress = null;
+    private String clusterTCPBindPort = "7870";
     private String clusterTCPEHCacheHibernatePort = "7860";
     private String clusterTCPEHCacheJahiaPort = "7870";
     private List<String> clusterTCPEHCacheHibernateHosts = new ArrayList<String>();
     private List<String> clusterTCPEHCacheJahiaHosts = new ArrayList<String>();
-    private String clusterTCPEHCacheHibernateFile = null;
-    private String clusterTCPEHCacheJahiaFile = null;
     private String db_script = "hypersonic.script";
     private String operatingMode = "development";
     private String targetServerType = "tomcat";
@@ -629,11 +629,20 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.jahiaProperties = jahiaProperties;
     }
 
-    public String getClusterTCPEHCacheHibernateFile() {
-        return clusterTCPEHCacheHibernateFile;
+    public String getClusterTCPBindAddress() {
+        return clusterTCPBindAddress;
     }
 
-    public String getClusterTCPEHCacheJahiaFile() {
-        return clusterTCPEHCacheJahiaFile;
+    public String getClusterTCPBindPort() {
+        return clusterTCPBindPort;
     }
+
+    public void setClusterTCPBindAddress(String clusterTCPBindAddress) {
+        this.clusterTCPBindAddress = clusterTCPBindAddress;
+    }
+
+    public void setClusterTCPBindPort(String clusterTCPBindPort) {
+        this.clusterTCPBindPort = clusterTCPBindPort;
+    }
+
 }

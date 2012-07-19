@@ -161,13 +161,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     protected String clusterStartIpAddress;
 
     /**
-     * The file to get the JGroups stack configuration for Ehcache Hibernate channel from
-     *
-     * @parameter expression="${jahia.configure.clusterTCPEHCacheHibernateFile}"
-     */
-    protected String clusterTCPEHCacheHibernateFile;
-    
-    /**
      * TCP binding port for the EHCache Hibernate channel for this node
      *
      * @parameter expression="${jahia.configure.clusterTCPEHCacheHibernatePort}" default-value="7860"
@@ -175,11 +168,18 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     protected String clusterTCPEHCacheHibernatePort;
 
     /**
-     * The file to get the JGroups stack configuration for Ehcache Jahia channel from
+     * The TCP bind address to start server socket on
      *
-     * @parameter expression="${jahia.configure.clusterTCPEHCacheJahiaFile}"
+     * @parameter expression="${jahia.configure.clusterTCPBindAddress}"
      */
-    protected String clusterTCPEHCacheJahiaFile;
+    protected String clusterTCPBindAddress;
+    
+    /**
+     * The TCP port to bind to
+     *
+     * @parameter expression="${jahia.configure.clusterTCPBindPort}"
+     */
+    protected String clusterTCPBindPort;
     
     /**
      * TCP binding port for the EHCache Jahia channel for this node
@@ -431,20 +431,20 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return JahiaGlobalConfigurator.fromString(clusterNodes);
     }
 
-    public String getClusterTCPEHCacheHibernateFile() {
-        return clusterTCPEHCacheHibernateFile;
-    }
-
     public String getClusterTCPEHCacheHibernatePort() {
         return clusterTCPEHCacheHibernatePort;
     }
 
-    public String getClusterTCPEHCacheJahiaFile() {
-        return clusterTCPEHCacheJahiaFile;
-    }
-    
     public String getClusterTCPEHCacheJahiaPort() {
         return clusterTCPEHCacheJahiaPort;
+    }
+
+    public String getClusterTCPBindAddress() {
+        return clusterTCPBindAddress;
+    }
+
+    public String getClusterTCPBindPort() {
+        return clusterTCPBindPort;
     }
 
     public List<String> getClusterTCPEHCacheHibernateHosts() {

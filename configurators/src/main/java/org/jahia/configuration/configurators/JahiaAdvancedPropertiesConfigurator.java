@@ -35,6 +35,7 @@ package org.jahia.configuration.configurators;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -78,31 +79,8 @@ public class JahiaAdvancedPropertiesConfigurator extends AbstractConfigurator {
         JahiaConfigInterface cfg = jahiaConfigInterface;
 
         properties.setProperty("processingServer", cfg.getProcessingServer());
-        
-        properties.setProperty("cluster.activated", cfg.getCluster_activated());
-        properties.setProperty("cluster.node.serverId", cfg.getCluster_node_serverId());
-        properties.setProperty("cluster.tcp.start.ip_address", cfg.getClusterStartIpAddress());
 
-        properties.setProperty("cluster.tcp.ehcache.hibernate.port", cfg.getClusterTCPEHCacheHibernatePort());
-        properties.setProperty("cluster.tcp.ehcache.jahia.port", cfg.getClusterTCPEHCacheJahiaPort());
-        
-        if (StringUtils.isNotEmpty(cfg.getClusterTCPEHCacheHibernateFile()) && properties.getProperty("cluster.tcp.ehcache.hibernate.file") != null) {
-            properties.setProperty("cluster.tcp.ehcache.hibernate.file", cfg.getClusterTCPEHCacheHibernateFile());    
-        }
-        if (StringUtils.isNotEmpty(cfg.getClusterTCPEHCacheJahiaFile()) && properties.getProperty("cluster.tcp.ehcache.jahia.file") != null) {
-            properties.setProperty("cluster.tcp.ehcache.jahia.file", cfg.getClusterTCPEHCacheJahiaFile());    
-        }
-        
-        List<String> hibernateHosts = getInitialHosts(cfg.getClusterTCPEHCacheHibernateHosts(), cfg.getClusterNodes(), cfg.getClusterTCPEHCacheHibernatePort());
-        List<String> jahiaHosts = getInitialHosts(cfg.getClusterTCPEHCacheJahiaHosts(), cfg.getClusterNodes(), cfg.getClusterTCPEHCacheJahiaPort());
-        if (hibernateHosts.size() != jahiaHosts.size()) {
-            logger.error("ERROR: number of initial hosts for Hibernate and Jahia"
-                    + " caches do not match. There is an issue in the provided configuration!");
-        }
-        properties.setProperty("cluster.tcp.ehcache.hibernate.nodes.ip_address", StringUtils.join(hibernateHosts.iterator(), ","));
-        properties.setProperty("cluster.tcp.ehcache.jahia.nodes.ip_address", StringUtils.join(jahiaHosts.iterator(), ","));
-
-        properties.setProperty("cluster.tcp.num_initial_members",String.valueOf(hibernateHosts.size()));
+        setClusterProperties();
         
         if (jahiaConfigInterface.getJahiaAdvancedProperties() != null) {
             for (Map.Entry<String, String> entry : jahiaConfigInterface.getJahiaAdvancedProperties().entrySet()) {
@@ -111,6 +89,49 @@ public class JahiaAdvancedPropertiesConfigurator extends AbstractConfigurator {
         }
 
         properties.storeProperties(sourceJahiaPath.getInputStream(), targetJahiaPath);
+    }
+
+    private void setClusterProperties() {
+        JahiaConfigInterface cfg = jahiaConfigInterface;
+        
+        properties.setProperty("cluster.activated", cfg.getCluster_activated());
+        properties.setProperty("cluster.node.serverId", cfg.getCluster_node_serverId());
+        
+        // Jahia 6.5/6.6 settings
+        if (properties.getProperty("cluster.tcp.start.ip_address") != null) {
+            properties.setProperty("cluster.tcp.start.ip_address", cfg.getClusterStartIpAddress());
+        }
+        if (properties.getProperty("cluster.tcp.ehcache.jahia.port") != null) {
+            properties.setProperty("cluster.tcp.ehcache.jahia.port", cfg.getClusterTCPEHCacheJahiaPort());    
+        }
+        List<String> jahiaHosts = Collections.emptyList();
+        if (properties.getProperty("cluster.tcp.ehcache.jahia.nodes.ip_address") != null) {
+            jahiaHosts = getInitialHosts(cfg.getClusterTCPEHCacheJahiaHosts(), cfg.getClusterNodes(), cfg.getClusterTCPEHCacheJahiaPort());
+            properties.setProperty("cluster.tcp.ehcache.jahia.nodes.ip_address", StringUtils.join(jahiaHosts.iterator(), ","));
+        }
+        if (properties.getProperty("cluster.tcp.ehcache.hibernate.port") != null) {
+            properties.setProperty("cluster.tcp.ehcache.hibernate.port", cfg.getClusterTCPEHCacheHibernatePort());
+        }
+        if (properties.getProperty("cluster.tcp.ehcache.hibernate.nodes.ip_address") != null) {
+            List<String> hibernateHosts = getInitialHosts(cfg.getClusterTCPEHCacheHibernateHosts(), cfg.getClusterNodes(), cfg.getClusterTCPEHCacheHibernatePort());
+            if (hibernateHosts.size() != jahiaHosts.size()) {
+                logger.error("ERROR: number of initial hosts for Hibernate and Jahia"
+                        + " caches do not match. There is an issue in the provided configuration!");
+            }
+            properties.setProperty("cluster.tcp.ehcache.hibernate.nodes.ip_address", StringUtils.join(hibernateHosts.iterator(), ","));
+        }
+        
+        if (properties.getProperty("cluster.tcp.num_initial_members") != null) {
+            properties.setProperty("cluster.tcp.num_initial_members",String.valueOf(jahiaHosts.size()));
+        }
+        
+        // Jahia 6.7 settings
+        if (properties.getProperty("cluster.tcp.bindAddress") != null && StringUtils.isNotBlank(cfg.getClusterTCPBindAddress())) {
+            properties.setProperty("cluster.tcp.bindAddress", cfg.getClusterTCPBindAddress());
+        }
+        if (properties.getProperty("cluster.tcp.bindPort") != null && StringUtils.isNotBlank(cfg.getClusterTCPBindPort())) {
+            properties.setProperty("cluster.tcp.bindPort", cfg.getClusterTCPBindPort());
+        }
     }
 
     private static List<String> getInitialHosts(List<String> hosts,
@@ -132,5 +153,5 @@ public class JahiaAdvancedPropertiesConfigurator extends AbstractConfigurator {
         }
         return finalHosts;
     }
-
+    
 }
