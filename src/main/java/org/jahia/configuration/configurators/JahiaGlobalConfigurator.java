@@ -179,12 +179,10 @@ public class JahiaGlobalConfigurator {
         }
 
         String targetConfigPath = webappPath + "/WEB-INF/etc/config";
-        String targetSpringPath = webappPath + "/WEB-INF/etc/spring";
         String jahiaPropertiesFileName = "jahia.properties";
         String jahiaAdvancedPropertiesFileName = "jahia.advanced.properties";
         if (externalizedConfigTempPath != null) {
             targetConfigPath = externalizedConfigTempPath;
-            targetSpringPath = externalizedConfigTempPath;
             if (!StringUtils.isBlank(jahiaConfigInterface.getExternalizedConfigClassifier())) {
                 jahiaPropertiesFileName = "jahia." + jahiaConfigInterface.getExternalizedConfigClassifier() + ".properties";
                 jahiaAdvancedPropertiesFileName = "jahia.advanced." + jahiaConfigInterface.getExternalizedConfigClassifier() + ".properties";
