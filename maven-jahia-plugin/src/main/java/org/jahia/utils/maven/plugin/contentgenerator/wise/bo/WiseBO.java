@@ -28,6 +28,10 @@ public class WiseBO extends SiteBO {
 			wiseElement.setAttribute("mixinTypes", "jmix:accessControlled", ContentGeneratorCst.NS_JCR);
 			wiseElement.setAttribute("primaryType", "jnt:virtualsite", ContentGeneratorCst.NS_JCR);
 			
+			Element filesElement = new Element("files");
+			filesElement.setAttribute("primaryType", "jnt:folder", ContentGeneratorCst.NS_JCR);
+			filesElement.setAttribute("publicationStatus", "3", ContentGeneratorCst.NS_J);
+						
 			if (CollectionUtils.isNotEmpty(docspaces)) {
 				Element docspacesElement = new Element("docspaces");
 				docspacesElement.setAttribute("mixinTypes", "jmix:workflowRulesable", ContentGeneratorCst.NS_JCR);
@@ -37,8 +41,9 @@ public class WiseBO extends SiteBO {
 					DocspaceBO docspace = iterator.next();
 					docspacesElement.addContent(docspace.getElement());
 				}
-				wiseElement.addContent(docspacesElement);
+				filesElement.addContent(docspacesElement);
 			}
+			wiseElement.addContent(filesElement);
 		}
 		return wiseElement;
 	}
