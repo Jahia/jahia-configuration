@@ -2,8 +2,8 @@ package org.jahia.utils.maven.plugin.contentgenerator.wise;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
-import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.NoteBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.TaskBO;
 
 public class TaskService {
@@ -20,11 +20,21 @@ public class TaskService {
 		return instance;
 	}
 	
-	public List<TaskBO> generateTasks(int nbTasks) {
+	public List<TaskBO> generateTasks(int nbTasks, Integer nbUsers) {
 		List<TaskBO> tasks = new ArrayList<TaskBO>();
 
+		int t = nbTasks;
+		int u = nbUsers;
+		
+		String assignee = "root";
+		int nbUser;
+		Random rand = new Random();
 		for (int i = 0; i < nbTasks; i++) {
-			tasks.add(new TaskBO("Task " + i, "root", "New task " + i));
+			if (nbUsers != null && (nbUsers.compareTo(0) > 0)) {
+				nbUser = rand.nextInt(nbUsers - 1);
+				assignee = "user" + nbUser;
+			}
+			tasks.add(new TaskBO("Task " + i, assignee, "New task " + i));
 		}
 		return tasks;
 	}
