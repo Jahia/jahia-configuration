@@ -434,7 +434,10 @@ public class DeployMojo extends AbstractManagementMojo {
         Artifact artifact = dependencyNode.getArtifact();
         File webappDir = getWarSarRarDeploymentDir(artifact);
 
-        getLog().info("Update " + artifact.getType() +
+        getLog().info(
+                "Deploying artifact " + artifact.getGroupId() + ":" + artifact.getArtifactId() + ":"
+                        + artifact.getVersion());
+        getLog().info("Updating " + artifact.getType() +
                 " resources for " + targetServerType +
                 " v" + targetServerVersion +
                 " in directory " + webappDir);
