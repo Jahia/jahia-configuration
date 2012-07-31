@@ -340,6 +340,7 @@ public class DeployMojo extends AbstractManagementMojo {
                             artifact.getArtifactId().equals("jahia-pack-war") ||
                             artifact.getArtifactId().equals("jahia-dm-package") ||
                             artifact.getArtifactId().equals("jahia-ee-dm-package") ||
+                            artifact.getArtifactId().equals("jahia-docspace-package") ||
                             artifact.getArtifactId().equals("jahia-jboss-config")) {
                         deployWarRarSarDependency(dependencyNode);
                     } else if (artifact.getArtifactId().equals("shared-libraries")) {
