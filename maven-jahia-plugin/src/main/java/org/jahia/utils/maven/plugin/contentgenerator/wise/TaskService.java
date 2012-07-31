@@ -22,9 +22,6 @@ public class TaskService {
 	
 	public List<TaskBO> generateTasks(int nbTasks, Integer nbUsers) {
 		List<TaskBO> tasks = new ArrayList<TaskBO>();
-
-		int t = nbTasks;
-		int u = nbUsers;
 		
 		String assignee = "root";
 		int nbUser;
