@@ -3,7 +3,6 @@ package org.jahia.utils.maven.plugin.contentgenerator.wise;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -47,7 +46,6 @@ public class WiseService {
 		SiteService siteService = new SiteService();
 		
 		List<File> globalFilesToZip = new ArrayList<File>();
-		List<File> wiseFilesToZip = new ArrayList<File>();
 		
 		// Clean output directory
 		File outputDirectory = new File(wiseExport.getOutputDir());
