@@ -24,14 +24,19 @@ public class TaskService {
 		List<TaskBO> tasks = new ArrayList<TaskBO>();
 		
 		String assignee = "root";
-		int nbUser;
+		String creator = "root";
+		int idAssignee;
+		int idCreator;
 		Random rand = new Random();
 		for (int i = 0; i < nbTasks; i++) {
 			if (nbUsers != null && (nbUsers.compareTo(0) > 0)) {
-				nbUser = rand.nextInt(nbUsers - 1);
-				assignee = "user" + nbUser;
+				idAssignee = rand.nextInt(nbUsers - 1);
+				assignee = "user" + idAssignee;
+				
+				idCreator = rand.nextInt(nbUsers - 1);
+				creator = "user" + idCreator;
 			}
-			tasks.add(new TaskBO("Task " + i, assignee, "New task " + i));
+			tasks.add(new TaskBO("Task " + i, creator, assignee, "New task " + i));
 		}
 		return tasks;
 	}

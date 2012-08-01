@@ -10,6 +10,8 @@ public class TaskBO {
 	
 	private String title = "New task";
 	
+	private String creator = "root";
+	
 	private String assigneeUserKey = "root";
 	
 	private String description = "This task has been created by the Content generator";
@@ -22,8 +24,9 @@ public class TaskBO {
 	
 	private String dueDate = "2013-07-05T00:00:00.000+02:00";
 		
-	public TaskBO(String title, String assigneeUserKey, String description) {
+	public TaskBO(String title, String creator, String assigneeUserKey, String description) {
 		this.title = title;
+		this.creator = creator;
 		this.assigneeUserKey = assigneeUserKey;
 		this.description = description;
 	}
@@ -31,8 +34,8 @@ public class TaskBO {
 	public Element getElement() {
 		if (task == null) {
 			task = new Element(name);
-			task.setAttribute("assigneeUserKey", assigneeUserKey);
 			task.setAttribute("description", description);
+			task.setAttribute("createdBy", creator, ContentGeneratorCst.NS_J);
 			task.setAttribute("assigneeUserKey", assigneeUserKey);
 			task.setAttribute("dueDate", dueDate);
 			task.setAttribute("originWS", "default", ContentGeneratorCst.NS_J);
