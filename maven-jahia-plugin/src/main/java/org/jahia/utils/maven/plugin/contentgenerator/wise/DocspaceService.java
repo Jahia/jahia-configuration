@@ -40,8 +40,7 @@ private static DocspaceService instance;
 		for (int i = 1; i <= wiseExport.getNbDocspaces(); i++) {
 			String docspaceName = "docspace" + i;
 						
-			List<FolderBO> folders = fileAndFolderService.generateFolders(wiseExport.getFoldersDepth(), wiseExport.getNbFoldersPerLevel(), wiseExport.getNbFilesPerFolder(), 
-					wiseExport.getFileNames(), wiseExport.getOutputDir() + "/wise", wiseExport.getWiseInstanceKey(), docspaceName, wiseExport.getFilesDirectory());
+			List<FolderBO> folders = fileAndFolderService.generateFolders(docspaceName, wiseExport);
 					
 			docspaces.add(new DocspaceBO(docspaceName, polls, notes, tasks, folders));
 		}

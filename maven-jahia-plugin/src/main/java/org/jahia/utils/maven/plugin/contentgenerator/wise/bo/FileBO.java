@@ -9,10 +9,13 @@ public class FileBO {
 	
 	private String fileName;
 	
+	private String creator;
+	
 	private String documentStatus = "Draft";
 
-	public FileBO(String fileName) {
+	public FileBO(String fileName, String creator) {
 		this.fileName = fileName;
+		this.creator = creator;
 	}
 	
 	public String getFileName() {
@@ -24,7 +27,8 @@ public class FileBO {
 			fileElement = new Element(this.fileName);
 			fileElement.setAttribute("mixinTypes", "docmix:docspaceDocument jmix:accessControlled jmix:document", ContentGeneratorCst.NS_JCR);
 			fileElement.setAttribute("primaryType", "jnt:file", ContentGeneratorCst.NS_JCR);
-			fileElement.setAttribute("documentStatus", "documentStatus");
+			fileElement.setAttribute("createdBy", creator, ContentGeneratorCst.NS_J);
+			fileElement.setAttribute("documentStatus", documentStatus);
 		}
 		return fileElement;
 	}

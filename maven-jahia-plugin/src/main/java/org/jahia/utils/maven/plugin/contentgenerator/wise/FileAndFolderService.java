@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.io.FileUtils;
-
+import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FolderBO;
 
@@ -29,11 +29,19 @@ public class FileAndFolderService {
 		return instance;
 	}
 
-	public List<FolderBO> generateFolders(Integer foldersDepth,  Integer nbFoldersPerLevel, Integer filesPerFolder, List<String> fileNames, String outputDirPath, String wiseInstanceName, String docpaceKey,  File filesDirectory) {
-		return generateFolders(1, nbFoldersPerLevel, foldersDepth, filesPerFolder, fileNames, initializeContentFolder(outputDirPath, wiseInstanceName, docpaceKey), filesDirectory);
+	public List<FolderBO> generateFolders(String docspaceName, ExportBO wiseExport) {
+		String currentPath = initializeContentFolder(wiseExport.getOutputDir() + "/wise", wiseExport.getWiseInstanceKey(), docspaceName);
+		return generateFolders(1, currentPath, wiseExport);
 	}
 	
-	private List<FolderBO> generateFolders(Integer currentDepth, Integer nbFoldersPerLevel, Integer foldersDepth, Integer filesPerFolder, List<String> fileNames, String currentPath, File filesDirectory) {
+	private List<FolderBO> generateFolders(Integer currentDepth, String currentPath, ExportBO wiseExport) {
+		
+		Integer nbFoldersPerLevel = wiseExport.getNbFoldersPerLevel();
+		Integer foldersDepth = wiseExport.getFoldersDepth();
+		Integer filesPerFolder  = wiseExport.getNbFilesPerFolder();
+		List<String> fileNames = wiseExport.getFileNames();
+		File filesDirectory = wiseExport.getFilesDirectory();
+		
 		String depthName;
 		
 		switch (currentDepth) {
@@ -72,9 +80,9 @@ public class FileAndFolderService {
 		List<FolderBO> folders = new ArrayList<FolderBO>();
 		for (int i = 0; i < nbFoldersPerLevel; i++) {
 			List<FolderBO> subFolders = null;
-			List<FileBO> files = generateFiles(filesPerFolder, fileNames);
+			List<FileBO> files = generateFiles(filesPerFolder, fileNames, wiseExport.getNumberOfUsers());
 			if (currentDepth < foldersDepth) {
-				subFolders =  generateFolders(currentDepth + 1, nbFoldersPerLevel, foldersDepth, filesPerFolder, fileNames, currentPath + sep + depthName + i, filesDirectory);
+				subFolders =  generateFolders(currentDepth + 1, currentPath + sep + depthName + i, wiseExport);
 			}
 			folders.add(new FolderBO(depthName + i, subFolders, files));
 			
@@ -100,13 +108,22 @@ public class FileAndFolderService {
 		return folders;
 	}
 	
-	public List<FileBO> generateFiles(Integer nbFiles, List<String> fileNames) {
+	public List<FileBO> generateFiles(Integer nbFiles, List<String> fileNames, Integer nbUsers) {
 		List<FileBO> files = new ArrayList<FileBO>();
 		Random rand  = new Random();
-		
+
+		String creator = "root";
+		int idCreator;
+
 		for (int i = 0; i < nbFiles; i++) {
 			String fileName = fileNames.get(rand.nextInt(fileNames.size() - 1));
-			files.add(new FileBO(fileName)); 
+
+			if (nbUsers != null && (nbUsers.compareTo(0) > 0)) {
+				idCreator = rand.nextInt(nbUsers - 1);
+				creator = "user" + idCreator;
+			}
+
+			files.add(new FileBO(fileName, creator));
 		}
 		return files;
 	}
