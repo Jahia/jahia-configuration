@@ -88,6 +88,10 @@ public class ExportBO {
 	protected Integer foldersDepth;
 
 	protected Integer nbFilesPerFolder;
+	
+	protected Integer nbCollectionsPerUser;
+	
+	protected Integer nbFilesPerCollection;
 
 	public File getOutputFile() {
 		return outputFile;
@@ -393,6 +397,22 @@ public class ExportBO {
 		this.nbFilesPerFolder = nbFilesPerFolder;
 	}
 	
+	public Integer getNbCollectionsPerUser() {
+		return nbCollectionsPerUser;
+	}
+
+	public void setNbCollectionsPerUser(Integer nbCollectionsPerUser) {
+		this.nbCollectionsPerUser = nbCollectionsPerUser;
+	}
+
+	public Integer getNbFilesPerCollection() {
+		return nbFilesPerCollection;
+	}
+
+	public void setNbFilesPerCollection(Integer nbFilesPerCollection) {
+		this.nbFilesPerCollection = nbFilesPerCollection;
+	}
+
 	public ExportBO() {
 
 	}

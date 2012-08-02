@@ -76,8 +76,8 @@ public class WiseService {
 		globalFilesToZip.add(wiseArchive);
 		
 		// Users
-		Integer nbFilesPerCollection = 5;
-		Integer nbCollectionsPerUser = 2;
+		Integer nbCollectionsPerUser = wiseExport.getNbCollectionsPerUser();
+		Integer nbFilesPerCollection = wiseExport.getNbFilesPerCollection();
 		// If there is not enough files we use all the files and that's it.
 		if (nbFilesPerCollection.compareTo(wiseExport.getFiles().size()) < 0) {
 			nbFilesPerCollection = wiseExport.getFiles().size();

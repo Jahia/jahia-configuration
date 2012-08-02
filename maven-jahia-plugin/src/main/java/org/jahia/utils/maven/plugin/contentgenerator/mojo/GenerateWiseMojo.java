@@ -51,6 +51,16 @@ public class GenerateWiseMojo extends ContentGeneratorMojo {
 	 */
 	private Integer nbFilesPerFolder;
 	
+	/**
+	 * @parameter expression="${jahia.cg.wise.nbCollectionsPerUser}" default-value="3"
+	 */
+	private Integer nbCollectionsPerUser;
+	
+	/**
+	 * @parameter expression="${jahia.cg.wise.nbFilesPerCollection}" default-value="3"
+	 */
+	private Integer nbFilesPerCollection;
+	
 	public ExportBO initExport() throws MojoExecutionException {
 		ExportBO wiseExport = super.initExport();
 		
@@ -61,6 +71,8 @@ public class GenerateWiseMojo extends ContentGeneratorMojo {
 		wiseExport.setFoldersDepth(foldersDepth);
 		wiseExport.setNbFilesPerFolder(nbFilesPerFolder);
 		wiseExport.setNbTasks(nbTasks);
+		wiseExport.setNbCollectionsPerUser(nbCollectionsPerUser);
+		wiseExport.setNbFilesPerCollection(nbFilesPerCollection);
 		
 		return wiseExport;
 	}
