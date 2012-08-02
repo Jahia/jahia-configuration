@@ -30,7 +30,7 @@ public class FileAndFolderService {
 	}
 
 	public List<FolderBO> generateFolders(String docspaceName, ExportBO wiseExport) {
-		String currentPath = initializeContentFolder(wiseExport.getOutputDir() + "/wise", wiseExport.getWiseInstanceKey(), docspaceName);
+		String currentPath = initializeContentFolder(wiseExport.getOutputDir() + sep + "wise", wiseExport.getWiseInstanceKey(), docspaceName);
 		return generateFolders(1, currentPath, wiseExport);
 	}
 	
