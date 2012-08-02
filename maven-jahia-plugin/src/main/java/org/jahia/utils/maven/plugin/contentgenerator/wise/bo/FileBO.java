@@ -7,19 +7,30 @@ public class FileBO {
 
 	protected Element fileElement;
 	
-	private String fileName;
+	protected String nodePath;
 	
-	private String creator;
+	protected String fileName;
 	
-	private String documentStatus = "Draft";
+	protected String creator;
+	
+	protected String documentStatus = "Draft";
 
-	public FileBO(String fileName, String creator) {
+	public FileBO(String fileName, String nodePath, String creator) {
 		this.fileName = fileName;
+		this.nodePath = nodePath;
 		this.creator = creator;
 	}
 	
 	public String getFileName() {
 		return fileName;
+	}
+	
+	public String getNodePath() {
+		return nodePath;
+	}
+	
+	public String getCreator() {
+		return creator;
 	}
 	
 	public Element getElement() {

@@ -1,5 +1,11 @@
 package org.jahia.utils.maven.plugin.contentgenerator;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
@@ -7,14 +13,11 @@ import org.jahia.configuration.configurators.JahiaGlobalConfigurator;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.GroupBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.UserBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
+import org.jahia.utils.maven.plugin.contentgenerator.wise.CollectionService;
+import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.CollectionBO;
+import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
 import org.jdom.Document;
 import org.jdom.Element;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 public class UserGroupService {
 
@@ -32,7 +35,8 @@ public class UserGroupService {
         Element usersNode = new Element("users");
         contentNode.addContent(usersNode);
 
-        UserBO rootUser = new UserBO("root", JahiaGlobalConfigurator.encryptPassword("root"), null);
+        // no collections for root (Wise)
+        UserBO rootUser = new UserBO("root", JahiaGlobalConfigurator.encryptPassword("root"), null, null);
         Element rootUserNode = rootUser.getJcrXml();
         usersNode.addContent(rootUserNode);
 
@@ -112,15 +116,21 @@ public class UserGroupService {
         return groupsNode;
     }
 
-    public List<UserBO> generateUsers(Integer nbUsers) {
+    public List<UserBO> generateUsers(Integer nbUsers, Integer nbCollectionsPerUser, Integer nbFilesPerCollection, List<FileBO> files) {
         logger.info(nbUsers + " users are going to be generated");
 
         List<UserBO> users = new ArrayList<UserBO>();
         for (int userid = 1; userid < (nbUsers+1); userid++) {
-
+        	
+        	List<CollectionBO> collections = null;
+        	if (nbCollectionsPerUser != null && nbCollectionsPerUser.compareTo(0) > 0) {
+        		CollectionService collectionService = CollectionService.getInstance();
+        		collections = collectionService.generateCollections(nbCollectionsPerUser, nbFilesPerCollection, files);
+        	}
+        	
             String username = "user" + userid;
             String pathJcr = getPathForUsername(username);
-            UserBO user = new UserBO(username, JahiaGlobalConfigurator.encryptPassword(username), pathJcr);
+            UserBO user = new UserBO(username, JahiaGlobalConfigurator.encryptPassword(username), pathJcr, collections);
             users.add(user);
         }
         return users;

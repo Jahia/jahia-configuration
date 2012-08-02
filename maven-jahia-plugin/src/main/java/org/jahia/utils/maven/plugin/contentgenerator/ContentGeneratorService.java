@@ -134,7 +134,7 @@ public class ContentGeneratorService {
 			}
 
 			List<UserBO> users = userGroupService.generateUsers(export
-					.getNumberOfUsers());
+					.getNumberOfUsers(), 0, 0, null);
 			File tmpUsers = new File(export.getOutputDir(), "users");
 			tmpUsers.mkdir();
 

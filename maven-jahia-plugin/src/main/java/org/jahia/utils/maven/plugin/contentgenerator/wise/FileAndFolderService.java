@@ -31,10 +31,11 @@ public class FileAndFolderService {
 
 	public List<FolderBO> generateFolders(String docspaceName, ExportBO wiseExport) {
 		String currentPath = initializeContentFolder(wiseExport.getOutputDir() + sep + "wise", wiseExport.getWiseInstanceKey(), docspaceName);
-		return generateFolders(1, currentPath, wiseExport);
+		String currentNodePath = sep + "sites" + sep + wiseExport.getWiseInstanceKey() + sep + "files" + sep + "docspaces" + sep + "docspaceName";
+		return generateFolders(1, currentPath, currentNodePath, wiseExport);
 	}
 	
-	private List<FolderBO> generateFolders(Integer currentDepth, String currentPath, ExportBO wiseExport) {
+	private List<FolderBO> generateFolders(Integer currentDepth, String currentPath, String currentNodePath, ExportBO wiseExport) {
 		
 		Integer nbFoldersPerLevel = wiseExport.getNbFoldersPerLevel();
 		Integer foldersDepth = wiseExport.getFoldersDepth();
@@ -80,9 +81,14 @@ public class FileAndFolderService {
 		List<FolderBO> folders = new ArrayList<FolderBO>();
 		for (int i = 0; i < nbFoldersPerLevel; i++) {
 			List<FolderBO> subFolders = null;
-			List<FileBO> files = generateFiles(filesPerFolder, fileNames, wiseExport.getNumberOfUsers());
+			List<FileBO> files = generateFiles(filesPerFolder, currentNodePath, fileNames, wiseExport.getNumberOfUsers());
+			// we store all generated files to use them in the collections
+			List<FileBO> filesTmp = wiseExport.getFiles();
+			filesTmp.addAll(files);
+			wiseExport.setFiles(filesTmp);
+			
 			if (currentDepth < foldersDepth) {
-				subFolders =  generateFolders(currentDepth + 1, currentPath + sep + depthName + i, wiseExport);
+				subFolders =  generateFolders(currentDepth + 1, currentPath + sep + depthName + i, currentNodePath + sep +depthName, wiseExport);
 			}
 			folders.add(new FolderBO(depthName + i, subFolders, files));
 			
@@ -108,7 +114,7 @@ public class FileAndFolderService {
 		return folders;
 	}
 	
-	public List<FileBO> generateFiles(Integer nbFiles, List<String> fileNames, Integer nbUsers) {
+	public List<FileBO> generateFiles(Integer nbFiles, String currentNodePath, List<String> fileNames, Integer nbUsers) {
 		List<FileBO> files = new ArrayList<FileBO>();
 		Random rand  = new Random();
 
@@ -123,7 +129,7 @@ public class FileAndFolderService {
 				creator = "user" + idCreator;
 			}
 
-			files.add(new FileBO(fileName, creator));
+			files.add(new FileBO(fileName, currentNodePath + sep + fileName, creator));
 		}
 		return files;
 	}

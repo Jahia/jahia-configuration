@@ -1,7 +1,11 @@
 package org.jahia.utils.maven.plugin.contentgenerator.bo;
 
+import java.util.Iterator;
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
+import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.CollectionBO;
 import org.jdom.Element;
 
 public class UserBO {
@@ -12,12 +16,15 @@ public class UserBO {
 	private String jcrPath;
 
     private String email;
+    
+    private List<CollectionBO> collections;
 
-	public UserBO(String name, String password, String pathJcr) {
+	public UserBO(String name, String password, String pathJcr, List<CollectionBO> collections) {
 		this.name = name;
 		this.password = password;
         this.email = this.name + "@example.com";
 		this.jcrPath = pathJcr;
+		this.collections = collections;
 	}
 
 	public String getName() {
@@ -84,6 +91,18 @@ public class UserBO {
 		// userElement.setAttribute("password.history.1242739225417", null);
 		userElement.setAttribute("preferredLanguage", "en");
 
+		if (collections != null) {
+			Element collectionsElement = new Element("collections");
+			collectionsElement.setAttribute("primaryType", "docnt:collections", ContentGeneratorCst.NS_DOCNT);
+			collectionsElement.setAttribute("createdBy", name, ContentGeneratorCst.NS_JCR);
+			
+			for (Iterator<CollectionBO> iterator = collections.iterator(); iterator.hasNext();) {
+				CollectionBO collection = iterator.next();
+				collectionsElement.addContent(collection.getElement());
+			}
+			userElement.addContent(collectionsElement);
+		}
+		
 		if (this.jcrPath == null) {
 			return userElement;
 		}

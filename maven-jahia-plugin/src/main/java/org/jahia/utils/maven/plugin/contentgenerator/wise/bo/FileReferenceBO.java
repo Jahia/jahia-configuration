@@ -5,8 +5,12 @@ import org.jdom.Element;
 
 public class FileReferenceBO extends FileBO {
 	
-	public FileReferenceBO(String fileName, String creator) {
-		super(fileName, creator);
+	public FileReferenceBO(String fileName, String nodePath, String creator) {
+		super(fileName, nodePath, creator);
+	}
+	
+	public FileReferenceBO(FileBO file) {
+		super(file.getFileName(), file.getNodePath(), file.getCreator());
 	}
 
 	public Element getElement() {
@@ -14,6 +18,7 @@ public class FileReferenceBO extends FileBO {
 			super.getElement();
 		}
 		fileElement.setAttribute("primaryType", "jnt:fileReference", ContentGeneratorCst.NS_JCR);
+		fileElement.setAttribute("node", super.nodePath, ContentGeneratorCst.NS_J);
 		return fileElement;
 	}
 }

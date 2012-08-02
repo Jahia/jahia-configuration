@@ -51,9 +51,38 @@ public class WiseService {
 		File outputDirectory = new File(wiseExport.getOutputDir());
 		FileUtils.deleteDirectory(outputDirectory);
 		outputDirectory.mkdir();
-				
+		
+		// Wise instance files
+		WiseBO wiseInstance = generateWiseInstance(wiseExport);
+		
+		File wiseInstanceOutputDir = new File(wiseExport.getOutputDir() + "/wise");
+		File wiseInstanceContentDir = new File(wiseInstanceOutputDir + "/content");
+		
+		wiseInstanceOutputDir.mkdir();
+		File repositoryFile = new File(wiseInstanceOutputDir + "/repository.xml");
+		os.writeJdomDocumentToFile(wiseInstance.getDocument(), repositoryFile);		
+		
+		// create properties file
+		siteService.createPropertiesFile(wiseExport.getWiseInstanceKey(),
+				wiseExport.getSiteLanguages(), "templates-docspace", wiseInstanceOutputDir);
+		
+		// Zip wise instances files
+		List<File> wiseInstanceFiles = new ArrayList<File>(FileUtils.listFiles(wiseInstanceOutputDir, null, false));
+		if (wiseInstanceContentDir.exists()) {
+			wiseInstanceFiles.add(wiseInstanceContentDir);
+		}
+		
+		File wiseArchive = os.createSiteArchive("wise.zip", wiseExport.getOutputDir(), wiseInstanceFiles);
+		globalFilesToZip.add(wiseArchive);
+		
 		// Users
-		List<UserBO> users = userGroupService.generateUsers(wiseExport.getNumberOfUsers());
+		Integer nbFilesPerCollection = 5;
+		Integer nbCollectionsPerUser = 2;
+		// If there is not enough files we use all the files and that's it.
+		if (nbFilesPerCollection.compareTo(wiseExport.getFiles().size()) < 0) {
+			nbFilesPerCollection = wiseExport.getFiles().size();
+		}
+		List<UserBO> users = userGroupService.generateUsers(wiseExport.getNumberOfUsers(), nbCollectionsPerUser, nbFilesPerCollection, wiseExport.getFiles());
 		File tmpUsers = new File(wiseExport.getOutputDir(), "users");
 		tmpUsers.mkdir();
 
@@ -79,29 +108,6 @@ public class WiseService {
 		File f = new File(wiseExport.getOutputDir(), "users.txt");
 		f.delete();
 		os.appendPathToFile(f, userNames);
-		
-		// Wise instance files
-		WiseBO wiseInstance = generateWiseInstance(wiseExport);
-		
-		File wiseInstanceOutputDir = new File(wiseExport.getOutputDir() + "/wise");
-		File wiseInstanceContentDir = new File(wiseInstanceOutputDir + "/content");
-		
-		wiseInstanceOutputDir.mkdir();
-		File repositoryFile = new File(wiseInstanceOutputDir + "/repository.xml");
-		os.writeJdomDocumentToFile(wiseInstance.getDocument(), repositoryFile);		
-		
-		// create properties file
-		siteService.createPropertiesFile(wiseExport.getWiseInstanceKey(),
-				wiseExport.getSiteLanguages(), "templates-docspace", wiseInstanceOutputDir);
-		
-		// Zip wise instances files
-		List<File> wiseInstanceFiles = new ArrayList<File>(FileUtils.listFiles(wiseInstanceOutputDir, null, false));
-		if (wiseInstanceContentDir.exists()) {
-			wiseInstanceFiles.add(wiseInstanceContentDir);
-		}
-		
-		File wiseArchive = os.createSiteArchive("wise.zip", wiseExport.getOutputDir(), wiseInstanceFiles);
-		globalFilesToZip.add(wiseArchive);
 		
 		// Zip all of this
 		File wiseImportArchive = os.createSiteArchive("wise_instance_generated.zip", wiseExport.getOutputDir(), globalFilesToZip);

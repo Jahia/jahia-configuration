@@ -1,8 +1,10 @@
 package org.jahia.utils.maven.plugin.contentgenerator.bo;
 
 import java.io.File;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
+
+import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
 
 /**
  * Contains all the parameters used to configure the export
@@ -41,6 +43,8 @@ public class ExportBO {
 	protected File filesDirectory;
 
 	protected List<String> fileNames;
+	
+	protected List<FileBO> files =new ArrayList<FileBO>();
 	
 	protected Integer numberOfFilesToGenerate;
 	
@@ -203,6 +207,14 @@ public class ExportBO {
 
 	public void setFileNames(List<String> fileNames) {
 		this.fileNames = fileNames;
+	}
+
+	public List<FileBO> getFiles() {
+		return files;
+	}
+
+	public void setFiles(List<FileBO> files) {
+		this.files = files;
 	}
 
 	public Integer getNumberOfFilesToGenerate() {

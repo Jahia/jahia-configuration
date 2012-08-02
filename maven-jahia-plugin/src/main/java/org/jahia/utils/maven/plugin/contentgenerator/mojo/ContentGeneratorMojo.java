@@ -101,7 +101,7 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
 	protected String poolDirectory;
 
 	/**
-	 * @parameter expression="${jahia.cg.numberOfFilesToGenerate}"
+	 * @parameter expression="${jahia.cg.numberOfFilesToGenerate}" " default-value="0"
 	 */
 	protected Integer numberOfFilesToGenerate;
 
