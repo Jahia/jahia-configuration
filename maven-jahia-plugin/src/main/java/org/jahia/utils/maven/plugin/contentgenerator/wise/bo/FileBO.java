@@ -5,7 +5,7 @@ import org.jdom.Element;
 
 public class FileBO {
 
-	private Element fileElement;
+	protected Element fileElement;
 	
 	private String fileName;
 	
