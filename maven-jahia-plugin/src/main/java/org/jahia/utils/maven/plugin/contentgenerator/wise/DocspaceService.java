@@ -29,7 +29,7 @@ private static DocspaceService instance;
 		List<PollBO> polls = pollService.generatePolls(wiseExport.getNbPolls());
 		
 		NoteService noteService = NoteService.getInstance();
-		List<NoteBO> notes = noteService.generateNotes(wiseExport.getNbNotes());
+		List<NoteBO> notes = noteService.generateNotes(wiseExport.getNbNotes(), wiseExport.getNumberOfUsers());
 		
 		TaskService taskService = TaskService.getInstance();
 		List<TaskBO> tasks = taskService.generateTasks(wiseExport.getNbTasks(), wiseExport.getNumberOfUsers());

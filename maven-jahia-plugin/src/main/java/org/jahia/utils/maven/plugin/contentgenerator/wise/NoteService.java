@@ -2,9 +2,9 @@ package org.jahia.utils.maven.plugin.contentgenerator.wise;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.NoteBO;
-import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.PollBO;
 
 public class NoteService {
 	private static NoteService instance;
@@ -20,12 +20,20 @@ public class NoteService {
 		return instance;
 	}
 	
-	public List<NoteBO> generateNotes(int nbNotes) {
+	public List<NoteBO> generateNotes(Integer nbNotes, Integer nbUsers) {
 		List<NoteBO> notes = new ArrayList<NoteBO>();
-
+		
+		String creator = "root";
+		int idCreator;
+		Random rand = new Random();
 		for (int i = 0; i < nbNotes; i++) {
-			notes.add(new NoteBO());
+			if (nbUsers != null && (nbUsers.compareTo(0) > 0)) {			
+				idCreator = rand.nextInt(nbUsers - 1);
+				creator = "user" + idCreator;
+			}
+			notes.add(new NoteBO("note" + i, "Note " + i, creator));
 		}
+		
 		return notes;
 	}
 }

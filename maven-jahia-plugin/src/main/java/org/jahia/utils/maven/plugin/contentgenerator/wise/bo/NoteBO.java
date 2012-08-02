@@ -13,13 +13,22 @@ public class NoteBO {
 	
 	private String body = "Note content (generated)";
 	
+	private String creator = "root";
+	
+	public NoteBO(String name, String title, String creator) {
+		this.name = name;
+		this.title = title;
+		this.creator = creator;
+	}
+	
 	public Element getElement() {
 		if (note == null) {
 			note = new Element(name);
 			note.setAttribute("originWS", "default", ContentGeneratorCst.NS_J);
 			note.setAttribute("primaryType", "docnt:note", ContentGeneratorCst.NS_JCR);
 			note.setAttribute("title", title, ContentGeneratorCst.NS_JCR);
-			note.setAttribute("body", title, ContentGeneratorCst.NS_JCR);
+			note.setAttribute("body", body, ContentGeneratorCst.NS_JCR);
+			note.setAttribute("createdBy", creator, ContentGeneratorCst.NS_J);
 		}
 		return note;
 	}
