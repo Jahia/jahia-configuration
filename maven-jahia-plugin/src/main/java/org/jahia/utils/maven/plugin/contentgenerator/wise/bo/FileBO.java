@@ -24,6 +24,7 @@ public class FileBO {
 	
 	public Element getElement() {
 		if (fileElement == null) {
+			fileName =  org.apache.jackrabbit.util.ISO9075.encode(fileName);
 			fileElement = new Element(this.fileName);
 			fileElement.setAttribute("mixinTypes", "docmix:docspaceDocument jmix:accessControlled jmix:document", ContentGeneratorCst.NS_JCR);
 			fileElement.setAttribute("primaryType", "jnt:file", ContentGeneratorCst.NS_JCR);
