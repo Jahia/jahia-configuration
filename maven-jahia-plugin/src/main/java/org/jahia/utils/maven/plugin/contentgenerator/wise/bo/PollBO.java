@@ -24,7 +24,12 @@ public class PollBO {
 	public PollBO(String question, List<String> answers) {
 		OutputService os = new OutputService();
 		this.questionElementName = os.formatStringForXml(question);
-		
+		this.question = question;
+		this.answers = answers;
+	}
+	
+	public PollBO(String question, String questionElementName, List<String> answers) {
+		this.questionElementName = questionElementName;
 		this.question = question;
 		this.answers = answers;
 	}

@@ -27,12 +27,23 @@ private static DocspaceService instance;
 	}
 	
 	public List<DocspaceBO> generateDocspaces(ExportBO wiseExport) {
+		// Articles are used for Polls and Notes
+		Integer numberOfArticles = null;
+		if (wiseExport.getNbNotes().compareTo(wiseExport.getNbPolls()) > 0) {
+			numberOfArticles = wiseExport.getNbNotes();
+		} else {
+			numberOfArticles = wiseExport.getNbPolls();
+		}
+		
+		List<ArticleBO> articles = new ArrayList<ArticleBO> ();
+		if (numberOfArticles.compareTo(0) > 0) {
+			articles = DatabaseService.getInstance()
+					.selectArticles(wiseExport, numberOfArticles);
+		}
+		
 		PollService pollService = PollService.getInstance();
-		List<PollBO> polls = pollService.generatePolls(wiseExport.getNbPolls());
-		
-		List<ArticleBO> articles = DatabaseService.getInstance()
-				.selectArticles(wiseExport, wiseExport.getNbNotes());
-		
+		List<PollBO> polls = pollService.generatePolls(wiseExport.getNbPolls(), articles);
+				
 		NoteService noteService = NoteService.getInstance();
 		List<NoteBO> notes = noteService.generateNotes(wiseExport.getNbNotes(), wiseExport.getNumberOfUsers(), articles);
 		
