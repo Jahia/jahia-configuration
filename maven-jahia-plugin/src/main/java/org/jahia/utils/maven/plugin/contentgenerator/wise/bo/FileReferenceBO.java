@@ -5,12 +5,8 @@ import org.jdom.Element;
 
 public class FileReferenceBO extends FileBO {
 	
-	public FileReferenceBO(String fileName, String nodePath, String creator) {
-		super(fileName, nodePath, creator);
-	}
-	
 	public FileReferenceBO(FileBO file) {
-		super(file.getFileName(), file.getNodePath(), file.getCreator());
+		super(file.getFileName(), file.getNodePath(), file.getCreator(), file.getOwner(), file.getEditor(), file.getReader());
 	}
 
 	public Element getElement() {

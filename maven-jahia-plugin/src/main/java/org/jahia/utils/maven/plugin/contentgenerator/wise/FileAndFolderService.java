@@ -116,7 +116,13 @@ public class FileAndFolderService {
 		Random rand  = new Random();
 
 		String creator = "root";
+		String owner = "root";
+		String editor = "root";
+		String reader = "root";
 		int idCreator;
+		int idOwner;
+		int idEditor;
+		int idReader;
 
 		for (int i = 0; i < nbFiles; i++) {
 			String fileName = fileNames.get(rand.nextInt(fileNames.size() - 1));
@@ -124,9 +130,18 @@ public class FileAndFolderService {
 			if (nbUsers != null && (nbUsers.compareTo(0) > 0)) {
 				idCreator = rand.nextInt(nbUsers - 1);
 				creator = "user" + idCreator;
+				
+				idOwner = rand.nextInt(nbUsers - 1);
+				owner = "user" + idOwner;
+				
+				idEditor = rand.nextInt(nbUsers - 1);
+				editor = "user" + idEditor;
+				
+				idReader = rand.nextInt(nbUsers - 1);
+				reader = "user" + idReader;
 			}
 
-			files.add(new FileBO(fileName, currentNodePath + sep + fileName, creator));
+			files.add(new FileBO(fileName, currentNodePath + sep + fileName, creator, owner, editor, reader));
 		}
 		return files;
 	}
