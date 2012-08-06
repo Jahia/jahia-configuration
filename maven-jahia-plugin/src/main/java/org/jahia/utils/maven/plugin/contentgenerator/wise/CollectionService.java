@@ -37,13 +37,12 @@ public class CollectionService {
 	}
 	
 	public List<FileReferenceBO> getRandomFilesReferences(int nbFilesPerCollection, List<FileBO> files) {
-		 
 		List<FileReferenceBO> fileReferences = new  ArrayList<FileReferenceBO>();
 		
 		int nbFiles = files.size();
 		
 		 for (int i = 0; i < nbFilesPerCollection; i++) {
-			FileBO file = files.get(nbFiles - 1);
+			FileBO file = files.get(rand.nextInt(nbFiles - 1));
 			FileReferenceBO fileReference = new FileReferenceBO(file);
 			fileReferences.add(fileReference);
 		}
