@@ -2,7 +2,6 @@ package org.jahia.utils.maven.plugin.contentgenerator.mojo;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.maven.plugin.AbstractMojo;
