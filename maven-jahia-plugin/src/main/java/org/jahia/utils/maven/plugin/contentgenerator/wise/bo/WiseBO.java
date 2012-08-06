@@ -1,14 +1,16 @@
 package org.jahia.utils.maven.plugin.contentgenerator.wise.bo;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.jdom.Document;
-import org.jdom.Element;
-
+import org.jahia.utils.maven.plugin.contentgenerator.bo.AceBO;
+import org.jahia.utils.maven.plugin.contentgenerator.bo.AclBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.SiteBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
+import org.jdom.Document;
+import org.jdom.Element;
 
 public class WiseBO extends SiteBO {
 	Element wiseElement;
@@ -31,7 +33,23 @@ public class WiseBO extends SiteBO {
 			Element filesElement = new Element("files");
 			filesElement.setAttribute("primaryType", "jnt:folder", ContentGeneratorCst.NS_JCR);
 			filesElement.setAttribute("publicationStatus", "3", ContentGeneratorCst.NS_J);
-						
+		
+			Element contributedElement = new Element("contributed");
+			filesElement.setAttribute("originWS", "default", ContentGeneratorCst.NS_J);
+			filesElement.setAttribute("createdBy", "system", ContentGeneratorCst.NS_JCR);
+			filesElement.setAttribute("mixinTypes", "jmix:accessControlled", ContentGeneratorCst.NS_JCR);
+			filesElement.setAttribute("primaryType", "jnt:folder", ContentGeneratorCst.NS_JCR);
+		
+			AceBO sitePrivileged = new AceBO("privileged", "g", "GRANT", "contributor");
+			
+			List<AceBO> aces = new ArrayList<AceBO>();
+			aces.add(sitePrivileged);
+			AclBO acl = new AclBO(aces);
+			
+			Element aclElement = acl.getElement();
+			contributedElement.addContent(aclElement);
+			filesElement.addContent(contributedElement);
+			
 			if (CollectionUtils.isNotEmpty(docspaces)) {
 				Element docspacesElement = new Element("docspaces");
 				docspacesElement.setAttribute("mixinTypes", "jmix:workflowRulesable", ContentGeneratorCst.NS_JCR);
