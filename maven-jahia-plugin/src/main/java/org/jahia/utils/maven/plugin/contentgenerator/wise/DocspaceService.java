@@ -3,6 +3,8 @@ package org.jahia.utils.maven.plugin.contentgenerator.wise;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jahia.utils.maven.plugin.contentgenerator.DatabaseService;
+import org.jahia.utils.maven.plugin.contentgenerator.bo.ArticleBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.DocspaceBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FolderBO;
@@ -28,8 +30,11 @@ private static DocspaceService instance;
 		PollService pollService = PollService.getInstance();
 		List<PollBO> polls = pollService.generatePolls(wiseExport.getNbPolls());
 		
+		List<ArticleBO> articles = DatabaseService.getInstance()
+				.selectArticles(wiseExport, wiseExport.getNbNotes());
+		
 		NoteService noteService = NoteService.getInstance();
-		List<NoteBO> notes = noteService.generateNotes(wiseExport.getNbNotes(), wiseExport.getNumberOfUsers());
+		List<NoteBO> notes = noteService.generateNotes(wiseExport.getNbNotes(), wiseExport.getNumberOfUsers(), articles);
 		
 		TaskService taskService = TaskService.getInstance();
 		List<TaskBO> tasks = taskService.generateTasks(wiseExport.getNbTasks(), wiseExport.getNumberOfUsers());

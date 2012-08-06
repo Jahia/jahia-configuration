@@ -15,10 +15,11 @@ public class NoteBO {
 	
 	private String creator = "root";
 	
-	public NoteBO(String name, String title, String creator) {
+	public NoteBO(String name, String title, String creator, String body) {
 		this.name = name;
 		this.title = title;
 		this.creator = creator;
+		this.body = body;
 	}
 	
 	public Element getElement() {
