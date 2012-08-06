@@ -100,10 +100,7 @@ public class FileAndFolderService {
 			for (Iterator<FileBO> iterator = files.iterator(); iterator.hasNext();) {
 				FileBO fileBO = (FileBO) iterator.next();
 				File sourceFile = new File(filesDirectory + sep + fileBO.getFileName());
-				File targetDirectory = new File(newFolder + sep + fileBO.getFileName());
-				// each file is contained in its own directory
-				targetDirectory.mkdir();
-				File targetFile = new File(targetDirectory + sep + fileBO.getFileName());
+				File targetFile = new File(newFolder + sep + fileBO.getFileName());
 				try {
 					FileUtils.copyFile(sourceFile, targetFile);
 				} catch (IOException e) {
