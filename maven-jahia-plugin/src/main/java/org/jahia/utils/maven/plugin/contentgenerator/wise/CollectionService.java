@@ -7,7 +7,6 @@ import java.util.Random;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.CollectionBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileReferenceBO;
-import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.PollBO;
 
 public class CollectionService {
 	
