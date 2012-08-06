@@ -129,7 +129,7 @@ public class SiteService {
 				ContentGeneratorCst.DESCRIPTION_DEFAULT);
 		siteProp.setProperty("templatePackageName",
 				templateSet);
-		siteProp.setProperty("mixLanguage", Boolean.FALSE.toString());
+		siteProp.setProperty("mixLanguage", Boolean.TRUE.toString());
 		siteProp.setProperty("defaultLanguage", languages.get(0));
 		siteProp.setProperty("installedModules.1", "default");
 		siteProp.setProperty("installedModules.2", templateSet);
