@@ -28,8 +28,8 @@ public class NoteBO {
 			note.setAttribute("originWS", "default", ContentGeneratorCst.NS_J);
 			note.setAttribute("primaryType", "docnt:note", ContentGeneratorCst.NS_JCR);
 			note.setAttribute("title", title, ContentGeneratorCst.NS_JCR);
-			note.setAttribute("body", body, ContentGeneratorCst.NS_JCR);
-			note.setAttribute("createdBy", creator, ContentGeneratorCst.NS_J);
+			note.setAttribute("body", body);
+			note.setAttribute("createdBy", creator, ContentGeneratorCst.NS_JCR);
 		}
 		return note;
 	}
