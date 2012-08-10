@@ -31,6 +31,7 @@ public class WiseBO extends SiteBO {
 			wiseElement.setAttribute("primaryType", "jnt:virtualsite", ContentGeneratorCst.NS_JCR);
 
 			wiseElement.addContent(getGroupsElement());
+			wiseElement.addContent(getAclElement());
 			
 			Element filesElement = new Element("files");
 			filesElement.setAttribute("primaryType", "jnt:folder", ContentGeneratorCst.NS_JCR);
@@ -115,5 +116,18 @@ public class WiseBO extends SiteBO {
 		sitePrivileged.setContent(membersElement);
 		groupElement.setContent(sitePrivileged);
 		return groupElement;
+	}
+	
+	private Element getAclElement() {
+		AceBO sitePrivileged = new AceBO("site-privileged", "site-privileged", "g", "GRANT", "docspace-site-member privileged");
+		AceBO privileged = new AceBO("privileged", "privileged", "g", "GRANT", "privileged");
+		AceBO siteAdministrators = new AceBO("site-administrators", "site-administrators", "g", "GRANT", "site-administrator");
+		List<AceBO> aces = new ArrayList<AceBO>();
+		aces.add(sitePrivileged);
+		aces.add(privileged);
+		aces.add(siteAdministrators);
+		
+		AclBO acl = new AclBO(aces);
+		return acl.getElement();
 	}
 }
