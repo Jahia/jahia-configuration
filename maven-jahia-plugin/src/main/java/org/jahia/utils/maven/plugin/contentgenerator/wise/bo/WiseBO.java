@@ -35,10 +35,10 @@ public class WiseBO extends SiteBO {
 			filesElement.setAttribute("publicationStatus", "3", ContentGeneratorCst.NS_J);
 		
 			Element contributedElement = new Element("contributed");
-			filesElement.setAttribute("originWS", "default", ContentGeneratorCst.NS_J);
-			filesElement.setAttribute("createdBy", "system", ContentGeneratorCst.NS_JCR);
-			filesElement.setAttribute("mixinTypes", "jmix:accessControlled", ContentGeneratorCst.NS_JCR);
-			filesElement.setAttribute("primaryType", "jnt:folder", ContentGeneratorCst.NS_JCR);
+			contributedElement.setAttribute("originWS", "default", ContentGeneratorCst.NS_J);
+			contributedElement.setAttribute("createdBy", "system", ContentGeneratorCst.NS_JCR);
+			contributedElement.setAttribute("mixinTypes", "jmix:accessControlled", ContentGeneratorCst.NS_JCR);
+			contributedElement.setAttribute("primaryType", "jnt:folder", ContentGeneratorCst.NS_JCR);
 		
 			AceBO sitePrivileged = new AceBO("site-privileged", "privileged", "g", "GRANT", "contributor");
 			
