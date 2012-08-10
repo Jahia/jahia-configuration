@@ -7,7 +7,7 @@ public class FileReferenceBO extends FileBO {
 	private Element fileReferenceElement;
 	
 	public FileReferenceBO(FileBO file) {
-		super(file.getFileName(), file.getNodePath(), file.getCreator(), file.getOwner(), file.getEditor(), file.getReader());
+		super(file.getFileName(), file.getMixinFileType(), file.getNodePath(), file.getCreator(), file.getOwner(), file.getEditor(), file.getReader());
 	}
 
 	public Element getElement() {

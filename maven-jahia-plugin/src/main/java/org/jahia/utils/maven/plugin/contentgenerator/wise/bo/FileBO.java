@@ -12,6 +12,8 @@ public class FileBO {
 
 	protected Element fileElement;
 	
+	protected String mixinFileType;
+	
 	protected String nodePath;
 	
 	protected String fileName;
@@ -26,8 +28,9 @@ public class FileBO {
 	
 	protected String documentStatus = "Draft";
 
-	public FileBO(String fileName, String nodePath, String creator, String owner, String editor, String reader) {
+	public FileBO(String fileName, String mixinFileType, String nodePath, String creator, String owner, String editor, String reader) {;
 		this.fileName = fileName;
+		this.mixinFileType = mixinFileType;
 		this.nodePath = nodePath;
 		this.creator = creator;
 		this.owner = owner;
@@ -37,6 +40,10 @@ public class FileBO {
 	
 	public String getFileName() {
 		return fileName;
+	}
+	
+	public String getMixinFileType() {
+		return mixinFileType;
 	}
 	
 	public String getNodePath() {
@@ -63,8 +70,8 @@ public class FileBO {
 		if (fileElement == null) {
 			fileName =  org.apache.jackrabbit.util.ISO9075.encode(fileName);
 			fileElement = new Element(this.fileName);
-			// mixinTypes = jmix:image or jmix:document, depending on the type of document. We should generate that dynamically
-			fileElement.setAttribute("mixinTypes", "docmix:docspaceDocument jmix:accessControlled ", ContentGeneratorCst.NS_JCR);
+		
+			fileElement.setAttribute("mixinTypes", "docmix:docspaceDocument jmix:accessControlled " + mixinFileType, ContentGeneratorCst.NS_JCR);
 			fileElement.setAttribute("primaryType", "jnt:file", ContentGeneratorCst.NS_JCR);
 			fileElement.setAttribute("createdBy", creator, ContentGeneratorCst.NS_JCR);
 			fileElement.setAttribute("documentStatus", documentStatus);

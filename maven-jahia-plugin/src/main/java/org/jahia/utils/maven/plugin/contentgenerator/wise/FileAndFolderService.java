@@ -3,6 +3,7 @@ package org.jahia.utils.maven.plugin.contentgenerator.wise;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -114,7 +115,10 @@ public class FileAndFolderService {
 	public List<FileBO> generateFiles(Integer nbFiles, String currentNodePath, List<String> fileNames, Integer nbUsers) {
 		List<FileBO> files = new ArrayList<FileBO>();
 		Random rand  = new Random();
-
+		
+		String imageExtensions[] = {".png",".gif",".jpeg", ".jpg"};
+		String officeDocumentExtensions[] = {".doc",".xls",".ppt", ".docx", ".xlsx", ".pptx" };
+		
 		String creator = "root";
 		String owner = "root";
 		String editor = "root";
@@ -126,7 +130,8 @@ public class FileAndFolderService {
 
 		for (int i = 0; i < nbFiles; i++) {
 			String fileName = fileNames.get(rand.nextInt(fileNames.size() - 1));
-
+			String mixin = "";
+			
 			if (nbUsers != null && (nbUsers.compareTo(0) > 0)) {
 				idCreator = rand.nextInt(nbUsers - 1);
 				creator = "user" + idCreator;
@@ -141,7 +146,14 @@ public class FileAndFolderService {
 				reader = "user" + idReader;
 			}
 
-			files.add(new FileBO(fileName, currentNodePath + sep + fileName, creator, owner, editor, reader));
+			String fileExtension = getFileExtension(fileName);
+			if (Arrays.asList(imageExtensions).contains(fileExtension)) {
+				mixin = " jmix:image";
+			} else if (Arrays.asList(officeDocumentExtensions).contains(fileExtension)) {
+				mixin = " jmix:document";
+			}
+			
+			files.add(new FileBO(fileName, mixin, currentNodePath + sep + fileName, creator, owner, editor, reader));
 		}
 		return files;
 	}
@@ -150,5 +162,9 @@ public class FileAndFolderService {
 		File contentdirectory = new File(outputDirPath + sep + "content" + sep + "sites" + sep + wiseInstanceName + sep + "files" + sep + "docspaces" + sep + docpaceKey);
 		contentdirectory.mkdirs();
 		return contentdirectory.getAbsolutePath();
+	}
+	
+	public String getFileExtension(String fileName) {
+		return fileName.substring(fileName.lastIndexOf('.'), fileName.length());
 	}
 }
