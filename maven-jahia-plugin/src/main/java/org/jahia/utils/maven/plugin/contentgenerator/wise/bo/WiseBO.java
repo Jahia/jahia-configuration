@@ -33,22 +33,8 @@ public class WiseBO extends SiteBO {
 			Element filesElement = new Element("files");
 			filesElement.setAttribute("primaryType", "jnt:folder", ContentGeneratorCst.NS_JCR);
 			filesElement.setAttribute("publicationStatus", "3", ContentGeneratorCst.NS_J);
-		
-			Element contributedElement = new Element("contributed");
-			contributedElement.setAttribute("originWS", "default", ContentGeneratorCst.NS_J);
-			contributedElement.setAttribute("createdBy", "system", ContentGeneratorCst.NS_JCR);
-			contributedElement.setAttribute("mixinTypes", "jmix:accessControlled", ContentGeneratorCst.NS_JCR);
-			contributedElement.setAttribute("primaryType", "jnt:folder", ContentGeneratorCst.NS_JCR);
-		
-			AceBO sitePrivileged = new AceBO("site-privileged", "privileged", "g", "GRANT", "contributor");
-			
-			List<AceBO> aces = new ArrayList<AceBO>();
-			aces.add(sitePrivileged);
-			AclBO acl = new AclBO(aces);
-			
-			Element aclElement = acl.getElement();
-			contributedElement.addContent(aclElement);
-			filesElement.addContent(contributedElement);
+					
+			filesElement.addContent(getContributedElement());
 			
 			if (CollectionUtils.isNotEmpty(docspaces)) {
 				Element docspacesElement = new Element("docspaces");
@@ -86,5 +72,23 @@ public class WiseBO extends SiteBO {
         
         contentNode.addContent(sitesNode);
         return doc;
+	}
+	
+	private Element getContributedElement() {
+		Element contributedElement = new Element("contributed");
+		contributedElement.setAttribute("originWS", "default", ContentGeneratorCst.NS_J);
+		contributedElement.setAttribute("createdBy", "system", ContentGeneratorCst.NS_JCR);
+		contributedElement.setAttribute("mixinTypes", "jmix:accessControlled", ContentGeneratorCst.NS_JCR);
+		contributedElement.setAttribute("primaryType", "jnt:folder", ContentGeneratorCst.NS_JCR);
+	
+		AceBO sitePrivileged = new AceBO("site-privileged", "privileged", "g", "GRANT", "contributor");
+		
+		List<AceBO> aces = new ArrayList<AceBO>();
+		aces.add(sitePrivileged);
+		AclBO acl = new AclBO(aces);
+		
+		Element aclElement = acl.getElement();
+		contributedElement.addContent(aclElement);
+		return contributedElement;
 	}
 }
