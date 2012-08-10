@@ -63,7 +63,8 @@ public class FileBO {
 		if (fileElement == null) {
 			fileName =  org.apache.jackrabbit.util.ISO9075.encode(fileName);
 			fileElement = new Element(this.fileName);
-			fileElement.setAttribute("mixinTypes", "docmix:docspaceDocument jmix:accessControlled jmix:document", ContentGeneratorCst.NS_JCR);
+			// mixinTypes = jmix:image or jmix:document, depending on the type of document. We should generate that dynamically
+			fileElement.setAttribute("mixinTypes", "docmix:docspaceDocument jmix:accessControlled ", ContentGeneratorCst.NS_JCR);
 			fileElement.setAttribute("primaryType", "jnt:file", ContentGeneratorCst.NS_JCR);
 			fileElement.setAttribute("createdBy", creator, ContentGeneratorCst.NS_JCR);
 			fileElement.setAttribute("documentStatus", documentStatus);
