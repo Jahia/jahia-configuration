@@ -69,10 +69,10 @@ public class FileBO {
 			fileElement.setAttribute("documentStatus", documentStatus);
 			fileElement.setAttribute("extractedText", "Dummy content from Jahia Content Generator", ContentGeneratorCst.NS_J);
 			
-			AceBO aceOwnerRoot = new AceBO("root", "u", "GRANT", "docspace-owner");
-			AceBO aceOwner = new AceBO(owner, "u", "GRANT", "docspace-owner");
-			AceBO aceEditor = new AceBO(editor, "u", "GRANT", "docspace-editor");
-			AceBO aceReader = new AceBO(reader, "u", "GRANT", "docspace-reader");
+			AceBO aceOwnerRoot = new AceBO("root", "root", "u", "GRANT", "docspace-owner");
+			AceBO aceOwner = new AceBO(owner, owner, "u", "GRANT", "docspace-owner");
+			AceBO aceEditor = new AceBO(editor, editor, "u", "GRANT", "docspace-editor");
+			AceBO aceReader = new AceBO(reader, reader, "u", "GRANT", "docspace-reader");
 			List<AceBO> aces = new ArrayList<AceBO>();
 			aces.add(aceOwner);
 			aces.add(aceOwnerRoot);

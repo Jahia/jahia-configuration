@@ -13,13 +13,16 @@ public class AceBO {
 	
 	private String userOrGroupName;
 	
+	private String userOrGroupPrincipal;
+	
 	private String roles;
 	
-	public AceBO(String userOrGroupName, String type, String permission,  String roles) {
+	public AceBO(String userOrGroupName, String userOrGroupPrincipal, String type, String permission,  String roles) {
 		this.permission = permission;
 		this.type = type;
 		this.userOrGroupName = userOrGroupName;
 		this.roles = roles;
+		this.userOrGroupPrincipal = userOrGroupPrincipal;
 	}
 	
   public Element getElement() {
@@ -28,7 +31,7 @@ public class AceBO {
 		  aceElement = new Element(elementName);
 		  aceElement.setAttribute("primaryType", "jnt:ace", ContentGeneratorCst.NS_JCR);
 		  aceElement.setAttribute("aceType", permission, ContentGeneratorCst.NS_J);
-		  aceElement.setAttribute("principal", type + ":" + userOrGroupName, ContentGeneratorCst.NS_J);
+		  aceElement.setAttribute("principal", type + ":" + userOrGroupPrincipal, ContentGeneratorCst.NS_J);
 		  aceElement.setAttribute("protected", "false", ContentGeneratorCst.NS_J);
 		  aceElement.setAttribute("roles", roles, ContentGeneratorCst.NS_J);
 	  }

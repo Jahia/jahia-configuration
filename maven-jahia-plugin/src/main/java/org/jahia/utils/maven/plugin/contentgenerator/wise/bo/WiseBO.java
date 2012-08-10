@@ -40,7 +40,7 @@ public class WiseBO extends SiteBO {
 			filesElement.setAttribute("mixinTypes", "jmix:accessControlled", ContentGeneratorCst.NS_JCR);
 			filesElement.setAttribute("primaryType", "jnt:folder", ContentGeneratorCst.NS_JCR);
 		
-			AceBO sitePrivileged = new AceBO("privileged", "g", "GRANT", "contributor");
+			AceBO sitePrivileged = new AceBO("site-privileged", "privileged", "g", "GRANT", "contributor");
 			
 			List<AceBO> aces = new ArrayList<AceBO>();
 			aces.add(sitePrivileged);
