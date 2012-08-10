@@ -71,6 +71,7 @@ public class FileBO {
 			
 			Element jcrContentElement = new Element("content", ContentGeneratorCst.NS_JCR);
 			jcrContentElement.setAttribute("extractedText", "Dummy content from Jahia Content Generator", ContentGeneratorCst.NS_J);
+			fileElement.addContent(jcrContentElement);
 			
 			AceBO aceOwnerRoot = new AceBO("root", "root", "u", "GRANT", "docspace-owner");
 			AceBO aceOwner = new AceBO(owner, owner, "u", "GRANT", "docspace-owner");
@@ -84,8 +85,6 @@ public class FileBO {
 			
 			AclBO acl = new AclBO(aces);
 			fileElement.addContent(acl.getElement());
-			
-
 		}
 		return fileElement;
 	}
