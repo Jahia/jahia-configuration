@@ -24,12 +24,12 @@ public class CollectionBO {
 			collection = new Element(title);
 			collection.setAttribute("primaryType", "docnt:collection", ContentGeneratorCst.NS_DOCNT);
 			collection.setAttribute("title", title, ContentGeneratorCst.NS_JCR);
+			collection.setAttribute("originWS", "default", ContentGeneratorCst.NS_J);
 			
 			for (Iterator<FileReferenceBO> iterator = fileReferences.iterator(); iterator.hasNext();) {
 				FileReferenceBO fileReference = iterator.next();
 				collection.setContent(fileReference.getElement());
 			}
-			
 		}
 		return collection;
 	}
