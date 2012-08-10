@@ -77,7 +77,7 @@ public class FileBO {
 			fileElement.setAttribute("documentStatus", documentStatus);
 			
 			Element jcrContentElement = new Element("content", ContentGeneratorCst.NS_JCR);
-			jcrContentElement.setAttribute("extractedText", "Dummy content from Jahia Content Generator", ContentGeneratorCst.NS_J);
+			//jcrContentElement.setAttribute("extractedText", "Dummy content from Jahia Content Generator", ContentGeneratorCst.NS_J);
 			fileElement.addContent(jcrContentElement);
 			
 			AceBO aceOwnerRoot = new AceBO("root", "root", "u", "GRANT", "docspace-owner");
