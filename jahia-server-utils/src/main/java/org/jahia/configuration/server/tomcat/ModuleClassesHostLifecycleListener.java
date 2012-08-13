@@ -52,14 +52,14 @@ import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.catalina.Lifecycle;
 import org.apache.catalina.LifecycleEvent;
 import org.apache.catalina.LifecycleListener;
 import org.apache.catalina.core.StandardEngine;
 import org.apache.catalina.core.StandardHost;
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
 
 /**
  * Jahia specific Tomcat lifecycle listener that checks for modules to be deployed and does the deployment of their classes and JAR files
@@ -75,7 +75,7 @@ public class ModuleClassesHostLifecycleListener implements LifecycleListener {
         }
     };
 
-    private static Log log = LogFactory.getLog(ModuleClassesHostLifecycleListener.class);
+    private static Logger log = Logger.getLogger(ModuleClassesHostLifecycleListener.class.getName());
 
     /**
      * From org.apache.commons.io.IOUtils.copyLarge(InputStream, OutputStream)
@@ -92,8 +92,8 @@ public class ModuleClassesHostLifecycleListener implements LifecycleListener {
     }
 
     protected void deployModuleClasses(File jahiaDir, File module) throws IOException {
-        if (log.isDebugEnabled()) {
-            log.debug("Deploying classes of module " + module);
+        if (log.isLoggable(Level.FINE)) {
+            log.log(Level.FINE, "Deploying classes of module " + module);
         }
         int count = 0;
         JarFile jar = new JarFile(module);
@@ -104,14 +104,14 @@ public class ModuleClassesHostLifecycleListener implements LifecycleListener {
                 String name = entry.getName();
                 if (!entry.isDirectory()
                         && (name.startsWith("WEB-INF/classes/") || name.startsWith("WEB-INF/lib/"))) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("    deploying " + name);
+                    if (log.isLoggable(Level.FINE)) {
+                        log.log(Level.FINE, "    deploying " + name);
                     }
                     File target = new File(jahiaDir, name);
                     File targetFolder = target.getParentFile();
                     if (!targetFolder.exists()) {
                         if (!targetFolder.mkdirs()) {
-                            log.error("Unable to create folder " + targetFolder.getPath()
+                            log.log(Level.SEVERE, "Unable to create folder " + targetFolder.getPath()
                                     + ". Skip copying entry " + name);
                             continue;
                         }
@@ -159,7 +159,7 @@ public class ModuleClassesHostLifecycleListener implements LifecycleListener {
             try {
                 deployModuleClasses(jahiaDir, module);
             } catch (Exception e) {
-                log.error("Cannot deploy classes of module: " + module.getName(), e);
+                log.log(Level.SEVERE, "Cannot deploy classes of module: " + module.getName(), e);
             }
         }
 
@@ -220,7 +220,7 @@ public class ModuleClassesHostLifecycleListener implements LifecycleListener {
                         }
                     }
                 } catch (IOException e) {
-                    log.error(e.getMessage(), e);
+                    log.log(Level.SEVERE, e.getMessage(), e);
                 } finally {
                     if (jar != null) {
                         try {
@@ -241,7 +241,7 @@ public class ModuleClassesHostLifecycleListener implements LifecycleListener {
     public void lifecycleEvent(LifecycleEvent event) {
         if (Lifecycle.BEFORE_START_EVENT.equals(event.getType())) {
             if (!(event.getLifecycle() instanceof StandardHost)) {
-                log.error("This listener should be nested inside <Host/> element");
+                log.log(Level.SEVERE, "This listener should be nested inside <Host/> element");
                 return;
             }
 
@@ -252,7 +252,7 @@ public class ModuleClassesHostLifecycleListener implements LifecycleListener {
 
             File jahiaWebApp = detectJahiaWebAppPath(new File(engine.getBaseDir(), host.getAppBase()));
             if (jahiaWebApp == null) {
-                log.warn("Jahia Web application not found. Skipping.");
+                log.log(Level.WARNING, "Jahia Web application not found. Skipping.");
                 return;
             }
             log.info("Jahia Web application found at " + jahiaWebApp);
