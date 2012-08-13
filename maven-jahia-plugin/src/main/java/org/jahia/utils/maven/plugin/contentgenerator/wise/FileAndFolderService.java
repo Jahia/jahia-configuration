@@ -9,11 +9,16 @@ import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugin.logging.SystemStreamLog;
+import org.apache.tika.Tika;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FolderBO;
 
 public class FileAndFolderService {
+	
+	private Log logger = new SystemStreamLog();
 	
 	private static FileAndFolderService instance;
 	
@@ -82,7 +87,7 @@ public class FileAndFolderService {
 		List<FolderBO> folders = new ArrayList<FolderBO>();
 		for (int i = 0; i < nbFoldersPerLevel; i++) {
 			List<FolderBO> subFolders = null;
-			List<FileBO> files = generateFiles(filesPerFolder, currentNodePath, fileNames, wiseExport.getNumberOfUsers());
+			List<FileBO> files = generateFiles(filesPerFolder, currentNodePath, fileNames, wiseExport.getNumberOfUsers(), filesDirectory);
 			// we store all generated files to use them in the collections
 			List<FileBO> filesTmp = wiseExport.getFiles();
 			filesTmp.addAll(files);
@@ -112,7 +117,7 @@ public class FileAndFolderService {
 		return folders;
 	}
 	
-	public List<FileBO> generateFiles(Integer nbFiles, String currentNodePath, List<String> fileNames, Integer nbUsers) {
+	public List<FileBO> generateFiles(Integer nbFiles, String currentNodePath, List<String> fileNames, Integer nbUsers, File filesDirectory) {
 		List<FileBO> files = new ArrayList<FileBO>();
 		Random rand  = new Random();
 		
@@ -145,7 +150,7 @@ public class FileAndFolderService {
 				idReader = rand.nextInt(nbUsers - 1);
 				reader = "user" + idReader;
 			}
-
+			
 			String fileExtension = getFileExtension(fileName);
 			if (Arrays.asList(imageExtensions).contains(fileExtension)) {
 				mixin = " jmix:image";
@@ -153,7 +158,17 @@ public class FileAndFolderService {
 				mixin = " jmix:document";
 			}
 			
-			files.add(new FileBO(fileName, mixin, currentNodePath + sep + fileName, creator, owner, editor, reader));
+			File f = new File(filesDirectory + sep + fileName);
+			Tika tikaParser= new Tika();
+			String mimeType = "";
+			try {
+				mimeType = tikaParser.detect(f);
+			} catch (IOException e) {
+				logger.error("Impossible to detect the MIME type for file " + f.getAbsoluteFile());
+				e.printStackTrace();
+			}
+			
+			files.add(new FileBO(fileName, mixin, mimeType, currentNodePath + sep + fileName, creator, owner, editor, reader));
 		}
 		return files;
 	}

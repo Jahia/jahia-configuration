@@ -14,6 +14,8 @@ public class FileBO {
 	
 	protected String mixinFileType;
 	
+	protected String mimeType;
+	
 	protected String nodePath;
 	
 	protected String fileName;
@@ -28,9 +30,10 @@ public class FileBO {
 	
 	protected String documentStatus = "Draft";
 
-	public FileBO(String fileName, String mixinFileType, String nodePath, String creator, String owner, String editor, String reader) {;
+	public FileBO(String fileName, String mixinFileType, String mimeType, String nodePath, String creator, String owner, String editor, String reader) {;
 		this.fileName = fileName;
 		this.mixinFileType = mixinFileType;
+		this.mimeType = mimeType;
 		this.nodePath = nodePath;
 		this.creator = creator;
 		this.owner = owner;
@@ -44,6 +47,10 @@ public class FileBO {
 	
 	public String getMixinFileType() {
 		return mixinFileType;
+	}
+	
+	public String getMimeType() {
+		return mimeType;
 	}
 	
 	public String getNodePath() {
@@ -77,6 +84,7 @@ public class FileBO {
 			fileElement.setAttribute("documentStatus", documentStatus);
 			
 			Element jcrContentElement = new Element("content", ContentGeneratorCst.NS_JCR);
+			jcrContentElement.setAttribute("mimeType", mimeType, ContentGeneratorCst.NS_JCR);
 			//jcrContentElement.setAttribute("extractedText", "Dummy content from Jahia Content Generator", ContentGeneratorCst.NS_J);
 			fileElement.addContent(jcrContentElement);
 			
