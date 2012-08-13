@@ -41,6 +41,7 @@ public class DocspaceBO {
 			translationEn.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
 			translationEn.setAttribute("description", "Created by the Jahia Content Generator", ContentGeneratorCst.NS_JCR);
 			translationEn.setAttribute("title", "Docspace: " + docspaceName, ContentGeneratorCst.NS_JCR);
+			translationEn.setAttribute("language", "en", ContentGeneratorCst.NS_JCR);
 			docspaceElement.addContent(translationEn);
 			
 			if (CollectionUtils.isNotEmpty(polls)) {
