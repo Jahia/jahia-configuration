@@ -109,11 +109,11 @@ public class FileBO {
 				fileElement.setAttribute("tag", "/sites/" + wiseInstanceName + "/tags/" + tag, ContentGeneratorCst.NS_J);
 			}
 			
-			Element jcrTranslation = new Element("translation_en", ContentGeneratorCst.NS_JCR);
-			jcrTranslation.setAttribute("description", description, ContentGeneratorCst.NS_JCR);
-			jcrTranslation.setAttribute("language", "en", ContentGeneratorCst.NS_JCR);
-			jcrTranslation.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
-			fileElement.addContent(jcrTranslation);
+			Element jTranslation = new Element("translation_en", ContentGeneratorCst.NS_J);
+			jTranslation.setAttribute("description", description, ContentGeneratorCst.NS_JCR);
+			jTranslation.setAttribute("language", "en", ContentGeneratorCst.NS_JCR);
+			jTranslation.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
+			fileElement.addContent(jTranslation);
 			
 			Element jcrContentElement = new Element("content", ContentGeneratorCst.NS_JCR);
 			jcrContentElement.setAttribute("mimeType", mimeType, ContentGeneratorCst.NS_JCR);
