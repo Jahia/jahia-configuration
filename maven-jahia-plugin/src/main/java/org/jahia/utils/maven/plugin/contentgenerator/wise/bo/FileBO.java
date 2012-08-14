@@ -29,8 +29,10 @@ public class FileBO {
 	protected String editor;
 	
 	protected String documentStatus = "Draft";
+	
+	protected String extractedContent;
 
-	public FileBO(String fileName, String mixinFileType, String mimeType, String nodePath, String creator, String owner, String editor, String reader) {;
+	public FileBO(String fileName, String mixinFileType, String mimeType, String nodePath, String creator, String owner, String editor, String reader, String extractedContent) {;
 		this.fileName = fileName;
 		this.mixinFileType = mixinFileType;
 		this.mimeType = mimeType;
@@ -39,6 +41,7 @@ public class FileBO {
 		this.owner = owner;
 		this.editor = editor;
 		this.reader = reader;
+		this.extractedContent = extractedContent;
 	}
 	
 	public String getFileName() {
@@ -72,6 +75,10 @@ public class FileBO {
 	public String getEditor() {
 		return editor;
 	}
+	
+	public String getExtractedContent() {
+		return extractedContent;
+	}
 
 	public Element getElement() {
 		if (fileElement == null) {
@@ -85,7 +92,7 @@ public class FileBO {
 			
 			Element jcrContentElement = new Element("content", ContentGeneratorCst.NS_JCR);
 			jcrContentElement.setAttribute("mimeType", mimeType, ContentGeneratorCst.NS_JCR);
-			//jcrContentElement.setAttribute("extractedText", "Dummy content from Jahia Content Generator", ContentGeneratorCst.NS_J);
+			jcrContentElement.setAttribute("extractedText", extractedContent, ContentGeneratorCst.NS_J);
 			fileElement.addContent(jcrContentElement);
 			
 			AceBO aceOwnerRoot = new AceBO("root", "root", "u", "GRANT", "docspace-owner");

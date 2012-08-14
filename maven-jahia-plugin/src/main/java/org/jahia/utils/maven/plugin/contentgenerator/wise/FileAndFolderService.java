@@ -1,6 +1,7 @@
 package org.jahia.utils.maven.plugin.contentgenerator.wise;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,18 +13,20 @@ import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.apache.tika.Tika;
+import org.apache.tika.exception.TikaException;
+import org.apache.tika.metadata.Metadata;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FolderBO;
 
 public class FileAndFolderService {
-	
+
 	private Log logger = new SystemStreamLog();
-	
+
 	private static FileAndFolderService instance;
-	
+
 	String sep = System.getProperty("file.separator");
-	
+
 	private FileAndFolderService() {
 
 	}
@@ -40,17 +43,17 @@ public class FileAndFolderService {
 		String currentNodePath = sep + "sites" + sep + wiseExport.getWiseInstanceKey() + sep + "files" + sep + "docspaces" + sep + "docspaceName";
 		return generateFolders(1, currentPath, currentNodePath, wiseExport);
 	}
-	
+
 	private List<FolderBO> generateFolders(Integer currentDepth, String currentPath, String currentNodePath, ExportBO wiseExport) {
-		
+
 		Integer nbFoldersPerLevel = wiseExport.getNbFoldersPerLevel();
 		Integer foldersDepth = wiseExport.getFoldersDepth();
-		Integer filesPerFolder  = wiseExport.getNbFilesPerFolder();
+		Integer filesPerFolder = wiseExport.getNbFilesPerFolder();
 		List<String> fileNames = wiseExport.getFileNames();
 		File filesDirectory = wiseExport.getFilesDirectory();
-		
+
 		String depthName;
-		
+
 		switch (currentDepth) {
 		case 1:
 			depthName = "aaa";
@@ -83,7 +86,7 @@ public class FileAndFolderService {
 			depthName = "aaa";
 			break;
 		}
-		
+
 		List<FolderBO> folders = new ArrayList<FolderBO>();
 		for (int i = 0; i < nbFoldersPerLevel; i++) {
 			List<FolderBO> subFolders = null;
@@ -92,16 +95,16 @@ public class FileAndFolderService {
 			List<FileBO> filesTmp = wiseExport.getFiles();
 			filesTmp.addAll(files);
 			wiseExport.setFiles(filesTmp);
-			
+
 			if (currentDepth < foldersDepth) {
-				subFolders =  generateFolders(currentDepth + 1, currentPath + sep + depthName + i, currentNodePath + sep +depthName, wiseExport);
+				subFolders = generateFolders(currentDepth + 1, currentPath + sep + depthName + i, currentNodePath + sep + depthName, wiseExport);
 			}
 			folders.add(new FolderBO(depthName + i, subFolders, files));
-			
+
 			// create physical folder
 			File newFolder = new File(currentPath + sep + depthName + i);
 			newFolder.mkdirs();
-			
+
 			// copy files into the new folder
 			for (Iterator<FileBO> iterator = files.iterator(); iterator.hasNext();) {
 				FileBO fileBO = (FileBO) iterator.next();
@@ -116,14 +119,14 @@ public class FileAndFolderService {
 		}
 		return folders;
 	}
-	
+
 	public List<FileBO> generateFiles(Integer nbFiles, String currentNodePath, List<String> fileNames, Integer nbUsers, File filesDirectory) {
 		List<FileBO> files = new ArrayList<FileBO>();
-		Random rand  = new Random();
-		
-		String imageExtensions[] = {".png",".gif",".jpeg", ".jpg"};
-		String officeDocumentExtensions[] = {".doc",".xls",".ppt", ".docx", ".xlsx", ".pptx" };
-		
+		Random rand = new Random();
+
+		String imageExtensions[] = { ".png", ".gif", ".jpeg", ".jpg" };
+		String officeDocumentExtensions[] = { ".doc", ".xls", ".ppt", ".docx", ".xlsx", ".pptx" };
+
 		String creator = "root";
 		String owner = "root";
 		String editor = "root";
@@ -136,30 +139,32 @@ public class FileAndFolderService {
 		for (int i = 0; i < nbFiles; i++) {
 			String fileName = fileNames.get(rand.nextInt(fileNames.size() - 1));
 			String mixin = "";
-			
+
 			if (nbUsers != null && (nbUsers.compareTo(0) > 0)) {
 				idCreator = rand.nextInt(nbUsers - 1);
 				creator = "user" + idCreator;
-				
+
 				idOwner = rand.nextInt(nbUsers - 1);
 				owner = "user" + idOwner;
-				
+
 				idEditor = rand.nextInt(nbUsers - 1);
 				editor = "user" + idEditor;
-				
+
 				idReader = rand.nextInt(nbUsers - 1);
 				reader = "user" + idReader;
 			}
-			
+
+			// Choose correct mixin depending on the file extension
 			String fileExtension = getFileExtension(fileName);
 			if (Arrays.asList(imageExtensions).contains(fileExtension)) {
 				mixin = " jmix:image";
 			} else if (Arrays.asList(officeDocumentExtensions).contains(fileExtension)) {
 				mixin = " jmix:document";
 			}
-			
+
+			// Detect MIME type
 			File f = new File(filesDirectory + sep + fileName);
-			Tika tikaParser= new Tika();
+			Tika tikaParser = new Tika();
 			String mimeType = "";
 			try {
 				mimeType = tikaParser.detect(f);
@@ -167,18 +172,40 @@ public class FileAndFolderService {
 				logger.error("Impossible to detect the MIME type for file " + f.getAbsoluteFile());
 				e.printStackTrace();
 			}
+
+			// Extract file content
+			Metadata metadata = new Metadata();
+			if (mimeType != null) {
+				metadata.set(Metadata.CONTENT_TYPE, mimeType);
+			}
+
+			String extractedContent = "";
 			
-			files.add(new FileBO(fileName, mixin, mimeType, currentNodePath + sep + fileName, creator, owner, editor, reader));
+			try {
+	            extractedContent = new Tika().parseToString(f);				
+			} catch (FileNotFoundException e) {
+				logger.error("File not found during text extraction " + f.getAbsoluteFile());
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}  catch (TikaException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			files.add(new FileBO(fileName, mixin, mimeType, currentNodePath + sep + fileName, creator, owner, editor, reader, extractedContent));
 		}
 		return files;
 	}
-	
+
 	public String initializeContentFolder(String outputDirPath, String wiseInstanceName, String docpaceKey) {
-		File contentdirectory = new File(outputDirPath + sep + "content" + sep + "sites" + sep + wiseInstanceName + sep + "files" + sep + "docspaces" + sep + docpaceKey);
+		File contentdirectory = new File(outputDirPath + sep + "content" + sep + "sites" + sep + wiseInstanceName + sep + "files" + sep + "docspaces"
+				+ sep + docpaceKey);
 		contentdirectory.mkdirs();
 		return contentdirectory.getAbsolutePath();
 	}
-	
+
 	public String getFileExtension(String fileName) {
 		return fileName.substring(fileName.lastIndexOf('.'), fileName.length());
 	}
