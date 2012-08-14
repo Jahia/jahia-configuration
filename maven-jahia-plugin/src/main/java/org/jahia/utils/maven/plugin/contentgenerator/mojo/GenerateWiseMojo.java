@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
-import org.jahia.utils.maven.plugin.contentgenerator.bo.WiseExport;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.WiseService;
 
 /**
