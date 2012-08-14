@@ -115,9 +115,9 @@ public class WiseService {
 		usersFile.delete();
 		os.appendPathToFile(usersFile, userNames);
 		
-		File collectionsFile = new File(wiseExport.getOutputDir(), "collections.txt");
-		collectionsFile.delete();
-		os.appendPathToFile(collectionsFile, collections);
+		// File collectionsFile = new File(wiseExport.getOutputDir(), "collections.txt");
+		// collectionsFile.delete();
+		// os.appendPathToFile(collectionsFile, collections);
 		
 		// Generate files list
 		List<String> filePaths = new ArrayList<String>();
