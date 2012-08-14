@@ -68,6 +68,8 @@ public class ExportBO {
     
     protected Integer numberOfTags;
     
+    protected List<TagBO> tags;
+    
     protected Boolean visibilityEnabled;
     
     protected String visibilityStartDate;
@@ -307,6 +309,14 @@ public class ExportBO {
 
 	public void setNumberOfTags(Integer numberOfTags) {
 		this.numberOfTags = numberOfTags;
+	}
+	
+	public List<TagBO> getTags() {
+		return tags;
+	}
+
+	public void setTags(List<TagBO> tags) {
+		this.tags = tags;
 	}
 
 	public Boolean getVisibilityEnabled() {

@@ -9,7 +9,6 @@ import org.jahia.utils.maven.plugin.contentgenerator.DatabaseService;
 import org.jahia.utils.maven.plugin.contentgenerator.TagService;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ArticleBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
-import org.jahia.utils.maven.plugin.contentgenerator.bo.TagBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.DocspaceBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FolderBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.NoteBO;
@@ -48,7 +47,7 @@ public class DocspaceService {
 		}
 		
 		TagService tagService = new TagService();
-		List<TagBO> tags = tagService.createTagsBO(wiseExport.getNumberOfTags());
+		wiseExport.setTags(tagService.createTagsBO(wiseExport.getNumberOfTags()));
 		
 		PollService pollService = PollService.getInstance();
 		List<PollBO> polls = pollService.generatePolls(wiseExport.getNbPolls(), articles);
@@ -67,7 +66,7 @@ public class DocspaceService {
 						
 			logger.info("Generating docspace " + i + "/" + wiseExport.getNbDocspaces());
 			
-			List<FolderBO> folders = fileAndFolderService.generateFolders(docspaceName, wiseExport, tags);
+			List<FolderBO> folders = fileAndFolderService.generateFolders(docspaceName, wiseExport);
 					
 			docspaces.add(new DocspaceBO(docspaceName, polls, notes, tasks, folders));
 		}

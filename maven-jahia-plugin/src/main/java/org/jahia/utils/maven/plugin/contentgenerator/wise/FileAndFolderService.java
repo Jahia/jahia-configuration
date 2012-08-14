@@ -63,7 +63,7 @@ public class FileAndFolderService {
 		return instance;
 	}
 
-	public List<FolderBO> generateFolders(String docspaceName, ExportBO wiseExport, List<TagBO> tags) {
+	public List<FolderBO> generateFolders(String docspaceName, ExportBO wiseExport) {
 		Double totalFolders = Math.pow(wiseExport.getNbFoldersPerLevel().doubleValue(), wiseExport.getFoldersDepth().doubleValue());
 		Double totalFiles = totalFolders * wiseExport.getNbFilesPerFolder();
 		logger.info("Folders generation is starting, " + totalFolders.intValue() + " folders to create, containing a total of " + totalFiles.intValue() + " files.");
@@ -71,10 +71,10 @@ public class FileAndFolderService {
 		String currentPath = initializeContentFolder(wiseExport.getOutputDir() + sep + "wise", wiseExport.getWiseInstanceKey(), docspaceName);
 		String currentNodePath = sep + "sites" + sep + wiseExport.getWiseInstanceKey() + sep + "files" + sep + "docspaces" + sep + "docspaceName";
 		
-		return generateFolders(1, currentPath, currentNodePath, wiseExport, tags);
+		return generateFolders(1, currentPath, currentNodePath, wiseExport);
 	}
 
-	private List<FolderBO> generateFolders(Integer currentDepth, String currentPath, String currentNodePath, ExportBO wiseExport, List<TagBO> tags) {
+	private List<FolderBO> generateFolders(Integer currentDepth, String currentPath, String currentNodePath, ExportBO wiseExport) {
 
 		Integer nbFoldersPerLevel = wiseExport.getNbFoldersPerLevel();
 		Integer foldersDepth = wiseExport.getFoldersDepth();
@@ -125,14 +125,14 @@ public class FileAndFolderService {
 				//logger.debug("Generating sub folder ");
 			}
 			List<FolderBO> subFolders = null;
-			List<FileBO> files = generateFiles(filesPerFolder, currentNodePath, fileNames, wiseExport.getNumberOfUsers(), filesDirectory, tags, wiseExport.getWiseInstanceKey());
+			List<FileBO> files = generateFiles(filesPerFolder, currentNodePath, fileNames, wiseExport.getNumberOfUsers(), filesDirectory, wiseExport.getTags(), wiseExport.getWiseInstanceKey());
 			// we store all generated files to use them in the collections
 			List<FileBO> filesTmp = wiseExport.getFiles();
 			filesTmp.addAll(files);
 			wiseExport.setFiles(filesTmp);
 
 			if (currentDepth < foldersDepth) {
-				subFolders = generateFolders(currentDepth + 1, currentPath + sep + depthName + i, currentNodePath + sep + depthName, wiseExport, tags);
+				subFolders = generateFolders(currentDepth + 1, currentPath + sep + depthName + i, currentNodePath + sep + depthName, wiseExport);
 			}
 			folders.add(new FolderBO(depthName + i, subFolders, files));
 
