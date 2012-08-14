@@ -95,6 +95,12 @@ public class FileBO {
 			jcrContentElement.setAttribute("extractedText", extractedContent, ContentGeneratorCst.NS_J);
 			fileElement.addContent(jcrContentElement);
 			
+			Element jcrTranslation = new Element("translation_en", ContentGeneratorCst.NS_JCR);
+			jcrContentElement.setAttribute("description", "File description", ContentGeneratorCst.NS_JCR);
+			jcrContentElement.setAttribute("language", "en", ContentGeneratorCst.NS_JCR);
+			jcrContentElement.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
+			fileElement.addContent(jcrTranslation);
+			
 			AceBO aceOwnerRoot = new AceBO("root", "root", "u", "GRANT", "docspace-owner");
 			AceBO aceOwner = new AceBO(owner, owner, "u", "GRANT", "docspace-owner");
 			AceBO aceEditor = new AceBO(editor, editor, "u", "GRANT", "docspace-editor");
