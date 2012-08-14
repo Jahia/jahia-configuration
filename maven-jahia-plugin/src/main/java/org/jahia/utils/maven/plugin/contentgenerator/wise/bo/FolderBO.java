@@ -20,6 +20,10 @@ public class FolderBO {
 		this.subFolders = subFolders;
 		this.files = files;
 	}
+	
+	public List<FileBO> getFiles() {
+		return files;
+	}
 
 	public Element getElement() {
 		if (folderElement == null) {

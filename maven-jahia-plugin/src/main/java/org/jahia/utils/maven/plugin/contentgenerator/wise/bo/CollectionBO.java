@@ -19,6 +19,10 @@ public class CollectionBO {
 		this.fileReferences = fileReferences;
 	}
 	
+	public String getTitle() {
+		return title;
+	}
+	
 	public Element getElement() {
 		if (collection == null) {
 			collection = new Element(title);

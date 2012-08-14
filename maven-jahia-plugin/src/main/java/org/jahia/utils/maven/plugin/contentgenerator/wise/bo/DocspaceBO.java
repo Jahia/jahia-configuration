@@ -30,6 +30,22 @@ public class DocspaceBO {
 		this.folders = folders;
 	}
 	
+	public List<PollBO> getPolls() {
+		return polls;
+	}
+
+	public List<NoteBO> getNotes() {
+		return notes;
+	}
+
+	public List<TaskBO> getTasks() {
+		return tasks;
+	}
+
+	public List<FolderBO> getFolders() {
+		return folders;
+	}
+
 	public Element getElement() {
 		if (docspaceElement == null) {
 			docspaceElement = new Element(docspaceName);

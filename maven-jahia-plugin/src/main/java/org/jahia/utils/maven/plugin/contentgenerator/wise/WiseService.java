@@ -11,15 +11,18 @@ import org.jahia.utils.maven.plugin.contentgenerator.SiteService;
 import org.jahia.utils.maven.plugin.contentgenerator.UserGroupService;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.UserBO;
+import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.CollectionBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.DocspaceBO;
+import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
+import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FolderBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.WiseBO;
 import org.jdom.Document;
 
 public class WiseService {
 	public static WiseService instance;
-	
+
 	private DocspaceService docspaceService;
-	
+
 	private WiseService() {
 		docspaceService = DocspaceService.getInstance();
 	}
@@ -30,7 +33,7 @@ public class WiseService {
 		}
 		return instance;
 	}
-	
+
 	public WiseBO generateWiseInstance(ExportBO wiseExport) {
 		WiseBO wise = null;
 		if (wiseExport.getNbDocspaces() > 0) {
@@ -39,42 +42,41 @@ public class WiseService {
 		}
 		return wise;
 	}
-	
+
 	public String generateWise(ExportBO wiseExport) throws IOException {
 		OutputService os = new OutputService();
 		UserGroupService userGroupService = new UserGroupService();
 		SiteService siteService = new SiteService();
-		
+
 		List<File> globalFilesToZip = new ArrayList<File>();
-		
+
 		// Clean output directory
 		File outputDirectory = new File(wiseExport.getOutputDir());
 		FileUtils.deleteDirectory(outputDirectory);
 		outputDirectory.mkdir();
-		
+
 		// Wise instance files
 		WiseBO wiseInstance = generateWiseInstance(wiseExport);
-		
+
 		File wiseInstanceOutputDir = new File(wiseExport.getOutputDir() + "/wise");
 		File wiseInstanceContentDir = new File(wiseInstanceOutputDir + "/content");
-		
+
 		wiseInstanceOutputDir.mkdir();
 		File repositoryFile = new File(wiseInstanceOutputDir + "/repository.xml");
-		os.writeJdomDocumentToFile(wiseInstance.getDocument(), repositoryFile);		
-		
+		os.writeJdomDocumentToFile(wiseInstance.getDocument(), repositoryFile);
+
 		// create properties file
-		siteService.createPropertiesFile(wiseExport.getWiseInstanceKey(),
-				wiseExport.getSiteLanguages(), "templates-docspace", wiseInstanceOutputDir);
-		
+		siteService.createPropertiesFile(wiseExport.getWiseInstanceKey(), wiseExport.getSiteLanguages(), "templates-docspace", wiseInstanceOutputDir);
+
 		// Zip wise instances files
 		List<File> wiseInstanceFiles = new ArrayList<File>(FileUtils.listFiles(wiseInstanceOutputDir, null, false));
 		if (wiseInstanceContentDir.exists()) {
 			wiseInstanceFiles.add(wiseInstanceContentDir);
 		}
-		
+
 		File wiseArchive = os.createSiteArchive("wise.zip", wiseExport.getOutputDir(), wiseInstanceFiles);
 		globalFilesToZip.add(wiseArchive);
-		
+
 		// Users
 		Integer nbCollectionsPerUser = wiseExport.getNbCollectionsPerUser();
 		Integer nbFilesPerCollection = wiseExport.getNbFilesPerCollection();
@@ -82,36 +84,58 @@ public class WiseService {
 		if (nbFilesPerCollection.compareTo(wiseExport.getFiles().size()) < 0) {
 			nbFilesPerCollection = wiseExport.getFiles().size();
 		}
-		List<UserBO> users = userGroupService.generateUsers(wiseExport.getNumberOfUsers(), nbCollectionsPerUser, nbFilesPerCollection, wiseExport.getFiles());
+		List<UserBO> users = userGroupService.generateUsers(wiseExport.getNumberOfUsers(), nbCollectionsPerUser, nbFilesPerCollection,
+				wiseExport.getFiles());
 		File tmpUsers = new File(wiseExport.getOutputDir(), "users");
 		tmpUsers.mkdir();
 
 		File repositoryUsers = new File(tmpUsers, "repository.xml");
-		Document usersRepositoryDocument = userGroupService
-				.createUsersRepository(users);
+		Document usersRepositoryDocument = userGroupService.createUsersRepository(users);
 		os.writeJdomDocumentToFile(usersRepositoryDocument, repositoryUsers);
 
 		List<File> filesToZip = new ArrayList<File>();
-		File contentUsers = userGroupService.createFileTreeForUsers(users,
-				tmpUsers);
+		File contentUsers = userGroupService.createFileTreeForUsers(users, tmpUsers);
 
 		filesToZip.add(repositoryUsers);
 		filesToZip.add(contentUsers);
-		File usersArchive = os.createSiteArchive("users.zip",
-				wiseExport.getOutputDir(), filesToZip);
+		File usersArchive = os.createSiteArchive("users.zip", wiseExport.getOutputDir(), filesToZip);
 		globalFilesToZip.add(usersArchive);
 
+		// Generate users list
 		List<String> userNames = new ArrayList<String>();
+		List<String> collections = new ArrayList<String>();
 		for (UserBO user : users) {
 			userNames.add(user.getName());
+
+			for (CollectionBO collection : user.getCollections()) {
+				collections.add(collection.getTitle());
+			}
 		}
-		File f = new File(wiseExport.getOutputDir(), "users.txt");
-		f.delete();
-		os.appendPathToFile(f, userNames);
+		File usersFile = new File(wiseExport.getOutputDir(), "users.txt");
+		usersFile.delete();
+		os.appendPathToFile(usersFile, userNames);
 		
+		File collectionsFile = new File(wiseExport.getOutputDir(), "collections.txt");
+		collectionsFile.delete();
+		os.appendPathToFile(collectionsFile, collections);
+		
+		// Generate files list
+		List<String> filePaths = new ArrayList<String>();
+		for (DocspaceBO docspace : wiseInstance.getDocspaces()) {
+			for (FolderBO folder : docspace.getFolders()) {
+				for (FileBO file : folder.getFiles()) {
+					filePaths.add(file.getNodePath());
+				}
+			}
+		}
+		
+		File filePathsFile = new File(wiseExport.getOutputDir(), "filePaths.txt");
+		filePathsFile.delete();
+		os.appendPathToFile(filePathsFile, filePaths);
+
 		// Zip all of this
 		File wiseImportArchive = os.createSiteArchive("wise_instance_generated.zip", wiseExport.getOutputDir(), globalFilesToZip);
-		
+
 		return wiseImportArchive.getAbsolutePath();
 	}
 }

@@ -58,6 +58,10 @@ public class UserBO {
 	public void setEmail(String email) {
 		this.email = email;
 	}
+	
+	public List<CollectionBO> getCollections() {
+		return collections;
+	}
 
 	public String getDirectoryName(int indexDir) {
 		String dirname = null;

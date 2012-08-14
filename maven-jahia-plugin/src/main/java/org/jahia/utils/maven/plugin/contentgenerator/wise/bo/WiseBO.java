@@ -23,6 +23,10 @@ public class WiseBO extends SiteBO {
 		this.setSiteKey(wiseInstanceKey);
 		this.docspaces = docspaces;
 	}
+	
+	public List<DocspaceBO> getDocspaces() {
+		return docspaces;
+	}
 
 	public Element getElement() {
 		if (wiseElement == null) {
