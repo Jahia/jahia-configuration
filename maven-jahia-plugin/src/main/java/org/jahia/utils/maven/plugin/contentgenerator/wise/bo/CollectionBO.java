@@ -32,7 +32,7 @@ public class CollectionBO {
 			
 			for (Iterator<FileReferenceBO> iterator = fileReferences.iterator(); iterator.hasNext();) {
 				FileReferenceBO fileReference = iterator.next();
-				collection.setContent(fileReference.getElement());
+				collection.addContent(fileReference.getElement());
 			}
 		}
 		return collection;
