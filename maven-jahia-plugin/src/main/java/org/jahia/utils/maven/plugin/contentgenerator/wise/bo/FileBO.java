@@ -31,8 +31,10 @@ public class FileBO {
 	protected String documentStatus = "Draft";
 	
 	protected String extractedContent;
+	
+	protected String description;
 
-	public FileBO(String fileName, String mixinFileType, String mimeType, String nodePath, String creator, String owner, String editor, String reader, String extractedContent) {;
+	public FileBO(String fileName, String mixinFileType, String mimeType, String nodePath, String creator, String owner, String editor, String reader, String extractedContent, String description) {;
 		this.fileName = fileName;
 		this.mixinFileType = mixinFileType;
 		this.mimeType = mimeType;
@@ -42,7 +44,13 @@ public class FileBO {
 		this.editor = editor;
 		this.reader = reader;
 		this.extractedContent = extractedContent;
+		this.description = description;
 	}
+	
+	public FileBO(String fileName, String nodePath) {;
+	this.fileName = fileName;
+	this.nodePath = nodePath;
+}
 	
 	public String getFileName() {
 		return fileName;
@@ -90,16 +98,16 @@ public class FileBO {
 			fileElement.setAttribute("createdBy", creator, ContentGeneratorCst.NS_JCR);
 			fileElement.setAttribute("documentStatus", documentStatus);
 			
+			Element jcrTranslation = new Element("translation_en", ContentGeneratorCst.NS_JCR);
+			jcrTranslation.setAttribute("description", description, ContentGeneratorCst.NS_JCR);
+			jcrTranslation.setAttribute("language", "en", ContentGeneratorCst.NS_JCR);
+			jcrTranslation.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
+			fileElement.addContent(jcrTranslation);
+			
 			Element jcrContentElement = new Element("content", ContentGeneratorCst.NS_JCR);
 			jcrContentElement.setAttribute("mimeType", mimeType, ContentGeneratorCst.NS_JCR);
 			jcrContentElement.setAttribute("extractedText", extractedContent, ContentGeneratorCst.NS_J);
 			fileElement.addContent(jcrContentElement);
-			
-			Element jcrTranslation = new Element("translation_en", ContentGeneratorCst.NS_JCR);
-			jcrContentElement.setAttribute("description", "File description", ContentGeneratorCst.NS_JCR);
-			jcrContentElement.setAttribute("language", "en", ContentGeneratorCst.NS_JCR);
-			jcrContentElement.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
-			fileElement.addContent(jcrTranslation);
 			
 			AceBO aceOwnerRoot = new AceBO("root", "root", "u", "GRANT", "docspace-owner");
 			AceBO aceOwner = new AceBO(owner, owner, "u", "GRANT", "docspace-owner");
@@ -115,5 +123,9 @@ public class FileBO {
 			fileElement.addContent(acl.getElement());
 		}
 		return fileElement;
+	}
+	
+	public String toString() {
+		return fileName + " - description: " + description;
 	}
 }

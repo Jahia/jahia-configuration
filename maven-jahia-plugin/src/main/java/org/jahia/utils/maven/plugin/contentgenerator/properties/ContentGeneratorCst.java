@@ -58,6 +58,15 @@ public final class ContentGeneratorCst {
 	
 	public static Namespace NS_DOCNT = Namespace.getNamespace("docnt", "http://www.jahia.org/jahia/docspace/nt/1.0"); 
 	
+	
+	/**
+	 * Wise
+	 */
+	public static String OFTEN_USED_DESCRIPTION_WORDS = "Lorem,Ipsum,simply,dummy,text,printing,typesetting,industry";
+	public static String SELDOM_USED_DESCRIPTION_WORDS = "Wikipedia,free,collaborativelyedited,multilingual,Internet,encyclopedia,supported,non-profit,Wikimedia,Foundation";
+	public static Integer OFTEN_USED_DESCRIPTION_WORDS_COUNTER = 100;
+	public static Integer SELDOM_USED_DESCRIPTION_WORDS_COUNTER = 10;
+	
 	// jcr jnt jmix j
 	private ContentGeneratorCst() {
 

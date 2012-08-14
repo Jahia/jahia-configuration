@@ -16,6 +16,7 @@ import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
+import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FolderBO;
 
@@ -26,9 +27,32 @@ public class FileAndFolderService {
 	private static FileAndFolderService instance;
 
 	String sep = System.getProperty("file.separator");
+	
+	private static List<String> oftenUsedDescriptionWords;
+	
+	private static List<String> seldomUsedDescriptionWords;
+	
+	private static Integer currentOftenUsedDescriptionWordIndex;
+	
+	private static Integer currentSeldomUsedDescriptionWordIndex;
+	
+	private static Integer nbOfFilesUsedForOftenUsedDescriptionWords;
+	
+	private static Integer nbOfFilesUsedForSeldomUsedDescriptionWords;
+	
+	private static Integer nbOfOftenUsedDescriptionWords;
+	
+	private static Integer nbOfSeldomUsedDescriptionWords;
 
 	private FileAndFolderService() {
-
+		oftenUsedDescriptionWords = Arrays.asList(ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS.split("\\s*,\\s*"));
+		seldomUsedDescriptionWords = Arrays.asList(ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS.split("\\s*,\\s*"));
+		currentOftenUsedDescriptionWordIndex = 0;
+		currentSeldomUsedDescriptionWordIndex = 0;
+		nbOfFilesUsedForOftenUsedDescriptionWords = ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS_COUNTER;
+		nbOfFilesUsedForSeldomUsedDescriptionWords = ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS_COUNTER;
+		nbOfOftenUsedDescriptionWords = oftenUsedDescriptionWords.size();
+		nbOfSeldomUsedDescriptionWords = seldomUsedDescriptionWords.size();
 	}
 
 	public static FileAndFolderService getInstance() {
@@ -39,8 +63,13 @@ public class FileAndFolderService {
 	}
 
 	public List<FolderBO> generateFolders(String docspaceName, ExportBO wiseExport) {
+		Double totalFolders = Math.pow(wiseExport.getNbFoldersPerLevel().doubleValue(), wiseExport.getFoldersDepth().doubleValue());
+		Double totalFiles = totalFolders * wiseExport.getNbFilesPerFolder();
+		logger.info("Folders generation is starting, " + totalFolders.intValue() + " folders to create, containing a total of " + totalFiles.intValue() + " files.");
+		
 		String currentPath = initializeContentFolder(wiseExport.getOutputDir() + sep + "wise", wiseExport.getWiseInstanceKey(), docspaceName);
 		String currentNodePath = sep + "sites" + sep + wiseExport.getWiseInstanceKey() + sep + "files" + sep + "docspaces" + sep + "docspaceName";
+		
 		return generateFolders(1, currentPath, currentNodePath, wiseExport);
 	}
 
@@ -51,7 +80,7 @@ public class FileAndFolderService {
 		Integer filesPerFolder = wiseExport.getNbFilesPerFolder();
 		List<String> fileNames = wiseExport.getFileNames();
 		File filesDirectory = wiseExport.getFilesDirectory();
-
+	
 		String depthName;
 
 		switch (currentDepth) {
@@ -88,7 +117,12 @@ public class FileAndFolderService {
 		}
 
 		List<FolderBO> folders = new ArrayList<FolderBO>();
-		for (int i = 0; i < nbFoldersPerLevel; i++) {
+		for (int i = 1; i <= nbFoldersPerLevel; i++) {
+			if (currentDepth == 1) {
+				logger.info("Generating top folder " + i + "/" + nbFoldersPerLevel);
+			} else {
+				//logger.debug("Generating sub folder ");
+			}
 			List<FolderBO> subFolders = null;
 			List<FileBO> files = generateFiles(filesPerFolder, currentNodePath, fileNames, wiseExport.getNumberOfUsers(), filesDirectory);
 			// we store all generated files to use them in the collections
@@ -121,6 +155,7 @@ public class FileAndFolderService {
 	}
 
 	public List<FileBO> generateFiles(Integer nbFiles, String currentNodePath, List<String> fileNames, Integer nbUsers, File filesDirectory) {
+		//logger.debug("Generating " + nbFiles + " files");
 		List<FileBO> files = new ArrayList<FileBO>();
 		Random rand = new Random();
 
@@ -193,8 +228,11 @@ public class FileAndFolderService {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
-			files.add(new FileBO(fileName, mixin, mimeType, currentNodePath + sep + fileName, creator, owner, editor, reader, extractedContent));
+			 
+			String description = getCurrentOftenDescriptionWord() + " " + getCurrentSeldomDescriptionWord();
+			FileBO newFile = new FileBO(fileName, mixin, mimeType, currentNodePath + sep + fileName, creator, owner, editor, reader, extractedContent, description);
+			// logger.debug("New FileBO: " + newFile.toString());
+			files.add(newFile);
 		}
 		return files;
 	}
@@ -208,5 +246,35 @@ public class FileAndFolderService {
 
 	public String getFileExtension(String fileName) {
 		return fileName.substring(fileName.lastIndexOf('.'), fileName.length());
+	}
+	
+	private String getCurrentOftenDescriptionWord() {
+		String descriptionWord = "";
+		if (currentOftenUsedDescriptionWordIndex < nbOfOftenUsedDescriptionWords) {
+			//logger.debug(nbOfFilesUsedForOftenUsedDescriptionWords.toString());
+			descriptionWord = oftenUsedDescriptionWords.get(currentOftenUsedDescriptionWordIndex);
+			nbOfFilesUsedForOftenUsedDescriptionWords--;
+
+			if (nbOfFilesUsedForOftenUsedDescriptionWords == 0) {
+				currentOftenUsedDescriptionWordIndex++;
+				nbOfFilesUsedForOftenUsedDescriptionWords = ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS_COUNTER;
+			}
+		}
+		return descriptionWord;
+	}
+	
+	private String getCurrentSeldomDescriptionWord() {
+		String descriptionWord = "";
+		if (currentSeldomUsedDescriptionWordIndex < nbOfSeldomUsedDescriptionWords) {
+			//logger.debug(nbOfFilesUsedForSeldomUsedDescriptionWords.toString());
+			descriptionWord = seldomUsedDescriptionWords.get(currentSeldomUsedDescriptionWordIndex);
+			nbOfFilesUsedForSeldomUsedDescriptionWords--;
+
+			if (nbOfFilesUsedForSeldomUsedDescriptionWords == 0) {
+				currentSeldomUsedDescriptionWordIndex++;
+				nbOfFilesUsedForSeldomUsedDescriptionWords = ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS_COUNTER;
+			}
+		}
+		return descriptionWord;
 	}
 }

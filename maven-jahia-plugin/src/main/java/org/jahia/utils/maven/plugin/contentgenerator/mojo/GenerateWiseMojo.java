@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
+import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.WiseService;
 
 /**
@@ -87,6 +88,8 @@ public class GenerateWiseMojo extends ContentGeneratorMojo {
 		String wiseRepositoryFile;
 		try {
 			wiseRepositoryFile = wiseService.generateWise(wiseExport);
+			getLog().info("Each word of this list has been used for the description of " + ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS_COUNTER + " files: " + ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS);
+			getLog().info("Each word of this list has been used for the description of " + ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS_COUNTER + " files: " + ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS);
 			getLog().info("Wise instance archive created and available here: " + wiseRepositoryFile);
 		} catch (IOException e) {
 			getLog().error("Error writing output file");
