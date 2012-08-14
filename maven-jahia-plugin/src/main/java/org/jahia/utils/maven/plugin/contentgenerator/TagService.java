@@ -39,6 +39,25 @@ public class TagService {
 
 		return tags;
 	}
+	
+	
+	/** 
+	 * Creates list of Tg BO from 0 to nbTags-1
+	 * @param nbTags
+	 * @return list of tags object created
+	 */
+	public List<TagBO> createTagsBO(Integer nbTags) {
+		logger.info("Creation of " + nbTags + " tags");
+		List<TagBO> tags = new ArrayList<TagBO>();
+		TagBO tag = null;
+		for (int i = 0; i < nbTags; i++) {
+			tag = new TagBO(i);
+			tags.add(tag);
+			logger.debug("Tag '" + tag.getTagName() + "' created");
+		}
+
+		return tags;
+	}
 
 	/**
 	 * Creates XML Element "tags" that will contains tags children

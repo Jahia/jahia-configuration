@@ -16,6 +16,7 @@ import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
+import org.jahia.utils.maven.plugin.contentgenerator.bo.TagBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FolderBO;
@@ -62,7 +63,7 @@ public class FileAndFolderService {
 		return instance;
 	}
 
-	public List<FolderBO> generateFolders(String docspaceName, ExportBO wiseExport) {
+	public List<FolderBO> generateFolders(String docspaceName, ExportBO wiseExport, List<TagBO> tags) {
 		Double totalFolders = Math.pow(wiseExport.getNbFoldersPerLevel().doubleValue(), wiseExport.getFoldersDepth().doubleValue());
 		Double totalFiles = totalFolders * wiseExport.getNbFilesPerFolder();
 		logger.info("Folders generation is starting, " + totalFolders.intValue() + " folders to create, containing a total of " + totalFiles.intValue() + " files.");
@@ -70,10 +71,10 @@ public class FileAndFolderService {
 		String currentPath = initializeContentFolder(wiseExport.getOutputDir() + sep + "wise", wiseExport.getWiseInstanceKey(), docspaceName);
 		String currentNodePath = sep + "sites" + sep + wiseExport.getWiseInstanceKey() + sep + "files" + sep + "docspaces" + sep + "docspaceName";
 		
-		return generateFolders(1, currentPath, currentNodePath, wiseExport);
+		return generateFolders(1, currentPath, currentNodePath, wiseExport, tags);
 	}
 
-	private List<FolderBO> generateFolders(Integer currentDepth, String currentPath, String currentNodePath, ExportBO wiseExport) {
+	private List<FolderBO> generateFolders(Integer currentDepth, String currentPath, String currentNodePath, ExportBO wiseExport, List<TagBO> tags) {
 
 		Integer nbFoldersPerLevel = wiseExport.getNbFoldersPerLevel();
 		Integer foldersDepth = wiseExport.getFoldersDepth();
@@ -124,14 +125,14 @@ public class FileAndFolderService {
 				//logger.debug("Generating sub folder ");
 			}
 			List<FolderBO> subFolders = null;
-			List<FileBO> files = generateFiles(filesPerFolder, currentNodePath, fileNames, wiseExport.getNumberOfUsers(), filesDirectory);
+			List<FileBO> files = generateFiles(filesPerFolder, currentNodePath, fileNames, wiseExport.getNumberOfUsers(), filesDirectory, tags, wiseExport.getWiseInstanceKey());
 			// we store all generated files to use them in the collections
 			List<FileBO> filesTmp = wiseExport.getFiles();
 			filesTmp.addAll(files);
 			wiseExport.setFiles(filesTmp);
 
 			if (currentDepth < foldersDepth) {
-				subFolders = generateFolders(currentDepth + 1, currentPath + sep + depthName + i, currentNodePath + sep + depthName, wiseExport);
+				subFolders = generateFolders(currentDepth + 1, currentPath + sep + depthName + i, currentNodePath + sep + depthName, wiseExport, tags);
 			}
 			folders.add(new FolderBO(depthName + i, subFolders, files));
 
@@ -154,7 +155,7 @@ public class FileAndFolderService {
 		return folders;
 	}
 
-	public List<FileBO> generateFiles(Integer nbFiles, String currentNodePath, List<String> fileNames, Integer nbUsers, File filesDirectory) {
+	public List<FileBO> generateFiles(Integer nbFiles, String currentNodePath, List<String> fileNames, Integer nbUsers, File filesDirectory, List<TagBO> tags, String wiseInstanceName) {
 		//logger.debug("Generating " + nbFiles + " files");
 		List<FileBO> files = new ArrayList<FileBO>();
 		Random rand = new Random();
@@ -170,6 +171,7 @@ public class FileAndFolderService {
 		int idOwner;
 		int idEditor;
 		int idReader;
+		int nbOfTags = tags.size();
 
 		for (int i = 0; i < nbFiles; i++) {
 			String fileName = fileNames.get(rand.nextInt(fileNames.size() - 1));
@@ -230,7 +232,12 @@ public class FileAndFolderService {
 			}
 			 
 			String description = getCurrentOftenDescriptionWord() + " " + getCurrentSeldomDescriptionWord();
-			FileBO newFile = new FileBO(fileName, mixin, mimeType, currentNodePath + sep + fileName, creator, owner, editor, reader, extractedContent, description);
+			
+			// Random choice of tag
+			int randomTagIndex = rand.nextInt(nbOfTags - 1);
+			TagBO tag = tags.get(randomTagIndex);
+			
+			FileBO newFile = new FileBO(fileName, mixin, mimeType, currentNodePath + sep + fileName, creator, owner, editor, reader, extractedContent, description, tag.getTagName(), wiseInstanceName);
 			// logger.debug("New FileBO: " + newFile.toString());
 			files.add(newFile);
 		}

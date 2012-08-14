@@ -33,8 +33,12 @@ public class FileBO {
 	protected String extractedContent;
 	
 	protected String description;
+	
+	protected String tag;
+	
+	protected String wiseInstanceName;
 
-	public FileBO(String fileName, String mixinFileType, String mimeType, String nodePath, String creator, String owner, String editor, String reader, String extractedContent, String description) {;
+	public FileBO(String fileName, String mixinFileType, String mimeType, String nodePath, String creator, String owner, String editor, String reader, String extractedContent, String description, String tag, String wiseInstanceName) {;
 		this.fileName = fileName;
 		this.mixinFileType = mixinFileType;
 		this.mimeType = mimeType;
@@ -45,6 +49,8 @@ public class FileBO {
 		this.reader = reader;
 		this.extractedContent = extractedContent;
 		this.description = description;
+		this.tag = tag;
+		this.wiseInstanceName = wiseInstanceName;
 	}
 	
 	public FileBO(String fileName, String nodePath) {;
@@ -97,6 +103,11 @@ public class FileBO {
 			fileElement.setAttribute("primaryType", "jnt:file", ContentGeneratorCst.NS_JCR);
 			fileElement.setAttribute("createdBy", creator, ContentGeneratorCst.NS_JCR);
 			fileElement.setAttribute("documentStatus", documentStatus);
+			
+			if (tag != null) {
+				fileElement.setAttribute("newTag", tag, ContentGeneratorCst.NS_J);
+				fileElement.setAttribute("tag", "/sites/" + wiseInstanceName + "/tags/" + tag, ContentGeneratorCst.NS_J);
+			}
 			
 			Element jcrTranslation = new Element("translation_en", ContentGeneratorCst.NS_JCR);
 			jcrTranslation.setAttribute("description", description, ContentGeneratorCst.NS_JCR);
