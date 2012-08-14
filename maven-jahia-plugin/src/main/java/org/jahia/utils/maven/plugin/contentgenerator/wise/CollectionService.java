@@ -4,13 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.CollectionBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileReferenceBO;
 
 public class CollectionService {
-	
+		
 	private static CollectionService instance;
+	
+	private Log logger = new SystemStreamLog();
 	
 	private Random rand = new Random();
 	
@@ -28,7 +32,8 @@ public class CollectionService {
 	public List<CollectionBO> generateCollections(int nbCollections, int nbFilesPerCollection, List<FileBO> files) {
 		List<CollectionBO> collections = new ArrayList<CollectionBO>();
 
-		for (int i = 0; i < nbCollections; i++) {
+		for (int i = 1; i <= nbCollections; i++) {
+			logger.info("Generating collection " + i + "/" + nbCollections + " containing " + nbFilesPerCollection + " files");
 			CollectionBO collection = new CollectionBO("Collection" + i, getRandomFilesReferences(nbFilesPerCollection, files));
 			collections.add(collection);
 		}

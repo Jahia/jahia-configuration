@@ -3,6 +3,8 @@ package org.jahia.utils.maven.plugin.contentgenerator.wise;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.jahia.utils.maven.plugin.contentgenerator.DatabaseService;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ArticleBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
@@ -13,7 +15,9 @@ import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.PollBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.TaskBO;
 
 public class DocspaceService {
-private static DocspaceService instance;
+	private static DocspaceService instance;
+	
+	private Log logger = new SystemStreamLog();
 	
 	private DocspaceService() {
 
@@ -56,6 +60,8 @@ private static DocspaceService instance;
 		for (int i = 1; i <= wiseExport.getNbDocspaces(); i++) {
 			String docspaceName = "docspace" + i;
 						
+			logger.info("Generating docspace " + i + "/" + wiseExport.getNbDocspaces());
+			
 			List<FolderBO> folders = fileAndFolderService.generateFolders(docspaceName, wiseExport);
 					
 			docspaces.add(new DocspaceBO(docspaceName, polls, notes, tasks, folders));
