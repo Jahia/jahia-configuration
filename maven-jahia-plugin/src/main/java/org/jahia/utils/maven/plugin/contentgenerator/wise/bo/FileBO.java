@@ -120,6 +120,9 @@ public class FileBO {
 			Element jcrContentElement = new Element("content", ContentGeneratorCst.NS_JCR);
 			jcrContentElement.setAttribute("mimeType", mimeType, ContentGeneratorCst.NS_JCR);
 			jcrContentElement.setAttribute("extractedText", extractedContent, ContentGeneratorCst.NS_J);
+			jcrContentElement.setAttribute("lastExtractionDate", "2012-08-14T23:35:10.629+02:00", ContentGeneratorCst.NS_J);
+			jcrContentElement.setAttribute("lastModified", "2012-08-14T23:35:10.637+02:00", ContentGeneratorCst.NS_JCR);
+			
 			fileElement.addContent(jcrContentElement);
 			
 			AceBO aceOwnerRoot = new AceBO("root", "root", "u", "GRANT", "docspace-owner");
