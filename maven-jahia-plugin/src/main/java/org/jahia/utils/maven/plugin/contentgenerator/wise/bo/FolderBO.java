@@ -2,6 +2,7 @@ package org.jahia.utils.maven.plugin.contentgenerator.wise.bo;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jdom.Element;
@@ -13,15 +14,15 @@ public class FolderBO {
 
 	List<FolderBO> subFolders;
 
-	List<FileBO> files;
+	Set<FileBO> files;
 
-	public FolderBO(String folderName, List<FolderBO> subFolders, List<FileBO> files) {
+	public FolderBO(String folderName, List<FolderBO> subFolders, Set<FileBO> files) {
 		this.folderName = folderName;
 		this.subFolders = subFolders;
 		this.files = files;
 	}
 	
-	public List<FileBO> getFiles() {
+	public Set<FileBO> getFiles() {
 		return files;
 	}
 

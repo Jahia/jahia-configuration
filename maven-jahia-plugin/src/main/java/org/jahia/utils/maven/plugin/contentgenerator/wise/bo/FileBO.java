@@ -11,35 +11,40 @@ import org.jdom.Element;
 public class FileBO {
 
 	protected Element fileElement;
-	
+
 	protected String mixinFileType;
-	
+
 	protected String mimeType;
-	
+
 	protected String nodePath;
-	
+
 	protected String fileName;
-	
+
+	protected String jcrFilename;
+
 	protected String creator;
-	
+
 	protected String owner;
-	
+
 	protected String reader;
-	
+
 	protected String editor;
-	
+
 	protected String documentStatus = "Draft";
-	
+
 	protected String extractedContent;
-	
+
 	protected String description;
-	
+
 	protected String tag;
-	
+
 	protected String wiseInstanceName;
 
-	public FileBO(String fileName, String mixinFileType, String mimeType, String nodePath, String creator, String owner, String editor, String reader, String extractedContent, String description, String tag, String wiseInstanceName) {;
+	public FileBO(String fileName, String mixinFileType, String mimeType, String nodePath, String creator, String owner, String editor,
+			String reader, String extractedContent, String description, String tag, String wiseInstanceName) {
+		;
 		this.fileName = fileName;
+		this.jcrFilename = org.apache.jackrabbit.util.ISO9075.encode(fileName);
 		this.mixinFileType = mixinFileType;
 		this.mimeType = mimeType;
 		this.nodePath = nodePath;
@@ -52,32 +57,37 @@ public class FileBO {
 		this.tag = tag;
 		this.wiseInstanceName = wiseInstanceName;
 	}
-	
-	public FileBO(String fileName, String nodePath) {;
-	this.fileName = fileName;
-	this.nodePath = nodePath;
-}
-	
+
+	public FileBO(String fileName, String nodePath) {
+		;
+		this.fileName = fileName;
+		this.nodePath = nodePath;
+	}
+
 	public String getFileName() {
 		return fileName;
 	}
-	
+
+	public String getJcrFileName() {
+		return jcrFilename;
+	}
+
 	public String getMixinFileType() {
 		return mixinFileType;
 	}
-	
+
 	public String getMimeType() {
 		return mimeType;
 	}
-	
+
 	public String getNodePath() {
 		return nodePath;
 	}
-	
+
 	public String getCreator() {
 		return creator;
 	}
-	
+
 	public String getOwner() {
 		return owner;
 	}
@@ -89,42 +99,41 @@ public class FileBO {
 	public String getEditor() {
 		return editor;
 	}
-	
+
 	public String getExtractedContent() {
 		return extractedContent;
 	}
 
 	public Element getElement() {
 		if (fileElement == null) {
-			fileName =  org.apache.jackrabbit.util.ISO9075.encode(fileName);
-			fileElement = new Element(this.fileName);
-			
+			fileElement = new Element(jcrFilename);
+
 			String mixin = "docmix:docspaceDocument jmix:accessControlled " + mixinFileType;
 			if (tag != null) {
 				fileElement.setAttribute("newTag", tag, ContentGeneratorCst.NS_J);
 				fileElement.setAttribute("tag", "/sites/" + wiseInstanceName + "/tags/" + tag, ContentGeneratorCst.NS_J);
 				mixin = mixin + " jmix:tagged";
 			}
-			
+
 			fileElement.setAttribute("mixinTypes", mixin, ContentGeneratorCst.NS_JCR);
 			fileElement.setAttribute("primaryType", "jnt:file", ContentGeneratorCst.NS_JCR);
 			fileElement.setAttribute("createdBy", creator, ContentGeneratorCst.NS_JCR);
 			fileElement.setAttribute("documentStatus", documentStatus);
-			
+
 			Element jTranslation = new Element("translation_en", ContentGeneratorCst.NS_J);
 			jTranslation.setAttribute("description", description, ContentGeneratorCst.NS_JCR);
 			jTranslation.setAttribute("language", "en", ContentGeneratorCst.NS_JCR);
 			jTranslation.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
 			fileElement.addContent(jTranslation);
-			
+
 			Element jcrContentElement = new Element("content", ContentGeneratorCst.NS_JCR);
 			jcrContentElement.setAttribute("mimeType", mimeType, ContentGeneratorCst.NS_JCR);
 			jcrContentElement.setAttribute("extractedText", extractedContent, ContentGeneratorCst.NS_J);
 			jcrContentElement.setAttribute("lastExtractionDate", "2012-08-14T23:35:10.629+02:00", ContentGeneratorCst.NS_J);
 			jcrContentElement.setAttribute("lastModified", "2012-08-14T23:35:10.629+02:00", ContentGeneratorCst.NS_JCR);
-			
+
 			fileElement.addContent(jcrContentElement);
-			
+
 			AceBO aceOwnerRoot = new AceBO("root", "root", "u", "GRANT", "docspace-owner");
 			AceBO aceOwner = new AceBO(owner, owner, "u", "GRANT", "docspace-owner");
 			AceBO aceEditor = new AceBO(editor, editor, "u", "GRANT", "docspace-editor");
@@ -134,14 +143,25 @@ public class FileBO {
 			aces.add(aceOwnerRoot);
 			aces.add(aceEditor);
 			aces.add(aceReader);
-			
+
 			AclBO acl = new AclBO(aces);
 			fileElement.addContent(acl.getElement());
 		}
 		return fileElement;
 	}
-	
+
 	public String toString() {
 		return fileName + " - description: " + description;
+	}
+
+	@Override
+	public boolean equals(Object arg0) {
+		FileBO f = (FileBO) arg0;		
+		return this.fileName.equals(f.getFileName());
+	}
+
+	@Override
+	public int hashCode() {
+		return Integer.valueOf(jcrFilename.charAt(0));
 	}
 }
