@@ -240,7 +240,7 @@ public class FileAndFolderService {
 			int randomTagIndex = rand.nextInt(nbOfTags - 1);
 			TagBO tag = tags.get(randomTagIndex);
 			
-			FileBO newFile = new FileBO(fileName, mixin, mimeType, currentNodePath + sep + fileName, creator, owner, editor, reader, extractedContent, description, tag.getTagName(), wiseInstanceName);
+			FileBO newFile = new FileBO(fileName, mixin, mimeType, currentNodePath + sep + fileName + sep + fileName, creator, owner, editor, reader, extractedContent, description, tag.getTagName(), wiseInstanceName);
 			// logger.debug("New FileBO: " + newFile.toString());
 			files.add(newFile);
 		}
