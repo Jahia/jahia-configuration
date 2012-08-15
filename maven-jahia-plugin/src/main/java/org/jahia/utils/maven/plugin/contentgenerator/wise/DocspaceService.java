@@ -62,7 +62,7 @@ public class DocspaceService {
 		
 		List<DocspaceBO> docspaces = new ArrayList<DocspaceBO>();
 		for (int i = 1; i <= wiseExport.getNbDocspaces(); i++) {
-			String docspaceName = "docspace" + i;
+			String docspaceName = "Docspace-" + i;
 						
 			logger.info("Generating docspace " + i + "/" + wiseExport.getNbDocspaces());
 			
