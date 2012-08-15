@@ -98,16 +98,18 @@ public class FileBO {
 		if (fileElement == null) {
 			fileName =  org.apache.jackrabbit.util.ISO9075.encode(fileName);
 			fileElement = new Element(this.fileName);
-		
-			fileElement.setAttribute("mixinTypes", "docmix:docspaceDocument jmix:accessControlled " + mixinFileType, ContentGeneratorCst.NS_JCR);
-			fileElement.setAttribute("primaryType", "jnt:file", ContentGeneratorCst.NS_JCR);
-			fileElement.setAttribute("createdBy", creator, ContentGeneratorCst.NS_JCR);
-			fileElement.setAttribute("documentStatus", documentStatus);
 			
+			String mixin = "docmix:docspaceDocument jmix:accessControlled " + mixinFileType;
 			if (tag != null) {
 				fileElement.setAttribute("newTag", tag, ContentGeneratorCst.NS_J);
 				fileElement.setAttribute("tag", "/sites/" + wiseInstanceName + "/tags/" + tag, ContentGeneratorCst.NS_J);
+				mixin = mixin + " jmix:tagged";
 			}
+			
+			fileElement.setAttribute("mixinTypes", mixin, ContentGeneratorCst.NS_JCR);
+			fileElement.setAttribute("primaryType", "jnt:file", ContentGeneratorCst.NS_JCR);
+			fileElement.setAttribute("createdBy", creator, ContentGeneratorCst.NS_JCR);
+			fileElement.setAttribute("documentStatus", documentStatus);
 			
 			Element jTranslation = new Element("translation_en", ContentGeneratorCst.NS_J);
 			jTranslation.setAttribute("description", description, ContentGeneratorCst.NS_JCR);
