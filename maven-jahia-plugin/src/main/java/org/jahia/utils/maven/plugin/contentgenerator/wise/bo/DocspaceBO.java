@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jdom.Element;
 
@@ -48,7 +49,7 @@ public class DocspaceBO {
 
 	public Element getElement() {
 		if (docspaceElement == null) {
-			docspaceElement = new Element(docspaceName);
+			docspaceElement = new Element(StringUtils.lowerCase(docspaceName));
 			docspaceElement.setAttribute("fromEmail", fromEmail);
 			docspaceElement.setAttribute("mixinTypes", "docmix:docspace jmix:accessControlled", ContentGeneratorCst.NS_JCR);
 			docspaceElement.setAttribute("primaryType", "jnt:folder", ContentGeneratorCst.NS_JCR);
@@ -56,7 +57,7 @@ public class DocspaceBO {
 			Element translationEn = new Element("translation_en", ContentGeneratorCst.NS_J);
 			translationEn.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
 			translationEn.setAttribute("description", "Created by the Jahia Content Generator", ContentGeneratorCst.NS_JCR);
-			translationEn.setAttribute("title", "Docspace: " + docspaceName, ContentGeneratorCst.NS_JCR);
+			translationEn.setAttribute("title", docspaceName, ContentGeneratorCst.NS_JCR);
 			translationEn.setAttribute("language", "en", ContentGeneratorCst.NS_JCR);
 			docspaceElement.addContent(translationEn);
 			
