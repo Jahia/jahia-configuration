@@ -97,7 +97,7 @@ public class UserBO {
 
 		if (collections != null) {
 			Element collectionsElement = new Element("collections");
-			collectionsElement.setAttribute("primaryType", "docnt:collections", ContentGeneratorCst.NS_DOCNT);
+			collectionsElement.setAttribute("primaryType", "docnt:collections", ContentGeneratorCst.NS_JCR);
 			collectionsElement.setAttribute("createdBy", name, ContentGeneratorCst.NS_JCR);
 			
 			for (Iterator<CollectionBO> iterator = collections.iterator(); iterator.hasNext();) {

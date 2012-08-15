@@ -26,7 +26,7 @@ public class CollectionBO {
 	public Element getElement() {
 		if (collection == null) {
 			collection = new Element(title);
-			collection.setAttribute("primaryType", "docnt:collection", ContentGeneratorCst.NS_DOCNT);
+			collection.setAttribute("primaryType", "docnt:collection", ContentGeneratorCst.NS_JCR);
 			collection.setAttribute("title", title, ContentGeneratorCst.NS_JCR);
 			collection.setAttribute("originWS", "default", ContentGeneratorCst.NS_J);
 			
