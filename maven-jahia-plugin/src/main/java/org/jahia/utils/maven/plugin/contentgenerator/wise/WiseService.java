@@ -10,6 +10,7 @@ import org.jahia.utils.maven.plugin.contentgenerator.OutputService;
 import org.jahia.utils.maven.plugin.contentgenerator.SiteService;
 import org.jahia.utils.maven.plugin.contentgenerator.UserGroupService;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
+import org.jahia.utils.maven.plugin.contentgenerator.bo.TagBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.UserBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.CollectionBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.DocspaceBO;
@@ -114,11 +115,12 @@ public class WiseService {
 		File usersFile = new File(wiseExport.getOutputDir(), "users.txt");
 		usersFile.delete();
 		os.appendPathToFile(usersFile, userNames);
-		
-		// File collectionsFile = new File(wiseExport.getOutputDir(), "collections.txt");
+
+		// File collectionsFile = new File(wiseExport.getOutputDir(),
+		// "collections.txt");
 		// collectionsFile.delete();
 		// os.appendPathToFile(collectionsFile, collections);
-		
+
 		// Generate files list
 		List<String> filePaths = new ArrayList<String>();
 		for (DocspaceBO docspace : wiseInstance.getDocspaces()) {
@@ -129,9 +131,19 @@ public class WiseService {
 			}
 		}
 		
-		File filePathsFile = new File(wiseExport.getOutputDir(), "filePaths.txt");
+		File filePathsFile = new File(wiseExport.getOutputDir(), "files.txt");
 		filePathsFile.delete();
 		os.appendPathToFile(filePathsFile, filePaths);
+
+		// Generate files list
+		List<String> tags = new ArrayList<String>();
+		for (TagBO tag : wiseExport.getTags()) {
+			tags.add(tag.getTagName());
+		}
+
+		File tagsFile = new File(wiseExport.getOutputDir(), "tags.txt");
+		tagsFile.delete();
+		os.appendPathToFile(tagsFile, tags);
 
 		// Zip all of this
 		File wiseImportArchive = os.createSiteArchive("wise_instance_generated.zip", wiseExport.getOutputDir(), globalFilesToZip);
