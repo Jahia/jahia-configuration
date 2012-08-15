@@ -68,7 +68,7 @@ public class DocspaceService {
 			
 			List<FolderBO> folders = fileAndFolderService.generateFolders(docspaceName, wiseExport);
 					
-			docspaces.add(new DocspaceBO(docspaceName, polls, notes, tasks, folders));
+			docspaces.add(new DocspaceBO(docspaceName, polls, notes, tasks, folders, wiseExport.getNumberOfUsers()));
 		}
 		return docspaces;
 	}
