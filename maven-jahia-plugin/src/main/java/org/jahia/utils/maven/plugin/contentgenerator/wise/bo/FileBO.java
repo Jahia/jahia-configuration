@@ -111,7 +111,7 @@ public class FileBO {
 			String mixin = "docmix:docspaceDocument jmix:accessControlled " + mixinFileType;
 			if (tag != null) {
 				fileElement.setAttribute("newTag", tag, ContentGeneratorCst.NS_J);
-				fileElement.setAttribute("tag", "/sites/" + wiseInstanceName + "/tags/" + tag, ContentGeneratorCst.NS_J);
+				fileElement.setAttribute("tags", "/sites/" + wiseInstanceName + "/tags/" + tag, ContentGeneratorCst.NS_J);
 				mixin = mixin + " jmix:tagged";
 			}
 
@@ -127,6 +127,7 @@ public class FileBO {
 			fileElement.addContent(jTranslation);
 
 			Element jcrContentElement = new Element("content", ContentGeneratorCst.NS_JCR);
+			jcrContentElement.setAttribute("primaryType", "jnt:resource", ContentGeneratorCst.NS_JCR);
 			jcrContentElement.setAttribute("mimeType", mimeType, ContentGeneratorCst.NS_JCR);
 			jcrContentElement.setAttribute("extractedText", extractedContent, ContentGeneratorCst.NS_J);
 			jcrContentElement.setAttribute("lastExtractionDate", "2012-08-14T23:35:10.629+02:00", ContentGeneratorCst.NS_J);

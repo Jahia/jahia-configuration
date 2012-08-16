@@ -35,7 +35,7 @@ public class TaskBO {
 		if (task == null) {
 			task = new Element(name);
 			task.setAttribute("description", description);
-			task.setAttribute("createdBy", creator, ContentGeneratorCst.NS_J);
+			task.setAttribute("createdBy", creator, ContentGeneratorCst.NS_JCR);
 			task.setAttribute("assigneeUserKey", assigneeUserKey);
 			task.setAttribute("dueDate", dueDate);
 			task.setAttribute("originWS", "default", ContentGeneratorCst.NS_J);
