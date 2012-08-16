@@ -72,7 +72,7 @@ public class FileAndFolderService {
 				+ totalFiles.intValue() + " files.");
 
 		String currentPath = initializeContentFolder(wiseExport.getOutputDir() + sep + "wise", wiseExport.getWiseInstanceKey(), docspaceName);
-		String currentNodePath = sep + "sites" + sep + wiseExport.getWiseInstanceKey() + sep + "files" + sep + "docspaces" + sep + "docspaceName";
+		String currentNodePath = sep + "sites" + sep + wiseExport.getWiseInstanceKey() + sep + "files" + sep + "docspaces" + sep + docspaceName;
 
 		// if there is not enough physical files available
 		// we'll take them all and stop
