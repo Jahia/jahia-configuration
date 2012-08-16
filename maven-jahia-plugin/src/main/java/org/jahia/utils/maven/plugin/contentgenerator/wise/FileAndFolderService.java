@@ -130,6 +130,10 @@ public class FileAndFolderService {
 
 		List<FolderBO> folders = new ArrayList<FolderBO>();
 		for (int i = 1; i <= nbFoldersPerLevel; i++) {
+			
+			currentPath = currentPath + sep + depthName + i;
+			currentNodePath = currentNodePath + sep + depthName + i;
+			
 			if (currentDepth == 1) {
 				logger.info("Generating top folder " + i + "/" + nbFoldersPerLevel);
 			} else {
@@ -144,12 +148,12 @@ public class FileAndFolderService {
 			wiseExport.setFiles(filesTmp);
 
 			if (currentDepth < foldersDepth) {
-				subFolders = generateFolders(currentDepth + 1, currentPath + sep + depthName + i, currentNodePath + sep + depthName, wiseExport);
+				subFolders = generateFolders(currentDepth + 1, currentPath, currentNodePath, wiseExport);
 			}
 			folders.add(new FolderBO(depthName + i, subFolders, files));
 
 			// create physical folder
-			File newFolder = new File(currentPath + sep + depthName + i);
+			File newFolder = new File(currentPath);
 			newFolder.mkdirs();
 
 			// copy files into the new folder
