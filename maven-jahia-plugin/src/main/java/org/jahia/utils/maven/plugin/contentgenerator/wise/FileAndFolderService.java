@@ -5,9 +5,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.logging.Log;
@@ -28,21 +30,21 @@ public class FileAndFolderService {
 	private static FileAndFolderService instance;
 
 	String sep = System.getProperty("file.separator");
-	
+
 	private static List<String> oftenUsedDescriptionWords;
-	
+
 	private static List<String> seldomUsedDescriptionWords;
-	
+
 	private static Integer currentOftenUsedDescriptionWordIndex;
-	
+
 	private static Integer currentSeldomUsedDescriptionWordIndex;
-	
+
 	private static Integer nbOfFilesUsedForOftenUsedDescriptionWords;
-	
+
 	private static Integer nbOfFilesUsedForSeldomUsedDescriptionWords;
-	
+
 	private static Integer nbOfOftenUsedDescriptionWords;
-	
+
 	private static Integer nbOfSeldomUsedDescriptionWords;
 
 	private FileAndFolderService() {
@@ -66,11 +68,20 @@ public class FileAndFolderService {
 	public List<FolderBO> generateFolders(String docspaceName, ExportBO wiseExport) {
 		Double totalFolders = Math.pow(wiseExport.getNbFoldersPerLevel().doubleValue(), wiseExport.getFoldersDepth().doubleValue());
 		Double totalFiles = totalFolders * wiseExport.getNbFilesPerFolder();
-		logger.info("Folders generation is starting, " + totalFolders.intValue() + " folders to create, containing a total of " + totalFiles.intValue() + " files.");
-		
+		logger.info("Folders generation is starting, " + totalFolders.intValue() + " folders to create, containing a total of "
+				+ totalFiles.intValue() + " files.");
+
 		String currentPath = initializeContentFolder(wiseExport.getOutputDir() + sep + "wise", wiseExport.getWiseInstanceKey(), docspaceName);
 		String currentNodePath = sep + "sites" + sep + wiseExport.getWiseInstanceKey() + sep + "files" + sep + "docspaces" + sep + "docspaceName";
-		
+
+		// if there is not enough physical files available
+		// we'll take them all and stop
+		Integer nbFilesAvailable = wiseExport.getFileNames().size();
+		if (wiseExport.getNbFilesPerFolder().compareTo(nbFilesAvailable) > 0) {
+			logger.warn("You asked for " + wiseExport.getNbFilesPerFolder() + " files per folder, but there are only " + nbFilesAvailable + " files in the pool, and we can't use them twice.");
+			wiseExport.setNbFilesPerFolder(nbFilesAvailable);
+ 		}
+
 		return generateFolders(1, currentPath, currentNodePath, wiseExport);
 	}
 
@@ -81,7 +92,7 @@ public class FileAndFolderService {
 		Integer filesPerFolder = wiseExport.getNbFilesPerFolder();
 		List<String> fileNames = wiseExport.getFileNames();
 		File filesDirectory = wiseExport.getFilesDirectory();
-	
+
 		String depthName;
 
 		switch (currentDepth) {
@@ -122,10 +133,11 @@ public class FileAndFolderService {
 			if (currentDepth == 1) {
 				logger.info("Generating top folder " + i + "/" + nbFoldersPerLevel);
 			} else {
-				//logger.debug("Generating sub folder ");
+				// logger.debug("Generating sub folder ");
 			}
 			List<FolderBO> subFolders = null;
-			List<FileBO> files = generateFiles(filesPerFolder, currentNodePath, fileNames, wiseExport.getNumberOfUsers(), filesDirectory, wiseExport.getTags(), wiseExport.getWiseInstanceKey());
+			Set<FileBO> files = generateFiles(filesPerFolder, currentNodePath, fileNames, wiseExport.getNumberOfUsers(), filesDirectory,
+					wiseExport.getTags(), wiseExport.getWiseInstanceKey());
 			// we store all generated files to use them in the collections
 			List<FileBO> filesTmp = wiseExport.getFiles();
 			filesTmp.addAll(files);
@@ -158,10 +170,14 @@ public class FileAndFolderService {
 		return folders;
 	}
 
-	public List<FileBO> generateFiles(Integer nbFiles, String currentNodePath, List<String> fileNames, Integer nbUsers, File filesDirectory, List<TagBO> tags, String wiseInstanceName) {
-		//logger.debug("Generating " + nbFiles + " files");
-		List<FileBO> files = new ArrayList<FileBO>();
+	public Set<FileBO> generateFiles(Integer nbFilesToGenerate, String currentNodePath, List<String> fileNames, Integer nbUsers, File filesDirectory,
+			List<TagBO> tags, String wiseInstanceName) {
+		// logger.debug("Generating " + nbFiles + " files");
+		Set<FileBO> files = new HashSet<FileBO>();
 		Random rand = new Random();
+		
+		Integer nbAvailableFiles = fileNames.size();
+		int currentFilenameIndex = 0;
 
 		String imageExtensions[] = { ".png", ".gif", ".jpeg", ".jpg" };
 		String officeDocumentExtensions[] = { ".doc", ".xls", ".ppt", ".docx", ".xlsx", ".pptx" };
@@ -176,8 +192,15 @@ public class FileAndFolderService {
 		int idReader;
 		int nbOfTags = tags.size();
 
-		for (int i = 0; i < nbFiles; i++) {
-			String fileName = fileNames.get(rand.nextInt(fileNames.size() - 1));
+		while (files.size() < nbFilesToGenerate) {
+			String fileName = "";
+			if (nbFilesToGenerate == nbAvailableFiles) {
+				fileName = fileNames.get(currentFilenameIndex);
+				currentFilenameIndex++;
+			} else {
+				fileName = fileNames.get(rand.nextInt(fileNames.size() - 1));
+			}
+			
 			String mixin = "";
 
 			if (nbUsers != null && (nbUsers.compareTo(0) > 0)) {
@@ -220,29 +243,31 @@ public class FileAndFolderService {
 			}
 
 			String extractedContent = "";
-			
+
 			try {
-	            extractedContent = new Tika().parseToString(f);				
+				extractedContent = new Tika().parseToString(f);
 			} catch (FileNotFoundException e) {
 				logger.error("File not found during text extraction " + f.getAbsoluteFile());
 				e.printStackTrace();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}  catch (TikaException e) {
+			} catch (TikaException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			 
+
 			String description = getCurrentOftenDescriptionWord() + " " + getCurrentSeldomDescriptionWord();
-			
+
 			// Random choice of tag
 			int randomTagIndex = rand.nextInt(nbOfTags - 1);
 			TagBO tag = tags.get(randomTagIndex);
-			
-			FileBO newFile = new FileBO(fileName, mixin, mimeType, currentNodePath + sep + fileName + sep + fileName, creator, owner, editor, reader, extractedContent, description, tag.getTagName(), wiseInstanceName);
-			// logger.debug("New FileBO: " + newFile.toString());
+
+			FileBO newFile = new FileBO(fileName, mixin, mimeType, currentNodePath + sep + fileName + sep + fileName, creator, owner, editor, reader,
+					extractedContent, description, tag.getTagName(), wiseInstanceName);
 			files.add(newFile);
+			
+			int filesSize = files.size();
 		}
 		return files;
 	}
@@ -257,11 +282,11 @@ public class FileAndFolderService {
 	public String getFileExtension(String fileName) {
 		return fileName.substring(fileName.lastIndexOf('.'), fileName.length());
 	}
-	
+
 	private String getCurrentOftenDescriptionWord() {
 		String descriptionWord = "";
 		if (currentOftenUsedDescriptionWordIndex < nbOfOftenUsedDescriptionWords) {
-			//logger.debug(nbOfFilesUsedForOftenUsedDescriptionWords.toString());
+			// logger.debug(nbOfFilesUsedForOftenUsedDescriptionWords.toString());
 			descriptionWord = oftenUsedDescriptionWords.get(currentOftenUsedDescriptionWordIndex);
 			nbOfFilesUsedForOftenUsedDescriptionWords--;
 
@@ -272,11 +297,11 @@ public class FileAndFolderService {
 		}
 		return descriptionWord;
 	}
-	
+
 	private String getCurrentSeldomDescriptionWord() {
 		String descriptionWord = "";
 		if (currentSeldomUsedDescriptionWordIndex < nbOfSeldomUsedDescriptionWords) {
-			//logger.debug(nbOfFilesUsedForSeldomUsedDescriptionWords.toString());
+			// logger.debug(nbOfFilesUsedForSeldomUsedDescriptionWords.toString());
 			descriptionWord = seldomUsedDescriptionWords.get(currentSeldomUsedDescriptionWordIndex);
 			nbOfFilesUsedForSeldomUsedDescriptionWords--;
 
