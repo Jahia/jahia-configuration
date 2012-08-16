@@ -130,17 +130,13 @@ public class FileAndFolderService {
 
 		List<FolderBO> folders = new ArrayList<FolderBO>();
 		for (int i = 1; i <= nbFoldersPerLevel; i++) {
-			
-			currentPath = currentPath + sep + depthName + i;
-			currentNodePath = currentNodePath + sep + depthName + i;
-			
 			if (currentDepth == 1) {
 				logger.info("Generating top folder " + i + "/" + nbFoldersPerLevel);
 			} else {
 				// logger.debug("Generating sub folder ");
 			}
 			List<FolderBO> subFolders = null;
-			Set<FileBO> files = generateFiles(filesPerFolder, currentNodePath, fileNames, wiseExport.getNumberOfUsers(), filesDirectory,
+			Set<FileBO> files = generateFiles(filesPerFolder, currentNodePath + sep + depthName + i, fileNames, wiseExport.getNumberOfUsers(), filesDirectory,
 					wiseExport.getTags(), wiseExport.getWiseInstanceKey());
 			// we store all generated files to use them in the collections
 			List<FileBO> filesTmp = wiseExport.getFiles();
@@ -148,12 +144,12 @@ public class FileAndFolderService {
 			wiseExport.setFiles(filesTmp);
 
 			if (currentDepth < foldersDepth) {
-				subFolders = generateFolders(currentDepth + 1, currentPath, currentNodePath, wiseExport);
+				subFolders = generateFolders(currentDepth + 1, currentPath + sep + depthName + i, currentNodePath + sep + depthName, wiseExport);
 			}
 			folders.add(new FolderBO(depthName + i, subFolders, files));
 
 			// create physical folder
-			File newFolder = new File(currentPath);
+			File newFolder = new File(currentPath + sep + depthName + i);
 			newFolder.mkdirs();
 
 			// copy files into the new folder
