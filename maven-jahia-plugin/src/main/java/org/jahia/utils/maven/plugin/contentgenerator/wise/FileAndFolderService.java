@@ -266,8 +266,6 @@ public class FileAndFolderService {
 			FileBO newFile = new FileBO(fileName, mixin, mimeType, currentNodePath + sep + fileName + sep + fileName, creator, owner, editor, reader,
 					extractedContent, description, tag.getTagName(), wiseInstanceName);
 			files.add(newFile);
-			
-			int filesSize = files.size();
 		}
 		return files;
 	}
