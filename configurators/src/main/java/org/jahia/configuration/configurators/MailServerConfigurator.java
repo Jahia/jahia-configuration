@@ -84,7 +84,7 @@ public class MailServerConfigurator extends AbstractXMLConfigurator {
                 el.setAttribute("to", cfg.getMailAdministrator(), jahiaNamespace);
             }
             if (cfg.getMailParanoia() != null) {
-                el.setAttribute("j:notificationLevel", cfg.getMailParanoia(), jahiaNamespace);
+                el.setAttribute("notificationLevel", cfg.getMailParanoia(), jahiaNamespace);
             }
         }
 
