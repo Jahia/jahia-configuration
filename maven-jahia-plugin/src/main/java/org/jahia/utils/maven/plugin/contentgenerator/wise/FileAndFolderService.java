@@ -12,6 +12,7 @@ import java.util.Random;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.apache.tika.Tika;
@@ -66,6 +67,7 @@ public class FileAndFolderService {
 	}
 
 	public List<FolderBO> generateFolders(String docspaceName, ExportBO wiseExport) {
+	        docspaceName = StringUtils.lowerCase(docspaceName);
 		Double totalFolders = Math.pow(wiseExport.getNbFoldersPerLevel().doubleValue(), wiseExport.getFoldersDepth().doubleValue());
 		Double totalFiles = totalFolders * wiseExport.getNbFilesPerFolder();
 		logger.info("Folders generation is starting, " + totalFolders.intValue() + " folders to create, containing a total of "
