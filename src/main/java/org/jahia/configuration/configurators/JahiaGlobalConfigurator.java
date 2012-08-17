@@ -169,7 +169,7 @@ public class JahiaGlobalConfigurator {
         
         String rootUserTemplate = sourceWebAppPath + "/WEB-INF/etc/repository/template-root-user.xml";
         if (fsManager.resolveFile(rootUserTemplate).exists()) {
-            if (jahiaConfigInterface.getJahiaRootUsername() != null && jahiaConfigInterface.getJahiaRootUsername().length() > 0) {
+            if (Boolean.valueOf(jahiaConfigInterface.getProcessingServer())) {
                 new RootUserConfigurator(dbProps, jahiaConfigInterface, encryptPassword(jahiaConfigInterface.getJahiaRootPassword())).updateConfiguration(new VFSConfigFile(fsManager, rootUserTemplate), webappPath + "/WEB-INF/etc/repository/root-user.xml");
             }
         } else {
@@ -177,7 +177,7 @@ public class JahiaGlobalConfigurator {
         }
         
         String mailServerTemplate = sourceWebAppPath + "/WEB-INF/etc/repository/template-root-mail-server.xml";
-        if (fsManager.resolveFile(mailServerTemplate).exists()) {
+        if (fsManager.resolveFile(mailServerTemplate).exists() && Boolean.valueOf(jahiaConfigInterface.getProcessingServer())) {
             new MailServerConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,mailServerTemplate), webappPath + "/WEB-INF/etc/repository/root-mail-server.xml");
         }        
         if ("jboss".equalsIgnoreCase(jahiaConfigInterface.getTargetServerType())) {
