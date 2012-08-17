@@ -86,11 +86,16 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         properties.setProperty("operatingMode", jahiaConfigInterface.getOperatingMode());
 
         if (jahiaConfigInterface.getMailServer() != null && jahiaConfigInterface.getMailServer().length() > 0) {
-            properties.setProperty("mail_service_activated", "true");
-            properties.setProperty("mail_server", jahiaConfigInterface.getMailServer());
-            properties.setProperty("mail_administrator", jahiaConfigInterface.getMailAdministrator());            
-            properties.setProperty("mail_from", jahiaConfigInterface.getMailFrom());            
-            properties.setProperty("mail_paranoia", jahiaConfigInterface.getMailParanoia());
+            if (properties.getProperty("mail_service_activated") != null) {
+                // Jahia <= 6.6.0.1
+                properties.setProperty("mail_service_activated", "true");
+                properties.setProperty("mail_server", jahiaConfigInterface.getMailServer());
+                properties.setProperty("mail_administrator", jahiaConfigInterface.getMailAdministrator());            
+                properties.setProperty("mail_from", jahiaConfigInterface.getMailFrom());            
+                properties.setProperty("mail_paranoia", jahiaConfigInterface.getMailParanoia());
+            } else {
+                // Jahia >= 6.6.1.0 -> dedicated MailServerConfigurator will be used
+            }
         }
         properties.setProperty("hibernate.dialect", getDBProperty("jahia.database.hibernate.dialect"));
         properties.setProperty("nested.transaction.allowed", getDBProperty("jahia.nested_transaction_allowed"));
