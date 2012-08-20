@@ -45,7 +45,7 @@ public class DocspaceService {
 			articles = DatabaseService.getInstance()
 					.selectArticles(wiseExport, numberOfArticles);
 		}
-		
+				
 		TagService tagService = new TagService();
 		wiseExport.setTags(tagService.createTagsBO(wiseExport.getNumberOfTags()));
 		
@@ -70,6 +70,11 @@ public class DocspaceService {
 					
 			docspaces.add(new DocspaceBO(docspaceName, polls, notes, tasks, folders, wiseExport.getNumberOfUsers()));
 		}
+		
+		polls.clear();
+		notes.clear();
+		tasks.clear();
+		
 		return docspaces;
 	}
 }

@@ -67,6 +67,11 @@ public final class ContentGeneratorCst {
 	public static Integer OFTEN_USED_DESCRIPTION_WORDS_COUNTER = 100;
 	public static Integer SELDOM_USED_DESCRIPTION_WORDS_COUNTER = 10;
 	
+	/**
+	 *  Directory names
+	 */
+	public static final String TMP_DIR_WISE_FILES = "wise_files";
+	
 	// jcr jnt jmix j
 	private ContentGeneratorCst() {
 

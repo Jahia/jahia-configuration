@@ -77,11 +77,11 @@ public class WiseService {
 		Integer nbCollectionsPerUser = wiseExport.getNbCollectionsPerUser();
 		Integer nbFilesPerCollection = wiseExport.getNbFilesPerCollection();
 		// If there is not enough files we use all the files and that's it.
-		if (nbFilesPerCollection.compareTo(wiseExport.getFiles().size()) > 0) {
-			nbFilesPerCollection = wiseExport.getFiles().size();
+		if (nbFilesPerCollection.compareTo(wiseExport.getNbFilesPerFolder()) > 0) {
+			nbFilesPerCollection = wiseExport.getNbFilesPerFolder();
 		}
 		List<UserBO> users = userGroupService.generateUsers(wiseExport.getNumberOfUsers(), nbCollectionsPerUser, nbFilesPerCollection,
-				wiseExport.getFiles());
+				wiseExport.getNbFilesPerFolder());
 		File tmpUsers = new File(wiseExport.getOutputDir(), "users");
 		tmpUsers.mkdir();
 

@@ -2,7 +2,9 @@ package org.jahia.utils.maven.plugin.contentgenerator.wise;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -48,6 +50,8 @@ public class FileAndFolderService {
 
 	private static Integer nbOfSeldomUsedDescriptionWords;
 
+	private static int totalGeneratedFiles = 0;
+
 	private FileAndFolderService() {
 		oftenUsedDescriptionWords = Arrays.asList(ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS.split("\\s*,\\s*"));
 		seldomUsedDescriptionWords = Arrays.asList(ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS.split("\\s*,\\s*"));
@@ -72,12 +76,13 @@ public class FileAndFolderService {
 		// (N^L-1) / (N-1) * N
 		double nbNodes = wiseExport.getNbFoldersPerLevel().doubleValue();
 		double depth = wiseExport.getFoldersDepth().doubleValue();
-
+		
 		Double totalFolders = Math.pow(nbNodes, depth) - 1;
 		totalFolders = totalFolders / (nbNodes - 1);
-		totalFolders = totalFolders * nbNodes;
+		totalFolders = totalFolders * nbNodes;		
 
 		Double totalFiles = totalFolders * wiseExport.getNbFilesPerFolder();
+
 		logger.info("Folders generation is starting, " + totalFolders.intValue() + " folders to create, containing a total of "
 				+ totalFiles.intValue() + " files.");
 
@@ -93,7 +98,33 @@ public class FileAndFolderService {
 			wiseExport.setNbFilesPerFolder(nbFilesAvailable);
 		}
 
-		return generateFolders(1, currentPath, currentNodePath, wiseExport);
+		List<FolderBO> folders = generateFolders(1, currentPath, currentNodePath, wiseExport);
+
+		// serializing all the files created
+		FileOutputStream tmpFile;
+		ObjectOutputStream oos;
+		File tmpFilesDir = new File(wiseExport.getTmp() + sep + ContentGeneratorCst.TMP_DIR_WISE_FILES);
+		tmpFilesDir.mkdir();
+		for (FileBO file : wiseExport.getFiles()) {
+			try {
+				tmpFile = new FileOutputStream(tmpFilesDir + sep + totalGeneratedFiles + ".ser");
+				oos = new ObjectOutputStream(tmpFile);
+				oos.writeObject(file);
+				oos.flush();
+				oos.close();
+				totalGeneratedFiles = totalGeneratedFiles + 1;
+				;
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		wiseExport.getFiles().clear();
+		
+		return folders;
 	}
 
 	private List<FolderBO> generateFolders(Integer currentDepth, String currentPath, String currentNodePath, ExportBO wiseExport) {
@@ -143,9 +174,8 @@ public class FileAndFolderService {
 		for (int i = 1; i <= nbFoldersPerLevel; i++) {
 			if (currentDepth == 1) {
 				logger.info("Generating top folder " + i + "/" + nbFoldersPerLevel);
-			} else {
-				// logger.debug("Generating sub folder ");
 			}
+			
 			List<FolderBO> subFolders = null;
 			Set<FileBO> files = generateFiles(filesPerFolder, currentNodePath + sep + depthName + i, fileNames, wiseExport.getNumberOfUsers(),
 					filesDirectory, wiseExport.getTags(), wiseExport.getWiseInstanceKey());
@@ -204,6 +234,8 @@ public class FileAndFolderService {
 		int nbOfTags = tags.size();
 
 		while (files.size() < nbFilesToGenerate) {
+			//logger.debug("Generating file " + files.size() + "/" + nbFilesToGenerate);
+
 			String fileName = "";
 			if (nbFilesToGenerate == nbAvailableFiles) {
 				fileName = fileNames.get(currentFilenameIndex);

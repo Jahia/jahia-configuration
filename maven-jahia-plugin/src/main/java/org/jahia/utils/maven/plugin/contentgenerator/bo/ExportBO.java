@@ -18,7 +18,7 @@ public class ExportBO {
 
 	protected String outputDir;
 	
-	protected File tmp;
+	public static File tmp;
 
 	protected Integer nbPagesTopLevel;
 

@@ -116,7 +116,7 @@ public class UserGroupService {
         return groupsNode;
     }
 
-    public List<UserBO> generateUsers(Integer nbUsers, Integer nbCollectionsPerUser, Integer nbFilesPerCollection, List<FileBO> files) {
+    public List<UserBO> generateUsers(Integer nbUsers, Integer nbCollectionsPerUser, Integer nbFilesPerCollection, Integer nbFilesGenerated) {
         logger.info(nbUsers + " users are going to be generated");
 
         List<UserBO> users = new ArrayList<UserBO>();
@@ -125,7 +125,7 @@ public class UserGroupService {
         	List<CollectionBO> collections = null;
         	if (nbCollectionsPerUser != null && nbCollectionsPerUser.compareTo(0) > 0) {
         		CollectionService collectionService = CollectionService.getInstance();
-        		collections = collectionService.generateCollections(nbCollectionsPerUser, nbFilesPerCollection, files);
+        		collections = collectionService.generateCollections(nbCollectionsPerUser, nbFilesPerCollection, nbFilesGenerated);
         	}
         	
             String username = "user" + userid;

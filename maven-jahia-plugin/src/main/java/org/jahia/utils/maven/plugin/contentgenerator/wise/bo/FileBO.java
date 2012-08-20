@@ -8,7 +8,12 @@ import org.jahia.utils.maven.plugin.contentgenerator.bo.AclBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jdom.Element;
 
-public class FileBO {
+public class FileBO implements java.io.Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	protected Element fileElement;
 
@@ -62,6 +67,10 @@ public class FileBO {
 		;
 		this.fileName = fileName;
 		this.nodePath = nodePath;
+	}
+	
+	public long getSerialVersionUID() {
+		return serialVersionUID;
 	}
 
 	public String getFileName() {
@@ -158,7 +167,8 @@ public class FileBO {
 	@Override
 	public boolean equals(Object arg0) {
 		FileBO f = (FileBO) arg0;		
-		return this.fileName.equals(f.getFileName());
+		//return this.fileName.equals(f.getFileName());
+		return this.fileName.intern() == f.getFileName().intern();
 	}
 
 	@Override
