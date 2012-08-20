@@ -120,7 +120,7 @@ public class UserGroupService {
         logger.info(nbUsers + " users are going to be generated");
 
         List<UserBO> users = new ArrayList<UserBO>();
-        for (int userid = 1; userid < (nbUsers+1); userid++) {
+        for (int userid = 0; userid < nbUsers; userid++) {
         	
         	List<CollectionBO> collections = null;
         	if (nbCollectionsPerUser != null && nbCollectionsPerUser.compareTo(0) > 0) {
