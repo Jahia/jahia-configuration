@@ -51,11 +51,6 @@ public class WiseService {
 
 		List<File> globalFilesToZip = new ArrayList<File>();
 
-		// Clean output directory
-		File outputDirectory = new File(wiseExport.getOutputDir());
-		FileUtils.deleteDirectory(outputDirectory);
-		outputDirectory.mkdir();
-
 		// Wise instance files
 		WiseBO wiseInstance = generateWiseInstance(wiseExport);
 

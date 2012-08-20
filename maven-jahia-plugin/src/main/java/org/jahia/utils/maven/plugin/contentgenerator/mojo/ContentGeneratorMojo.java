@@ -1,9 +1,11 @@
 package org.jahia.utils.maven.plugin.contentgenerator.mojo;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -219,6 +221,15 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
 		File fOutputDirectory = new File(outputDirectory);
 		if (!fOutputDirectory.exists()) {
 			fOutputDirectory.mkdirs();
+		} else {
+			// Clean output directory
+			try {
+				FileUtils.deleteDirectory(fOutputDirectory);
+			} catch (IOException e) {
+				getLog().error("Can not delete output directory");
+				e.printStackTrace();
+			}
+			fOutputDirectory.mkdir();
 		}
 
 		File outputFile = new File(outputDirectory, outputFileName);
