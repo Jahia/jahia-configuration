@@ -64,6 +64,7 @@ public class CollectionService {
 			FileInputStream fichier = new FileInputStream(ExportBO.tmp + sep + ContentGeneratorCst.TMP_DIR_WISE_FILES + sep + index + ".ser");
 			ObjectInputStream ois = new ObjectInputStream(fichier);
 			file = (FileBO) ois.readObject();
+			ois.close();
 		} catch (java.io.IOException e) {
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
