@@ -67,8 +67,16 @@ public class FileAndFolderService {
 	}
 
 	public List<FolderBO> generateFolders(String docspaceName, ExportBO wiseExport) {
-	        docspaceName = StringUtils.lowerCase(docspaceName);
-		Double totalFolders = Math.pow(wiseExport.getNbFoldersPerLevel().doubleValue(), wiseExport.getFoldersDepth().doubleValue());
+		docspaceName = StringUtils.lowerCase(docspaceName);
+
+		// (N^L-1) / (N-1) * N
+		double nbNodes = wiseExport.getNbFoldersPerLevel().doubleValue();
+		double depth = wiseExport.getFoldersDepth().doubleValue();
+
+		Double totalFolders = Math.pow(nbNodes, depth) - 1;
+		totalFolders = totalFolders / (nbNodes - 1);
+		totalFolders = totalFolders * nbNodes;
+
 		Double totalFiles = totalFolders * wiseExport.getNbFilesPerFolder();
 		logger.info("Folders generation is starting, " + totalFolders.intValue() + " folders to create, containing a total of "
 				+ totalFiles.intValue() + " files.");
@@ -80,9 +88,10 @@ public class FileAndFolderService {
 		// we'll take them all and stop
 		Integer nbFilesAvailable = wiseExport.getFileNames().size();
 		if (wiseExport.getNbFilesPerFolder().compareTo(nbFilesAvailable) > 0) {
-			logger.warn("You asked for " + wiseExport.getNbFilesPerFolder() + " files per folder, but there are only " + nbFilesAvailable + " files in the pool, and we can't use them twice.");
+			logger.warn("You asked for " + wiseExport.getNbFilesPerFolder() + " files per folder, but there are only " + nbFilesAvailable
+					+ " files in the pool, and we can't use them twice.");
 			wiseExport.setNbFilesPerFolder(nbFilesAvailable);
- 		}
+		}
 
 		return generateFolders(1, currentPath, currentNodePath, wiseExport);
 	}
@@ -138,8 +147,8 @@ public class FileAndFolderService {
 				// logger.debug("Generating sub folder ");
 			}
 			List<FolderBO> subFolders = null;
-			Set<FileBO> files = generateFiles(filesPerFolder, currentNodePath + sep + depthName + i, fileNames, wiseExport.getNumberOfUsers(), filesDirectory,
-					wiseExport.getTags(), wiseExport.getWiseInstanceKey());
+			Set<FileBO> files = generateFiles(filesPerFolder, currentNodePath + sep + depthName + i, fileNames, wiseExport.getNumberOfUsers(),
+					filesDirectory, wiseExport.getTags(), wiseExport.getWiseInstanceKey());
 			// we store all generated files to use them in the collections
 			List<FileBO> filesTmp = wiseExport.getFiles();
 			filesTmp.addAll(files);
@@ -177,7 +186,7 @@ public class FileAndFolderService {
 		// logger.debug("Generating " + nbFiles + " files");
 		Set<FileBO> files = new HashSet<FileBO>();
 		Random rand = new Random();
-		
+
 		Integer nbAvailableFiles = fileNames.size();
 		int currentFilenameIndex = 0;
 
@@ -202,7 +211,7 @@ public class FileAndFolderService {
 			} else {
 				fileName = fileNames.get(rand.nextInt(fileNames.size() - 1));
 			}
-			
+
 			String mixin = "";
 
 			if (nbUsers != null && (nbUsers.compareTo(0) > 0)) {
