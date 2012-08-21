@@ -224,6 +224,7 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
 		} else {
 			// Clean output directory
 			try {
+				getLog().info("Deleting output directory");
 				FileUtils.deleteDirectory(fOutputDirectory);
 			} catch (IOException e) {
 				getLog().error("Can not delete output directory");
