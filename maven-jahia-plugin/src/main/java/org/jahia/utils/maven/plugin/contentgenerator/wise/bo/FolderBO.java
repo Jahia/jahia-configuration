@@ -7,7 +7,12 @@ import java.util.Set;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jdom.Element;
 
-public class FolderBO {
+public class FolderBO implements java.io.Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	Element folderElement;
 
 	String folderName;
