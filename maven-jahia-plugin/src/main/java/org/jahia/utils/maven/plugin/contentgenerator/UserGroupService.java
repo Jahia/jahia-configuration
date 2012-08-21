@@ -15,7 +15,6 @@ import org.jahia.utils.maven.plugin.contentgenerator.bo.UserBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.CollectionService;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.CollectionBO;
-import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
 import org.jdom.Document;
 import org.jdom.Element;
 
@@ -121,15 +120,16 @@ public class UserGroupService {
 
         List<UserBO> users = new ArrayList<UserBO>();
         for (int userid = 0; userid < nbUsers; userid++) {
-        	
-        	List<CollectionBO> collections = null;
-        	if (nbCollectionsPerUser != null && nbCollectionsPerUser.compareTo(0) > 0) {
-        		CollectionService collectionService = CollectionService.getInstance();
-        		collections = collectionService.generateCollections(nbCollectionsPerUser, nbFilesPerCollection, nbFilesGenerated);
-        	}
-        	
+        	       	
             String username = "user" + userid;
             String pathJcr = getPathForUsername(username);
+            
+            List<CollectionBO> collections = null;
+        	if (nbCollectionsPerUser != null && nbCollectionsPerUser.compareTo(0) > 0) {
+        		CollectionService collectionService = CollectionService.getInstance();
+        		collections = collectionService.generateCollections(nbCollectionsPerUser, nbFilesPerCollection, nbFilesGenerated, username);
+        	}
+        	
             UserBO user = new UserBO(username, JahiaGlobalConfigurator.encryptPassword(username), pathJcr, collections);
             users.add(user);
         }
