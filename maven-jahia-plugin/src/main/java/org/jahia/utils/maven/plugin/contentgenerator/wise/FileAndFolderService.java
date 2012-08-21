@@ -98,34 +98,13 @@ public class FileAndFolderService {
 			wiseExport.setNbFilesPerFolder(nbFilesAvailable);
 		}
 
+		// create temporary folders to serialize files and folders objects created
 		File tmpTopFoldersDir = new File(wiseExport.getTmp() + sep + ContentGeneratorCst.TMP_DIR_TOP_FOLDERS);
 		tmpTopFoldersDir.mkdir();
-
-		generateFolders(1, currentPath, currentNodePath, wiseExport);
-
-		// serializing all the files created
-		FileOutputStream tmpFile;
-		ObjectOutputStream oos;
 		File tmpFilesDir = new File(wiseExport.getTmp() + sep + ContentGeneratorCst.TMP_DIR_WISE_FILES);
 		tmpFilesDir.mkdir();
-		for (FileBO file : wiseExport.getFiles()) {
-			try {
-				tmpFile = new FileOutputStream(tmpFilesDir + sep + totalGeneratedFiles + ".ser");
-				oos = new ObjectOutputStream(tmpFile);
-				oos.writeObject(file);
-				oos.flush();
-				oos.close();
-				totalGeneratedFiles = totalGeneratedFiles + 1;
-				;
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		wiseExport.getFiles().clear();
+		
+		generateFolders(1, currentPath, currentNodePath, wiseExport);	
 	}
 
 	private List<FolderBO> generateFolders(Integer currentDepth, String currentPath, String currentNodePath, ExportBO wiseExport) {
@@ -180,19 +159,34 @@ public class FileAndFolderService {
 			List<FolderBO> subFolders = null;
 			Set<FileBO> files = generateFiles(filesPerFolder, currentNodePath + sep + depthName + i, fileNames, wiseExport.getNumberOfUsers(),
 					filesDirectory, wiseExport.getTags(), wiseExport.getWiseInstanceKey());
-			// we store all generated files to use them in the collections
-			List<FileBO> filesTmp = wiseExport.getFiles();
-			filesTmp.addAll(files);
-			wiseExport.setFiles(filesTmp);
+			
+			// we serialize all generated files to use them in the collections
+			FileOutputStream tmpFile;
+			ObjectOutputStream oos;
+			File tmpWiseFilesDir = new File(wiseExport.getTmp() + sep + ContentGeneratorCst.TMP_DIR_WISE_FILES);
+			for (FileBO file : files) {
+				try {
+					tmpFile = new FileOutputStream(tmpWiseFilesDir + sep + totalGeneratedFiles + ".ser");
+					oos = new ObjectOutputStream(tmpFile);
+					oos.writeObject(file);
+					oos.flush();
+					oos.close();
+					totalGeneratedFiles = totalGeneratedFiles + 1;
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
 
 			if (currentDepth < foldersDepth) {
 				subFolders = generateFolders(currentDepth + 1, currentPath + sep + depthName + i, currentNodePath + sep + depthName, wiseExport);
 			}
 			FolderBO folder = new FolderBO(depthName + i, subFolders, files);
 			folders.add(folder);
-
-			FileOutputStream tmpFile;
-			ObjectOutputStream oos;
 
 			if (currentDepth == 1) {
 				File tmpTopFoldersDir = new File(wiseExport.getTmp() + sep + ContentGeneratorCst.TMP_DIR_TOP_FOLDERS);
@@ -209,9 +203,8 @@ public class FileAndFolderService {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				folder = null;
 			}
-			
-			folder = null;
 
 			// create physical folder
 			File newFolder = new File(currentPath + sep + depthName + i);
@@ -232,8 +225,6 @@ public class FileAndFolderService {
 				}
 			}
 		}
-
-		// if top folder, serialize
 		return folders;
 	}
 
