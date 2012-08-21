@@ -70,7 +70,7 @@ public class FileAndFolderService {
 		return instance;
 	}
 
-	public List<FolderBO> generateFolders(String docspaceName, ExportBO wiseExport) {
+	public void generateFolders(String docspaceName, ExportBO wiseExport) {
 		docspaceName = StringUtils.lowerCase(docspaceName);
 
 		// (N^L-1) / (N-1) * N
@@ -101,7 +101,7 @@ public class FileAndFolderService {
 		File tmpTopFoldersDir = new File(wiseExport.getTmp() + sep + ContentGeneratorCst.TMP_DIR_TOP_FOLDERS);
 		tmpTopFoldersDir.mkdir();
 
-		List<FolderBO> folders = generateFolders(1, currentPath, currentNodePath, wiseExport);
+		generateFolders(1, currentPath, currentNodePath, wiseExport);
 
 		// serializing all the files created
 		FileOutputStream tmpFile;
@@ -126,8 +126,6 @@ public class FileAndFolderService {
 			}
 		}
 		wiseExport.getFiles().clear();
-
-		return folders;
 	}
 
 	private List<FolderBO> generateFolders(Integer currentDepth, String currentPath, String currentNodePath, ExportBO wiseExport) {
@@ -245,6 +243,7 @@ public class FileAndFolderService {
 		Set<FileBO> files = new HashSet<FileBO>();
 		Random rand = new Random();
 
+		List<String> fileNamesAvailable = fileNames;
 		Integer nbAvailableFiles = fileNames.size();
 		int currentFilenameIndex = 0;
 
@@ -260,17 +259,22 @@ public class FileAndFolderService {
 		int idEditor;
 		int idReader;
 		int nbOfTags = tags.size();
-
+		int randFilenameIndex;
+		String extractedContent = "";
+		FileBO newFile = null;
+		
 		while (files.size() < nbFilesToGenerate) {
 			// logger.debug("Generating file " + files.size() + "/" +
 			// nbFilesToGenerate);
 
 			String fileName = "";
-			if (nbFilesToGenerate == nbAvailableFiles) {
+			if (nbFilesToGenerate.compareTo(nbAvailableFiles) <= 0) {
 				fileName = fileNames.get(currentFilenameIndex);
 				currentFilenameIndex++;
 			} else {
-				fileName = fileNames.get(rand.nextInt(fileNames.size() - 1));
+				randFilenameIndex = rand.nextInt(fileNamesAvailable.size() - 1);
+				fileName = fileNamesAvailable.get(randFilenameIndex);
+				fileNamesAvailable.remove(randFilenameIndex);
 			}
 
 			String mixin = "";
@@ -314,8 +318,6 @@ public class FileAndFolderService {
 				metadata.set(Metadata.CONTENT_TYPE, mimeType);
 			}
 
-			String extractedContent = "";
-
 			try {
 				extractedContent = new Tika().parseToString(f);
 			} catch (FileNotFoundException e) {
@@ -335,7 +337,7 @@ public class FileAndFolderService {
 			int randomTagIndex = rand.nextInt(nbOfTags - 1);
 			TagBO tag = tags.get(randomTagIndex);
 
-			FileBO newFile = new FileBO(fileName, mixin, mimeType, currentNodePath + sep + fileName + sep + fileName, creator, owner, editor, reader,
+			newFile = new FileBO(fileName, mixin, mimeType, currentNodePath + sep + fileName + sep + fileName, creator, owner, editor, reader,
 					extractedContent, description, tag.getTagName(), wiseInstanceName);
 			files.add(newFile);
 		}
