@@ -63,10 +63,12 @@ public class WiseService {
 		File wiseInstanceContentDir = new File(wiseInstanceOutputDir + "/content");
 
 		wiseInstanceOutputDir.mkdir();
+		logger.info("Creating repository file");
 		File repositoryFile = new File(wiseInstanceOutputDir + "/repository.xml");
 		os.writeJdomDocumentToFile(wiseInstance.getDocument(), repositoryFile);
 
 		// create properties file
+		logger.info("Creating site properties file");
 		siteService.createPropertiesFile(wiseExport.getWiseInstanceKey(), wiseExport.getSiteLanguages(), "templates-docspace", wiseInstanceOutputDir);
 
 		// Zip wise instances files
@@ -75,6 +77,7 @@ public class WiseService {
 			wiseInstanceFiles.add(wiseInstanceContentDir);
 		}
 
+		logger.info("Creating Wise site archive");
 		File wiseArchive = os.createSiteArchive("wise.zip", wiseExport.getOutputDir(), wiseInstanceFiles);
 		globalFilesToZip.add(wiseArchive);
 
@@ -85,6 +88,7 @@ public class WiseService {
 		if (nbFilesPerCollection.compareTo(wiseExport.getNbFilesPerFolder()) > 0) {
 			nbFilesPerCollection = wiseExport.getNbFilesPerFolder();
 		}
+		logger.info("Creating users");
 		List<UserBO> users = userGroupService.generateUsers(wiseExport.getNumberOfUsers(), nbCollectionsPerUser, nbFilesPerCollection,
 				wiseExport.getNbFilesPerFolder());
 		File tmpUsers = new File(wiseExport.getOutputDir(), "users");
