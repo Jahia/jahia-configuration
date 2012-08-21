@@ -76,10 +76,10 @@ public class FileAndFolderService {
 		// (N^L-1) / (N-1) * N
 		double nbNodes = wiseExport.getNbFoldersPerLevel().doubleValue();
 		double depth = wiseExport.getFoldersDepth().doubleValue();
-		
+
 		Double totalFolders = Math.pow(nbNodes, depth) - 1;
 		totalFolders = totalFolders / (nbNodes - 1);
-		totalFolders = totalFolders * nbNodes;		
+		totalFolders = totalFolders * nbNodes;
 
 		Double totalFiles = totalFolders * wiseExport.getNbFilesPerFolder();
 
@@ -97,6 +97,9 @@ public class FileAndFolderService {
 					+ " files in the pool, and we can't use them twice.");
 			wiseExport.setNbFilesPerFolder(nbFilesAvailable);
 		}
+
+		File tmpTopFoldersDir = new File(wiseExport.getTmp() + sep + ContentGeneratorCst.TMP_DIR_TOP_FOLDERS);
+		tmpTopFoldersDir.mkdir();
 
 		List<FolderBO> folders = generateFolders(1, currentPath, currentNodePath, wiseExport);
 
@@ -123,7 +126,7 @@ public class FileAndFolderService {
 			}
 		}
 		wiseExport.getFiles().clear();
-		
+
 		return folders;
 	}
 
@@ -175,7 +178,7 @@ public class FileAndFolderService {
 			if (currentDepth == 1) {
 				logger.info("Generating top folder " + i + "/" + nbFoldersPerLevel);
 			}
-			
+
 			List<FolderBO> subFolders = null;
 			Set<FileBO> files = generateFiles(filesPerFolder, currentNodePath + sep + depthName + i, fileNames, wiseExport.getNumberOfUsers(),
 					filesDirectory, wiseExport.getTags(), wiseExport.getWiseInstanceKey());
@@ -187,7 +190,30 @@ public class FileAndFolderService {
 			if (currentDepth < foldersDepth) {
 				subFolders = generateFolders(currentDepth + 1, currentPath + sep + depthName + i, currentNodePath + sep + depthName, wiseExport);
 			}
-			folders.add(new FolderBO(depthName + i, subFolders, files));
+			FolderBO folder = new FolderBO(depthName + i, subFolders, files);
+			folders.add(folder);
+
+			FileOutputStream tmpFile;
+			ObjectOutputStream oos;
+
+			if (currentDepth == 1) {
+				File tmpTopFoldersDir = new File(wiseExport.getTmp() + sep + ContentGeneratorCst.TMP_DIR_TOP_FOLDERS);
+				try {
+					tmpFile = new FileOutputStream(tmpTopFoldersDir + sep + i + ".ser");
+					oos = new ObjectOutputStream(tmpFile);
+					oos.writeObject(folder);
+					oos.flush();
+					oos.close();
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+			folder = null;
 
 			// create physical folder
 			File newFolder = new File(currentPath + sep + depthName + i);
@@ -208,6 +234,8 @@ public class FileAndFolderService {
 				}
 			}
 		}
+
+		// if top folder, serialize
 		return folders;
 	}
 
@@ -234,7 +262,8 @@ public class FileAndFolderService {
 		int nbOfTags = tags.size();
 
 		while (files.size() < nbFilesToGenerate) {
-			//logger.debug("Generating file " + files.size() + "/" + nbFilesToGenerate);
+			// logger.debug("Generating file " + files.size() + "/" +
+			// nbFilesToGenerate);
 
 			String fileName = "";
 			if (nbFilesToGenerate == nbAvailableFiles) {

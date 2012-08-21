@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.jahia.utils.maven.plugin.contentgenerator.OutputService;
 import org.jahia.utils.maven.plugin.contentgenerator.SiteService;
 import org.jahia.utils.maven.plugin.contentgenerator.UserGroupService;
@@ -20,6 +22,9 @@ import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.WiseBO;
 import org.jdom.Document;
 
 public class WiseService {
+	
+	private Log logger = new SystemStreamLog();
+	
 	public static WiseService instance;
 
 	private DocspaceService docspaceService;
@@ -97,7 +102,13 @@ public class WiseService {
 		File usersArchive = os.createSiteArchive("users.zip", wiseExport.getOutputDir(), filesToZip);
 		globalFilesToZip.add(usersArchive);
 
+		// Zip all of this
+		logger.info("Creating Wise instance archive");
+		File wiseImportArchive = os.createSiteArchive("wise_instance_generated.zip", wiseExport.getOutputDir(), globalFilesToZip);
+		
+		
 		// Generate users list
+		logger.info("Generating users, files and tags lists");
 		List<String> userNames = new ArrayList<String>();
 		List<String> collections = new ArrayList<String>();
 		for (UserBO user : users) {
@@ -139,9 +150,6 @@ public class WiseService {
 		File tagsFile = new File(wiseExport.getOutputDir(), "tags.txt");
 		tagsFile.delete();
 		os.appendPathToFile(tagsFile, tags);
-
-		// Zip all of this
-		File wiseImportArchive = os.createSiteArchive("wise_instance_generated.zip", wiseExport.getOutputDir(), globalFilesToZip);
 
 		return wiseImportArchive.getAbsolutePath();
 	}

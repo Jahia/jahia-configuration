@@ -33,11 +33,11 @@ public class CollectionService {
 		return instance;
 	}
 
-	public List<CollectionBO> generateCollections(int nbCollections, int nbFilesPerCollection, int nbGeneratedFiles) {
+	public List<CollectionBO> generateCollections(int nbCollections, int nbFilesPerCollection, int nbGeneratedFiles, String currentUsername) {
 		List<CollectionBO> collections = new ArrayList<CollectionBO>();
 
 		for (int i = 1; i <= nbCollections; i++) {
-			logger.info("Generating collection " + i + "/" + nbCollections + " containing " + nbFilesPerCollection + " files");
+			logger.info("Generating collection " + i + "/" + nbCollections + " containing " + nbFilesPerCollection + " files for user " + currentUsername);
 			CollectionBO collection = new CollectionBO("Collection" + i, getRandomFilesReferences(nbFilesPerCollection, nbGeneratedFiles));
 			collections.add(collection);
 		}

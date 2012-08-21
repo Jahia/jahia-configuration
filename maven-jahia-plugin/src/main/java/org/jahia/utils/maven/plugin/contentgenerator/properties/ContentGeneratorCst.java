@@ -72,6 +72,8 @@ public final class ContentGeneratorCst {
 	 */
 	public static final String TMP_DIR_WISE_FILES = "wise_files";
 	
+	public static final String TMP_DIR_TOP_FOLDERS = "top_folders";
+	
 	// jcr jnt jmix j
 	private ContentGeneratorCst() {
 
