@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.maven.plugin.logging.Log;
@@ -97,6 +98,7 @@ public class DocspaceService {
 				e.printStackTrace();
 			}
 		}
+		Collections.sort(folders);
 		return folders;
 	}
 }

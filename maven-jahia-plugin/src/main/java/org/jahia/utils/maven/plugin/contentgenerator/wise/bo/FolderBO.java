@@ -7,7 +7,7 @@ import java.util.Set;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jdom.Element;
 
-public class FolderBO implements java.io.Serializable {
+public class FolderBO implements java.io.Serializable, Comparable<FolderBO> {
 	/**
 	 * 
 	 */
@@ -29,6 +29,10 @@ public class FolderBO implements java.io.Serializable {
 	
 	public Set<FileBO> getFiles() {
 		return files;
+	}
+	
+	public String getFolderName() {
+		return this.folderName;
 	}
 
 	public Element getElement() {
@@ -53,5 +57,9 @@ public class FolderBO implements java.io.Serializable {
 			
 		}
 		return folderElement;
+	}
+
+	public int compareTo(FolderBO f) throws NullPointerException {
+		return this.folderName.compareTo(f.getFolderName());
 	}
 }

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -225,6 +226,7 @@ public class FileAndFolderService {
 				}
 			}
 		}
+		Collections.sort(folders);
 		return folders;
 	}
 
@@ -328,7 +330,7 @@ public class FileAndFolderService {
 			int randomTagIndex = rand.nextInt(nbOfTags - 1);
 			TagBO tag = tags.get(randomTagIndex);
 
-			newFile = new FileBO(fileName, mixin, mimeType, currentNodePath + sep + fileName + sep + fileName, creator, owner, editor, reader,
+			newFile = new FileBO(fileName, mixin, mimeType, currentNodePath + sep + fileName, creator, owner, editor, reader,
 					extractedContent, description, tag.getTagName(), wiseInstanceName);
 			files.add(newFile);
 		}
