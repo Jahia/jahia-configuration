@@ -119,7 +119,7 @@ public class FileBO implements java.io.Serializable {
 
 			String mixin = "docmix:docspaceDocument jmix:accessControlled " + mixinFileType;
 			if (tag != null) {
-				fileElement.setAttribute("newTag", tag, ContentGeneratorCst.NS_J);
+				// fileElement.setAttribute("newTag", tag, ContentGeneratorCst.NS_J);
 				fileElement.setAttribute("tags", "/sites/" + wiseInstanceName + "/tags/" + tag, ContentGeneratorCst.NS_J);
 				mixin = mixin + " jmix:tagged";
 			}
