@@ -8,11 +8,12 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -30,6 +31,8 @@ import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FolderBO;
 public class FileAndFolderService {
 
 	private Log logger = new SystemStreamLog();
+	
+	Random rand = new Random();
 
 	private static FileAndFolderService instance;
 
@@ -233,10 +236,10 @@ public class FileAndFolderService {
 	public Set<FileBO> generateFiles(Integer nbFilesToGenerate, String currentNodePath, List<String> fileNames, Integer nbUsers, File filesDirectory,
 			List<TagBO> tags, String wiseInstanceName) {
 		// logger.debug("Generating " + nbFiles + " files");
-		Set<FileBO> files = new HashSet<FileBO>();
-		Random rand = new Random();
+		SortedSet<FileBO> files = new TreeSet<FileBO>();
 
-		List<String> fileNamesAvailable = fileNames;
+		List<String> fileNamesAvailable= new ArrayList<String>(fileNames);
+		
 		Integer nbAvailableFiles = fileNames.size();
 		int currentFilenameIndex = 0;
 
@@ -257,15 +260,15 @@ public class FileAndFolderService {
 		FileBO newFile = null;
 		
 		while (files.size() < nbFilesToGenerate) {
-			// logger.debug("Generating file " + files.size() + "/" +
-			// nbFilesToGenerate);
+			 // logger.debug("Generating file " + (files.size() + 1) + "/" + nbFilesToGenerate);
 
 			String fileName = "";
-			if (nbFilesToGenerate.compareTo(nbAvailableFiles) <= 0) {
+			if (nbFilesToGenerate.compareTo(nbAvailableFiles) >= 0) {
 				fileName = fileNames.get(currentFilenameIndex);
 				currentFilenameIndex++;
 			} else {
-				randFilenameIndex = rand.nextInt(fileNamesAvailable.size() - 1);
+				int remainingNbAvailableFiles = fileNamesAvailable.size() - 1;
+				randFilenameIndex = rand.nextInt(remainingNbAvailableFiles);
 				fileName = fileNamesAvailable.get(randFilenameIndex);
 				fileNamesAvailable.remove(randFilenameIndex);
 			}
