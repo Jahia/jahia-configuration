@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.jahia.utils.maven.plugin.contentgenerator.OutputService;
@@ -136,7 +137,8 @@ public class WiseService {
 		for (DocspaceBO docspace : wiseInstance.getDocspaces()) {
 			for (FolderBO folder : docspace.getFolders()) {
 				for (FileBO file : folder.getFiles()) {
-					filePaths.add(file.getNodePath());
+					String nodePath = StringUtils.chomp(file.getNodePath(), "/");
+					filePaths.add(nodePath);
 				}
 			}
 		}
