@@ -37,18 +37,20 @@ public class FolderBO implements java.io.Serializable {
 			folderElement.setAttribute("mixinTypes", "docmix:docspaceFolder", ContentGeneratorCst.NS_JCR);
 			folderElement.setAttribute("primaryType", "jnt:folder", ContentGeneratorCst.NS_JCR);
 
-			if (subFolders != null) {
-				for (Iterator<FolderBO> iterator = subFolders.iterator(); iterator.hasNext();) {
-					FolderBO subFolder = iterator.next();
-					folderElement.addContent(subFolder.getElement());
-				}
-			}
 			if (files != null) {
 				for (Iterator<FileBO> iterator = files.iterator(); iterator.hasNext();) {
 					FileBO file = iterator.next();
 					folderElement.addContent(file.getElement());
 				}
 			}
+			
+			if (subFolders != null) {
+				for (Iterator<FolderBO> iterator = subFolders.iterator(); iterator.hasNext();) {
+					FolderBO subFolder = iterator.next();
+					folderElement.addContent(subFolder.getElement());
+				}
+			}
+			
 		}
 		return folderElement;
 	}
