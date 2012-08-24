@@ -8,7 +8,7 @@ import org.jahia.utils.maven.plugin.contentgenerator.bo.AclBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jdom.Element;
 
-public class FileBO implements java.io.Serializable {
+public class FileBO implements java.io.Serializable, Comparable<FileBO> {
 
 	/**
 	 * 
@@ -68,7 +68,7 @@ public class FileBO implements java.io.Serializable {
 		this.fileName = fileName;
 		this.nodePath = nodePath;
 	}
-	
+
 	public long getSerialVersionUID() {
 		return serialVersionUID;
 	}
@@ -119,7 +119,8 @@ public class FileBO implements java.io.Serializable {
 
 			String mixin = "docmix:docspaceDocument jmix:accessControlled " + mixinFileType;
 			if (tag != null) {
-				// fileElement.setAttribute("newTag", tag, ContentGeneratorCst.NS_J);
+				// fileElement.setAttribute("newTag", tag,
+				// ContentGeneratorCst.NS_J);
 				fileElement.setAttribute("tags", "/sites/" + wiseInstanceName + "/tags/" + tag, ContentGeneratorCst.NS_J);
 				mixin = mixin + " jmix:tagged";
 			}
@@ -165,14 +166,19 @@ public class FileBO implements java.io.Serializable {
 	}
 
 	@Override
-	public boolean equals(Object arg0) {
-		FileBO f = (FileBO) arg0;		
-		//return this.fileName.equals(f.getFileName());
-		return this.fileName.intern() == f.getFileName().intern();
+	public int hashCode() {
+		return Integer.valueOf(jcrFilename.charAt(0));
 	}
 
 	@Override
-	public int hashCode() {
-		return Integer.valueOf(jcrFilename.charAt(0));
+	public boolean equals(Object arg0) {
+		FileBO f = (FileBO) arg0;
+		// return this.fileName.equals(f.getFileName());
+		return this.fileName.intern() == f.getFileName().intern();
+	}
+
+	public int compareTo(FileBO f) throws NullPointerException {
+		int nameDiff = this.fileName.compareToIgnoreCase(f.getFileName());
+		return nameDiff;
 	}
 }
