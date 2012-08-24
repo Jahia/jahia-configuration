@@ -9,6 +9,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
+import org.jahia.utils.maven.plugin.contentgenerator.CategoryService;
 import org.jahia.utils.maven.plugin.contentgenerator.OutputService;
 import org.jahia.utils.maven.plugin.contentgenerator.SiteService;
 import org.jahia.utils.maven.plugin.contentgenerator.UserGroupService;
@@ -21,11 +22,12 @@ import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FolderBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.WiseBO;
 import org.jdom.Document;
+import org.jdom.Element;
 
 public class WiseService {
-	
+
 	private Log logger = new SystemStreamLog();
-	
+
 	public static WiseService instance;
 
 	private DocspaceService docspaceService;
@@ -65,8 +67,17 @@ public class WiseService {
 
 		wiseInstanceOutputDir.mkdir();
 		logger.info("Creating repository file");
+
+		// System site and categories
+		Document systemSiteRepository = siteService.createSystemSiteRepository();
+		insertWiseInstanceIntoSiteRepository(systemSiteRepository, wiseInstance.getElement());
+
+		CategoryService cs = new CategoryService();
+		Element categories = cs.createCategories(wiseExport.getNumberOfCategories(), wiseExport.getNumberOfCategoryLevels(), wiseExport);
+		cs.insertCategoriesIntoSiteRepository(systemSiteRepository, categories);
+		
 		File repositoryFile = new File(wiseInstanceOutputDir + "/repository.xml");
-		os.writeJdomDocumentToFile(wiseInstance.getDocument(), repositoryFile);
+		os.writeJdomDocumentToFile(systemSiteRepository, repositoryFile);
 
 		// create properties file
 		logger.info("Creating site properties file");
@@ -110,8 +121,7 @@ public class WiseService {
 		// Zip all of this
 		logger.info("Creating Wise instance archive");
 		File wiseImportArchive = os.createSiteArchive("wise_instance_generated.zip", wiseExport.getOutputDir(), globalFilesToZip);
-		
-		
+
 		// Generate users list
 		logger.info("Generating users, files and tags lists");
 		List<String> userNames = new ArrayList<String>();
@@ -142,7 +152,7 @@ public class WiseService {
 				}
 			}
 		}
-		
+
 		File filePathsFile = new File(wiseExport.getOutputDir(), "files.txt");
 		filePathsFile.delete();
 		os.appendPathToFile(filePathsFile, filePaths);
@@ -158,5 +168,12 @@ public class WiseService {
 		os.appendPathToFile(tagsFile, tags);
 
 		return wiseImportArchive.getAbsolutePath();
+	}
+
+	public Document insertWiseInstanceIntoSiteRepository(Document repository, Element wiseInstance) {
+		logger.info("Add Wise instance to the system site repository");
+		Element sites = repository.getRootElement().getChild("sites");
+		sites.addContent(wiseInstance);
+		return repository;
 	}
 }

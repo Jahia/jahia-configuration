@@ -25,14 +25,13 @@ public class SiteService {
 		sep = System.getProperty("file.separator");
 	}
 
-	public File createAndPopulateRepositoryFile(File tempOutputDir,
-			SiteBO site, File pagesFile, File filesFile, File groupsFile, File tagsFile)
+	public File createAndPopulateRepositoryFile(File tempOutputDir, SiteBO site, File pagesFile, File filesFile, File groupsFile, File tagsFile)
 			throws IOException {
 		File repositoryFile = new File(tempOutputDir, "repository.xml");
 
 		FileOutputStream output = new FileOutputStream(repositoryFile, true);
 		IOUtils.write(site.getHeader(), output);
-		
+
 		// there is an XML files for attachments only if we requested some
 		if (filesFile != null) {
 			IOUtils.copy(new FileInputStream(filesFile), output);
@@ -40,7 +39,7 @@ public class SiteService {
 		IOUtils.copy(new FileInputStream(groupsFile), output);
 		IOUtils.copy(new FileInputStream(tagsFile), output);
 		IOUtils.copy(new FileInputStream(pagesFile), output);
-		
+
 		IOUtils.write(site.getFooter(), output);
 
 		return repositoryFile;
@@ -56,15 +55,13 @@ public class SiteService {
 	 * @throws IOException
 	 *             can not delete dir
 	 */
-	public File createSiteDirectory(String siteKey, File destDir)
-			throws IOException {
+	public File createSiteDirectory(String siteKey, File destDir) throws IOException {
 		File tempOutputDir = new File(destDir, siteKey);
 		if (tempOutputDir.exists()) {
 			FileUtils.deleteDirectory(tempOutputDir);
 		}
 		tempOutputDir.mkdir();
-		logger.debug("temp directory for site export: "
-				+ tempOutputDir.getAbsolutePath());
+		logger.debug("temp directory for site export: " + tempOutputDir.getAbsolutePath());
 		return tempOutputDir;
 	}
 
@@ -76,12 +73,10 @@ public class SiteService {
 	 * @return new File created
 	 * @throws IOException
 	 */
-	public File copyPagesFile(File pagesFile, File tempOutputDir)
-			throws IOException {
+	public File copyPagesFile(File pagesFile, File tempOutputDir) throws IOException {
 		FileUtils.copyFileToDirectory(pagesFile, tempOutputDir);
 		File copy = new File(tempOutputDir, pagesFile.getName());
-		File renamedCopy = new File(tempOutputDir,
-				ContentGeneratorCst.REPOSITORY_FILENAME);
+		File renamedCopy = new File(tempOutputDir, ContentGeneratorCst.REPOSITORY_FILENAME);
 		copy.renameTo(renamedCopy);
 		logger.debug("new file containing pages: " + renamedCopy);
 		return renamedCopy;
@@ -97,10 +92,8 @@ public class SiteService {
 	 * @throws IOException
 	 *             one dir can not be created
 	 */
-	public File createFilesDirectoryTree(String siteKey, File tempOutputDir)
-			throws IOException {
-		String treePath = tempOutputDir + sep + "content" + sep + "sites" + sep
-				+ siteKey + sep + "files" + sep + "contributed";
+	public File createFilesDirectoryTree(String siteKey, File tempOutputDir) throws IOException {
+		String treePath = tempOutputDir + sep + "content" + sep + "sites" + sep + siteKey + sep + "files" + sep + "contributed";
 		File treeFile = new File(treePath);
 		FileUtils.forceMkdir(treeFile);
 		return treeFile;
@@ -117,43 +110,34 @@ public class SiteService {
 	 *             file
 	 * @throws IOException
 	 */
-	public File createPropertiesFile(String siteKey, List<String> languages, String templateSet,
-			File tempOutputDir) throws FileNotFoundException, IOException {
+	public File createPropertiesFile(String siteKey, List<String> languages, String templateSet, File tempOutputDir) throws FileNotFoundException,
+			IOException {
 		Properties siteProp = new Properties();
 
 		siteProp.setProperty("sitetitle", siteKey);
-		siteProp.setProperty("siteservername",
-				ContentGeneratorCst.SITE_SERVER_NAME_DEFAULT);
+		siteProp.setProperty("siteservername", ContentGeneratorCst.SITE_SERVER_NAME_DEFAULT);
 		siteProp.setProperty("sitekey", siteKey);
-		siteProp.setProperty("description",
-				ContentGeneratorCst.DESCRIPTION_DEFAULT);
-		siteProp.setProperty("templatePackageName",
-				templateSet);
+		siteProp.setProperty("description", ContentGeneratorCst.DESCRIPTION_DEFAULT);
+		siteProp.setProperty("templatePackageName", templateSet);
 		siteProp.setProperty("mixLanguage", Boolean.TRUE.toString());
 		siteProp.setProperty("defaultLanguage", languages.get(0));
 		siteProp.setProperty("installedModules.1", "default");
 		siteProp.setProperty("installedModules.2", templateSet);
 		for (String language : languages) {
-			siteProp.setProperty("language." + language + ".activated",
-					Boolean.TRUE.toString());
-			siteProp.setProperty("language." + language + ".mandatory",
-					Boolean.FALSE.toString());
+			siteProp.setProperty("language." + language + ".activated", Boolean.TRUE.toString());
+			siteProp.setProperty("language." + language + ".mandatory", Boolean.FALSE.toString());
 		}
 
 		String sep = System.getProperty("file.separator");
-		File propFile = new File(tempOutputDir,
-				ContentGeneratorCst.SITE_PROPERTIES_FILENAME);
+		File propFile = new File(tempOutputDir, ContentGeneratorCst.SITE_PROPERTIES_FILENAME);
 
-		siteProp.store(new FileOutputStream(propFile),
-				ContentGeneratorCst.DESCRIPTION_DEFAULT);
+		siteProp.store(new FileOutputStream(propFile), ContentGeneratorCst.DESCRIPTION_DEFAULT);
 
 		return propFile;
 	}
 
-	public Document insertGroupsIntoSiteRepository(Document repository,
-			String siteKey, Element groups) {
-		Element siteNode = repository.getRootElement().getChild("sites")
-				.getChild(siteKey);
+	public Document insertGroupsIntoSiteRepository(Document repository, String siteKey, Element groups) {
+		Element siteNode = repository.getRootElement().getChild("sites").getChild(siteKey);
 		siteNode.addContent(groups);
 		return repository;
 	}
@@ -168,16 +152,23 @@ public class SiteService {
 		logger.info("Initialization of system site repository");
 		Document systemSiteRepository = new Document();
 		Element contentNode = new Element("content");
+		contentNode.addNamespaceDeclaration(ContentGeneratorCst.NS_JCR);
+		contentNode.addNamespaceDeclaration(ContentGeneratorCst.NS_JNT);
+		contentNode.addNamespaceDeclaration(ContentGeneratorCst.NS_JMIX);
+		contentNode.addNamespaceDeclaration(ContentGeneratorCst.NS_J);
+		contentNode.addNamespaceDeclaration(ContentGeneratorCst.NS_NT);
+		contentNode.addNamespaceDeclaration(ContentGeneratorCst.NS_SV);
+		contentNode.addNamespaceDeclaration(ContentGeneratorCst.NS_MIX);
+		contentNode.addNamespaceDeclaration(ContentGeneratorCst.NS_DOCNT);
+
 		systemSiteRepository.setRootElement(contentNode);
 
 		Element sitesNode = new Element("sites");
-		sitesNode.setAttribute("primaryType", "jnt:virtualsitesFolder",
-				ContentGeneratorCst.NS_JCR);
+		sitesNode.setAttribute("primaryType", "jnt:virtualsitesFolder", ContentGeneratorCst.NS_JCR);
 		contentNode.addContent(sitesNode);
 
 		Element systemSiteNode = new Element("systemsite");
-		systemSiteNode.setAttribute("primaryType", "jnt:virtualsite",
-				ContentGeneratorCst.NS_JCR);
+		systemSiteNode.setAttribute("primaryType", "jnt:virtualsite", ContentGeneratorCst.NS_JCR);
 		sitesNode.addContent(systemSiteNode);
 
 		return systemSiteRepository;

@@ -62,21 +62,14 @@ public class WiseBO extends SiteBO {
 	public Document getDocument() {
 		Document doc = new Document();
 		Element contentNode = new Element("content");
-		contentNode.addNamespaceDeclaration(ContentGeneratorCst.NS_JCR);
-		contentNode.addNamespaceDeclaration(ContentGeneratorCst.NS_JNT);
-		contentNode.addNamespaceDeclaration(ContentGeneratorCst.NS_JMIX);
-		contentNode.addNamespaceDeclaration(ContentGeneratorCst.NS_J);
-		contentNode.addNamespaceDeclaration(ContentGeneratorCst.NS_NT);
-		contentNode.addNamespaceDeclaration(ContentGeneratorCst.NS_SV);
-		contentNode.addNamespaceDeclaration(ContentGeneratorCst.NS_MIX);
-		contentNode.addNamespaceDeclaration(ContentGeneratorCst.NS_DOCNT);
+
 
 		doc.setRootElement(contentNode);
 
 		Element sitesNode = new Element("sites");
 		sitesNode.setAttribute("primaryType", "jnt:virtualsitesFolder", ContentGeneratorCst.NS_JCR);
-		sitesNode.addContent(this.getElement());
-
+		sitesNode.addContent(this.getElement());	        
+	        
 		contentNode.addContent(sitesNode);
 		return doc;
 	}
