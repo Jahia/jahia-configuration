@@ -1,17 +1,13 @@
 package org.jahia.utils.maven.plugin.contentgenerator.bo;
 
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
-import org.jdom.Element;
-import org.jdom.output.XMLOutputter;
 
 public class PageBO {
-	private Element pageElement;
-
 	private String uniqueName;
 	private Map<String, ArticleBO> articles;
 	private Integer level;
@@ -25,7 +21,7 @@ public class PageBO {
 	private Integer idCategory;
 	private Integer idTag;
 	private Boolean visibilityEnabled;
-	private String visibilityStartDate;
+	private String visibilityStartDate;	
 	private String visibilityEndDate;
 
 	public void setIdCategory(Integer idCategory) {
@@ -64,15 +60,15 @@ public class PageBO {
 		this.parentPage = parentPage;
 	}
 
-	public Map<String, ArticleBO> getArticles() {
-		return articles;
-	}
+    public Map<String, ArticleBO> getArticles() {
+        return articles;
+    }
 
-	public void setArticles(Map<String, ArticleBO> articles) {
-		this.articles = articles;
-	}
+    public void setArticles(Map<String, ArticleBO> articles) {
+        this.articles = articles;
+    }
 
-	public Boolean getHasVanity() {
+    public Boolean getHasVanity() {
 		return hasVanity;
 	}
 
@@ -104,22 +100,22 @@ public class PageBO {
 		this.numberBigText = numberBigText;
 	}
 
-	public Map<String, List<String>> getAcls() {
-		return acls;
-	}
+    public Map<String, List<String>> getAcls() {
+        return acls;
+    }
 
-	public void setAcls(Map<String, List<String>> acls) {
-		this.acls = acls;
-	}
+    public void setAcls(Map<String, List<String>> acls) {
+        this.acls = acls;
+    }
 
-	public Integer getIdTag() {
+    public Integer getIdTag() {
 		return idTag;
 	}
 
 	public void setIdTag(Integer idTag) {
 		this.idTag = idTag;
 	}
-
+	
 	public void setVisibilityEnabled(Boolean visibilityEnabled) {
 		this.visibilityEnabled = visibilityEnabled;
 	}
@@ -132,10 +128,8 @@ public class PageBO {
 		this.visibilityEndDate = visibilityEndDate;
 	}
 
-	public PageBO(final String pUniqueName, Map<String, ArticleBO> articles, final int pLevel,
-			final List<PageBO> pSubPages, Boolean pHasVanity, String pSiteKey, String pFileName,
-			Integer pNumberBigText, Map<String, List<String>> acls, Integer idCategory, Integer idTag,
-			Boolean visibilityEnabled, String visibilityStartDate, String visibilityEndDate) {
+	public PageBO(final String pUniqueName, Map<String, ArticleBO> articles, final int pLevel, final List<PageBO> pSubPages, Boolean pHasVanity,
+			String pSiteKey, String pFileName, Integer pNumberBigText, Map<String, List<String>> acls, Integer idCategory, Integer idTag, Boolean visibilityEnabled, String visibilityStartDate, String visibilityEndDate) {
 		this.articles = articles;
 		this.level = pLevel;
 		this.subPages = pSubPages;
@@ -144,187 +138,142 @@ public class PageBO {
 		this.siteKey = pSiteKey;
 		this.fileName = pFileName;
 		this.numberBigText = pNumberBigText;
-		this.acls = acls;
-		this.idCategory = idCategory;
-		this.idTag = idTag;
-		this.visibilityEnabled = visibilityEnabled;
-		this.visibilityStartDate = visibilityStartDate;
-		this.visibilityEndDate = visibilityEndDate;
+        this.acls = acls;
+        this.idCategory = idCategory;
+        this.idTag = idTag;
+        this.visibilityEnabled = visibilityEnabled;
+        this.visibilityStartDate = visibilityStartDate;
+        this.visibilityEndDate = visibilityEndDate;
 	}
 
+	
 	public String getHeader() {
-		XMLOutputter outputter = new XMLOutputter();
-		String pageString = outputter.outputString(this.getElement());
-		return StringUtils.removeEnd(pageString, "</" + this.uniqueName + ">");
+		StringBuffer sb = new StringBuffer();
+		sb.append("	<!-- generated page (level " + this.getLevel() + ") -->\n");
+
+		sb.append("	<"
+				+ this.getUniqueName()
+				+ " xmlns:jcr=\"http://www.jcp.org/jcr/1.0\" xmlns:nt=\"http://www.jcp.org/jcr/nt/1.0\" xmlns:jnt=\"http://www.jahia.org/jahia/nt/1.0\" xmlns:test=\"http://www.apache.org/jackrabbit/test\" xmlns:sv=\"http://www.jcp.org/jcr/sv/1.0\" xmlns:jmix=\"http://www.jahia.org/jahia/mix/1.0\" xmlns:j=\"http://www.jahia.org/jahia/1.0\" xmlns:mix=\"http://www.jcp.org/jcr/mix/1.0\" xmlns:rep=\"internal\" changefreq=\"monthly\" j:templateNode=\"/sites/"
+				+ this.getSiteKey() + "/templates/base/events\" jcr:mixinTypes=\"");
+		if (this.getHasVanity()) {
+			sb.append("jmix:vanityUrlMapped ");
+		}
+
+		if (this.idCategory != null) {
+			sb.append(" jmix:categorized ");
+		}
+		
+		sb.append(" jmix:sitemap\" jcr:primaryType=\"jnt:page\" priority=\"0.5\"");
+		
+		
+		if (this.idCategory != null) {
+			sb.append(" j:defaultCategory=\"/sites/systemsite/categories/category" + idCategory + "\" ");
+		}
+		
+		if (this.idTag != null) {
+			sb.append(" j:tags=\"/sites/" + siteKey + "/tags/tag" + idTag + "\"");
+		}
+		
+		sb.append(">\n");
+		// end page tag
+		
+        for (Map.Entry<String, ArticleBO> entry : articles.entrySet()) {
+            sb.append("		<j:translation_"+entry.getKey()+" jcr:language=\""+entry.getKey()+"\" jcr:mixinTypes=\"mix:title\" jcr:primaryType=\"jnt:translation\" jcr:title=\""
+				+ formatForXml(entry.getValue().getTitle()) + "\" />\n");
+        }
+
+        if (!acls.isEmpty()) {
+            sb.append("		<j:acl j:inherit=\"true\" jcr:primaryType=\"jnt:acl\">\n");
+            for (Map.Entry<String, List<String>> entry : acls.entrySet()) {
+                String roles = "";
+                for (String s : entry.getValue()) {
+                    roles += s + " ";
+                }
+                sb.append("		    <GRANT_"+entry.getKey().replace(":","_")+" j:aceType=\"GRANT\" j:principal=\""+entry.getKey()+"\" j:protected=\"false\" j:roles=\""+roles.trim()+"\" jcr:primaryType=\"jnt:ace\"/>\n");
+            }
+            sb.append("     </j:acl>\n");
+        }
+        sb.append("		<listA jcr:primaryType=\"jnt:contentList\">\n");
+		// Big text (content)
+		for (int i = 1; i <= numberBigText.intValue(); i++) {
+			sb.append("			<bigText_" + i + " jcr:mixinTypes=\"jmix:renderable\" jcr:primaryType=\"jnt:bigText\">\n");
+            for (Map.Entry<String, ArticleBO> entry : articles.entrySet()) {
+            sb.append("				<j:translation_"+entry.getKey()+" jcr:language=\""+entry.getKey()+"\" jcr:primaryType=\"jnt:translation\" text=\""
+					+ formatForXml(entry.getValue().getContent()) + " \" />");
+            }
+			sb.append("			</bigText_" + i + ">\n");
+		}
+		if (this.getFileName() != null) {
+			sb.append(" 		<random-file jcr:primaryType=\"jnt:fileReference\">"
+					+ " 			<j:translation_en  jcr:language=\"en\" jcr:primaryType=\"jnt:translation\" jcr:title=\"My file\" />"
+					+ "			</random-file>");
+
+			sb.append(" 		<publication jcr:primaryType=\"jnt:publication\">"
+					+ "				<j:translation_en author=\"Jahia Content Generator\" body=\"&lt;p&gt;  Random publication&lt;/p&gt; \" date=\"01/01/1970\" file=\"/sites/"
+					+ this.getSiteKey()
+					+ "/files/contributed/"
+					+ this.getFileName()
+					+ "\" jcr:language=\"en\" jcr:primaryType=\"jnt:translation\" jcr:title=\"Random publication\" source=\"Jahia\" />"
+					+ "			</publication>");
+		}
+
+		sb.append("		</listA>\n");
+
+		if (this.getHasVanity()) {
+			sb.append(" 	<vanityUrlMapping jcr:primaryType=\"jnt:vanityUrls\">"
+					+ "			<_x0025_2F"
+					+ this.getUniqueName()
+					+ " j:active=\"true\" j:default=\"true\" j:url=\"/"
+					+ this.getUniqueName()
+					+ "\" jcr:language=\"en\" jcr:primaryType=\"jnt:vanityUrl\" />"
+					+ "		</vanityUrlMapping>");
+		}
+		
+		
+		if (this.visibilityEnabled) {
+		   sb.append("<j:conditionalVisibility j:forceMatchAllConditions=\"true\" jcr:primaryType=\"jnt:conditionalVisibility\">");
+		   sb.append("	<jnt:startEndDateCondition0 end=\"" + this.visibilityEndDate + "\" jcr:primaryType=\"jnt:startEndDateCondition\" start=\"" + this.visibilityStartDate + "\" />");
+		   sb.append("</j:conditionalVisibility>");
+		  
+		}
+		return sb.toString();
+
 	}
-	
+
 	public String getFooter() {
-		return "</" + this.uniqueName + ">";
+		return new String("		</" + this.getUniqueName() + ">\n");
 	}
-	
+
 	public String toString() {
-		XMLOutputter outputter = new XMLOutputter();
-		return outputter.outputString(this.getElement());
-	}
+		StringBuffer sb = new StringBuffer();
+		sb.append(this.getHeader());
 
-	public Element getElement() {
-		if (this.pageElement == null) {
-			this.pageElement = new Element(this.uniqueName);
-			pageElement.addNamespaceDeclaration(ContentGeneratorCst.NS_JCR);
-			pageElement.addNamespaceDeclaration(ContentGeneratorCst.NS_NT);
-			pageElement.addNamespaceDeclaration(ContentGeneratorCst.NS_JNT);
-			pageElement.addNamespaceDeclaration(ContentGeneratorCst.NS_TEST);
-			pageElement.addNamespaceDeclaration(ContentGeneratorCst.NS_SV);
-			pageElement.addNamespaceDeclaration(ContentGeneratorCst.NS_JMIX);
-			pageElement.addNamespaceDeclaration(ContentGeneratorCst.NS_J);
-			pageElement.addNamespaceDeclaration(ContentGeneratorCst.NS_MIX);
-
-			pageElement.setAttribute("templateNode", "/sites/" + this.siteKey + "/templates/base/events",
-					ContentGeneratorCst.NS_J);
-
-			// mixinTypes value
-			StringBuffer mixinTypes = new StringBuffer();
-			if (this.getHasVanity()) {
-				mixinTypes.append(" jmix:vanityUrlMapped ");
-			}
-			if (this.idCategory != null) {
-				mixinTypes.append(" jmix:categorized ");
-			}
-			mixinTypes.append("jmix:sitemap");
-			pageElement.setAttribute("mixinTypes", mixinTypes.toString(), ContentGeneratorCst.NS_JCR);
-
-			pageElement.setAttribute("primaryType", "jnt:page", ContentGeneratorCst.NS_JCR);
-			pageElement.setAttribute("priority", "0.5");
-
-			// Categories
-			if (this.idCategory != null) {
-				pageElement.setAttribute("defaultCategory", "/sites/systemsite/categories/category" + idCategory,
-						ContentGeneratorCst.NS_J);
-			}
-
-			// Tags
-			if (this.idTag != null) {
-				pageElement.setAttribute("tags", "/sites/" + siteKey + "/tags/tag", ContentGeneratorCst.NS_J);
-			}
-
-			// Translations
-			for (Map.Entry<String, ArticleBO> entry : articles.entrySet()) {
-				Element translation = new Element("translation_" + entry.getKey(), ContentGeneratorCst.NS_J);
-				translation.setAttribute("language", entry.getKey(), ContentGeneratorCst.NS_JCR);
-				translation.setAttribute("mixinTypes", "mix:title", ContentGeneratorCst.NS_JCR);
-				translation.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
-				translation
-						.setAttribute("title", formatForXml(entry.getValue().getTitle()), ContentGeneratorCst.NS_JCR);
-				pageElement.addContent(translation);
-			}
-
-			// Content (articles)
-			Element list = new Element("listA");
-			for (int i = 1; i <= numberBigText.intValue(); i++) {
-
-				Element bigText = new Element("bigText_" + i);
-				bigText.setAttribute("mixinTypes", "jmix:renderable", ContentGeneratorCst.NS_JCR);
-				bigText.setAttribute("primaryType", "jnt:bigText", ContentGeneratorCst.NS_JCR);
-				for (Map.Entry<String, ArticleBO> entry : articles.entrySet()) {
-					Element translation = new Element("translation_" + entry.getKey());
-					translation.setAttribute("language", entry.getKey(), ContentGeneratorCst.NS_JCR);
-					translation.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
-					translation.setAttribute("text", formatForXml(entry.getValue().getContent()),
-							ContentGeneratorCst.NS_JCR);
-					bigText.addContent(translation);
-				}
-				list.addContent(bigText);
-			}
-			pageElement.addContent(list);
-
-			// Files
-			if (this.getFileName() != null) {
-				Element randomFile = new Element("random-file");
-				randomFile.setAttribute("primaryType", "jnt:fileReference", ContentGeneratorCst.NS_JCR);
-
-				for (Map.Entry<String, ArticleBO> entry : articles.entrySet()) {
-					Element translation = new Element("translation_" + entry.getKey(), ContentGeneratorCst.NS_J);
-					translation.setAttribute("language", entry.getKey(), ContentGeneratorCst.NS_JCR);
-					translation.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
-					translation.setAttribute("title", "My File - " + entry.getKey(), ContentGeneratorCst.NS_JCR);
-					randomFile.addContent(translation);
-				}
-				list.addContent(randomFile);
-
-				Element publication = new Element("publication");
-				publication.setAttribute("primaryType", "jnt:publication", ContentGeneratorCst.NS_JCR);
-				for (Map.Entry<String, ArticleBO> entry : articles.entrySet()) {
-					Element translation = new Element("translation_" + entry.getKey(), ContentGeneratorCst.NS_J);
-					translation.setAttribute("author", "Jahia Content Generator");
-					translation.setAttribute("body", " Random publication");
-					translation.setAttribute("date", "01/01/1970");
-					translation.setAttribute("file",
-							"/sites/" + this.getSiteKey() + "/files/contributed/" + this.getFileName());
-					translation.setAttribute("language", entry.getKey(), ContentGeneratorCst.NS_JCR);
-					translation.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
-					translation.setAttribute("title", "Random publication - " + entry.getKey(),
-							ContentGeneratorCst.NS_JCR);
-					translation.setAttribute("source", "Jahia");
-					publication.addContent(translation);
-				}
-
-				list.addContent(publication);
-			}
-
-			if (this.getHasVanity()) {
-				Element vanity = new Element("vanityUrlMapping");
-				vanity.setAttribute("primaryType", "jnt:vanityUrls", ContentGeneratorCst.NS_JCR);
-
-				Element content = new Element("_x0025_2F");
-				content.setAttribute("active", "true", ContentGeneratorCst.NS_J);
-				content.setAttribute("default", "true", ContentGeneratorCst.NS_J);
-				content.setAttribute("url", "/" + this.getUniqueName(), ContentGeneratorCst.NS_J);
-				content.setAttribute("language", "en", ContentGeneratorCst.NS_JCR);
-				content.setAttribute("primaryType", "jnt:vanityUrl", ContentGeneratorCst.NS_JCR);
-
-				vanity.addContent(content);
-				pageElement.addContent(vanity);
-			}
-
-			if (this.visibilityEnabled) {
-				Element visibility = new Element("conditionalVisibility", ContentGeneratorCst.NS_J);
-				visibility.setAttribute("forceMatchAllConditions", "true", ContentGeneratorCst.NS_J);
-				visibility.setAttribute("primaryType", "jnt:conditionalVisibility", ContentGeneratorCst.NS_JCR);
-
-				Element startEndDateCondition = new Element("startEndDateCondition0", ContentGeneratorCst.NS_JNT);
-				startEndDateCondition.setAttribute("start", this.visibilityStartDate);
-				startEndDateCondition.setAttribute("end", this.visibilityEndDate);
-				startEndDateCondition.setAttribute("primaryType", "jnt:startEndDateCondition",
-						ContentGeneratorCst.NS_JCR);
-				visibility.addContent(startEndDateCondition);
-
-				pageElement.addContent(visibility);
-			}
-			
-			if (null != this.subPages) {
-				for (Iterator<PageBO> iterator = subPages.iterator(); iterator.hasNext();) {
-					PageBO subPage = iterator.next();
-					pageElement.addContent(subPage.getElement());
-				}
+		if (null != this.subPages) {
+			for (Iterator<PageBO> iterator = subPages.iterator(); iterator.hasNext();) {
+				PageBO subPage = iterator.next();
+				sb.append(subPage.toString());
 			}
 		}
-		return this.pageElement;
+
+		sb.append(this.getFooter());
+
+		return sb.toString();
 	}
 
-	/**
-	 * Convert & \ < > and ' into they HTML equivalent
-	 * 
-	 * @param s
-	 *            XML string to format
-	 * @return formatted XML string
-	 */
-	public String formatForXml(final String s) {
-		String formattedString = StringUtils.replace(s, "&", "&amp;");
-		formattedString = StringUtils.replace(formattedString, "\"", " &quot;");
-		formattedString = StringUtils.replace(formattedString, "<", "&lt;");
-		formattedString = StringUtils.replace(formattedString, ">", "&gt;");
-		formattedString = StringUtils.replace(formattedString, "'", "&#39;");
-		return formattedString;
-	}
+    /**
+     * Convert & \ < > and ' into they HTML equivalent
+     *
+     * @param s
+     *            XML string to format
+     * @return formatted XML string
+     */
+    public String formatForXml(final String s) {
+        String formattedString = StringUtils.replace(s, "&", "&amp;");
+        formattedString = StringUtils.replace(formattedString, "\"", " &quot;");
+        formattedString = StringUtils.replace(formattedString, "<", "&lt;");
+        formattedString = StringUtils.replace(formattedString, ">", "&gt;");
+        formattedString = StringUtils.replace(formattedString, "'", "&#39;");
+        return formattedString;
+    }
 
 }
