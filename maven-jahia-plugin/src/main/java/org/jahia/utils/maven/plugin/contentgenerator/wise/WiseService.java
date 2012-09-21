@@ -83,7 +83,7 @@ public class WiseService {
 
 		// create properties file
 		logger.info("Creating site properties file");
-		siteService.createPropertiesFile(wiseExport.getWiseInstanceKey(), wiseExport.getSiteLanguages(), "templates-docspace", wiseInstanceOutputDir);
+		siteService.createPropertiesFile(wiseExport.getWiseInstanceKey(), wiseExport.getSiteLanguages(), "templates-wise", wiseInstanceOutputDir);
 
 		// Zip wise instances files
 		List<File> wiseInstanceFiles = new ArrayList<File>(FileUtils.listFiles(wiseInstanceOutputDir, null, false));
