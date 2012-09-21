@@ -54,6 +54,12 @@ public class ExportBO {
 	
 	protected Integer numberOfUsers;
 	
+	protected Integer numberOfOwners;
+	
+	protected Integer numberOfEditors;
+	
+	protected Integer numberOfCollaborators;
+	
 	protected Integer numberOfGroups;	
 
     protected Integer numberOfUsersPerGroup;
@@ -255,6 +261,30 @@ public class ExportBO {
 
 	public void setNumberOfUsers(Integer numberOfUsers) {
 		this.numberOfUsers = numberOfUsers;
+	}
+
+	public Integer getNumberOfOwners() {
+		return numberOfOwners;
+	}
+
+	public void setNumberOfOwners(Integer numberOfOwners) {
+		this.numberOfOwners = numberOfOwners;
+	}
+
+	public Integer getNumberOfEditors() {
+		return numberOfEditors;
+	}
+
+	public void setNumberOfEditors(Integer numberOfEditors) {
+		this.numberOfEditors = numberOfEditors;
+	}
+
+	public Integer getNumberOfCollaborators() {
+		return numberOfCollaborators;
+	}
+
+	public void setNumberOfCollaborators(Integer numberOfCollaborators) {
+		this.numberOfCollaborators = numberOfCollaborators;
 	}
 
 	public Integer getNumberOfGroups() {

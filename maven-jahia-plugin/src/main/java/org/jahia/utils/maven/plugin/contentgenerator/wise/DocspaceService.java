@@ -74,7 +74,7 @@ public class DocspaceService {
 
 			// read folders from tmp directory
 
-			docspaces.add(new DocspaceBO(docspaceName, polls, notes, tasks, getFoldersBO(), wiseExport.getNumberOfUsers()));
+			docspaces.add(new DocspaceBO(docspaceName, polls, notes, tasks, getFoldersBO(), wiseExport.getNumberOfUsers(), wiseExport.getNumberOfOwners(), wiseExport.getNumberOfCollaborators(), wiseExport.getNumberOfEditors()));
 		}
 		return docspaces;
 	}

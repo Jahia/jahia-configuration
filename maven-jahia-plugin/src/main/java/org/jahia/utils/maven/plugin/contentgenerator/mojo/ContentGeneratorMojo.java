@@ -116,6 +116,21 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
 	 * @parameter expression="${jahia.cg.numberOfUsers}" default-value="25"
 	 */
 	protected Integer numberOfUsers;
+	
+	/**
+	 * @parameter expression="${jahia.cg.numberOfOwners}" default-value="5"
+	 */
+	protected Integer numberOfOwners;
+	
+	/**
+	 * @parameter expression="${jahia.cg.numberOfEditors}" default-value="10"
+	 */
+	protected Integer numberOfEditors;
+	
+	/**
+	 * @parameter expression="${jahia.cg.numberOfCollaborators}" default-value="15"
+	 */
+	protected Integer numberOfCollaborators;
 
 	/**
 	 * @parameter expression="${jahia.cg.numberOfGroups}" default-value="5"
@@ -270,6 +285,9 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
 
         export.setNumberOfBigTextPerPage(numberOfBigTextPerPage);
         export.setNumberOfUsers(numberOfUsers);
+        export.setNumberOfOwners(numberOfOwners);
+        export.setNumberOfEditors(numberOfEditors);
+        export.setNumberOfCollaborators(numberOfCollaborators);
         export.setNumberOfGroups(numberOfGroups);
         export.setNumberOfUsersPerGroup(numberOfUsersPerGroup);
 		export.setNumberOfFilesToGenerate(numberOfFilesToGenerate);
