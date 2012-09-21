@@ -118,15 +118,23 @@ public class DocspaceBO {
 		AceBO aceOwnerRoot = new AceBO("root", "root", "u", "GRANT", "docspace-owner");
 		aces.add(aceOwnerRoot);
 		
+		Integer nbOwners = 10;
+		Integer nbEditors = 30;
+		Integer nbCollaborators = 60;
+		
 		for (int i = 0; i < nbUsers; i++) {
 			String userName = "user" + i;
-			AceBO aceOwner = new AceBO(userName, userName, "u", "GRANT", "docspace-owner");
-			AceBO aceEditor = new AceBO(userName, userName, "u", "GRANT", "docspace-editor");
-			AceBO aceCollaborator = new AceBO(userName, userName, "u", "GRANT", "docspace-collaborator");
 			
-			aces.add(aceOwner);
-			aces.add(aceEditor);
-			aces.add(aceCollaborator);
+			if (i < nbOwners) {
+				AceBO aceOwner = new AceBO(userName, userName, "u", "GRANT", "docspace-owner");
+				aces.add(aceOwner);
+			} else if (i < nbEditors) {
+				AceBO aceEditor = new AceBO(userName, userName, "u", "GRANT", "docspace-editor");
+				aces.add(aceEditor);
+			}else if (i > nbCollaborators) {
+				AceBO aceCollaborator = new AceBO(userName, userName, "u", "GRANT", "docspace-collaborator");
+				aces.add(aceCollaborator);
+			}
 		}
 		AclBO acl = new AclBO(aces);
 		return acl.getElement();
