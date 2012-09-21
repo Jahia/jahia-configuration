@@ -128,7 +128,6 @@ public class SiteService {
 			siteProp.setProperty("language." + language + ".mandatory", Boolean.FALSE.toString());
 		}
 
-		String sep = System.getProperty("file.separator");
 		File propFile = new File(tempOutputDir, ContentGeneratorCst.SITE_PROPERTIES_FILENAME);
 
 		siteProp.store(new FileOutputStream(propFile), ContentGeneratorCst.DESCRIPTION_DEFAULT);
