@@ -8,6 +8,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.AceBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.AclBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.SiteBO;
+import org.jahia.utils.maven.plugin.contentgenerator.bo.UserBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -18,10 +19,13 @@ public class WiseBO extends SiteBO {
 	String wiseInstanceName;
 
 	List<DocspaceBO> docspaces;
+	
+	List<UserBO> users;
 
-	public WiseBO(String wiseInstanceKey, List<DocspaceBO> docspaces) {
+	public WiseBO(String wiseInstanceKey, List<DocspaceBO> docspaces, List<UserBO> users) {
 		this.setSiteKey(wiseInstanceKey);
 		this.docspaces = docspaces;
+		this.users = users;
 	}
 	
 	public List<DocspaceBO> getDocspaces() {
@@ -108,6 +112,11 @@ public class WiseBO extends SiteBO {
 		Element siteAdministratorsElement = new Element("site-administrators___3");
 		siteAdministratorsElement.setAttribute("primaryType", "jnt:member", ContentGeneratorCst.NS_JCR);
 		siteAdministratorsElement.setAttribute("member", "/sites/" + this.getSiteKey() + "/groups/site-administrators", ContentGeneratorCst.NS_J);
+		
+		for (Iterator<UserBO> iterator = users.iterator(); iterator.hasNext();) {
+			UserBO user = iterator.next();
+			siteAdministratorsElement.addContent(user.getUserMemberXml());
+		}
 
 		membersElement.setContent(siteAdministratorsElement);
 		sitePrivileged.setContent(membersElement);

@@ -43,11 +43,11 @@ public class WiseService {
 		return instance;
 	}
 
-	public WiseBO generateWiseInstance(ExportBO wiseExport) {
+	public WiseBO generateWiseInstance(ExportBO wiseExport, List<UserBO> users) {
 		WiseBO wise = null;
 		if (wiseExport.getNbDocspaces() > 0) {
 			List<DocspaceBO> docspaces = docspaceService.generateDocspaces(wiseExport);
-			wise = new WiseBO(wiseExport.getWiseInstanceKey(), docspaces);
+			wise = new WiseBO(wiseExport.getWiseInstanceKey(), docspaces, users);
 		}
 		return wise;
 	}
@@ -60,7 +60,9 @@ public class WiseService {
 		List<File> globalFilesToZip = new ArrayList<File>();
 
 		// Wise instance files
-		WiseBO wiseInstance = generateWiseInstance(wiseExport);
+		// Light users for the privileges groups 
+		List<UserBO> users = userGroupService.generateUsers(wiseExport.getNumberOfUsers(), 0, 0, 0);
+		WiseBO wiseInstance = generateWiseInstance(wiseExport, users);
 
 		File wiseInstanceOutputDir = new File(wiseExport.getOutputDir() + "/wise");
 		File wiseInstanceContentDir = new File(wiseInstanceOutputDir + "/content");
@@ -101,7 +103,7 @@ public class WiseService {
 			nbFilesPerCollection = wiseExport.getNbFilesPerFolder();
 		}
 		logger.info("Creating users");
-		List<UserBO> users = userGroupService.generateUsers(wiseExport.getNumberOfUsers(), nbCollectionsPerUser, nbFilesPerCollection,
+		users = userGroupService.generateUsers(wiseExport.getNumberOfUsers(), nbCollectionsPerUser, nbFilesPerCollection,
 				wiseExport.getNbFilesPerFolder());
 		File tmpUsers = new File(wiseExport.getOutputDir(), "users");
 		tmpUsers.mkdir();

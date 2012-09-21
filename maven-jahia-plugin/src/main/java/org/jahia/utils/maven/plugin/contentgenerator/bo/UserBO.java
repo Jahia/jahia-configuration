@@ -129,4 +129,16 @@ public class UserBO {
 		subElement2.addContent(userElement);
 		return root;
 	}
+	
+	/**
+	 * Return XML code to add this user as a member of a group
+	 * Example:  <user1 j:member="/users/gg/if/fh/user1" jcr:primaryType="jnt:member"/>
+	 * @return Element userName
+	 */
+	public Element getUserMemberXml() {
+		Element lightElement =  new Element(this.name);
+		lightElement.setAttribute("member", jcrPath, ContentGeneratorCst.NS_J);
+		lightElement.setAttribute("primaryType", "jnt:member", ContentGeneratorCst.NS_JCR);
+		return lightElement;
+	}
 }
