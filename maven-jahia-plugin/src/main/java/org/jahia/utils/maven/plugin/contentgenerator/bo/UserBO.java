@@ -1,5 +1,6 @@
 package org.jahia.utils.maven.plugin.contentgenerator.bo;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -106,6 +107,12 @@ public class UserBO {
 			}
 			userElement.addContent(collectionsElement);
 		}
+		
+		List<AceBO> aces = new ArrayList<AceBO>();
+		AceBO aceOwner = new AceBO(this.name, this.name, "u", "GRANT", "owner");
+		aces.add(aceOwner);
+		AclBO acl = new AclBO(aces);
+		userElement.addContent(acl.getElement());
 		
 		if (this.jcrPath == null) {
 			return userElement;
