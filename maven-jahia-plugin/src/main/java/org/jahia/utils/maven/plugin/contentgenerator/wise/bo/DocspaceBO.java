@@ -27,14 +27,23 @@ public class DocspaceBO {
 	private List<FolderBO> folders;
 	
 	private Integer nbUsers;
+	
+	private Integer nbOwners;
+	
+	private Integer nbEditors;
+	
+	private Integer nbCollaborators;
 
-	public DocspaceBO(String docspaceName, List<PollBO> polls, List<NoteBO> notes, List<TaskBO> tasks, List<FolderBO> folders, Integer nbUsers) {
+	public DocspaceBO(String docspaceName, List<PollBO> polls, List<NoteBO> notes, List<TaskBO> tasks, List<FolderBO> folders, Integer nbUsers, Integer nbOwners, Integer nbEditors, Integer nbCollaborators) {
 		this.docspaceName = docspaceName;
 		this.polls = polls;
 		this.notes = notes;
 		this.tasks = tasks;
 		this.folders = folders;
 		this.nbUsers = nbUsers;
+		this.nbOwners = nbOwners;
+		this.nbEditors = nbEditors;
+		this.nbCollaborators = nbCollaborators;
 	}
 
 	public List<PollBO> getPolls() {
@@ -67,7 +76,7 @@ public class DocspaceBO {
 			translationEn.setAttribute("language", "en", ContentGeneratorCst.NS_JCR);
 			docspaceElement.addContent(translationEn);
 			
-			docspaceElement.addContent(generateDocspaceAcl(nbUsers));
+			docspaceElement.addContent(generateDocspaceAcl());
 
 			if (CollectionUtils.isNotEmpty(polls)) {
 				Element pollsElement = new Element("polls");
@@ -113,25 +122,23 @@ public class DocspaceBO {
 		return docspaceElement;
 	}
 
-	private Element generateDocspaceAcl(Integer nbUsers) {
+	private Element generateDocspaceAcl() {
 		List<AceBO> aces = new ArrayList<AceBO>();
 		AceBO aceOwnerRoot = new AceBO("root", "root", "u", "GRANT", "docspace-owner");
 		aces.add(aceOwnerRoot);
 		
-		Integer nbOwners = 10;
-		Integer nbEditors = 30;
-		Integer nbCollaborators = 60;
-		
+		int maxIdEditors = nbEditors + nbOwners;
+		int maxIdCollaborators = maxIdEditors + nbCollaborators;
 		for (int i = 0; i < nbUsers; i++) {
 			String userName = "user" + i;
 			
 			if (i < nbOwners) {
 				AceBO aceOwner = new AceBO(userName, userName, "u", "GRANT", "docspace-owner");
 				aces.add(aceOwner);
-			} else if (i < nbEditors) {
+			} else if (i < maxIdEditors) {
 				AceBO aceEditor = new AceBO(userName, userName, "u", "GRANT", "docspace-editor");
 				aces.add(aceEditor);
-			}else if (i > nbCollaborators) {
+			}else if (i < maxIdCollaborators) {
 				AceBO aceCollaborator = new AceBO(userName, userName, "u", "GRANT", "docspace-collaborator");
 				aces.add(aceCollaborator);
 			}
