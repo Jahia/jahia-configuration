@@ -27,7 +27,7 @@ public class TaskService {
 	public List<TaskBO> generateTasks(int nbTasks, Integer nbUsers) {
 		List<TaskBO> tasks = new ArrayList<TaskBO>();
 		
-		String assignee = "root";
+		String candidate = "root";
 		String creator = "root";
 		int idAssignee;
 		int idCreator;
@@ -37,12 +37,12 @@ public class TaskService {
 			
 			if (nbUsers != null && (nbUsers.compareTo(0) > 0)) {
 				idAssignee = rand.nextInt(nbUsers - 1);
-				assignee = "user" + idAssignee;
+				candidate = "user" + idAssignee;
 				
 				idCreator = rand.nextInt(nbUsers - 1);
 				creator = "user" + idCreator;
 			}
-			tasks.add(new TaskBO("Task " + i, creator, assignee, "New task " + i));
+			tasks.add(new TaskBO("Task " + i, creator, candidate, "New task " + i));
 		}
 		return tasks;
 	}

@@ -12,7 +12,7 @@ public class TaskBO {
 	
 	private String creator = "root";
 	
-	private String assigneeUserKey = "root";
+	private String candidate = "root";
 	
 	private String description = "This task has been created by the Content generator";
 	
@@ -24,10 +24,10 @@ public class TaskBO {
 	
 	private String dueDate = "2013-07-05T00:00:00.000+02:00";
 		
-	public TaskBO(String title, String creator, String assigneeUserKey, String description) {
+	public TaskBO(String title, String creator, String candidate, String description) {
 		this.title = title;
 		this.creator = creator;
-		this.assigneeUserKey = assigneeUserKey;
+		this.candidate = candidate;
 		this.description = description;
 	}
 	
@@ -36,7 +36,8 @@ public class TaskBO {
 			task = new Element(name);
 			task.setAttribute("description", description);
 			task.setAttribute("createdBy", creator, ContentGeneratorCst.NS_JCR);
-			task.setAttribute("assigneeUserKey", assigneeUserKey);
+			task.setAttribute("assigneeUserKey", "");
+			task.setAttribute("candidate", "u:" + candidate);
 			task.setAttribute("dueDate", dueDate);
 			task.setAttribute("originWS", "default", ContentGeneratorCst.NS_J);
 			task.setAttribute("primaryType", "jnt:task", ContentGeneratorCst.NS_JCR);
