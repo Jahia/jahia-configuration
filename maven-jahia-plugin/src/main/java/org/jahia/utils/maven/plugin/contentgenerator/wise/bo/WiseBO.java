@@ -112,13 +112,13 @@ public class WiseBO extends SiteBO {
 		Element siteAdministratorsElement = new Element("site-administrators___3");
 		siteAdministratorsElement.setAttribute("primaryType", "jnt:member", ContentGeneratorCst.NS_JCR);
 		siteAdministratorsElement.setAttribute("member", "/sites/" + this.getSiteKey() + "/groups/site-administrators", ContentGeneratorCst.NS_J);
+		membersElement.setContent(siteAdministratorsElement);
 		
 		for (Iterator<UserBO> iterator = users.iterator(); iterator.hasNext();) {
 			UserBO user = iterator.next();
-			siteAdministratorsElement.addContent(user.getUserMemberXml());
-		}
+			membersElement.addContent(user.getUserMemberXml());
+		}		
 
-		membersElement.setContent(siteAdministratorsElement);
 		sitePrivileged.setContent(membersElement);
 		groupElement.setContent(sitePrivileged);
 		return groupElement;
