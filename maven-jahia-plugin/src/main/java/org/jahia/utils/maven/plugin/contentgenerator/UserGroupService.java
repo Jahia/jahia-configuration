@@ -29,6 +29,7 @@ public class UserGroupService {
 
         Document doc = new Document();
         Element contentNode = new Element("content");
+        contentNode.addNamespaceDeclaration(ContentGeneratorCst.NS_JCR);
         doc.setRootElement(contentNode);
 
         Element usersNode = new Element("users");
