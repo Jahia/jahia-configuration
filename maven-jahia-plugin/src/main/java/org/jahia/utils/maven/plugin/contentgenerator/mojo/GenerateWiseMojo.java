@@ -61,6 +61,22 @@ public class GenerateWiseMojo extends ContentGeneratorMojo {
 	 */
 	private Integer nbFilesPerCollection;
 	
+	/**
+	 * @parameter expression="${jahia.cg.numberOfOwners}" default-value="5"
+	 */
+	protected Integer numberOfOwners;
+	
+	/**
+	 * @parameter expression="${jahia.cg.numberOfEditors}" default-value="10"
+	 */
+	protected Integer numberOfEditors;
+	
+	/**
+	 * @parameter expression="${jahia.cg.numberOfCollaborators}" default-value="15"
+	 */
+	protected Integer numberOfCollaborators;
+
+	
 	public ExportBO initExport() throws MojoExecutionException {
 		ExportBO wiseExport = super.initExport();
 		
@@ -73,6 +89,9 @@ public class GenerateWiseMojo extends ContentGeneratorMojo {
 		wiseExport.setNbTasks(nbTasks);
 		wiseExport.setNbCollectionsPerUser(nbCollectionsPerUser);
 		wiseExport.setNbFilesPerCollection(nbFilesPerCollection);
+		wiseExport.setNumberOfOwners(numberOfOwners);
+		wiseExport.setNumberOfEditors(numberOfEditors);
+		wiseExport.setNumberOfCollaborators(numberOfCollaborators);
 		
 		return wiseExport;
 	}
@@ -87,9 +106,17 @@ public class GenerateWiseMojo extends ContentGeneratorMojo {
 
 		String wiseRepositoryFile;
 		try {
+			int nbOwners = wiseExport.getNumberOfOwners();
+			int nbEditors = wiseExport.getNumberOfEditors();
+			int nbCollaborators = wiseExport.getNumberOfCollaborators();
+			
 			wiseRepositoryFile = wiseService.generateWise(wiseExport);
 			getLog().info("Each word of this list has been used for the description of " + ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS_COUNTER + " files: " + ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS);
 			getLog().info("Each word of this list has been used for the description of " + ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS_COUNTER + " files: " + ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS);
+			getLog().info(wiseExport.getNumberOfUsers() + " users created:");
+			getLog().info("- user0 to user" + (nbOwners -1) + " have docspace-owner role (" + nbOwners + " owners)");
+			getLog().info("- user" + nbOwners + " to user" + (nbOwners + nbEditors -1) + " have docspace-editor role (" + nbEditors + " editors)");
+			getLog().info("- user" + (nbOwners + nbEditors) + " to user" + (nbOwners + nbEditors + nbCollaborators -1) + " have docspace-collaborator role (" + nbCollaborators + " collaborators)");
 			getLog().info("Wise instance archive created and available here: " + wiseRepositoryFile);
 		} catch (IOException e) {
 			getLog().error("Error writing output file");
