@@ -99,11 +99,14 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
             }
             if (dependencyFile.getGroupId().equals("org.jahia.prepackagedsites")) {
                 try {
-                    FileUtils.copyFile(file, new File(output,"jahia/WEB-INF/var/prepackagedSites/"+dependencyFile.getArtifactId()+".zip"));
+                    File deployDir = deployToServer ? getWebappDeploymentDir() : new File(output, "jahia");
+                    FileUtils.copyFile(file, new File(deployDir,"/WEB-INF/var/prepackagedSites/"+dependencyFile.getArtifactId()+".zip"));
                     getLog().info("Copy prepackaged site " + file.getName());
                     dependenciesToRemove.add(dependencyFile);
                 } catch (IOException e) {
                     getLog().error("Error when copying file " + file, e);
+                } catch(Exception e) {
+                    throw new MojoExecutionException("Cannot deploy module", e);
                 }
             }
 
