@@ -106,7 +106,7 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
                 } catch (IOException e) {
                     getLog().error("Error when copying file " + file, e);
                 } catch(Exception e) {
-                    throw new MojoExecutionException("Cannot deploy module", e);
+                    throw new MojoExecutionException("Cannot deploy prepackaged site", e);
                 }
             }
 
