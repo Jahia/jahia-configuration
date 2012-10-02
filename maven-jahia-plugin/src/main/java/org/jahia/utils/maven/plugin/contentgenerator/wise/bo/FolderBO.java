@@ -66,4 +66,8 @@ public class FolderBO implements java.io.Serializable, Comparable<FolderBO> {
 	public int compareTo(FolderBO f) throws NullPointerException {
 		return this.folderName.compareTo(f.getFolderName());
 	}
+	
+	public String toString() {
+		return folderName;
+	}
 }
