@@ -187,7 +187,7 @@ public class FileAndFolderService {
 			
 
 			if (currentDepth < foldersDepth) {
-				subFolders = generateFolders(currentDepth + 1, currentPath + sep + depthName + i, currentNodePath + sep + depthName, wiseExport);
+				subFolders = generateFolders(currentDepth + 1, currentPath + sep + depthName + i, currentNodePath + sep + depthName + i, wiseExport);
 			}
 			FolderBO folder = new FolderBO(depthName + i, subFolders, files);
 			folders.add(folder);
