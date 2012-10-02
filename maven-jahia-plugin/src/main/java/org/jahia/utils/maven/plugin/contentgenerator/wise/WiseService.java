@@ -12,6 +12,7 @@ import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.jahia.utils.maven.plugin.contentgenerator.CategoryService;
 import org.jahia.utils.maven.plugin.contentgenerator.OutputService;
 import org.jahia.utils.maven.plugin.contentgenerator.SiteService;
+import org.jahia.utils.maven.plugin.contentgenerator.TagService;
 import org.jahia.utils.maven.plugin.contentgenerator.UserGroupService;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.TagBO;
@@ -56,7 +57,7 @@ public class WiseService {
 		OutputService os = new OutputService();
 		UserGroupService userGroupService = new UserGroupService();
 		SiteService siteService = new SiteService();
-
+		TagService tagService = new TagService();
 		List<File> globalFilesToZip = new ArrayList<File>();
 
 		// Wise instance files
@@ -72,8 +73,15 @@ public class WiseService {
 
 		// System site and categories
 		Document systemSiteRepository = siteService.createSystemSiteRepository();
+		
 		insertWiseInstanceIntoSiteRepository(systemSiteRepository, wiseInstance.getElement());
 
+		// Creates and inserts tags
+		Element tagsList = tagService.createTagListElement();
+		List<Element> tags = tagService.createTags(wiseExport.getNumberOfTags());
+		tagsList.addContent(tags);
+		insertTagsListIntoWiseInstance(systemSiteRepository, tagsList, wiseExport.getWiseInstanceKey());
+		
 		CategoryService cs = new CategoryService();
 		Element categories = cs.createCategories(wiseExport.getNumberOfCategories(), wiseExport.getNumberOfCategoryLevels(), wiseExport);
 		cs.insertCategoriesIntoSiteRepository(systemSiteRepository, categories);
@@ -159,15 +167,15 @@ public class WiseService {
 		filePathsFile.delete();
 		os.appendPathToFile(filePathsFile, filePaths);
 
-		// Generate files list
-		List<String> tags = new ArrayList<String>();
+		// Generate tags list
+		List<String> tagNames = new ArrayList<String>();
 		for (TagBO tag : wiseExport.getTags()) {
-			tags.add(tag.getTagName());
+			tagNames.add(tag.getTagName());
 		}
 
 		File tagsFile = new File(wiseExport.getOutputDir(), "tags.txt");
 		tagsFile.delete();
-		os.appendPathToFile(tagsFile, tags);
+		os.appendPathToFile(tagsFile, tagNames);
 
 		return wiseImportArchive.getAbsolutePath();
 	}
@@ -176,6 +184,13 @@ public class WiseService {
 		logger.info("Add Wise instance to the system site repository");
 		Element sites = repository.getRootElement().getChild("sites");
 		sites.addContent(wiseInstance);
+		return repository;
+	}
+	
+	public Document insertTagsListIntoWiseInstance(Document repository, Element tagsList, String wiseInstanceName) {
+		logger.info("Add tags list to the system site repository");
+		Element wiseInstanceNode = repository.getRootElement().getChild("sites").getChild(wiseInstanceName);
+		wiseInstanceNode.addContent(tagsList);
 		return repository;
 	}
 }
