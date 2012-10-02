@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.logging.Log;
@@ -155,12 +156,7 @@ public class WiseService {
 		// Generate files list
 		List<String> filePaths = new ArrayList<String>();
 		for (DocspaceBO docspace : wiseInstance.getDocspaces()) {
-			for (FolderBO folder : docspace.getFolders()) {
-				for (FileBO file : folder.getFiles()) {
-					String nodePath = StringUtils.chomp(file.getNodePath(), "/");
-					filePaths.add(nodePath);
-				}
-			}
+			filePaths.addAll(getFilePaths(docspace.getFolders()));
 		}
 
 		File filePathsFile = new File(wiseExport.getOutputDir(), "files.txt");
@@ -180,17 +176,32 @@ public class WiseService {
 		return wiseImportArchive.getAbsolutePath();
 	}
 
-	public Document insertWiseInstanceIntoSiteRepository(Document repository, Element wiseInstance) {
+	private Document insertWiseInstanceIntoSiteRepository(Document repository, Element wiseInstance) {
 		logger.info("Add Wise instance to the system site repository");
 		Element sites = repository.getRootElement().getChild("sites");
 		sites.addContent(wiseInstance);
 		return repository;
 	}
 	
-	public Document insertTagsListIntoWiseInstance(Document repository, Element tagsList, String wiseInstanceName) {
+	private Document insertTagsListIntoWiseInstance(Document repository, Element tagsList, String wiseInstanceName) {
 		logger.info("Add tags list to the system site repository");
 		Element wiseInstanceNode = repository.getRootElement().getChild("sites").getChild(wiseInstanceName);
 		wiseInstanceNode.addContent(tagsList);
 		return repository;
+	}
+	
+	private List<String> getFilePaths(List<FolderBO> folders) {
+		List<String> filePaths = new ArrayList<String>();
+		if (CollectionUtils.isNotEmpty(folders)) {
+			for (FolderBO folder : folders) {
+				filePaths.addAll(getFilePaths(folder.getSubFolders()));
+				
+				for (FileBO file : folder.getFiles()) {
+					String nodePath = StringUtils.chomp(file.getNodePath(), "/");
+					filePaths.add(nodePath);
+				}
+			}
+		}
+		return filePaths;
 	}
 }

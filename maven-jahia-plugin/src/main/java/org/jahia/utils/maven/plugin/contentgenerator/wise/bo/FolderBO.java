@@ -34,6 +34,10 @@ public class FolderBO implements java.io.Serializable, Comparable<FolderBO> {
 	public String getFolderName() {
 		return this.folderName;
 	}
+	
+	public List<FolderBO> getSubFolders() {
+		return subFolders;
+	}
 
 	public Element getElement() {
 		if (folderElement == null) {
