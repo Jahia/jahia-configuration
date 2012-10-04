@@ -8,9 +8,11 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>cluster-tools</artifactId>
+    <groupId>org.jahia.server</groupId>
+    <artifactId>org.jahia.server.config.tool.plugin.clustertool</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>Jahia Server Cluster Tools</name>
+    <packaging>bundle</packaging>
 
     <dependencies>
         <dependency>
@@ -91,6 +93,31 @@
            <version>20090211</version>
         </dependency>
 
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <scope>provided</scope>
+            <version>2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <scope>provided</scope>
+            <version>4.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+            <scope>provided</scope>
+            <version>4.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jahia.server</groupId>
+            <artifactId>org.jahia.server.config.tool.framework</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -101,6 +128,32 @@
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>2.3.7</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-Activator>
+                            org.jahia.server.config.tool.plugin.clustertool.ClusterToolActivator
+                        </Bundle-Activator>
+                        <Private-Package>
+                            org.jahia.server.config.tool.plugin.clustertool.*
+                        </Private-Package>
+                        <Import-Package>
+                            *;resolution:=optional
+                        </Import-Package>
+                        <Embed-Dependency>configurators,jsch,httpclient,aws-java-sdk,juniversalchardet,json</Embed-Dependency>
+                        <Embed-Transitive>true</Embed-Transitive>
+                        <Jahia-Plugin-Icon>/META-INF/jahia-plugin-icon.png</Jahia-Plugin-Icon>
+                        <Jahia-Plugin-Screenshot>/META-INF/jahia-plugin-screenshot.png</Jahia-Plugin-Screenshot>
+                        <Jahia-Plugin-Description>${project.description}</Jahia-Plugin-Description>
+                        <Jahia-Static-Resources>/clusterAssets=/html</Jahia-Static-Resources>
+                        <Jahia-Plugin-EntryPoint>/clusterAssets/index.html</Jahia-Plugin-EntryPoint>
+                    </instructions>
                 </configuration>
             </plugin>
             <plugin>

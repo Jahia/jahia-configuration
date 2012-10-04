@@ -1,0 +1,163 @@
+<html>
+<head>
+    <title>Jahia Cluster Configuration Tool</title>
+    <link type="text/css" rel="stylesheet" href="../html/css/main.css"/>
+    <link type="text/css" rel="stylesheet" href="css/clusterTool.css"/>
+    <script type="text/javascript" src="../jquery/jquery.js"></script>
+    <script type="text/javascript" src="../jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="../jquery-blockUI/jquery.blockUI.js"></script>
+    <script type="text/javascript">
+
+        var viewingJahiaPlugins = false;
+
+        function displayModuleDetails(moduleID) {
+            $.blockUI();
+            $.ajax({
+                url: "../store/resource/" + encodeURIComponent(moduleID) + "/details",
+                success : function(data) {
+                    // alert("Module " + moduleID + " details loaded successfully");
+                }
+            });
+        }
+
+        function installModule(moduleID) {
+            $.blockUI();
+            $.ajax({
+                url: "../store/resource/" + encodeURIComponent(moduleID) + "/install",
+                success : function(data) {
+                    // alert("Module " + moduleID + " installed sucessfully");
+                }
+            });
+            // find a better way to do this !
+            $.blockUI();
+            setTimeout(refreshPlugins, 2000);
+        }
+
+        function refreshPlugins() {
+            $.unblockUI();
+            if (viewingJahiaPlugins) {
+                loadJahiaPlugins();
+            } else {
+                loadConfigPlugins();
+            }
+        }
+
+        function loadJahiaPlugins() {
+            viewingJahiaPlugins = true;
+            $.blockUI();
+            $.ajax({ url: "../store/list/jahia-extensions",
+                success: function(data) {
+                    $(".moduleStore").html("");
+                    $(".moduleStore").append("<table class='menuTable'><tbody class='menuTableBody'></tbody></table>");
+                    var currentRow = null;
+                    $.each(data, function(i, item) {
+                        if (i % 5 == 0) {
+                            $(".menuTableBody").append("<tr id='menuTableRow-" + i + "' class='menuTableRow'></tr>");
+                            currentRow = $("#menuTableRow-" + i);
+                        }
+                        var mostRecentVersion = item["mostRecentVersion"];
+                        currentRow.append("<td class='menuTableCell'><img class='moduleIcon' src='../store/resource/" + encodeURIComponent(mostRecentVersion["encodedId"]) + "/icon'/>" +
+                                "<div class='moduleName'>" + mostRecentVersion["presentationName"] + "</div><br/>" +
+                                "<div class='moduleButtons'><a class='moduleDetailsLink buttons' href='#' id='" + mostRecentVersion["encodedId"] + "'>Details</a>" +
+                                "<a class='moduleInstallLink buttons' href='#' id='" + mostRecentVersion["encodedId"] + "'>Install</a></div>" +
+                                "</td>");
+                    });
+
+                    $(".moduleDetailsLink").click(function () {
+                        displayModuleDetails($(this).attr("id"));
+                        return false;
+                    });
+                    $(".moduleInstallLink").click(function () {
+                        installModule($(this).attr("id"));
+                        return false;
+                    });
+
+                }});
+
+        }
+
+        function loadConfigPlugins() {
+            viewingJahiaPlugins = false;
+            $.blockUI();
+            $.ajax({ url: "../store/list/tool-plugins",
+                success: function(data) {
+                    $(".moduleStore").html("");
+                    $(".moduleStore").append("<table class='menuTable'><tbody class='menuTableBody'></tbody></table>");
+                    var currentRow = null;
+                    $.each(data, function(i, item) {
+                        if (i % 5 == 0) {
+                            $(".menuTableBody").append("<tr id='menuTableRow-" + i + "' class='menuTableRow'></tr>");
+                            currentRow = $("#menuTableRow-" + i);
+                        }
+                        var mostRecentVersion = item["mostRecentVersion"];
+                        currentRow.append("<td class='menuTableCell'><img class='moduleIcon' src='../store/resource/" + encodeURIComponent(mostRecentVersion["encodedId"]) + "/icon'/>" +
+                                "<div class='moduleName'>" + mostRecentVersion["presentationName"] + "</div><br/>" +
+                                "<div class='moduleButtons'><a class='moduleDetailsLink buttons' href='#' id='" + mostRecentVersion["encodedId"] + "'>Details</a>" +
+                                "<a class='moduleInstallLink buttons' href='#' id='" + mostRecentVersion["encodedId"] + "'>Install</a></div>" +
+                                "</td>");
+                    });
+
+                    $(".moduleDetailsLink").click(function () {
+                        displayModuleDetails($(this).attr("id"));
+                        return false;
+                    });
+                    $(".moduleInstallLink").click(function () {
+                        installModule($(this).attr("id"));
+                        return false;
+                    });
+
+                }});
+
+        }
+
+        $(document).ready(function() {
+            // do stuff when DOM is ready
+
+            // unblock when ajax activity stops
+            $(document).ajaxStop($.unblockUI);
+
+            $(".selectJahiaPlugin").click(function() {
+                loadJahiaPlugins();
+                return false;
+            });
+            $(".selectConfigPlugin").click(function() {
+                loadConfigPlugins();
+                return false;
+            });
+        });
+    </script>
+
+</head>
+<body>
+<div class="configToolMainWrapper">
+    <h1>Module Store</h1>
+
+    <div class="returnToMainMenuBox"><a href="../html/index.html" class="buttons">Back to main menu</a></div>
+    <div class="mainViewPort">
+        <div class="moduleStore">
+            <table class="menuTable">
+                <tbody>
+                <tr>
+                    <td class="menuTableCell">
+                        <img src="images/icons/component.png" alt=""/>
+
+                        <div class="moduleButtons">
+                            <a href="#" class="selectJahiaPlugin buttons">Jahia Extension</a>
+                        </div>
+                    </td>
+                    <td class="menuTableCell">
+                        <img src="images/icons/component.png" alt=""/>
+
+                        <div class="moduleButtons">
+                            <a href="#" class="selectConfigPlugin buttons">Configuration Tool Plugin</a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="copyrightBlock">(c) 2010 Jahia Ltd.</div>
+</div>
+</body>
+</html>
