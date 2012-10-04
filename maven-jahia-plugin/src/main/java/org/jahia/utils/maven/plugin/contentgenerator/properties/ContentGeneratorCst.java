@@ -5,6 +5,7 @@ import org.jdom.Namespace;
 
 public final class ContentGeneratorCst {
 
+	public static String JCR_DATE_FORMAT = "yyyy-MM-dd'T'kk:mm:ss.SSSZZ";
 	/**
 	 * Configuration
 	 */

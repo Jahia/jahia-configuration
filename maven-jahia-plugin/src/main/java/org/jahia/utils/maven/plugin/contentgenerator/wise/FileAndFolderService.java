@@ -5,9 +5,14 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -27,6 +32,7 @@ import org.jahia.utils.maven.plugin.contentgenerator.bo.TagBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FolderBO;
+
 
 public class FileAndFolderService {
 
@@ -55,6 +61,10 @@ public class FileAndFolderService {
 	private static Integer nbOfSeldomUsedDescriptionWords;
 
 	private static int totalGeneratedFiles = 0;
+	
+	private static long timestampDifference;
+	
+	private static long startTimestamp;
 
 	private FileAndFolderService() {
 		oftenUsedDescriptionWords = Arrays.asList(ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS.split("\\s*,\\s*"));
@@ -107,6 +117,16 @@ public class FileAndFolderService {
 		tmpTopFoldersDir.mkdir();
 		File tmpFilesDir = new File(wiseExport.getTmp() + sep + ContentGeneratorCst.TMP_DIR_WISE_FILES);
 		tmpFilesDir.mkdir();
+		
+		// initialize date range difference for random creation date
+		Calendar c1 = new GregorianCalendar(2010, Calendar.JANUARY, 01);
+		Date startDateRange = c1.getTime();
+		Calendar c2 = new GregorianCalendar(2012, Calendar.OCTOBER, 03);
+		Date endDateRange = c2.getTime();
+		
+		startTimestamp = startDateRange.getTime();
+		long endTimestamp = endDateRange.getTime();
+		timestampDifference = endTimestamp - startTimestamp;
 		
 		generateFolders(1, currentPath, currentNodePath, wiseExport);	
 	}
@@ -333,8 +353,10 @@ public class FileAndFolderService {
 			int randomTagIndex = rand.nextInt(nbOfTags - 1);
 			TagBO tag = tags.get(randomTagIndex);
 
+			// Random creation date
+			String creationDate = getRandomJcrDate(timestampDifference);
 			newFile = new FileBO(fileName, mixin, mimeType, currentNodePath + sep + fileName, creator, owner, editor, reader,
-					extractedContent, description, tag.getTagName(), wiseInstanceName);
+					extractedContent, description, tag.getTagName(), wiseInstanceName, creationDate);
 			files.add(newFile);
 		}
 		return files;
@@ -379,5 +401,14 @@ public class FileAndFolderService {
 			}
 		}
 		return descriptionWord;
+	}
+	
+	private String getRandomJcrDate(long timestampDifference) {	
+		Float f = rand.nextFloat();
+		f = f * timestampDifference;
+		f = f + startTimestamp;
+		Date d = new Date(f.longValue());
+		DateFormat df = new SimpleDateFormat(ContentGeneratorCst.JCR_DATE_FORMAT);
+		return df.format(d); 
 	}
 }

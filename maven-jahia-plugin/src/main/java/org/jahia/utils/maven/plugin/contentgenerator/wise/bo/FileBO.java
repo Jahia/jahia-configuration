@@ -44,9 +44,11 @@ public class FileBO implements java.io.Serializable, Comparable<FileBO> {
 	protected String tag;
 
 	protected String wiseInstanceName;
+	
+	protected String creationDate;
 
 	public FileBO(String fileName, String mixinFileType, String mimeType, String nodePath, String creator, String owner, String editor,
-			String reader, String extractedContent, String description, String tag, String wiseInstanceName) {
+			String reader, String extractedContent, String description, String tag, String wiseInstanceName, String creationDate) {
 		;
 		this.fileName = fileName;
 		this.jcrFilename = org.apache.jackrabbit.util.ISO9075.encode(fileName);
@@ -61,6 +63,7 @@ public class FileBO implements java.io.Serializable, Comparable<FileBO> {
 		this.description = description;
 		this.tag = tag;
 		this.wiseInstanceName = wiseInstanceName;
+		this.creationDate = creationDate;
 	}
 
 	public FileBO(String fileName, String nodePath) {
@@ -129,6 +132,7 @@ public class FileBO implements java.io.Serializable, Comparable<FileBO> {
 			fileElement.setAttribute("primaryType", "jnt:file", ContentGeneratorCst.NS_JCR);
 			fileElement.setAttribute("createdBy", creator, ContentGeneratorCst.NS_JCR);
 			fileElement.setAttribute("documentStatus", documentStatus);
+			fileElement.setAttribute("created", creationDate, ContentGeneratorCst.NS_JCR);
 
 			Element jTranslation = new Element("translation_en", ContentGeneratorCst.NS_J);
 			jTranslation.setAttribute("description", description, ContentGeneratorCst.NS_JCR);
