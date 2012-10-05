@@ -44,6 +44,14 @@ public class ClusterTool {
         operations.put("checkcaches", new ClusterCacheCheck(logger, clusterConfigBean));
     }
 
+    public void setCommand(String command) {
+        this.command = command;
+    }
+
+    public HashMap<String, AbstractClusterOperation> getOperations() {
+        return operations;
+    }
+
     public void run() throws Exception {
         long startTime = System.currentTimeMillis();
         if (command == null) {

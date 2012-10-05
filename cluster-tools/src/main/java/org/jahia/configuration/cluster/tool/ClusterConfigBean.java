@@ -69,6 +69,18 @@ public class ClusterConfigBean {
     private int browsingServerCount = 0;
     private List<String> generatedNodeIds = new ArrayList<String>();
 
+    public ClusterConfigBean(Dictionary dictionary, File parentDirectory) {
+        Properties properties = new Properties();
+        Enumeration keyEnum = dictionary.keys();
+        while (keyEnum.hasMoreElements()) {
+            Object key = keyEnum.nextElement();
+            properties.put(key, dictionary.get(key));
+        }
+        clusterProperties = new PropertiesManager(properties);
+
+        initProperties(parentDirectory);
+    }
+
     public ClusterConfigBean(AbstractLogger logger, File parentDirectory) throws Exception {
         this.logger = logger;
         this.parentDirectory = parentDirectory;
@@ -78,6 +90,10 @@ public class ClusterConfigBean {
         clusterProperties = new PropertiesManager(configStream);
         clusterProperties.setUnmodifiedCommentingActivated(false);
 
+        initProperties(parentDirectory);
+    }
+
+    private void initProperties(File parentDirectory) {
         nodeTypes = getStringListProp("nodeTypes", nodeTypes);
         browsingNodeNamePrefix = getStringProp("browsingNodeNamePrefix", browsingNodeNamePrefix);
         contributionNodeNamePrefix = getStringProp("contributionNodeNamePrefix", contributionNodeNamePrefix);
@@ -124,7 +140,6 @@ public class ClusterConfigBean {
         loginPassword = getStringProp("loginPassword", loginPassword);
         cacheChecksumURL = getStringProp("", cacheChecksumURL);
         cacheKeyFlushURL = getStringProp("", cacheKeyFlushURL);
-
     }
 
     public void checkSizeConsistency() throws Exception {
