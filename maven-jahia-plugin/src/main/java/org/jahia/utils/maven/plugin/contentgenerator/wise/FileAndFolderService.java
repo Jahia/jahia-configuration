@@ -101,7 +101,7 @@ public class FileAndFolderService {
 				+ totalFiles.intValue() + " files.");
 
 		String currentPath = initializeContentFolder(wiseExport.getOutputDir() + sep + "wise", wiseExport.getWiseInstanceKey(), docspaceName);
-		String currentNodePath = sep + "sites" + sep + wiseExport.getWiseInstanceKey() + sep + "files" + sep + "docspaces" + sep + docspaceName;
+		String currentNodePath = "/" + "sites" + "/" + wiseExport.getWiseInstanceKey() + "/" + "files" + "/" + "docspaces" + "/" + docspaceName;
 
 		// if there is not enough physical files available
 		// we'll take them all and stop
@@ -113,9 +113,9 @@ public class FileAndFolderService {
 		}
 
 		// create temporary folders to serialize files and folders objects created
-		File tmpTopFoldersDir = new File(wiseExport.getTmp() + sep + ContentGeneratorCst.TMP_DIR_TOP_FOLDERS);
+		File tmpTopFoldersDir = new File(ExportBO.tmp + sep + ContentGeneratorCst.TMP_DIR_TOP_FOLDERS);
 		tmpTopFoldersDir.mkdir();
-		File tmpFilesDir = new File(wiseExport.getTmp() + sep + ContentGeneratorCst.TMP_DIR_WISE_FILES);
+		File tmpFilesDir = new File(ExportBO.tmp + sep + ContentGeneratorCst.TMP_DIR_WISE_FILES);
 		tmpFilesDir.mkdir();
 		
 		// initialize date range difference for random creation date	
@@ -176,13 +176,13 @@ public class FileAndFolderService {
 			}
 
 			List<FolderBO> subFolders = null;
-			Set<FileBO> files = generateFiles(filesPerFolder, currentNodePath + sep + depthName + i, fileNames, wiseExport.getNumberOfUsers(),
+			Set<FileBO> files = generateFiles(filesPerFolder, currentNodePath + "/" + depthName + i, fileNames, wiseExport.getNumberOfUsers(),
 					filesDirectory, wiseExport.getTags(), wiseExport.getWiseInstanceKey());
 			
 			// we serialize all generated files to use them in the collections
 			FileOutputStream tmpFile;
 			ObjectOutputStream oos;
-			File tmpWiseFilesDir = new File(wiseExport.getTmp() + sep + ContentGeneratorCst.TMP_DIR_WISE_FILES);
+			File tmpWiseFilesDir = new File(ExportBO.tmp + sep + ContentGeneratorCst.TMP_DIR_WISE_FILES);
 			for (FileBO file : files) {
 				try {
 					tmpFile = new FileOutputStream(tmpWiseFilesDir + sep + totalGeneratedFiles + ".ser");
@@ -202,13 +202,13 @@ public class FileAndFolderService {
 			
 
 			if (currentDepth < foldersDepth) {
-				subFolders = generateFolders(currentDepth + 1, currentPath + sep + depthName + i, currentNodePath + sep + depthName + i, wiseExport);
+				subFolders = generateFolders(currentDepth + 1, currentPath + sep + depthName + i, currentNodePath + "/" + depthName + i, wiseExport);
 			}
 			FolderBO folder = new FolderBO(depthName + i, subFolders, files);
 			folders.add(folder);
 
 			if (currentDepth == 1) {
-				File tmpTopFoldersDir = new File(wiseExport.getTmp() + sep + ContentGeneratorCst.TMP_DIR_TOP_FOLDERS);
+				File tmpTopFoldersDir = new File(ExportBO.tmp + sep + ContentGeneratorCst.TMP_DIR_TOP_FOLDERS);
 				try {
 					tmpFile = new FileOutputStream(tmpTopFoldersDir + sep + i + ".ser");
 					oos = new ObjectOutputStream(tmpFile);
@@ -350,7 +350,7 @@ public class FileAndFolderService {
 
 			// Random creation date
 			String creationDate = getRandomJcrDate(timestampDifference);
-			newFile = new FileBO(fileName, mixin, mimeType, currentNodePath + sep + fileName, creator, owner, editor, reader,
+			newFile = new FileBO(fileName, mixin, mimeType, currentNodePath + "/" + fileName, creator, owner, editor, reader,
 					extractedContent, description, tag.getTagName(), wiseInstanceName, creationDate);
 			files.add(newFile);
 		}
