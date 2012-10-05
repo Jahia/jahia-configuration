@@ -118,14 +118,9 @@ public class FileAndFolderService {
 		File tmpFilesDir = new File(wiseExport.getTmp() + sep + ContentGeneratorCst.TMP_DIR_WISE_FILES);
 		tmpFilesDir.mkdir();
 		
-		// initialize date range difference for random creation date
-		Calendar c1 = new GregorianCalendar(2010, Calendar.JANUARY, 01);
-		Date startDateRange = c1.getTime();
-		Calendar c2 = new GregorianCalendar(2012, Calendar.OCTOBER, 03);
-		Date endDateRange = c2.getTime();
-		
-		startTimestamp = startDateRange.getTime();
-		long endTimestamp = endDateRange.getTime();
+		// initialize date range difference for random creation date	
+		startTimestamp = wiseExport.getStartCreationDateRange().getTime();
+		long endTimestamp = wiseExport.getEndCreationDateRange().getTime();
 		timestampDifference = endTimestamp - startTimestamp;
 		
 		generateFolders(1, currentPath, currentNodePath, wiseExport);	

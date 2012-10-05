@@ -2,6 +2,7 @@ package org.jahia.utils.maven.plugin.contentgenerator.bo;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
@@ -102,6 +103,10 @@ public class ExportBO {
 	protected Integer nbCollectionsPerUser;
 	
 	protected Integer nbFilesPerCollection;
+	
+	protected Date startCreationDateRange;
+	
+	protected Date endCreationDateRange;
 
 	public File getOutputFile() {
 		return outputFile;
@@ -116,7 +121,7 @@ public class ExportBO {
 	}
 	
 	public void setTmp(File tmp) {
-		this.tmp = tmp;
+		tmp = tmp;
 	}
 	
 	public File getTmp() {
@@ -461,6 +466,22 @@ public class ExportBO {
 
 	public void setNbFilesPerCollection(Integer nbFilesPerCollection) {
 		this.nbFilesPerCollection = nbFilesPerCollection;
+	}
+
+	public Date getStartCreationDateRange() {
+		return startCreationDateRange;
+	}
+
+	public void setStartCreationDateRange(Date startCreationDateRange) {
+		this.startCreationDateRange = startCreationDateRange;
+	}
+
+	public Date getEndCreationDateRange() {
+		return endCreationDateRange;
+	}
+
+	public void setEndCreationDateRange(Date endCreationDateRange) {
+		this.endCreationDateRange = endCreationDateRange;
 	}
 
 	public ExportBO() {

@@ -1,6 +1,10 @@
 package org.jahia.utils.maven.plugin.contentgenerator.mojo;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -75,6 +79,16 @@ public class GenerateWiseMojo extends ContentGeneratorMojo {
 	 * @parameter expression="${jahia.cg.numberOfCollaborators}" default-value="15"
 	 */
 	protected Integer numberOfCollaborators;
+	
+	/**
+	 * @parameter expression="${jahia.cg.startCreationDateRange}" default-value="2010-01-01"
+	 */
+	protected String startCreationDateRange;
+	
+	/**
+	 * @parameter expression="${jahia.cg.endCreationDateRange}" default-value="2012-10-01"
+	 */
+	protected String endCreationDateRange;
 
 	
 	public ExportBO initExport() throws MojoExecutionException {
@@ -92,6 +106,22 @@ public class GenerateWiseMojo extends ContentGeneratorMojo {
 		wiseExport.setNumberOfOwners(numberOfOwners);
 		wiseExport.setNumberOfEditors(numberOfEditors);
 		wiseExport.setNumberOfCollaborators(numberOfCollaborators);
+		
+		DateFormat df = new SimpleDateFormat(ContentGeneratorCst.DATE_RANGE_FORMAT);
+		Date dStartCreationDateRange = null;
+		Date dEndCreationDateRange = null;
+		try {
+			dStartCreationDateRange = df.parse(startCreationDateRange);
+		} catch (ParseException e) {
+			throw new MojoExecutionException("startCreationDateRange is malformed, please use this format: " + ContentGeneratorCst.DATE_RANGE_FORMAT);
+		}
+		try {
+			dEndCreationDateRange = df.parse(endCreationDateRange);
+		} catch (ParseException e) {
+			throw new MojoExecutionException("endCreationdateRange is malformed, please use this format: " + ContentGeneratorCst.DATE_RANGE_FORMAT);
+		}
+		wiseExport.setStartCreationDateRange(dStartCreationDateRange);
+		wiseExport.setEndCreationDateRange(dEndCreationDateRange);
 		
 		return wiseExport;
 	}
