@@ -9,14 +9,14 @@
     
     <modelVersion>4.0.0</modelVersion>
     <artifactId>configurators</artifactId>
-    <version>2.53-SNAPSHOT</version>
+    <version>2.53</version>
     <name>Jahia Server Configuration</name>
     
     <dependencies>
         <dependency>
             <groupId>org.jahia.configuration</groupId>
             <artifactId>deployers</artifactId>
-            <version>2.7-SNAPSHOT</version>
+            <version>2.7</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
