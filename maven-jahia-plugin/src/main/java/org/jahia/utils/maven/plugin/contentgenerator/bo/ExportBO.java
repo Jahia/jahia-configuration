@@ -19,7 +19,7 @@ public class ExportBO {
 
 	protected String outputDir;
 	
-	public static File tmp;
+	public File tmp;
 
 	protected Integer nbPagesTopLevel;
 
@@ -121,7 +121,7 @@ public class ExportBO {
 	}
 	
 	public void setTmp(File tmp) {
-		tmp = tmp;
+		this.tmp = tmp;
 	}
 	
 	public File getTmp() {
