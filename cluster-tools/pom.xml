@@ -183,7 +183,8 @@
                         <Private-Package>
                             org.jahia.server.config.tool.plugin.clustertool.*
                         </Private-Package>
-                        <Embed-Dependency>configurators,jsch,httpclient,aws-java-sdk,juniversalchardet,json,commons-cli,commons-io,commons-lang3,jzlib</Embed-Dependency>
+                        <Embed-Dependency>configurators,aws-java-sdk,juniversalchardet,json,commons-cli,commons-io,commons-lang3,mail,commons-vfs</Embed-Dependency>
+                        <Import-Package>!org.apache.commons.httpclient*,*</Import-Package>
                         <Embed-Transitive>true</Embed-Transitive>
                         <Jahia-Plugin-Icon>/META-INF/jahia-plugin-icon.png</Jahia-Plugin-Icon>
                         <Jahia-Plugin-Screenshot>/META-INF/jahia-plugin-screenshot.png</Jahia-Plugin-Screenshot>
