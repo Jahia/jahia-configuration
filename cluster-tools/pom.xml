@@ -59,6 +59,13 @@
             <artifactId>commons-cli</artifactId>
             <version>1.2</version>
         </dependency>
+        <!-- Configurators optional dependencies -->
+        <dependency>
+        	<groupId>org.codehaus.plexus</groupId>
+        	<artifactId>plexus-interpolation</artifactId>
+        	<version>1.11</version>
+        </dependency>
+        <!-- End of configurators optional dependencies -->
         <dependency>
             <groupId>org.jahia.configuration</groupId>
             <artifactId>configurators</artifactId>
@@ -183,8 +190,8 @@
                         <Private-Package>
                             org.jahia.server.config.tool.plugin.clustertool.*
                         </Private-Package>
-                        <Embed-Dependency>configurators,aws-java-sdk,juniversalchardet,json,commons-cli,commons-io,commons-lang3,mail,commons-vfs</Embed-Dependency>
-                        <Import-Package>!org.apache.commons.httpclient*,*</Import-Package>
+                        <Embed-Dependency>configurators,aws-java-sdk,juniversalchardet,json,commons-cli,commons-io,commons-lang3,mail,commons-vfs,plexus*,junit,classworlds,deployers</Embed-Dependency>
+                        <Import-Package>!org.apache.commons.httpclient*,!hidden*,!sun.security.util*,*</Import-Package>
                         <Embed-Transitive>true</Embed-Transitive>
                         <Jahia-Plugin-Icon>/META-INF/jahia-plugin-icon.png</Jahia-Plugin-Icon>
                         <Jahia-Plugin-Screenshot>/META-INF/jahia-plugin-screenshot.png</Jahia-Plugin-Screenshot>
