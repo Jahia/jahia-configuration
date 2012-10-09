@@ -86,9 +86,11 @@ public class ClusterConfigBean {
         this.parentDirectory = parentDirectory;
         this.configurationFile = new File(parentDirectory, configurationFileName);
 
-        FileInputStream configStream = new FileInputStream(configurationFile);
-        clusterProperties = new PropertiesManager(configStream);
-        clusterProperties.setUnmodifiedCommentingActivated(false);
+        if (configurationFile.exists()) {
+            FileInputStream configStream = new FileInputStream(configurationFile);
+            clusterProperties = new PropertiesManager(configStream);
+            clusterProperties.setUnmodifiedCommentingActivated(false);
+        }
 
         initProperties(parentDirectory);
     }
