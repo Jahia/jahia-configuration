@@ -90,6 +90,8 @@ public class ClusterConfigBean {
             FileInputStream configStream = new FileInputStream(configurationFile);
             clusterProperties = new PropertiesManager(configStream);
             clusterProperties.setUnmodifiedCommentingActivated(false);
+        } else {
+            clusterProperties = new PropertiesManager(new Properties());
         }
 
         initProperties(parentDirectory);
