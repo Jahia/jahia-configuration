@@ -191,7 +191,8 @@
                             org.jahia.server.config.tool.plugin.clustertool.*
                         </Private-Package>
                         <Embed-Dependency>configurators,aws-java-sdk,juniversalchardet,json,commons-cli,commons-io,commons-lang3,mail,commons-vfs,plexus*,junit,classworlds,deployers</Embed-Dependency>
-                        <Import-Package>!org.apache.commons.httpclient*,!hidden*,!sun.security.util*,*</Import-Package>
+                        <!-- We have to manually add the OSGi dependencies since we are using an activator from another bundle, since BND is not transitive -->
+                        <Import-Package>!org.apache.commons.httpclient*,!hidden*,!sun.security.util*,org.osgi.service.http,*</Import-Package>
                         <Embed-Transitive>true</Embed-Transitive>
                         <Jahia-Plugin-Icon>/META-INF/jahia-plugin-icon.png</Jahia-Plugin-Icon>
                         <Jahia-Plugin-Screenshot>/META-INF/jahia-plugin-screenshot.png</Jahia-Plugin-Screenshot>
