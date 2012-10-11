@@ -50,20 +50,20 @@ public class ServerDeploymentFactory {
     private static String targetServerDirectory;
 
     public ServerDeploymentFactory(String targetServerDirectory) {
-        addImplementation("tomcat6", new TomcatServerDeploymentImpl(targetServerDirectory));
-        addImplementation("tomcat7", getImplementation("tomcat6"));
-        addImplementation("tomcat", getImplementation("tomcat6"));
+        addImplementation("tomcat", new TomcatServerDeploymentImpl(targetServerDirectory));
+		addImplementation("tomcat6", getImplementation("tomcat"));
+        addImplementation("tomcat7", getImplementation("tomcat"));
         
-        addImplementation("jboss4.2.x", new JBossServerDeploymentImpl(targetServerDirectory));
+        addImplementation("jboss", new JBossServerDeploymentImpl(targetServerDirectory));
+        addImplementation("jboss4.2.x", getImplementation("jboss"));
+        addImplementation("jboss4.3.x", getImplementation("jboss"));
 //        addImplementation("jboss5.0.x", new JBoss50ServerDeploymentImpl(targetServerDirectory));
-        addImplementation("jboss", getImplementation("jboss4.2.x"));
         
-        addImplementation("was6.1.0.25", new WebsphereServerDeploymentImpl(targetServerDirectory));
-        addImplementation("was7", new WebsphereServerDeploymentImpl(targetServerDirectory));
-        addImplementation("was", getImplementation("was7"));
+        addImplementation("was", new WebsphereServerDeploymentImpl(targetServerDirectory));
+        addImplementation("was7", getImplementation("was"));
         
-        addImplementation("weblogic10", new WeblogicServerDeploymentImpl(targetServerDirectory));
-        addImplementation("weblogic", getImplementation("weblogic10"));
+        addImplementation("weblogic", new WeblogicServerDeploymentImpl(targetServerDirectory));
+        addImplementation("weblogic10", getImplementation("weblogic"));
     }
 
     public static ServerDeploymentFactory getInstance() {

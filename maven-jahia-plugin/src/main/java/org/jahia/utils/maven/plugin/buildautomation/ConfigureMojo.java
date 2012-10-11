@@ -132,15 +132,9 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * properties file path
      *
-     * @parameter expression="${jahia.configure.processingServer}"
+     * @parameter expression="${jahia.configure.processingServer}" default-value="true"
      */
     protected String processingServer;
-    /**
-     * properties file path
-     *
-     * @parameter expression="${jahia.deploy.processingServer}"
-     */
-    protected String processingServerLegacy;
     /**
      * properties file path
      *
@@ -205,28 +199,28 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * Database type used
      *
-     * @parameter expression="${jahia.configure.databaseType}"
+     * @parameter expression="${jahia.configure.databaseType}" default-value="derby_embedded"
      */
     protected String databaseType;
 
     /**
      * URL to connect to the database
      *
-     * @parameter expression="${jahia.configure.databaseUrl}"
+     * @parameter expression="${jahia.configure.databaseUrl}" default-value="jdbc:derby:directory:jahia;create=true"
      */
     protected String databaseUrl;
 
     /**
      * List of nodes in the cluster.
      *
-     * @parameter expression="${jahia.configure.databaseUsername}"
+     * @parameter expression="${jahia.configure.databaseUsername}" default-value=""
      */
     protected String databaseUsername;
 
     /**
      * List of nodes in the cluster.
      *
-     * @parameter expression="${jahia.configure.databasePassword}"
+     * @parameter expression="${jahia.configure.databasePassword}" default-value=""
      */
     protected String databasePassword;
 
@@ -250,7 +244,7 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * properties storeFilesInDB
      *
-     * @parameter expression="${jahia.configure.storeFilesInDB}" default-value="true"
+     * @parameter expression="${jahia.configure.storeFilesInDB}" default-value="false"
      */
     protected String storeFilesInDB;
 
@@ -383,14 +377,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     protected String jeeApplicationModuleList;
 
     /**
-     * Activates the usage of the DataStore for Jackrabbit binary data storage.
-     *
-     * @parameter expression="${jahia.configure.useDataStore}" default-value="false"
-     */
-    protected boolean useDataStore;
-    
-
-    /**
      * A filesystem path to the folder, where Jackrabbit FileDataStore puts the binary content.
      *
      * @parameter expression="${jahia.configure.fileDataStorePath}" default-value=""
@@ -520,7 +506,7 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     }
 
     public String getProcessingServer() {
-        return processingServer != null ? processingServer : processingServerLegacy;
+        return processingServer;
     }
 
     public List<String> getSiteImportLocation() {
@@ -648,10 +634,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public String getJeeApplicationModuleList() {
         return jeeApplicationModuleList;
-    }
-
-    public boolean isUseDataStore() {
-        return useDataStore;
     }
 
     public String getFileDataStorePath() {

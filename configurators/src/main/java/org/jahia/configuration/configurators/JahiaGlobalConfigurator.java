@@ -133,7 +133,7 @@ public class JahiaGlobalConfigurator {
 
         db = new DatabaseConnection();
 
-        getLogger().info ("Configuring for server " + jahiaConfig.getTargetServerType() + " version " + jahiaConfig.getTargetServerVersion() + " with database type " + jahiaConfig.getDatabaseType());
+        getLogger().info ("Configuring for server " + jahiaConfig.getTargetServerType() + (StringUtils.isNotEmpty(jahiaConfig.getTargetServerVersion()) ? (" version " + jahiaConfig.getTargetServerVersion()) : "") + " with database type " + jahiaConfig.getDatabaseType());
 
         setProperties();
     }
@@ -287,7 +287,6 @@ public class JahiaGlobalConfigurator {
             dbProps.load(is);
             // we override these just as the configuration wizard does
             dbProps.put("storeFilesInDB", jahiaConfig.getStoreFilesInDB());
-            dbProps.put("useDataStore", String.valueOf(jahiaConfig.isUseDataStore()));
             dbProps.put("fileDataStorePath", jahiaConfig.getFileDataStorePath() != null ? jahiaConfig.getFileDataStorePath() : "");
             dbProps.put("jahia.database.url", dbUrl);
             dbProps.put("jahia.database.user", jahiaConfig.getDatabaseUsername());

@@ -129,24 +129,16 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             throws JDOMException {
 
         boolean storeFilesInDB = Boolean.valueOf(getValue(dbProperties, "storeFilesInDB"));
-        boolean useDataStore = Boolean.valueOf(getValue(dbProperties, "useDataStore"));
         String fileDataStorePath = getValue(dbProperties, "fileDataStorePath");
 
         getLogger().info(
-                "Configuring Jackrabbit binary storage. Using data store: "
-                        + useDataStore
-                        + ". Store files in DB: "
+                "Configuring Jackrabbit binary storage using data store."
+                        + " Store files in DB: "
                         + storeFilesInDB
                         + "."
-                        + (useDataStore && !storeFilesInDB ? " File data store path: "
+                        + (!storeFilesInDB ? " File data store path: "
                                 + (StringUtils.isNotEmpty(fileDataStorePath) ? fileDataStorePath
                                         : "${rep.home}/datastore") + "." : ""));
-
-        if (useDataStore) {
-            // data store will be used
-
-            // remove externalBLOBs attributes
-            removeAllElements(repositoryElement, "//param[@name=\"externalBLOBs\"]");
 
             if (storeFilesInDB) {
                 // We will use the DB-based data store
@@ -171,7 +163,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
                     store.addContent(new Element("param").setAttribute("name", "copyWhenReading")
                             .setAttribute("value", "true"));
                     store.addContent(new Element("param").setAttribute("name", "minRecordLength")
-                            .setAttribute("value", "1024"));
+                            .setAttribute("value", "4096"));
                     repositoryElement.addContent(store);
                 }
             } else {
@@ -190,7 +182,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
                     store = new Element("DataStore", namespace);
                     store.setAttribute("class", "org.apache.jackrabbit.core.data.FileDataStore");
                     store.addContent(new Element("param").setAttribute("name", "minRecordLength")
-                            .setAttribute("value", "1024"));
+                            .setAttribute("value", "4096"));
                     pathParam = new Element("param").setAttribute("name", "path").setAttribute("value", "");
                     store.addContent(pathParam);
                     repositoryElement.addContent(store);
@@ -204,21 +196,5 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
                     pathParam.setAttribute("value", "${rep.home}/datastore");
                 }
             }
-        } else {
-            // we will use persistence manager store (no data store)
-
-            // remove the FileDataStore if present
-            removeAllElements(repositoryElement,
-                    "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.FileDataStore\"]");
-            // remove the DbDataStore if present
-            removeAllElements(repositoryElement,
-                    "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.db.DbDataStore\"]");
-
-            // set externalBLOBs to true if the files should not be stored in the DB
-            for (Element paramElement : (List<Element>) XPath.selectNodes(repositoryElement,
-                    "//param[@name=\"externalBLOBs\"]")) {
-                paramElement.setAttribute("value", storeFilesInDB ? "false" : "true");
-            }
-        }
     }
 }

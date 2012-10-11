@@ -66,7 +66,7 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String db_script = "hypersonic.script";
     private String operatingMode = "development";
     private String targetServerType = "tomcat";
-    private String targetServerVersion = "6";
+    private String targetServerVersion = "";
     private String targetServerDirectory = "";
     private String databaseType = "derby_embedded";
     private String databaseUrl = "jdbc:derby:directory:jahia;create=true";
@@ -80,7 +80,7 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String jahiaRootFirstname = "";
     private String jahiaRootLastname = "";
     private String jahiaRootEmail = "";
-    private String webAppDirName = "";
+    private String webAppDirName = "ROOT";
     private String sourceWebAppDir = "";
     
     private String mailServer = "";
@@ -96,7 +96,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
      */
     private String overwritedb = "true";
     private String storeFilesInDB = "false";
-    private boolean useDataStore;
     private String fileDataStorePath = "";
     private String targetConfigurationDirectory = "";
     private String jahiaToolManagerPassword = "jahia";
@@ -599,14 +598,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public void setExternalizedConfigFinalName(String externalizedConfigFinalName) {
         this.externalizedConfigFinalName = externalizedConfigFinalName;
-    }
-
-    public boolean isUseDataStore() {
-        return useDataStore;
-    }
-
-    public void setUseDataStore(boolean useDataStore) {
-        this.useDataStore = useDataStore;
     }
 
     public String getFileDataStorePath() {

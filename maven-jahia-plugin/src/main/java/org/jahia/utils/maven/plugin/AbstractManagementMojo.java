@@ -60,13 +60,13 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
 
     /**
      * Server type
-     * @parameter expression="${jahia.deploy.targetServerType}"
+     * @parameter expression="${jahia.deploy.targetServerType}" default-value="tomcat"
      */
     protected String targetServerType;
 
     /**
      * Server version
-     * @parameter expression="${jahia.deploy.targetServerVersion}"
+     * @parameter expression="${jahia.deploy.targetServerVersion}" default-value=""
      */
     protected String targetServerVersion;
 
@@ -78,7 +78,7 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
 
     /**
      * The Web application directory name (under /webapps) where the Jahia will be deployed. 
-     * @parameter default-value="${jahia.deploy.war.dirName}"
+     * @parameter expression="${jahia.deploy.war.dirName}" default-value="ROOT"
      */
     public String webAppDirName;
 

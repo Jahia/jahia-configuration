@@ -14,11 +14,9 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * Created by IntelliJ IDEA.
  * User: Serge Huber
  * Date: 26 d?c. 2007
  * Time: 16:43:38
- * To change this template use File | Settings | File Templates.
  * @goal test
  * @requiresDependencyResolution runtime
  * @aggregator false
@@ -27,7 +25,7 @@ public class TestMojo extends AbstractMojo {
 
     /**
      * Server type
-     * @parameter expression="${jahia.test.url}"
+     * @parameter expression="${jahia.test.url}" default-value="http://localhost:8080/cms"
      */
     protected String testURL;
 
