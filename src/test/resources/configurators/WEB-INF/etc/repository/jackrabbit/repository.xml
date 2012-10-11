@@ -56,7 +56,6 @@
         <PersistenceManager class="@PERSISTENCE_CLASS@">
             <param name="dataSourceName" value="jahiaDS" />
             <param name="schemaObjectPrefix" value="jr_${wsp.name}_"/>
-            <param name="externalBLOBs" value="@EXTERNAL_BLOBS@"/>
             <param name="schemaCheckEnabled" value="false"/>
             
             <param name="consistencyCheck" value="${jahia.jackrabbit.consistencyCheck}"/>
@@ -71,9 +70,7 @@
 
         <SearchIndex class="org.apache.jackrabbit.core.query.lucene.JahiaSearchIndex">
             <param name="path" value="${wsp.home}/index"/>
-            <param name="analyzer" value="org.jahia.services.search.analyzer.StandardAnalyzer"/>
-            <!-- setting textFilterClasses to empty value disables Jackrabbit document extraction -->            
-            <param name="textFilterClasses" value=""/>
+            <param name="analyzer" value="org.jahia.services.search.analyzer.EnglishSnowballAnalyzer"/>
             <param name="supportHighlighting" value="true"/>
             <param name="excerptProviderClass" value="org.jahia.services.search.jcr.HTMLExcerpt"/>
             <param name="indexingConfiguration" value="${rep.home}/indexing_configuration.xml"/>
@@ -90,6 +87,9 @@
             <!--param name="cacheSize" value="100000" /-->
             
             <param name="onWorkspaceInconsistency" value="${jahia.jackrabbit.onWorkspaceInconsistency}"/>
+            <param name="enableConsistencyCheck" value="${jahia.jackrabbit.searchIndex.enableConsistencyCheck}"/>
+            <param name="forceConsistencyCheck" value="${jahia.jackrabbit.searchIndex.forceConsistencyCheck}"/>
+            <param name="autoRepair" value="${jahia.jackrabbit.searchIndex.autoRepair}"/>
         </SearchIndex>
 
         <NodeTypeInstanceHandler class="org.apache.jackrabbit.core.JahiaNodeTypeInstanceHandlerFactory">
@@ -130,7 +130,6 @@
 		<PersistenceManager class="@PERSISTENCE_CLASS@">
  		  <param name="dataSourceName" value="jahiaDS" />
 		  <param name="schemaObjectPrefix" value="jr_v_"/>
-		  <param name="externalBLOBs" value="@EXTERNAL_BLOBS@"/>
           <param name="schemaCheckEnabled" value="false"/>
           
           <param name="consistencyCheck" value="${jahia.jackrabbit.consistencyCheck}"/>
@@ -146,11 +145,24 @@
     -->
     <SearchIndex class="org.apache.jackrabbit.core.query.lucene.JahiaSearchIndex">
         <param name="path" value="${rep.home}/index"/>
-            <!-- setting textFilterClasses to empty value disables Jackrabbit document extraction -->
-        <param name="textFilterClasses" value=""/>
-        <param name="supportHighlighting" value="true"/>
+        <param name="indexingConfiguration" value="${rep.home}/indexing_configuration_version.xml"/>
         
         <param name="onWorkspaceInconsistency" value="${jahia.jackrabbit.onWorkspaceInconsistency}"/>
+        <param name="enableConsistencyCheck" value="${jahia.jackrabbit.searchIndex.enableConsistencyCheck}"/>
+        <param name="forceConsistencyCheck" value="${jahia.jackrabbit.searchIndex.forceConsistencyCheck}"/>
+        <param name="autoRepair" value="${jahia.jackrabbit.searchIndex.autoRepair}"/>
     </SearchIndex>
 
+    <DataStore class="org.apache.jackrabbit.core.data.FileDataStore">
+        <param name="path" value="${rep.home}/datastore"/>
+        <param name="minRecordLength" value="4096"/>
+    </DataStore>
+
+    <DataStore class="org.apache.jackrabbit.core.data.db.DbDataStore">
+        <param name="dataSourceName" value="jahiaDS" />
+        <param name="schemaObjectPrefix" value="JR_"/>
+        <param name="schemaCheckEnabled" value="false"/>
+        <param name="copyWhenReading" value="true"/>
+        <param name="minRecordLength" value="4096"/>
+    </DataStore>
 </Repository>
