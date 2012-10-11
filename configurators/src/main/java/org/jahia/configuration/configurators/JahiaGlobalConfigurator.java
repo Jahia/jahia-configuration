@@ -181,7 +181,7 @@ public class JahiaGlobalConfigurator {
             new MailServerConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,mailServerTemplate), webappPath + "/WEB-INF/etc/repository/root-mail-server.xml");
         }        
         if ("jboss".equalsIgnoreCase(jahiaConfigInterface.getTargetServerType())) {
-            File datasourcePath = new File(jahiaConfigInterface.getTargetServerDirectory(), ServerDeploymentFactory.getInstance().getImplementation(jahiaConfigInterface.getTargetServerType() + jahiaConfigInterface.getTargetServerVersion()).getDeploymentFilePath("jahia-jboss-config.sar/jahia-ds", "xml"));
+            File datasourcePath = new File(jahiaConfigInterface.getTargetServerDirectory(), ServerDeploymentFactory.getInstance().getImplementation(jahiaConfigInterface.getTargetServerType(), jahiaConfigInterface.getTargetServerVersion()).getDeploymentFilePath("jahia-jboss-config.sar/jahia-ds", "xml"));
             if (datasourcePath.exists()) {
                 new JBossDatasourceConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,datasourcePath.getPath()), datasourcePath.getPath());
             }
@@ -641,7 +641,7 @@ public class JahiaGlobalConfigurator {
      */
     protected File getWebappDeploymentDir() throws Exception {
         return new File(jahiaConfig.getTargetServerDirectory(), ServerDeploymentFactory.getInstance()
-                .getImplementation(jahiaConfig.getTargetServerType() + jahiaConfig.getTargetServerVersion()).getDeploymentDirPath(getWebappDeploymentDirName(), "war"));
+                .getImplementation(jahiaConfig.getTargetServerType(), jahiaConfig.getTargetServerVersion()).getDeploymentDirPath(getWebappDeploymentDirName(), "war"));
     }
 
     /**
