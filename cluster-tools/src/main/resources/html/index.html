@@ -10,64 +10,54 @@
 
         var viewingJahiaPlugins = false;
 
-        function displayModuleDetails(moduleID) {
+        function launchOperation(operationName) {
             $.blockUI();
             $.ajax({
-                url: "../store/resource/" + encodeURIComponent(moduleID) + "/details",
-                success : function(data) {
-                    // alert("Module " + moduleID + " details loaded successfully");
+                type:'POST',
+                url:"../clusterTool/operation/" + encodeURIComponent(operationName),
+                success:function (data) {
+                    alert("Operation " + operationName + " executed successfully");
+                },
+                error:function (jqXHR, textStatus, errorThrown) {
+                    alert("Operation " + operationName + " failed with error: " + textStatus);
                 }
             });
         }
 
-        function installModule(moduleID) {
-            $.blockUI();
+        function checkConfigurationValid() {
             $.ajax({
-                url: "../store/resource/" + encodeURIComponent(moduleID) + "/install",
-                success : function(data) {
-                    // alert("Module " + moduleID + " installed sucessfully");
+                url:"../clusterTool/validConfiguration",
+                success:function (data) {
+                    loadClusterOperations();
+                },
+                error:function (jqXHR, textStatus, errorThrown) {
+                    // we need to modify configuration
+                    alert("Invalid configuration, must configure properly first.");
                 }
             });
-            // find a better way to do this !
-            $.blockUI();
-            setTimeout(refreshPlugins, 2000);
-        }
-
-        function refreshPlugins() {
-            $.unblockUI();
-            if (viewingJahiaPlugins) {
-                loadJahiaPlugins();
-            } else {
-                loadConfigPlugins();
-            }
         }
 
         function loadClusterOperations() {
             viewingJahiaPlugins = true;
             $.blockUI();
-            $.ajax({ url: "../operationList",
-                success: function(data) {
+            $.ajax({ url:"../clusterTool/operationList",
+                success:function (data) {
                     $(".clusterTool").html("");
                     $(".clusterTool").append("<table class='menuTable'><tbody class='menuTableBody'></tbody></table>");
                     var currentRow = null;
-                    $.each(data, function(i, item) {
+                    $.each(data, function (i, item) {
                         if (i % 5 == 0) {
                             $(".menuTableBody").append("<tr id='menuTableRow-" + i + "' class='menuTableRow'></tr>");
                             currentRow = $("#menuTableRow-" + i);
                         }
-                        currentRow.append("<td class='menuTableCell'><img class='moduleIcon' src='../store/resource/" + encodeURIComponent(item["encodedId"]) + "/icon'/>" +
-                                "<div class='moduleName'>" + item["operationName"] + "</div><br/>" +
-                                "<div class='moduleButtons'><a class='moduleDetailsLink buttons' href='#' id='" + item["encodedId"] + "'>Details</a>" +
-                                "<a class='moduleInstallLink buttons' href='#' id='" + item["encodedId"] + "'>Install</a></div>" +
+                        currentRow.append("<td class='menuTableCell' title='" + item["operationDescription"] + "'><img class='moduleIcon' src='icons/" + encodeURIComponent(item["operationName"]) + ".png'/>" +
+                                "<div class='moduleButtons'><a class='operationLink buttons' href='#' id='" + item["operationName"] + "' title='" + item["operationDescription"] + "'>" + item["operationDisplayName"] + "</a>" +
+                                "</div>" +
                                 "</td>");
                     });
 
-                    $(".moduleDetailsLink").click(function () {
-                        displayModuleDetails($(this).attr("id"));
-                        return false;
-                    });
-                    $(".moduleInstallLink").click(function () {
-                        installModule($(this).attr("id"));
+                    $(".operationLink").click(function () {
+                        launchOperation($(this).attr("id"));
                         return false;
                     });
 
@@ -75,20 +65,25 @@
 
         }
 
-        $(document).ready(function() {
+        function updateLogs() {
+            $.ajax({ url:"../clusterTool/logs",
+                success:function (data) {
+                    $.each(data, function (i, item) {
+                        $(".logView").append("<pre>" + item + "</pre>");
+                    });
+                }});
+        }
+
+        $(document).ready(function () {
             // do stuff when DOM is ready
 
             // unblock when ajax activity stops
             $(document).ajaxStop($.unblockUI);
 
-            $(".selectJahiaPlugin").click(function() {
-                loadJahiaPlugins();
-                return false;
-            });
-            $(".selectConfigPlugin").click(function() {
-                loadConfigPlugins();
-                return false;
-            });
+            checkConfigurationValid();
+
+            setInterval(updateLogs, 2000);
+
         });
     </script>
 
@@ -104,6 +99,10 @@
                 <tbody>
                 </tbody>
             </table>
+
+            <h2>Logs</h2>
+            <div class="logView">
+            </div>
         </div>
     </div>
     <div class="copyrightBlock">(c) 2010-2012 Jahia Ltd.</div>

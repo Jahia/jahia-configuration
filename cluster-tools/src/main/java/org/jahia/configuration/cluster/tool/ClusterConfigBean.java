@@ -156,6 +156,25 @@ public class ClusterConfigBean {
         }
     }
 
+    public boolean isValid() {
+        File templateDirectory = new File(templateDirectoryName);
+        if (!templateDirectory.exists()) {
+            return false;
+        }
+
+        File privateKeyFile = new File(getPrivateKeyFileLocation());
+        if (!privateKeyFile.exists()) {
+            return false;
+        }
+
+        try {
+            checkSizeConsistency();
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
     public void store() throws IOException {
         FileInputStream configStream = new FileInputStream(configurationFile);
         clusterProperties.storeProperties(configStream, configurationFile.getPath());

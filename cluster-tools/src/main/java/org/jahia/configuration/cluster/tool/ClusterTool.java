@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Cluster tool main class
@@ -21,11 +23,13 @@ public class ClusterTool {
     private static final Logger slf4jLogger = LoggerFactory.getLogger(ClusterTool.class);
 
     private AbstractLogger logger;
+    private Logger underlyingLogger;
     private ClusterConfigBean clusterConfigBean;
     private String command = null;
-    private HashMap<String, AbstractClusterOperation> operations = new HashMap<String, AbstractClusterOperation>();
+    private Map<String, AbstractClusterOperation> operations = new TreeMap<String, AbstractClusterOperation>();
 
-    public ClusterTool(String projectDirectory, String command) throws Exception {
+    public ClusterTool(String projectDirectory, String command, Logger slf4jLogger) throws Exception {
+        this.underlyingLogger = slf4jLogger;
         this.logger = new SLF4JLogger(slf4jLogger);
         this.command = command;
         clusterConfigBean = new ClusterConfigBean(logger, new File(projectDirectory));
@@ -48,8 +52,16 @@ public class ClusterTool {
         this.command = command;
     }
 
-    public HashMap<String, AbstractClusterOperation> getOperations() {
+    public Map<String, AbstractClusterOperation> getOperations() {
         return operations;
+    }
+
+    public ClusterConfigBean getClusterConfigBean() {
+        return clusterConfigBean;
+    }
+
+    public Logger getUnderlyingLogger() {
+        return underlyingLogger;
     }
 
     public void run() throws Exception {
@@ -139,7 +151,7 @@ public class ClusterTool {
             if (line.hasOption('l')) {
                 logLevel = Byte.parseByte(line.getOptionValue('l'));
             }
-            ClusterTool application = new ClusterTool(lineArgs[0], command);
+            ClusterTool application = new ClusterTool(lineArgs[0], command, slf4jLogger);
             application.run();
         } catch (ParseException exp) {
             // oops, something went wrong
