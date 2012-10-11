@@ -62,13 +62,13 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
      * Server type
      * @parameter expression="${jahia.deploy.targetServerType}" default-value="tomcat"
      */
-    protected String targetServerType;
+    protected String targetServerType = "tomcat";
 
     /**
      * Server version
      * @parameter expression="${jahia.deploy.targetServerVersion}" default-value=""
      */
-    protected String targetServerVersion;
+    protected String targetServerVersion = "";
 
     /**
      * The main directory for the target server install in which we will deploy the app-specific configuration. 
@@ -203,7 +203,7 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
      */
     protected File getWebappDeploymentDir() throws Exception {
         return new File(targetServerDirectory, ServerDeploymentFactory.getInstance()
-                .getImplementation(targetServerType + targetServerVersion).getDeploymentDirPath(getWebappDeploymentDirName(), "war"));
+                .getImplementation(targetServerType, targetServerVersion).getDeploymentDirPath(getWebappDeploymentDirName(), "war"));
     }
 
     /**
@@ -214,7 +214,7 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
         File dir;
         if (artifact.getType().equals("rar") || artifact.getType().equals("sar") || artifact.getType().equals("jboss-sar") || artifact.getArtifactId().equals("config")) {
             dir = new File(targetServerDirectory, ServerDeploymentFactory.getInstance()
-                    .getImplementation(targetServerType + targetServerVersion).getDeploymentDirPath(artifact.getArtifactId(), artifact.getType()));
+                    .getImplementation(targetServerType, targetServerVersion).getDeploymentDirPath(artifact.getArtifactId(), artifact.getType()));
         } else {
             dir = getWebappDeploymentDir();
         }

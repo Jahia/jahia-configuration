@@ -91,8 +91,15 @@ public class ServerDeploymentFactory {
         implementations.remove(implementationKey);
     }
 
-    public ServerDeploymentInterface getImplementation(String implementationKey) {
-        return implementations.get(implementationKey);
-    }
+	protected ServerDeploymentInterface getImplementation(String serverType) {
+		return getImplementation(serverType, null);
+	}
+	
+	public ServerDeploymentInterface getImplementation(String serverType,
+			String serverVersion) {
+		return serverVersion != null && serverVersion.length() > 0 ? implementations
+				.get(serverType + serverVersion) : implementations
+				.get(serverType);
+	}
 
 }

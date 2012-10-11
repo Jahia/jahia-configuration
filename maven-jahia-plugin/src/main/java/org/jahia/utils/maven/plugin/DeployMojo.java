@@ -125,7 +125,7 @@ public class DeployMojo extends AbstractManagementMojo {
 
     public void doValidate() throws MojoExecutionException, MojoFailureException {
         try {
-            serverDeployer = ServerDeploymentFactory.getInstance().getImplementation(targetServerType + targetServerVersion);
+            serverDeployer = ServerDeploymentFactory.getInstance().getImplementation(targetServerType, targetServerVersion);
         } catch (Exception e) {
             throw new MojoExecutionException("Error while validating deployers", e);
         }

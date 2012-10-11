@@ -79,7 +79,7 @@ public class MainArchiver {
 		if (serverType != null) {
 			ServerDeploymentFactory.setTargetServerDirectory("/tmp/");
 			excludes = ServerDeploymentFactory.getInstance()
-					.getImplementation(serverType).getWarExcludes();
+					.getImplementation(serverType, null).getWarExcludes();
 		}
 		execute(source, target, excludes, archive, verbose);
 
