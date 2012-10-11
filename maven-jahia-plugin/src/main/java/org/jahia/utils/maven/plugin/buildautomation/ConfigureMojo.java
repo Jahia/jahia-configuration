@@ -36,6 +36,7 @@ package org.jahia.utils.maven.plugin.buildautomation;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.jahia.configuration.configurators.JahiaConfigInterface;
@@ -442,7 +443,7 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     }
 
     public String getDatabasePassword() {
-        return databasePassword;
+        return StringUtils.defaultString(databasePassword);
     }
 
     public String getDatabaseType() {
@@ -450,7 +451,7 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     }
 
     public String getDatabaseUsername() {
-        return databaseUsername;
+        return StringUtils.defaultString(databaseUsername);
     }
 
     public String getDatabaseUrl() {
@@ -565,7 +566,7 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      * @return the contextPath
      */
     public String getContextPath() {
-        return contextPath;
+        return StringUtils.defaultString(contextPath);
     }
 
     public String getClusterStartIpAddress() {
