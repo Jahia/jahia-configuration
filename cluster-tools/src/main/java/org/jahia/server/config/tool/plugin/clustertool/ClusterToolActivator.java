@@ -33,6 +33,7 @@ public class ClusterToolActivator extends WebFragmentActivator {
 
         if (configurationAdminReference != null) {
             ConfigurationAdmin confAdmin = (ConfigurationAdmin) context.getService(configurationAdminReference);
+            clusterToolServlet.setConfigurationAdmin(confAdmin);
 
             Configuration configuration = confAdmin.getConfiguration("org.jahia.server.config.tool.ClusterToolConfigurator");
 

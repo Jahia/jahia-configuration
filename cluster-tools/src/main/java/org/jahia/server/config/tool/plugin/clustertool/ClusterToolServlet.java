@@ -5,6 +5,8 @@ import org.jahia.configuration.cluster.tool.LinkedListLogger;
 import org.jahia.server.config.tool.framework.BundleServlet;
 import org.json.JSONException;
 import org.json.JSONWriter;
+import org.osgi.service.cm.Configuration;
+import org.osgi.service.cm.ConfigurationAdmin;
 import org.slf4j.Logger;
 
 import javax.servlet.ServletConfig;
@@ -13,8 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.LinkedList;
-import java.util.ResourceBundle;
+import java.util.*;
 
 /**
  * Main servlet for cluster tool REST API
@@ -23,6 +24,7 @@ public class ClusterToolServlet extends BundleServlet {
 
     private ClusterTool clusterTool;
     private LinkedListLogger linkedListLogger = new LinkedListLogger(ClusterToolServlet.class.getName());
+    private ConfigurationAdmin configurationAdmin = null;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -32,6 +34,10 @@ public class ClusterToolServlet extends BundleServlet {
         } catch (Exception e) {
             throw new ServletException("Error during initialization of cluster tool", e);
         }
+    }
+
+    public void setConfigurationAdmin(ConfigurationAdmin configurationAdmin) {
+        this.configurationAdmin = configurationAdmin;
     }
 
     @Override
@@ -68,6 +74,29 @@ public class ClusterToolServlet extends BundleServlet {
             }
             PrintWriter printWriter = resp.getWriter();
             printWriter.print("Configuration valid.");
+        } else if (req.getPathInfo().startsWith("/configuration")) {
+            resp.setContentType("application/json");
+            PrintWriter out = resp.getWriter();
+
+            Configuration configuration = configurationAdmin.getConfiguration("org.jahia.server.config.tool.ClusterToolConfigurator");
+
+            JSONWriter json = new JSONWriter(out);
+            try {
+                json.array();
+                Dictionary properties = configuration.getProperties();
+                Enumeration propKeyEnum = properties.keys();
+                while (propKeyEnum.hasMoreElements()) {
+                    String propKey = (String) propKeyEnum.nextElement();
+                    String propValue = (String) properties.get(propKey);
+                    json.object();
+                    json.key(propKey).value(propValue);
+                    json.endObject();
+                }
+                json.endArray();
+            } catch (JSONException e) {
+                throw new ServletException("Error retrieving operation list", e);
+            }
+
         } else if (req.getPathInfo().startsWith("/logs")) {
             LinkedList<String> logEntries = linkedListLogger.getLogEntries();
             resp.setContentType("application/json");
@@ -99,6 +128,23 @@ public class ClusterToolServlet extends BundleServlet {
                     throw new ServletException("Error during execution of cluster tool", e);
                 }
             }
+        } else if ("/configuration".equals(req.getPathInfo())) {
+            Configuration configuration = configurationAdmin.getConfiguration("org.jahia.server.config.tool.ClusterToolConfigurator");
+            Dictionary properties = configuration.getProperties();
+            Enumeration parameterNames = req.getParameterNames();
+            while (parameterNames.hasMoreElements()) {
+                String parameterName = (String) parameterNames.nextElement();
+                String[] parameterValues = req.getParameterValues(parameterName);
+                StringBuffer propValueBuf = new StringBuffer();
+                for (int i=0; i < parameterValues.length; i++) {
+                    propValueBuf.append(parameterValues);
+                    if (i < parameterValues.length-1) {
+                        propValueBuf.append(",");
+                    }
+                }
+                properties.put(parameterName, propValueBuf.toString());
+            }
+            configuration.update(properties);
         }
     }
 }
