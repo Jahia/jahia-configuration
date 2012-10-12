@@ -105,7 +105,7 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * properties file path
      *
-     * @parameter expression="${jahia.configure.cluster_node_serverId}" default-value="Jahia1"
+     * @parameter expression="${jahia.configure.cluster_node_serverId}"
      */
     protected String cluster_node_serverId;
     /**
