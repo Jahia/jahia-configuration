@@ -52,7 +52,7 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String jahiaSharedModulesDiskPath = "$context/WEB-INF/var/shared_modules/";
     private String jahiaWebAppsDeployerBaseURL = "http\\://localhost\\:8080/manager";
     private String cluster_activated = "false";
-    private String cluster_node_serverId = "Jahia1";
+    private String cluster_node_serverId;
     private String clusterStartIpAddress = "192.168.1.100";
     private String processingServer = "true";
     private String jahiaImportsDiskPath = "$context/WEB-INF/var/imports/";
