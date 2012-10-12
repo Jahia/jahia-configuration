@@ -40,6 +40,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 
 import org.codehaus.plexus.util.PropertyUtils;
 import org.codehaus.plexus.util.StringUtils;
@@ -53,49 +54,47 @@ import org.jahia.configuration.logging.AbstractLogger;
  */
 public class JahiaAdvancedPropertiesConfigurator extends AbstractConfigurator {
 
-    private PropertiesManager properties;
+    private static List<String> getInitialHosts(List<String> hosts,
+            List<String> nodeIps, String port) {
+        List<String> finalHosts = new LinkedList<String>();
+
+        if (!hosts.isEmpty()) {
+            for (String host : hosts) {
+                if (!host.contains("[")) {
+                    // add a default port
+                    host = host + "[" + port + "]";
+                }
+                finalHosts.add(host);
+            }
+        } else if (!nodeIps.isEmpty()) {
+            for (String host : nodeIps) {
+                finalHosts.add(host + "[" + port + "]");
+            }
+        }
+        return finalHosts;
+    }
     
     protected AbstractLogger logger;
+
+    private PropertiesManager properties;
 
     public JahiaAdvancedPropertiesConfigurator(AbstractLogger logger, JahiaConfigInterface cfg) {
         super(cfg);
         this.logger = logger;
     }
 
-    public void updateConfiguration(ConfigFile sourceJahiaPath, String targetJahiaPath) throws IOException {
-        properties = new PropertiesManager(sourceJahiaPath.getInputStream());
-        properties.setUnmodifiedCommentingActivated(true);
-
-        File targetJahiaFile = new File(targetJahiaPath);
-        Properties existingProperties = new Properties();
-        if (targetJahiaFile.exists()) {
-            existingProperties.putAll(PropertyUtils.loadProperties(targetJahiaFile));
-            for (Object key : existingProperties.keySet()) {
-                String propertyName = String.valueOf(key);
-                properties.setProperty(propertyName, existingProperties.getProperty(propertyName));
-            }
-        }
-
-        JahiaConfigInterface cfg = jahiaConfigInterface;
-
-        properties.setProperty("processingServer", cfg.getProcessingServer());
-
-        setClusterProperties();
-        
-        if (jahiaConfigInterface.getJahiaAdvancedProperties() != null) {
-            for (Map.Entry<String, String> entry : jahiaConfigInterface.getJahiaAdvancedProperties().entrySet()) {
-                properties.setProperty(entry.getKey(), entry.getValue());
-            }
-        }
-
-        properties.storeProperties(sourceJahiaPath.getInputStream(), targetJahiaPath);
-    }
+    private String getServerId(String id) {
+    	if (id == null || id.length() == 0 || "<auto>".equalsIgnoreCase(id)) {
+    		id = "jahia-" + UUID.randomUUID();
+    	}
+		return id;
+	}
 
     private void setClusterProperties() {
         JahiaConfigInterface cfg = jahiaConfigInterface;
         
         properties.setProperty("cluster.activated", cfg.getCluster_activated());
-        properties.setProperty("cluster.node.serverId", cfg.getCluster_node_serverId());
+        properties.setProperty("cluster.node.serverId", getServerId(cfg.getCluster_node_serverId()));
         
         // Jahia 6.5/6.6 settings
         if (properties.getProperty("cluster.tcp.start.ip_address") != null) {
@@ -134,24 +133,33 @@ public class JahiaAdvancedPropertiesConfigurator extends AbstractConfigurator {
         }
     }
 
-    private static List<String> getInitialHosts(List<String> hosts,
-            List<String> nodeIps, String port) {
-        List<String> finalHosts = new LinkedList<String>();
+	public void updateConfiguration(ConfigFile sourceJahiaPath, String targetJahiaPath) throws IOException {
+        properties = new PropertiesManager(sourceJahiaPath.getInputStream());
+        properties.setUnmodifiedCommentingActivated(true);
 
-        if (!hosts.isEmpty()) {
-            for (String host : hosts) {
-                if (!host.contains("[")) {
-                    // add a default port
-                    host = host + "[" + port + "]";
-                }
-                finalHosts.add(host);
-            }
-        } else if (!nodeIps.isEmpty()) {
-            for (String host : nodeIps) {
-                finalHosts.add(host + "[" + port + "]");
+        File targetJahiaFile = new File(targetJahiaPath);
+        Properties existingProperties = new Properties();
+        if (targetJahiaFile.exists()) {
+            existingProperties.putAll(PropertyUtils.loadProperties(targetJahiaFile));
+            for (Object key : existingProperties.keySet()) {
+                String propertyName = String.valueOf(key);
+                properties.setProperty(propertyName, existingProperties.getProperty(propertyName));
             }
         }
-        return finalHosts;
+
+        JahiaConfigInterface cfg = jahiaConfigInterface;
+
+        properties.setProperty("processingServer", cfg.getProcessingServer());
+
+        setClusterProperties();
+        
+        if (jahiaConfigInterface.getJahiaAdvancedProperties() != null) {
+            for (Map.Entry<String, String> entry : jahiaConfigInterface.getJahiaAdvancedProperties().entrySet()) {
+                properties.setProperty(entry.getKey(), entry.getValue());
+            }
+        }
+
+        properties.storeProperties(sourceJahiaPath.getInputStream(), targetJahiaPath);
     }
     
 }
