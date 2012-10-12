@@ -27,7 +27,7 @@
 		<dependency>
 			<groupId>org.jahia.configuration</groupId>
 			<artifactId>configurators</artifactId>
-			<version>2.54-20121011.122726-2</version>
+			<version>2.54-20121012.071147-3</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
