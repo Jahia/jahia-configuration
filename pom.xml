@@ -3,7 +3,7 @@
     <groupId>org.jahia.configuration</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jahia-configuration-root</artifactId>
-    <version>2.1</version>
+    <version>2.2</version>
     <packaging>pom</packaging>
     <name>Jahia Configuration Root</name>
     <organization>
@@ -98,7 +98,6 @@
         <module>archivers</module>
         <module>maven-jahia-plugin</module>
         <module>jahia-installer</module>
-        <module>cluster-tools</module>
         <module>jahia-server-utils</module>
     </modules>
     

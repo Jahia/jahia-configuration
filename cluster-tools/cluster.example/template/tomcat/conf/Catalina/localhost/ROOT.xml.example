@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Context crossContext="true">
-  <Manager pathname="" />
-  <Resource name="jdbc/jahia" auth="Container" factory="org.apache.commons.dbcp.BasicDataSourceFactory" type="javax.sql.DataSource" username="jahia" password="jahia" driverClassName="com.mysql.jdbc.Driver" url="jdbc:mysql://jahiadb.cl318r5xuja6.us-east-1.rds.amazonaws.com/jahia?useUnicode=true&amp;characterEncoding=UTF-8&amp;useServerPrepStmts=false" defaultAutoCommit="true" accessToUnderlyingConnectionAllowed="true" maxActive="200" maxIdle="30" maxWait="10000" initialSize="5" validationQuery="/* ping */" testWhileIdle="true" testOnBorrow="false" testOnReturn="false" timeBetweenEvictionRunsMillis="300000" minEvictableIdleTimeMillis="1800000" numTestsPerEvictionRun="5" />
-</Context>
-
