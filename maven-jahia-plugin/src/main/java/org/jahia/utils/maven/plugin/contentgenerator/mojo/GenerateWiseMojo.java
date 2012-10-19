@@ -21,7 +21,7 @@ import org.jahia.utils.maven.plugin.contentgenerator.wise.WiseService;
 public class GenerateWiseMojo extends ContentGeneratorMojo {
 
 	/**
-	 * @parameter expression="${jahia.cg.wise.nbDocspaces}" default-value="1"
+	 * @parameter expression="${jahia.cg.wise.nbDocspaces}" default-value="1 description"
 	 */
 	private Integer nbDocspaces;
 	

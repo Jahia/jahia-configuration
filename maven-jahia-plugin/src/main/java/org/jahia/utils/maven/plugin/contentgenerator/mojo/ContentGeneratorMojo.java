@@ -16,6 +16,7 @@ import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGenerator
 import org.jahia.utils.maven.plugin.contentgenerator.properties.DatabaseProperties;
 
 /**
+ * This goal is the common configuration and launcher for Jahia sites and Wise instances generation, it shouldn't be called directly
  * @goal generate
  * @requiresProject false
  * @author Guillaume Lucazeau
@@ -24,153 +25,64 @@ import org.jahia.utils.maven.plugin.contentgenerator.properties.DatabaseProperti
 public abstract class ContentGeneratorMojo extends AbstractMojo {
 
 	/**
-	 * @parameter expression="${jahia.cg.mysql.host}" default-value="localhost"
+	 * MySQL server hosting the Wikipedia articles database
+	 * @parameter expression="${jahia.cg.mysql.host}"  default-value="localhost"
+	 * @required
+	 * 
 	 */
 	protected String mysql_host;
 
 	/**
+	 * MySQL user to connect to the Wikipedia articles database
 	 * @parameter expression="${jahia.cg.mysql.login}"
+	 * @required
 	 */
 
 	protected String mysql_login;
 
 	/**
+	 * MySQL password for the user
 	 * @parameter expression="${jahia.cg.mysql.password}"
+	 * @required
 	 */
 	protected String mysql_password;
 
 	/**
+	 * MySQL database name
 	 * @parameter expression="${jahia.cg.mysql_db}"
+	 * @required
 	 */
 	protected String mysql_db;
 
 	/**
+	 * MySQL table
 	 * @parameter expression="${jahia.cg.mysql_table}" default-value="articles"
+	 * @required
 	 */
 	protected String mysql_table;
 
 	/**
-	 * @parameter expression="${jahia.cg.nbPagesOnTopLevel}" default-value="1"
-	 */
-	protected Integer nbPagesOnTopLevel;
-
-	/**
-	 * @parameter expression="${jahia.cg.nbSubLevels}" default-value="2"
-	 */
-	protected Integer nbSubLevels;
-
-	/**
-	 * @parameter expression="${jahia.cg.nbPagesPerLevel}" default-value="3"
-	 */
-	protected Integer nbPagesPerLevel;
-
-	/**
+	 * Local directory where generated files will be written
 	 * @parameter expression="${jahia.cg.outputDirectory}"
 	 *            default-value="output"
+	 * @required
 	 */
 	protected String outputDirectory;
 
 	/**
+	 * 
 	 * @parameter expression="${jahia.cg.outputFileName}"
 	 *            default-value="jahia-cg-output.xml"
 	 */
 	protected String outputFileName;
 
-	/**
-	 * @parameter expression="${jahia.cg.pagesHaveVanity}" default-value="true"
-	 */
-	protected Boolean pagesHaveVanity;
+
 
 	/**
-	 * @parameter expression="${jahia.cg.siteKey}" default-value="testSite"
-	 */
-	protected String siteKey;
-
-	/**
-	 * @parameter expression="${jahia.cg.siteLanguages}" default-value="en,fr"
-	 */
-	protected String siteLanguages;
-
-	/**
-	 * @parameter expression="${jahia.cg.addFiles}" default-value="none"
-	 */
-	protected String addFiles;
-
-	/**
+	 * Local directory that contains files to be included in Jahia pages or Wise instances
 	 * @parameter expression="${jahia.cg.poolDirectory}" default-value="files_pool"
 	 */
 	protected String poolDirectory;
-
-	/**
-	 * @parameter expression="${jahia.cg.numberOfFilesToGenerate}" " default-value="0"
-	 */
-	protected Integer numberOfFilesToGenerate;
-
-	/**
-	 * @parameter expression="${jahia.cg.numberOfBigTextPerPage}"
-	 *            default-value="1"
-	 */
-	protected Integer numberOfBigTextPerPage;
-
-	/**
-	 * @parameter expression="${jahia.cg.numberOfUsers}" default-value="25"
-	 */
-	protected Integer numberOfUsers;
-	
-	/**
-	 * @parameter expression="${jahia.cg.numberOfGroups}" default-value="5"
-	 */
-	protected Integer numberOfGroups;
-
-	/**
-	 * @parameter expression="${jahia.cg.numberOfUsersPerGroup}" default-value="5"
-	 */
-	protected Integer numberOfUsersPerGroup;
-
-    /**
-     * @parameter expression="${jahia.cg.groupsAclRatio}" defaule-value="0"
-     */
-    protected double groupAclRatio;
-
-    /**
-     * @parameter expression="${jahia.cg.usersAclRatio}" defaule-value="0"
-     */
-    protected double usersAclRatio;
-
-    /**
-     * @parameter expression="${jahia.cg.numberOfSites}" default-value="1"
-     */
-    protected Integer numberOfSites;
-    
-    /**
-     * @parameter expression="${jahia.cg.numberOfCategories}" default-value="1"
-     */
-    protected Integer numberOfCategories;
-    
-    /**
-     * @parameter expression="${jahia.cg.numberOfCategoryLevels}" default-value="1"
-     */
-    protected Integer numberOfCategoryLevels;
-    
-    /**
-     * @parameter expression="${jahia.cg.numberOfTags}" default-value="1"
-     */
-    protected Integer numberOfTags;
-    
-    /**
-     * @parameter expression="${jahia.cg.visibilityEnabled}" default-value="false"
-     */
-    protected Boolean visibilityEnabled;
-    
-    /**
-     * @parameter expression="${jahia.cg.visibilityStartDate}"
-     */
-    protected String visibilityStartDate;
-    
-    /**
-     * @parameter expression="${jahia.cg.visibilityEndDate}"
-     */
-    protected String visibilityEndDate;
 
 	public abstract void execute() throws MojoExecutionException, MojoFailureException;
 
@@ -211,10 +123,6 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
 			DatabaseProperties.TABLE = mysql_table;
 		}
 
-        export.setNbPagesTopLevel(nbPagesOnTopLevel);
-        export.setNbSubLevels(nbSubLevels);
-        export.setNbSubPagesPerPage(nbPagesPerLevel);
-
 		if (outputDirectory == null) {
 			throw new MojoExecutionException("outputDirectory property can not be null");
 		}
@@ -244,10 +152,6 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
 		
 		File outputMapFile = new File(outputDirectory, "sitemap.txt");
 		export.setMapFile(outputMapFile);
-        export.setPagesHaveVanity(pagesHaveVanity);
-        export.setSiteKey(siteKey);
-        export.setSiteLanguages(Arrays.asList(siteLanguages.split(",")));
-		export.setAddFilesToPage(addFiles);
 
 		// TODO: add "and if called goal is NOT generate-files"
 		// because the execution fails if we want to generate files with jahia.cg.addFiles == none
@@ -266,36 +170,6 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
 			List<String> filesNamesAvailable = fileService.getFileNamesAvailable(export.getFilesDirectory());
 			export.setFileNames(filesNamesAvailable);
 
-		}
-
-        export.setNumberOfBigTextPerPage(numberOfBigTextPerPage);
-        export.setNumberOfUsers(numberOfUsers);
-        export.setNumberOfGroups(numberOfGroups);
-        export.setNumberOfUsersPerGroup(numberOfUsersPerGroup);
-		export.setNumberOfFilesToGenerate(numberOfFilesToGenerate);
-        export.setGroupAclRatio(groupAclRatio);
-        export.setUsersAclRatio(usersAclRatio);
-        export.setNumberOfSites(numberOfSites);
-        
-        export.setNumberOfCategories(numberOfCategories);
-        export.setNumberOfCategoryLevels(numberOfCategoryLevels);
-        
-        export.setNumberOfTags(numberOfTags);
-        
-        if (visibilityEnabled == null) {
-        	visibilityEnabled = Boolean.FALSE;
-        }
-       
-        export.setVisibilityEnabled(visibilityEnabled);
-        export.setVisibilityStartDate(visibilityStartDate);
-        export.setVisibilityEndDate(visibilityEndDate);
-        
-		Integer totalPages = contentGeneratorService.getTotalNumberOfPagesNeeded(nbPagesOnTopLevel, nbSubLevels,
-				nbPagesPerLevel);
-		export.setTotalPages(totalPages);
-		if (export.getTotalPages().compareTo(ContentGeneratorCst.MAX_TOTAL_PAGES) > 0) {
-			throw new MojoExecutionException("You asked to generate " + export.getTotalPages()
-					+ " pages, the maximum allowed is " + ContentGeneratorCst.MAX_TOTAL_PAGES);
 		}
 
 		return export;

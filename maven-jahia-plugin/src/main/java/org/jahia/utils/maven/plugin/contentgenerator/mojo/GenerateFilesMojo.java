@@ -12,9 +12,18 @@ import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
  * @requiresProject false
  */
 public class GenerateFilesMojo extends ContentGeneratorMojo {
+	
+	/**
+	 * Number of files to generate (text files filled with a random Wikipedia article)
+	 * Required for goal "generate-files"
+	 * @parameter expression="${jahia.cg.numberOfFilesToGenerate}" default-value="0"
+	 */
+	protected Integer numberOfFilesToGenerate;
+	
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		ContentGeneratorService contentGeneratorService = ContentGeneratorService.getInstance();
 		ExportBO export = super.initExport();
 		contentGeneratorService.generateFiles(export);
+		export.setNumberOfFilesToGenerate(numberOfFilesToGenerate);
 	}
 }
