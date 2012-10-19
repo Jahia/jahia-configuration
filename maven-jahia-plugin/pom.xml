@@ -19,6 +19,57 @@
 		<maven.plugin.plugin.version>2.9</maven.plugin.plugin.version>
 	</properties>
 
+	<repositories>
+        <repository>
+            <id>jahia-public</id>
+            <name>Jahia Public Repository</name>
+            <url>https://devtools.jahia.com/nexus/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+		<repository>
+            <id>jahia-internal</id>
+            <name>Jahia Internal Repository</name>
+            <url>https://devtools.jahia.com/nexus/content/groups/internal/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>        
+        <repository>
+            <id>jahia-enterprise</id>
+            <name>Jahia Enterprise Repository</name>
+            <url>https://devtools.jahia.com/nexus/content/groups/enterprise</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>wise</id>
+            <name>Jahia Enterprise Repository</name>
+            <url>https://devtools.jahia.com/nexus/content/groups/wise</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+    
 	<dependencies>
 		<dependency>
 			<groupId>org.jahia.configuration</groupId>
