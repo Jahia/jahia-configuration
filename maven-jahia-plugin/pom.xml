@@ -69,7 +69,14 @@
             </snapshots>
         </repository>
     </repositories>
-    
+
+	<distributionManagement>
+		<site>
+			<id>maven-jahia-plugin-website</id>
+			<url>scp://rqa1.jahia.com/var/www/documentation/maven-jahia-plugin/</url>
+		</site>
+	</distributionManagement>
+        
 	<dependencies>
 		<dependency>
 			<groupId>org.jahia.configuration</groupId>
