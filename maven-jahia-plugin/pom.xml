@@ -24,6 +24,8 @@
 		<developerConnection>scm:svn:https://devtools.jahia.com/svn/maven-jahia-plugin/trunk/maven-jahia-plugin</developerConnection>
 		<url>https://devtools.jahia.com/svn/maven-jahia-plugin/trunk/maven-jahia-plugin</url>
 	</scm>
+	
+	<description>Maven jahia plugin</description>
   
 	<repositories>
         <repository>
