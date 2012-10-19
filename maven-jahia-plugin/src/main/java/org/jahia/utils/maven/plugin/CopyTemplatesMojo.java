@@ -45,20 +45,22 @@ import org.jahia.configuration.modules.ModuleDeployer;
 
 /**
  * Mojo for copying Jahia modules and pre-packaged sites into Jahia WAR file.
- * User: toto
- * Date: Jul 23, 2008
- * Time: 10:31:17 AM
  * @goal copy-templates
  * @requiresDependencyResolution runtime
  */
 public class CopyTemplatesMojo extends AbstractManagementMojo {
 
     /**
+     * Tests modules deployment
+     * If false, all modules within the package "org.jahia.test" will be ignored
      * @parameter default-value="false"
      */
     protected boolean deployTests;
 
     /**
+     * Modules deployment
+     * If false, all modules within the package "org.jahia.modules" will be ignored
+     * Modules within the package "org.jahia.prepackagedsites" are copied to the prepackagedsites" folder of Jahia
      * @parameter default-value="true"
      */
     protected boolean deployModules;
