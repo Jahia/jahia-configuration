@@ -14,9 +14,8 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * User: Serge Huber
- * Date: 26 d?c. 2007
- * Time: 16:43:38
+ * Execute a test servlet deployed in Jahia
+ * Available tests are in a mod-test.xml file
  * @goal test
  * @requiresDependencyResolution runtime
  * @aggregator false
@@ -24,25 +23,25 @@ import java.util.ArrayList;
 public class TestMojo extends AbstractMojo {
 
     /**
-     * Server type
+     * Test URL
      * @parameter expression="${jahia.test.url}" default-value="http://localhost:8080/cms"
      */
     protected String testURL;
 
     /**
-     * Server type
+     * Test to execute
      * @parameter expression="${test}"
      */
     protected String test;
 
     /**
-     * Server type
+     * Startup waiting time (seconds)
      * @parameter default-value="true"
      */
     protected boolean startupWait;
 
     /**
-     * Server type
+     * Startup timeout (seconds)
      * @parameter default-value="60"
      */
     protected int startupTimeout;
