@@ -13,6 +13,8 @@ import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGenerator
 import org.jahia.utils.maven.plugin.contentgenerator.wise.WiseService;
 
 /**
+ * Generates a Wise instance ready to be imported into a Wise installation
+ * Also generates a map containing all the included files
  * @goal generate-wise
  * @requiresProject false
  * @author Guillaume Lucazeau
@@ -21,71 +23,111 @@ import org.jahia.utils.maven.plugin.contentgenerator.wise.WiseService;
 public class GenerateWiseMojo extends ContentGeneratorMojo {
 
 	/**
+	 * Number of docspace to create
+	 * N.B: it currently works only for one
 	 * @parameter expression="${jahia.cg.wise.nbDocspaces}" default-value="1 description"
+	 * @required
 	 */
 	private Integer nbDocspaces;
 	
 	/**
+	 * Number of Polls
 	 * @parameter expression="${jahia.cg.wise.nbPolls}" default-value="10"
 	 */
 	private Integer nbPolls;
 	
 	/**
+	 * Number of Notes
+	 * Notes contain a random Wikipedia article
 	 * @parameter expression="${jahia.cg.wise.nbNotes}" default-value="10"
 	 */
 	private Integer nbNotes;
 	
 	/**
+	 * Number of tasks
+	 * Tasks have a random user as creator and assignee
 	 * @parameter expression="${jahia.cg.wise.nbTasks}" default-value="10"
 	 */
 	private Integer nbTasks;
 	
 	/**
+	 * Number subfolder per folder
 	 * @parameter expression="${jahia.cg.wise.nbFoldersPerLevel}" default-value="3"
+	 * @required
 	 */
 	private Integer nbFoldersPerLevel;
 
 	/**
+	 * Folder depth
 	 * @parameter expression="${jahia.cg.wise.foldersDepth}" default-value="2"
+	 * @required
 	 */
 	private Integer foldersDepth;
 	
 	/**
+	 * Number of files per folder
+	 * Files are randomly picked from the files pool
+	 * You need to have enough files in the fool as they can't be used twice
 	 * @parameter expression="${jahia.cg.wise.nbFilesPerFolder}" default-value="3"
+	 * @required
 	 */
 	private Integer nbFilesPerFolder;
 	
 	/**
+	 * Number of users to generate
+	 * Username: user<N>
+	 * Password: user<N>
+	 * @parameter expression="${jahia.cg.numberOfUsers}" default-value="25"
+	 * @required
+	 */
+	protected Integer numberOfUsers;
+	
+	/**
+	 * Number of collections per user
 	 * @parameter expression="${jahia.cg.wise.nbCollectionsPerUser}" default-value="3"
 	 */
 	private Integer nbCollectionsPerUser;
 	
 	/**
+	 * Number of files per collection
 	 * @parameter expression="${jahia.cg.wise.nbFilesPerCollection}" default-value="3"
 	 */
 	private Integer nbFilesPerCollection;
 	
 	/**
+	 * Number of users with the role "docspace-owner"
+	 * They come first (user 0 to userN)
 	 * @parameter expression="${jahia.cg.numberOfOwners}" default-value="5"
+	 * @required
 	 */
 	protected Integer numberOfOwners;
 	
 	/**
+	 * Number of users with the role "docspace-editor"
+	 * They come after the owners
 	 * @parameter expression="${jahia.cg.numberOfEditors}" default-value="10"
+	 * @required
 	 */
 	protected Integer numberOfEditors;
 	
 	/**
+	 * Number of users with the role "docspace-collaborator"
+	 * They come after the editors
 	 * @parameter expression="${jahia.cg.numberOfCollaborators}" default-value="15"
+	 * @required
 	 */
 	protected Integer numberOfCollaborators;
 	
 	/**
+	 * Start date for the range used to create a random creation date assigned to files in the JCR
+	 * It actually doesn't work as during the import the date is replaced with the current date
 	 * @parameter expression="${jahia.cg.startCreationDateRange}" default-value="2010-01-01"
 	 */
 	protected String startCreationDateRange;
 	
 	/**
+	 * End date for the range used to create a random creation date assigned to files in the JCR
+	 * It actually doesn't work as during the import the date is replaced with the current date
 	 * @parameter expression="${jahia.cg.endCreationDateRange}" default-value="2012-10-01"
 	 */
 	protected String endCreationDateRange;
@@ -103,10 +145,11 @@ public class GenerateWiseMojo extends ContentGeneratorMojo {
 		wiseExport.setNbTasks(nbTasks);
 		wiseExport.setNbCollectionsPerUser(nbCollectionsPerUser);
 		wiseExport.setNbFilesPerCollection(nbFilesPerCollection);
+		wiseExport.setNumberOfUsers(numberOfUsers);
 		wiseExport.setNumberOfOwners(numberOfOwners);
 		wiseExport.setNumberOfEditors(numberOfEditors);
 		wiseExport.setNumberOfCollaborators(numberOfCollaborators);
-		
+				
 		DateFormat df = new SimpleDateFormat(ContentGeneratorCst.DATE_RANGE_FORMAT);
 		Date dStartCreationDateRange = null;
 		Date dEndCreationDateRange = null;
