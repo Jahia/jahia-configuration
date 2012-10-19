@@ -15,7 +15,8 @@
 	<name>Maven Jahia Installer Plugin</name>
 
 	<properties>
-		<maven.version>2.0.5</maven.version>
+		<maven.version>2.0.1</maven.version>
+		<maven.plugin.plugin.version>2.9</maven.plugin.plugin.version>
 	</properties>
 
 	<dependencies>
@@ -85,7 +86,7 @@
 		<dependency>
 			<groupId>org.codehaus.plexus</groupId>
 			<artifactId>plexus-utils</artifactId>
-			<version>1.5.15</version>
+			<version>3.0.1</version>
 		</dependency>
 
 		<dependency>
@@ -160,6 +161,12 @@
 			<artifactId>tika-parsers</artifactId>
 			<version>1.2</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.apache.maven.plugin-tools</groupId>
+			<artifactId>maven-plugin-annotations</artifactId>
+			<version>3.1</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -182,6 +189,30 @@
 					<target>1.5</target>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-plugin-plugin</artifactId>
+				<version>${maven.plugin.plugin.version}</version>
+				<configuration>
+          			<goalPrefix>jahia</goalPrefix>
+          			<outputDirectory>target/dir</outputDirectory>
+          			<skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+        		</configuration>
+				<executions> 
+					<execution>
+						<id>mojo-descriptor</id>
+						<goals>
+							<goal>descriptor</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>generated-helpmojo</id>
+						<goals>
+							<goal>helpmojo</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
@@ -190,13 +221,18 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.8.1</version>
+				<version>2.9</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jxr-plugin</artifactId>
 				<version>2.3</version>
 			</plugin>
+			<plugin>
+        		<groupId>org.apache.maven.plugins</groupId>
+        		<artifactId>maven-plugin-plugin</artifactId>
+        		<version>${maven.plugin.plugin.version}</version>
+      		</plugin>
 		</plugins>
 	</reporting>
 
