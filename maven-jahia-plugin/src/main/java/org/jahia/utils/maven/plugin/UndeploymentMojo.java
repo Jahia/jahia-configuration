@@ -37,11 +37,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Serge Huber
- * Date: 26 d�c. 2007
- * Time: 16:43:57
- * To change this template use File | Settings | File Templates.
+ * Undeployment mojo: currently doing nothing
  * @goal undeploy
  */
 public class UndeploymentMojo extends AbstractManagementMojo {
