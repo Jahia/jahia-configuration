@@ -37,7 +37,7 @@ public class TaskBO {
 			task.setAttribute("description", description);
 			task.setAttribute("createdBy", creator, ContentGeneratorCst.NS_JCR);
 			task.setAttribute("assigneeUserKey", "");
-			task.setAttribute("candidate", "u:" + candidate);
+			task.setAttribute("candidates", "u:" + candidate);
 			task.setAttribute("dueDate", dueDate);
 			task.setAttribute("originWS", "default", ContentGeneratorCst.NS_J);
 			task.setAttribute("primaryType", "jnt:task", ContentGeneratorCst.NS_JCR);
