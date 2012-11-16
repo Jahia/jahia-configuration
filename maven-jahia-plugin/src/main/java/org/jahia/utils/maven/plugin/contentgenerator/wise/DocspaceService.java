@@ -10,7 +10,6 @@ import java.util.List;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.jahia.utils.maven.plugin.contentgenerator.DatabaseService;
-import org.jahia.utils.maven.plugin.contentgenerator.TagService;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ArticleBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
@@ -49,9 +48,6 @@ public class DocspaceService {
 		if (numberOfArticles.compareTo(0) > 0) {
 			articles = DatabaseService.getInstance().selectArticles(wiseExport, numberOfArticles);
 		}
-
-		TagService tagService = new TagService();
-		wiseExport.setTags(tagService.createTagsBO(wiseExport.getNumberOfTags()));
 
 		PollService pollService = PollService.getInstance();
 		List<PollBO> polls = pollService.generatePolls(wiseExport.getNbPolls(), articles);

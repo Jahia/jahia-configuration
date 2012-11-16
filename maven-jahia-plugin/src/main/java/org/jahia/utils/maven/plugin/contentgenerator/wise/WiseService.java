@@ -61,26 +61,29 @@ public class WiseService {
 		TagService tagService = new TagService();
 		List<File> globalFilesToZip = new ArrayList<File>();
 
+		// System site and categories
+		Document systemSiteRepository = siteService.createSystemSiteRepository();
+		
+		// Creates tags
+		Element tagsList = tagService.createTagListElement();
+		List<TagBO> tags = tagService.createTagsBO(wiseExport.getNumberOfTags());
+		wiseExport.setTags(tags);
+		for (TagBO tag : tags) {
+			tagsList.addContent(tag.getTagElement());
+		}		
+				
 		// Wise instance files
 		// Light users for the privileges groups 
 		List<UserBO> users = userGroupService.generateUsers(wiseExport.getNumberOfUsers(), 0, 0, 0);
 		WiseBO wiseInstance = generateWiseInstance(wiseExport, users);
-
+		
 		File wiseInstanceOutputDir = new File(wiseExport.getOutputDir() + "/wise");
 		File wiseInstanceContentDir = new File(wiseInstanceOutputDir + "/content");
 
 		wiseInstanceOutputDir.mkdir();
 		logger.info("Creating repository file");
-
-		// System site and categories
-		Document systemSiteRepository = siteService.createSystemSiteRepository();
 		
 		insertWiseInstanceIntoSiteRepository(systemSiteRepository, wiseInstance.getElement());
-
-		// Creates and inserts tags
-		Element tagsList = tagService.createTagListElement();
-		List<Element> tags = tagService.createTags(wiseExport.getNumberOfTags());
-		tagsList.addContent(tags);
 		insertTagsListIntoWiseInstance(systemSiteRepository, tagsList, wiseExport.getWiseInstanceKey());
 		
 		CategoryService cs = new CategoryService();
@@ -165,7 +168,7 @@ public class WiseService {
 
 		// Generate tags list
 		List<String> tagNames = new ArrayList<String>();
-		for (TagBO tag : wiseExport.getTags()) {
+		for (TagBO tag : tags) {
 			tagNames.add(tag.getTagName());
 		}
 
