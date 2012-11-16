@@ -15,7 +15,7 @@
 	<name>Maven Jahia Installer Plugin</name>
 
 	<properties>
-		<maven.version>2.0.1</maven.version>
+		<maven.version>2.0.5</maven.version>
 		<maven.plugin.plugin.version>2.9</maven.plugin.plugin.version>
 	</properties>
 
@@ -261,7 +261,6 @@
 				<version>${maven.plugin.plugin.version}</version>
 				<configuration>
           			<goalPrefix>jahia</goalPrefix>
-          			<outputDirectory>target/dir</outputDirectory>
           			<skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
         		</configuration>
 				<executions> 
