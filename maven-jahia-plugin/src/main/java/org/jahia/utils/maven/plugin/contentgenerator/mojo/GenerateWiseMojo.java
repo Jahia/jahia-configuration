@@ -144,8 +144,17 @@ public class GenerateWiseMojo extends ContentGeneratorMojo {
 	 * @required
 	 */
 	protected String wiseInstanceKey;
-
 	
+    /**
+     * @parameter expression="${jahia.cg.numberOfCategories}" default-value="1"
+     */
+    protected Integer numberOfCategories;
+    
+    /**
+     * @parameter expression="${jahia.cg.numberOfCategoryLevels}" default-value="1"
+     */
+    protected Integer numberOfCategoryLevels;
+    
 	public ExportBO initExport() throws MojoExecutionException {
 		ExportBO wiseExport = super.initExport();
 		
@@ -164,6 +173,9 @@ public class GenerateWiseMojo extends ContentGeneratorMojo {
 		wiseExport.setNumberOfCollaborators(numberOfCollaborators);
 		wiseExport.setNumberOfTags(numberOfTags);
 		wiseExport.setWiseInstanceKey(wiseInstanceKey);
+		wiseExport.setNumberOfCategories(numberOfCategories);
+        wiseExport.setNumberOfCategoryLevels(numberOfCategoryLevels);
+		
 		DateFormat df = new SimpleDateFormat(ContentGeneratorCst.DATE_RANGE_FORMAT);
 		Date dStartCreationDateRange = null;
 		Date dEndCreationDateRange = null;
