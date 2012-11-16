@@ -16,7 +16,8 @@ public class GenerateFilesMojo extends AbstractContentGeneratorMojo {
 	/**
 	 * Number of files to generate (text files filled with a random Wikipedia article)
 	 * Required for goal "generate-files"
-	 * @parameter expression="${jahia.cg.numberOfFilesToGenerate}" default-value="0"
+	 * @parameter expression="${jahia.cg.numberOfFilesToGenerate}"
+	 * @required
 	 */
 	protected Integer numberOfFilesToGenerate;
 	
