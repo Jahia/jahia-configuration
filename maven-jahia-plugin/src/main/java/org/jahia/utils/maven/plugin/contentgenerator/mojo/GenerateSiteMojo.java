@@ -10,6 +10,7 @@ import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGenerator
 import org.w3c.dom.DOMException;
 
 /**
+ * Generate a Jahia site (ZIP file) ready to be imported
  * @goal generate-site
  * @requiresProject false
  * @author Guillaume Lucazeau
