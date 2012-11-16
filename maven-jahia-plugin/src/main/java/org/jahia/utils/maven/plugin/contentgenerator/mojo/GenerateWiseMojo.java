@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -175,6 +177,10 @@ public class GenerateWiseMojo extends ContentGeneratorMojo {
 		wiseExport.setWiseInstanceKey(wiseInstanceKey);
 		wiseExport.setNumberOfCategories(numberOfCategories);
         wiseExport.setNumberOfCategoryLevels(numberOfCategoryLevels);
+        
+        List<String> languages = new ArrayList<String>();
+        languages.add("en");
+        wiseExport.setSiteLanguages(languages);
 		
 		DateFormat df = new SimpleDateFormat(ContentGeneratorCst.DATE_RANGE_FORMAT);
 		Date dStartCreationDateRange = null;
