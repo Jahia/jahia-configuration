@@ -153,9 +153,6 @@ public class GenerateSiteMojo extends ContentGeneratorMojo {
         export.setUsersAclRatio(usersAclRatio);
         export.setNumberOfSites(numberOfSites);
         
-        export.setNumberOfCategories(numberOfCategories);
-        export.setNumberOfCategoryLevels(numberOfCategoryLevels);
-        
         export.setNumberOfTags(numberOfTags);
         
         if (visibilityEnabled == null) {
