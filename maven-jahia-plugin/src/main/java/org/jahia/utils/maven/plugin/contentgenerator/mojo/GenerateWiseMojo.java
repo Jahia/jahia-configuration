@@ -22,7 +22,7 @@ import org.jahia.utils.maven.plugin.contentgenerator.wise.WiseService;
  * @author Guillaume Lucazeau
  * 
  */
-public class GenerateWiseMojo extends AbstractContentGeneratorMojo {
+public class GenerateWiseMojo extends AbstractJahiaSiteMojo {
 
 	/**
 	 * Number of docspace to create
@@ -76,15 +76,6 @@ public class GenerateWiseMojo extends AbstractContentGeneratorMojo {
 	private Integer nbFilesPerFolder;
 	
 	/**
-	 * Number of users to generate
-	 * Username: user<N>
-	 * Password: user<N>
-	 * @parameter expression="${jahia.cg.numberOfUsers}" default-value="25"
-	 * @required
-	 */
-	protected Integer numberOfUsers;
-	
-	/**
 	 * Number of collections per user
 	 * @parameter expression="${jahia.cg.wise.nbCollectionsPerUser}" default-value="3"
 	 */
@@ -133,32 +124,20 @@ public class GenerateWiseMojo extends AbstractContentGeneratorMojo {
 	 * @parameter expression="${jahia.cg.endCreationDateRange}" default-value="2012-10-01"
 	 */
 	protected String endCreationDateRange;
-	
-    /**
-     * Tags to create. They will randomly assigned to the generated files.
-     * @parameter expression="${jahia.cg.numberOfTags}" default-value="1"
-     */
-    protected Integer numberOfTags;
     
 	/**
 	 * Wise instance key
-	 * @parameter expression="${jahia.cg.siteKey}" default-value="testSite"
+	 * @parameter expression="${jahia.cg.wiseInstanceKey}"
 	 * @required
 	 */
 	protected String wiseInstanceKey;
-	
-    /**
-     * @parameter expression="${jahia.cg.numberOfCategories}" default-value="1"
-     */
-    protected Integer numberOfCategories;
     
-    /**
-     * @parameter expression="${jahia.cg.numberOfCategoryLevels}" default-value="1"
-     */
-    protected Integer numberOfCategoryLevels;
-    
-	public ExportBO initExport() throws MojoExecutionException {
-		ExportBO wiseExport = super.initExport();
+	private ExportBO initExport() throws MojoExecutionException {
+		boolean filesRequired = false;
+		if (nbFilesPerFolder > 0) {
+			filesRequired = true;
+		}
+		ExportBO wiseExport = super.initExport(filesRequired);
 		
 		wiseExport.setNbDocspaces(nbDocspaces);
 		wiseExport.setNbPolls(nbPolls);
@@ -169,15 +148,12 @@ public class GenerateWiseMojo extends AbstractContentGeneratorMojo {
 		wiseExport.setNbTasks(nbTasks);
 		wiseExport.setNbCollectionsPerUser(nbCollectionsPerUser);
 		wiseExport.setNbFilesPerCollection(nbFilesPerCollection);
-		wiseExport.setNumberOfUsers(numberOfUsers);
 		wiseExport.setNumberOfOwners(numberOfOwners);
 		wiseExport.setNumberOfEditors(numberOfEditors);
 		wiseExport.setNumberOfCollaborators(numberOfCollaborators);
-		wiseExport.setNumberOfTags(numberOfTags);
 		wiseExport.setWiseInstanceKey(wiseInstanceKey);
-		wiseExport.setNumberOfCategories(numberOfCategories);
-        wiseExport.setNumberOfCategoryLevels(numberOfCategoryLevels);
-        
+		
+		// site language hard coded to English
         List<String> languages = new ArrayList<String>();
         languages.add("en");
         wiseExport.setSiteLanguages(languages);
@@ -202,7 +178,6 @@ public class GenerateWiseMojo extends AbstractContentGeneratorMojo {
 		if (wiseExport.getNbFilesPerFolder() > 0) {
 			wiseExport.setAddFilesToPage(ContentGeneratorCst.VALUE_ALL);
 		}
-		initFilesProperties(wiseExport);
 		return wiseExport;
 	}
 	

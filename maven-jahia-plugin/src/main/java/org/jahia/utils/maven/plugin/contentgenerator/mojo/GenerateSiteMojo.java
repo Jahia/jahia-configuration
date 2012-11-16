@@ -15,7 +15,7 @@ import org.w3c.dom.DOMException;
  * @author Guillaume Lucazeau
  * 
  */
-public class GenerateSiteMojo extends AbstractContentGeneratorMojo {
+public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
 	
 	/**
 	 * Number of big text container per page
@@ -23,13 +23,6 @@ public class GenerateSiteMojo extends AbstractContentGeneratorMojo {
 	 *            default-value="1"
 	 */
 	protected Integer numberOfBigTextPerPage;
-
-	/**
-	 * Number of users to generate
-	 * @parameter expression="${jahia.cg.numberOfUsers}" default-value="25"
-	 * @required
-	 */
-	protected Integer numberOfUsers;
 	
 	/**
 	 * @parameter expression="${jahia.cg.numberOfGroups}" default-value="5"
@@ -55,21 +48,6 @@ public class GenerateSiteMojo extends AbstractContentGeneratorMojo {
      * @parameter expression="${jahia.cg.numberOfSites}" default-value="1"
      */
     protected Integer numberOfSites;
-    
-    /**
-     * @parameter expression="${jahia.cg.numberOfCategories}" default-value="1"
-     */
-    protected Integer numberOfCategories;
-    
-    /**
-     * @parameter expression="${jahia.cg.numberOfCategoryLevels}" default-value="1"
-     */
-    protected Integer numberOfCategoryLevels;
-    
-    /**
-     * @parameter expression="${jahia.cg.numberOfTags}" default-value="1"
-     */
-    protected Integer numberOfTags;
     
     /**
      * @parameter expression="${jahia.cg.visibilityEnabled}" default-value="false"
@@ -132,28 +110,24 @@ public class GenerateSiteMojo extends AbstractContentGeneratorMojo {
 	 */
 	protected Integer nbPagesPerLevel;
     
-	public ExportBO initExport() throws MojoExecutionException {
-		ExportBO export = super.initExport();
-		return export;
-	}
-	
-	@Override
-	public void execute() throws MojoExecutionException, MojoFailureException {
+	private ExportBO initExport() throws MojoExecutionException {
 		ContentGeneratorService contentGeneratorService = ContentGeneratorService.getInstance();
-		ExportBO export = super.initExport();
+		boolean filesRequired = false;
+		if (ContentGeneratorCst.VALUE_ALL.equals(addFiles) || ContentGeneratorCst.VALUE_RANDOM.equals(addFiles)) {
+			filesRequired = true;
+		}
+			
+		ExportBO export = super.initExport(filesRequired);
 		
         export.setNbPagesTopLevel(nbPagesOnTopLevel);
         export.setNbSubLevels(nbSubLevels);
         export.setNbSubPagesPerPage(nbPagesPerLevel);
-        export.setNumberOfBigTextPerPage(numberOfBigTextPerPage);
-        export.setNumberOfUsers(numberOfUsers);
+        export.setNumberOfBigTextPerPage(numberOfBigTextPerPage);        
         export.setNumberOfGroups(numberOfGroups);
         export.setNumberOfUsersPerGroup(numberOfUsersPerGroup);
         export.setGroupAclRatio(groupAclRatio);
         export.setUsersAclRatio(usersAclRatio);
         export.setNumberOfSites(numberOfSites);
-        
-        export.setNumberOfTags(numberOfTags);
         
         if (visibilityEnabled == null) {
         	visibilityEnabled = Boolean.FALSE;
@@ -166,6 +140,14 @@ public class GenerateSiteMojo extends AbstractContentGeneratorMojo {
         Integer totalPages = contentGeneratorService.getTotalNumberOfPagesNeeded(nbPagesOnTopLevel, nbSubLevels,
 				nbPagesPerLevel);
 		export.setTotalPages(totalPages);
+		return export;
+	}
+	
+	@Override
+	public void execute() throws MojoExecutionException, MojoFailureException {
+		ContentGeneratorService contentGeneratorService = ContentGeneratorService.getInstance();
+		
+		ExportBO export = this.initExport();
 		if (export.getTotalPages().compareTo(ContentGeneratorCst.MAX_TOTAL_PAGES) > 0) {
 			throw new MojoExecutionException("You asked to generate " + export.getTotalPages()
 					+ " pages, the maximum allowed is " + ContentGeneratorCst.MAX_TOTAL_PAGES);

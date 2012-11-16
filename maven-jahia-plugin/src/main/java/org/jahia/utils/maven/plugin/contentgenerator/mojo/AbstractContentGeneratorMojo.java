@@ -67,8 +67,6 @@ public abstract class AbstractContentGeneratorMojo extends AbstractMojo {
 	 */
 	protected String outputFileName;
 
-
-
 	/**
 	 * Local directory that contains files to be included in Jahia pages or Wise instances
 	 * @parameter expression="${jahia.cg.poolDirectory}" default-value="files_pool"
@@ -82,7 +80,7 @@ public abstract class AbstractContentGeneratorMojo extends AbstractMojo {
 	 * 
 	 * @return a new export BO containing all the parameters
 	 */
-	protected ExportBO initExport() throws MojoExecutionException {
+	protected ExportBO initExport(boolean filesRequired) throws MojoExecutionException {
 		ExportBO export = new ExportBO();
 
 		/**
@@ -143,16 +141,7 @@ public abstract class AbstractContentGeneratorMojo extends AbstractMojo {
 		File outputMapFile = new File(outputDirectory, "sitemap.txt");
 		export.setMapFile(outputMapFile);
 
-		initFilesProperties(export);
-
-		return export;
-	}
-	
-	protected ExportBO initFilesProperties(ExportBO export) throws MojoExecutionException {
-		// TODO: add "and if called goal is NOT generate-files"
-		// because the execution fails if we want to generate files with
-		// jahia.cg.addFiles == none
-		if (ContentGeneratorCst.VALUE_ALL.equals(export.getAddFilesToPage()) || ContentGeneratorCst.VALUE_RANDOM.equals(export.getAddFilesToPage())) {
+		if (filesRequired) {
 			if (poolDirectory == null) {
 				throw new MojoExecutionException("Pool directory property can not be null");
 			}
@@ -166,6 +155,14 @@ public abstract class AbstractContentGeneratorMojo extends AbstractMojo {
 			List<String> filesNamesAvailable = fileService.getFileNamesAvailable(export.getFilesDirectory());
 			export.setFileNames(filesNamesAvailable);
 		}
+		return export;
+	}
+	
+	protected ExportBO initFilesProperties(ExportBO export) throws MojoExecutionException {
+		// TODO: add "and if called goal is NOT generate-files"
+		// because the execution fails if we want to generate files with
+		// jahia.cg.addFiles == none
+
 		return export;
 	}
 }
