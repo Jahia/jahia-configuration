@@ -25,7 +25,7 @@ public class GenerateWiseMojo extends ContentGeneratorMojo {
 	/**
 	 * Number of docspace to create
 	 * N.B: it currently works only for one
-	 * @parameter expression="${jahia.cg.wise.nbDocspaces}" default-value="1 description"
+	 * @parameter expression="${jahia.cg.wise.nbDocspaces}" default-value="1"
 	 * @required
 	 */
 	private Integer nbDocspaces;
