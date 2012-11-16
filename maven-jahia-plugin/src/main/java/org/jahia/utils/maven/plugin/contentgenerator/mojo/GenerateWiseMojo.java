@@ -131,6 +131,19 @@ public class GenerateWiseMojo extends ContentGeneratorMojo {
 	 * @parameter expression="${jahia.cg.endCreationDateRange}" default-value="2012-10-01"
 	 */
 	protected String endCreationDateRange;
+	
+    /**
+     * Tags to create. They will randomly assigned to the generated files.
+     * @parameter expression="${jahia.cg.numberOfTags}" default-value="1"
+     */
+    protected Integer numberOfTags;
+    
+	/**
+	 * Wise instance key
+	 * @parameter expression="${jahia.cg.siteKey}" default-value="testSite"
+	 * @required
+	 */
+	protected String wiseInstanceKey;
 
 	
 	public ExportBO initExport() throws MojoExecutionException {
@@ -149,7 +162,8 @@ public class GenerateWiseMojo extends ContentGeneratorMojo {
 		wiseExport.setNumberOfOwners(numberOfOwners);
 		wiseExport.setNumberOfEditors(numberOfEditors);
 		wiseExport.setNumberOfCollaborators(numberOfCollaborators);
-				
+		wiseExport.setNumberOfTags(numberOfTags);
+		wiseExport.setWiseInstanceKey(wiseInstanceKey);
 		DateFormat df = new SimpleDateFormat(ContentGeneratorCst.DATE_RANGE_FORMAT);
 		Date dStartCreationDateRange = null;
 		Date dEndCreationDateRange = null;
