@@ -166,6 +166,11 @@ public class GenerateWiseMojo extends ContentGeneratorMojo {
 		wiseExport.setStartCreationDateRange(dStartCreationDateRange);
 		wiseExport.setEndCreationDateRange(dEndCreationDateRange);
 		
+		// Trick to init file pool directory. Should clean this.
+		if (wiseExport.getNbFilesPerFolder() > 0) {
+			wiseExport.setAddFilesToPage(ContentGeneratorCst.VALUE_ALL);
+		}
+		initFilesProperties(wiseExport);
 		return wiseExport;
 	}
 	
