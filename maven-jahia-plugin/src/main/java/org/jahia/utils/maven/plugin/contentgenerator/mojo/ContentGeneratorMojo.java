@@ -2,14 +2,12 @@ package org.jahia.utils.maven.plugin.contentgenerator.mojo;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.jahia.utils.maven.plugin.contentgenerator.ContentGeneratorService;
 import org.jahia.utils.maven.plugin.contentgenerator.FileService;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
@@ -93,7 +91,6 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
 	 */
 	protected ExportBO initExport() throws MojoExecutionException {
 		ExportBO export = new ExportBO();
-		ContentGeneratorService contentGeneratorService = ContentGeneratorService.getInstance();
 
 		/**
 		 * Database
@@ -156,7 +153,7 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
 		// TODO: add "and if called goal is NOT generate-files"
 		// because the execution fails if we want to generate files with jahia.cg.addFiles == none
 		if (ContentGeneratorCst.VALUE_ALL.equals(export.getAddFilesToPage())
-				|| ContentGeneratorCst.VALUE_RANDOM.equals(export.getAddFilesToPage())) {
+				|| ContentGeneratorCst.VALUE_RANDOM.equals(export.getAddFilesToPage()) || export.getNbFilesPerFolder() > 0) {
 			if (poolDirectory == null) {
 				throw new MojoExecutionException("Pool directory property can not be null");
 			}
