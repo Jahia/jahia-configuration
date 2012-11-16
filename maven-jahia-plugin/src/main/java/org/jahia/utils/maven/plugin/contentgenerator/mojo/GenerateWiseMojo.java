@@ -22,7 +22,7 @@ import org.jahia.utils.maven.plugin.contentgenerator.wise.WiseService;
  * @author Guillaume Lucazeau
  * 
  */
-public class GenerateWiseMojo extends ContentGeneratorMojo {
+public class GenerateWiseMojo extends AbstractContentGeneratorMojo {
 
 	/**
 	 * Number of docspace to create

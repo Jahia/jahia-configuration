@@ -15,7 +15,7 @@ import org.w3c.dom.DOMException;
  * @author Guillaume Lucazeau
  * 
  */
-public class GenerateSiteMojo extends ContentGeneratorMojo {
+public class GenerateSiteMojo extends AbstractContentGeneratorMojo {
 	
 	/**
 	 * Number of big text container per page

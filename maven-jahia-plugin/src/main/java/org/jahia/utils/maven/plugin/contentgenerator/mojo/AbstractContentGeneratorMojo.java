@@ -13,14 +13,7 @@ import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.DatabaseProperties;
 
-/**
- * This goal is the common configuration and launcher for Jahia sites and Wise instances generation, it shouldn't be called directly
- * @goal generate
- * @requiresProject false
- * @author Guillaume Lucazeau
- * 
- */
-public abstract class ContentGeneratorMojo extends AbstractMojo {
+public abstract class AbstractContentGeneratorMojo extends AbstractMojo {
 
 	/**
 	 * MySQL server hosting the Wikipedia articles database

@@ -11,7 +11,7 @@ import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
  * @goal generate-files
  * @requiresProject false
  */
-public class GenerateFilesMojo extends ContentGeneratorMojo {
+public class GenerateFilesMojo extends AbstractContentGeneratorMojo {
 	
 	/**
 	 * Number of files to generate (text files filled with a random Wikipedia article)
