@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Jahia maven plugin">
+<project name="Maven Jahia plugin">
 	<publishDate position="right"/>
    	<version position="right" />
-	<bannerLeft>
-		<name>Maven</name>
-		<src>http://maven.apache.org/images/apache-maven-project.png</src>
-		<href>http://maven.apache.org/</href>
-	</bannerLeft>
-	<bannerRight>
-		<src>http://maven.apache.org/images/maven-small.gif</src>
-	</bannerRight>
+    <bannerLeft>
+        <name>Maven Jahia plugin</name>
+        <src>images/logo-top.png</src>
+        <href>index.html</href>
+    </bannerLeft>
+    <skin>
+        <groupId>org.jahia</groupId>
+        <artifactId>site-skin-jahia-com</artifactId>
+        <version>6.5-SNAPSHOT</version>
+    </skin>
   <body>
   
     <menu name="Overview">
