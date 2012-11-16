@@ -48,8 +48,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipEntry;
 
 /**
- * User: islam
- * Time: 14:49:54
+ * Copy Jahia war
  * @goal copy-jahiawar
  * @requiresDependencyResolution runtime
  */
