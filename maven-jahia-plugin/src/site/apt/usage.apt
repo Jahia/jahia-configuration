@@ -1,5 +1,27 @@
 Usage
 
-  Generate a Wise instance for performances tests
+* Generate a Wise instance for performances tests
   
-  Automatically install Jahia using a Maven build
+* Automatically install Jahia using a Maven build
+  
+* Running your tests
+  
+  You first need to deploy your test module into Jahia using the jahia:deploy goal, and then restart your Tomcat server.
+  
+  Runs a single test:
+  
++-------------
+  mvn -Dtest=org.jahia.selenium.admin.CreateUsersTest jahia:test surefire-report:report-only
++-------------
+
+  Runs a complete test suite:
+  
++-------------
+  mvn -Dtest=org.jahia.selenium.scripts.admin.AdminTestSuite jahia:test surefire-report:report-only
++-------------
+
+  Runs all the test:
+   
++-------------
+  mvn jahia:test surefire-report:report-only
++-------------
