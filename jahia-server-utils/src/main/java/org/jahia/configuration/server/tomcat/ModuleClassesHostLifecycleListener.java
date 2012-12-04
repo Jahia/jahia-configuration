@@ -90,6 +90,25 @@ public class ModuleClassesHostLifecycleListener implements LifecycleListener {
         }
         return count;
     }
+    
+    /**
+     * Checks if the jar is already deployed
+     * and we don't try to deploy a new version (using "last modified time")
+     * @todo should be put in a central location to be reused in the mojos and listeners
+     * @param entry
+     * @param targetDir
+     * @return isNewer
+     */
+    private boolean isClassNewer(JarEntry entry, File targetDir) {
+    	boolean isNewer = false;
+    	File f = new File (targetDir + "/" + entry.getName());
+    	if (f.exists() && f.lastModified() >= entry.getTime()) {
+    		log.info(entry.getName() + "is already deployed and newer than the current entry");
+    	} else {
+    		isNewer = true;
+    	}
+    	return isNewer;
+    }
 
     protected void deployModuleClasses(File jahiaDir, File module) throws IOException {
         if (log.isLoggable(Level.FINE)) {
@@ -119,7 +138,9 @@ public class ModuleClassesHostLifecycleListener implements LifecycleListener {
                     BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(target));
                     InputStream in = jar.getInputStream(entry);
                     try {
-                        copy(in, out);
+                    	if (isClassNewer(entry, target)) {
+                    		copy(in, out);
+                    	}
                     } finally {
                         try {
                             out.close();
@@ -132,6 +153,8 @@ public class ModuleClassesHostLifecycleListener implements LifecycleListener {
                             // ignore
                         }
                     }
+                    
+                    
                     long lastModified = entry.getTime();
                     if (lastModified > 0) {
                         target.setLastModified(lastModified);

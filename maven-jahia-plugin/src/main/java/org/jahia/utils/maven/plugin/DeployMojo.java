@@ -33,36 +33,45 @@
 
 package org.jahia.utils.maven.plugin;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.resolver.ArtifactCollector;
-import org.apache.maven.artifact.resolver.ArtifactResolutionException;
-import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
-import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.shared.dependency.tree.DependencyNode;
-import org.apache.maven.shared.dependency.tree.DependencyTreeBuilder;
-import org.apache.maven.shared.dependency.tree.DependencyTreeBuilderException;
-import org.apache.maven.shared.dependency.tree.DependencyTree;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.ConnectException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
+import org.apache.maven.artifact.resolver.ArtifactCollector;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionException;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.shared.dependency.tree.DependencyNode;
+import org.apache.maven.shared.dependency.tree.DependencyTree;
+import org.apache.maven.shared.dependency.tree.DependencyTreeBuilder;
+import org.apache.maven.shared.dependency.tree.DependencyTreeBuilderException;
 import org.codehaus.plexus.util.SelectorUtils;
+import org.jahia.configuration.deployers.ServerDeploymentFactory;
+import org.jahia.configuration.deployers.ServerDeploymentInterface;
 
-import java.util.*;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipEntry;
-import java.io.*;
-import java.net.ConnectException;
-
+import com.sun.jdi.Bootstrap;
+import com.sun.jdi.ReferenceType;
+import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.connect.AttachingConnector;
 import com.sun.jdi.connect.Connector;
 import com.sun.jdi.connect.IllegalConnectorArgumentsException;
-import com.sun.jdi.VirtualMachine;
-import com.sun.jdi.Bootstrap;
-import com.sun.jdi.ReferenceType;
-import org.jahia.configuration.deployers.ServerDeploymentFactory;
-import org.jahia.configuration.deployers.ServerDeploymentInterface;
 
 /**
  * Jahia server deployment mojo.
@@ -243,6 +252,25 @@ public class DeployMojo extends AbstractManagementMojo {
             getLog().error("Error while deploying SAR or RAR project", e);
         }
     }
+    
+    /**
+     * Checks if the jar is already deployed
+     * and we don't try to deploy a new version (using "last modified time")
+     * @todo should be put in a central location to be reused in the mojos and listeners
+     * @param entry
+     * @param targetDir
+     * @return isNewer
+     */
+    private boolean isClassNewer(File classFile, File targetDir) {
+    	boolean isNewer = false;
+    	File f = new File (targetDir + "/" + classFile.getName());
+    	if (f.exists() && f.lastModified() >= classFile.lastModified()) {
+    		getLog().info(classFile.getName() + "is already deployed and newer than the current entry");
+    	} else {
+    		isNewer = true;
+    	}
+    	return isNewer;
+    }
 
     /**
      * Copy template resources from output folder to the jsp/templates and WEB-INF/classes of jahia
@@ -266,7 +294,15 @@ public class DeployMojo extends AbstractManagementMojo {
                 targetLibs.mkdirs();
             }
             getLog().info("Copying module libraries from " + libs + " into " + targetLibs);
-            FileUtils.copyDirectoryToDirectory(libs, targetLibs);
+            // FileUtils.copyDirectoryToDirectory(libs, targetLibs);
+            for (File library : libs.listFiles()) {
+                if (isClassNewer(library, targetLibs)) {
+                	FileUtils.copyFile(library, targetLibs);
+                } else {
+                	 getLog().info(library.getName() + "is already deployed and newer than the current entry");
+                }
+              }
+            
         }
         
         // copy DB scripts if any

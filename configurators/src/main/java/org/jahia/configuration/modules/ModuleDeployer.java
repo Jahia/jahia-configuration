@@ -29,7 +29,23 @@ public class ModuleDeployer {
         copyDbScripts(file, new File(output,"../../.."));
     }
 
-    private void copyJars(File warFile, File targetDir) {
+    /**
+     * Checks if the jar is already deployed
+     * and we don't try to deploy a new version (using "last modified time")
+     * @todo should be put in a central location to be reused in the mojos and listeners
+     * @param entry
+     * @param targetDir
+     * @return isNewer
+     */
+    private boolean isClassNewer(JarEntry entry, File targetDir) {
+    	File fEntry = new File(targetDir + "/" + entry.getName());
+    	if (fEntry.exists() && fEntry.lastModified() >= entry.getTime()) {
+    		return false;
+    	}
+    	return true;
+    }
+    
+    public void copyJars(File warFile, File targetDir) {
         JarFile war = null;
         try {
             war = new JarFile(warFile);
@@ -38,22 +54,27 @@ public class ModuleDeployer {
                 Enumeration<JarEntry> entries = war.entries();
                 while (entries.hasMoreElements()) {
                     JarEntry entry = entries.nextElement();
-                    if (entry.getName().startsWith("WEB-INF/lib/") && entry.getName().endsWith(".jar")) {
-                        deployed++;
-                        InputStream source = war.getInputStream(entry);
-                        File libsDir = new File(targetDir, "WEB-INF/lib");
-                        if (!libsDir.exists()) {
-                            libsDir.mkdirs();
-                        }
-                        File targetFile = new File(targetDir, entry.getName());
-                        FileOutputStream target = new FileOutputStream(targetFile);
-                        IOUtils.copy(source, target);
-                        IOUtils.closeQuietly(source);
-                        target.flush();
-                        IOUtils.closeQuietly(target);
-                        if (entry.getTime() > 0) {
-                            targetFile.setLastModified(entry.getTime());
-                        }
+                    
+                    if (isClassNewer(entry, targetDir)) {
+	                    if (entry.getName().startsWith("WEB-INF/lib/") && entry.getName().endsWith(".jar")) {
+	                        deployed++;
+	                        InputStream source = war.getInputStream(entry);
+	                        File libsDir = new File(targetDir, "WEB-INF/lib");
+	                        if (!libsDir.exists()) {
+	                            libsDir.mkdirs();
+	                        }
+	                        File targetFile = new File(targetDir, entry.getName());
+	                        FileOutputStream target = new FileOutputStream(targetFile);
+	                        IOUtils.copy(source, target);
+	                        IOUtils.closeQuietly(source);
+	                        target.flush();
+	                        IOUtils.closeQuietly(target);
+	                        if (entry.getTime() > 0) {
+	                            targetFile.setLastModified(entry.getTime());
+	                        }
+	                    }
+                    } else {
+                    	logger.info(entry.getName() + "is already deployed and newer than the current entry");
                     }
                 }
             }
