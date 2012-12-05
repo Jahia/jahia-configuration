@@ -448,6 +448,8 @@ public class JahiaGlobalConfigurator {
 
         cleanDirectory(new File(webappDir + "/WEB-INF/var/search_indexes"));
 
+        cleanDirectory(new File(webappDir + "/WEB-INF/var/felix-cache"));
+
         File[] templateDirs = new File(webappDir + "/modules")
                 .listFiles((FilenameFilter) DirectoryFileFilter.DIRECTORY);
         if (templateDirs != null) {
@@ -455,6 +457,10 @@ public class JahiaGlobalConfigurator {
                 cleanDirectory(templateDir);
                 templateDir.delete();
             }
+        }
+
+        if (new File(webappDir + "/WEB-INF/var/definitions.properties").exists()) {
+            new File(webappDir + "/WEB-INF/var/definitions.properties").delete();
         }
 
         getLogger().info("Finished deleting content of the " + webappDir + "/WEB-INF/var/repository and " + webappDir + "+/WEB-INF/var/search_indexes folders");
