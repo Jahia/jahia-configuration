@@ -18,8 +18,14 @@ public class UserBO {
 
     private String email;
     
-    private List<CollectionBO> collections;
+    private List<CollectionBO> collections = new ArrayList<CollectionBO>();
 
+	public UserBO(String name, String password) {
+		this.name = name;
+		this.password = password;
+        this.email = this.name + "@example.com";
+	}
+	
 	public UserBO(String name, String password, String pathJcr, List<CollectionBO> collections) {
 		this.name = name;
 		this.password = password;

@@ -36,7 +36,7 @@ public class UserGroupService {
         contentNode.addContent(usersNode);
 
         // no collections for root (Wise)
-        UserBO rootUser = new UserBO("root", JahiaGlobalConfigurator.encryptPassword("root"), null, null);
+        UserBO rootUser = new UserBO("root", JahiaGlobalConfigurator.encryptPassword("root"));
         Element rootUserNode = rootUser.getJcrXml();
         usersNode.addContent(rootUserNode);
 
@@ -125,7 +125,7 @@ public class UserGroupService {
             String username = "user" + userid;
             String pathJcr = getPathForUsername(username);
             
-            List<CollectionBO> collections = null;
+            List<CollectionBO> collections = new ArrayList<CollectionBO>();
         	if (nbCollectionsPerUser != null && nbCollectionsPerUser.compareTo(0) > 0) {
         		CollectionService collectionService = CollectionService.getInstance();
         		collections = collectionService.generateCollections(nbCollectionsPerUser, nbFilesPerCollection, nbFilesGenerated, username);
