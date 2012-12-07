@@ -39,15 +39,15 @@ public class GenerateWiseMojo extends AbstractJahiaSiteMojo {
 	private Integer nbPolls;
 	
 	/**
-	 * Number of Notes
-	 * Notes contain a random Wikipedia article
+	 * Number of notes to generate. 
+	 * Each note contains a random Wikipedia article
 	 * @parameter expression="${jahia.cg.wise.nbNotes}" default-value="10"
 	 */
 	private Integer nbNotes;
 	
 	/**
-	 * Number of tasks
-	 * Tasks have a random user as creator and assignee
+	 * Number of tasks to generate.
+	 * Each task has a random user as creator and assignee
 	 * @parameter expression="${jahia.cg.wise.nbTasks}" default-value="10"
 	 */
 	private Integer nbTasks;
@@ -88,7 +88,7 @@ public class GenerateWiseMojo extends AbstractJahiaSiteMojo {
 	private Integer nbFilesPerCollection;
 	
 	/**
-	 * Number of users with the role "docspace-owner"
+	 * Number of users with the role "docspace-owner". 
 	 * They come first (user 0 to userN)
 	 * @parameter expression="${jahia.cg.numberOfOwners}" default-value="5"
 	 * @required
@@ -96,31 +96,31 @@ public class GenerateWiseMojo extends AbstractJahiaSiteMojo {
 	protected Integer numberOfOwners;
 	
 	/**
-	 * Number of users with the role "docspace-editor"
-	 * They come after the owners
+	 * Number of users with the role "docspace-editor". 
+	 * They come after the owners.
 	 * @parameter expression="${jahia.cg.numberOfEditors}" default-value="10"
 	 * @required
 	 */
 	protected Integer numberOfEditors;
 	
 	/**
-	 * Number of users with the role "docspace-collaborator"
-	 * They come after the editors
+	 * Number of users with the role "docspace-collaborator". 
+	 * They come after the editors.
 	 * @parameter expression="${jahia.cg.numberOfCollaborators}" default-value="15"
 	 * @required
 	 */
 	protected Integer numberOfCollaborators;
 	
 	/**
-	 * Start date for the range used to create a random creation date assigned to files in the JCR
-	 * It actually doesn't work as during the import the date is replaced with the current date
+	 * Start date for the range used to create a random creation date assigned to files in the JCR. 
+	 * It actually doesn't work as during the import the date is replaced with the current date.
 	 * @parameter expression="${jahia.cg.startCreationDateRange}" default-value="2010-01-01"
 	 */
 	protected String startCreationDateRange;
 	
 	/**
-	 * End date for the range used to create a random creation date assigned to files in the JCR
-	 * It actually doesn't work as during the import the date is replaced with the current date
+	 * End date for the range used to create a random creation date assigned to files in the JCR. 
+	 * It actually doesn't work as during the import the date is replaced with the current date.
 	 * @parameter expression="${jahia.cg.endCreationDateRange}" default-value="2012-10-01"
 	 */
 	protected String endCreationDateRange;
