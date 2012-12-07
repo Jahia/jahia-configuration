@@ -176,6 +176,14 @@ public class FileBO implements java.io.Serializable, Comparable<FileBO> {
 
 	@Override
 	public boolean equals(Object arg0) {
+		if (arg0 == null) {
+			return false;
+		}
+		
+		if (!(arg0 instanceof FileBO)) {
+			return false;
+		}
+		
 		FileBO f = (FileBO) arg0;
 		// return this.fileName.equals(f.getFileName());
 		return this.fileName.intern() == f.getFileName().intern();
