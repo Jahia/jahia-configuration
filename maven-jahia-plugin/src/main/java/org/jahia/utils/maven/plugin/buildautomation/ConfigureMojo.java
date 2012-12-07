@@ -45,10 +45,8 @@ import org.jahia.utils.maven.plugin.MojoLogger;
 import org.jahia.configuration.configurators.JahiaGlobalConfigurator;
 
 /**
- * Implementation of the Jahia's configuration Mojo. 
- * User: islam
- * Date: Jul 28, 2008
- * Time: 3:40:32 PM
+ * Configure the deployed Jahia instance
+ * Basically set everything that can be found in the jahia.properties and jahia.advance.properties files.
  *
  * @goal configure
  * @requiresDependencyResolution runtime
