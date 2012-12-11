@@ -38,7 +38,7 @@ public class ModuleDeployer {
      * @return isNewer
      */
     private boolean isClassNewer(JarEntry entry, File targetDir) {
-    	File fEntry = new File(targetDir + "/" + entry.getName());
+    	File fEntry = new File(targetDir, entry.getName());
     	if (fEntry.exists() && fEntry.lastModified() >= entry.getTime()) {
     		return false;
     	}
@@ -74,7 +74,7 @@ public class ModuleDeployer {
 	                        }
 	                    }
                     } else {
-                    	logger.info(entry.getName() + "is already deployed and newer than the current entry");
+                    	logger.info(entry.getName() + " is already deployed and newer than the current entry");
                     }
                 }
             }
