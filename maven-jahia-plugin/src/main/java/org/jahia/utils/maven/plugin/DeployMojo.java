@@ -263,9 +263,9 @@ public class DeployMojo extends AbstractManagementMojo {
      */
     private boolean isClassNewer(File classFile, File targetDir) {
     	boolean isNewer = false;
-    	File f = new File (targetDir + "/" + classFile.getName());
+    	File f = new File (targetDir, classFile.getName());
     	if (f.exists() && f.lastModified() >= classFile.lastModified()) {
-    		getLog().info(classFile.getName() + "is already deployed and newer than the current entry");
+    		getLog().info(classFile.getName() + " is already deployed and newer than the current entry");
     	} else {
     		isNewer = true;
     	}
@@ -289,20 +289,21 @@ public class DeployMojo extends AbstractManagementMojo {
         // deploy libraries if any
         File libs = new File(new File(output, project.getBuild().getFinalName()), "WEB-INF/lib");
         if (libs.isDirectory()) {
-            File targetLibs = new File(webappDir, "WEB-INF");
+            File targetLibs = new File(webappDir, "WEB-INF/lib");
             if (!targetLibs.isDirectory()) {
                 targetLibs.mkdirs();
             }
             getLog().info("Copying module libraries from " + libs + " into " + targetLibs);
-            // FileUtils.copyDirectoryToDirectory(libs, targetLibs);
+            int count = 0;
             for (File library : libs.listFiles()) {
                 if (isClassNewer(library, targetLibs)) {
-                	FileUtils.copyFileToDirectory(library, targetLibs);
+                    FileUtils.copyFileToDirectory(library, targetLibs);
+                    count++;
                 } else {
-                	 getLog().info(library.getName() + "is already deployed and newer than the current entry");
+                    getLog().info(library.getName() + " is already deployed and newer than the current entry");
                 }
-              }
-            
+            }
+            getLog().info("Copied " + count + " lib(s) from " + libs + " into " + targetLibs);
         }
         
         // copy DB scripts if any
