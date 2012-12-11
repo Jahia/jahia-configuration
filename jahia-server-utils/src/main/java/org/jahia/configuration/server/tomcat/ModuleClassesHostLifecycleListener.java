@@ -101,9 +101,9 @@ public class ModuleClassesHostLifecycleListener implements LifecycleListener {
      */
     private boolean isClassNewer(JarEntry entry, File targetDir) {
     	boolean isNewer = false;
-    	File f = new File (targetDir + "/" + entry.getName());
+    	File f = new File (targetDir, entry.getName());
     	if (f.exists() && f.lastModified() >= entry.getTime()) {
-    		log.info(entry.getName() + "is already deployed and newer than the current entry");
+    		log.info(entry.getName() + " is already deployed and newer than the current entry");
     	} else {
     		isNewer = true;
     	}
@@ -135,24 +135,24 @@ public class ModuleClassesHostLifecycleListener implements LifecycleListener {
                             continue;
                         }
                     }
-                    BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(target));
-                    InputStream in = jar.getInputStream(entry);
-                    try {
-                    	if (isClassNewer(entry, target)) {
-                    		copy(in, out);
-                    	}
-                    } finally {
-                        try {
-                            out.close();
-                        } catch (Exception e) {
-                            // ignore
-                        }
-                        try {
-                            in.close();
-                        } catch (Exception e) {
-                            // ignore
-                        }
-                    }
+                	if (isClassNewer(entry, target)) {
+	                    BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(target));
+	                    InputStream in = jar.getInputStream(entry);
+						try {
+							copy(in, out);
+						} finally {
+	                        try {
+	                            out.close();
+	                        } catch (Exception e) {
+	                            // ignore
+	                        }
+	                        try {
+	                            in.close();
+	                        } catch (Exception e) {
+	                            // ignore
+	                        }
+	                    }
+                	}
                     
                     
                     long lastModified = entry.getTime();
