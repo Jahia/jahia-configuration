@@ -103,8 +103,6 @@ public class FileService {
 		for (Iterator<File> iterator = filesToCopy.iterator(); iterator.hasNext();) {
 			oldFile = iterator.next();
 
-			String fileName = oldFile.getName();
-
 			// creates a new directory for each file, with the same name
 			// File newDirForFile = new File(destDir + sep + getFileNameWithoutExtension(fileName));
 			// newDirForFile.mkdir();
@@ -126,15 +124,6 @@ public class FileService {
 	 */
 	public void createAndPopulateFilesXmlFile(File tempXmlFile, List<File> fileNames) throws IOException {
 		GregorianCalendar gc  = (GregorianCalendar) GregorianCalendar.getInstance();
-		int year = gc.get(GregorianCalendar.YEAR);
-		int month = gc.get(GregorianCalendar.MONTH);
-		int day = gc.get(GregorianCalendar.DAY_OF_MONTH);
-		int hour = gc.get(GregorianCalendar.HOUR);
-		int minute = gc.get(GregorianCalendar.MINUTE);
-		int second = gc.get(GregorianCalendar.SECOND);
-		
-		//String now = year + "-" + month + "-" + day + "T" + hour + ":" + minute + ":" + second;
-		String now = "2011-06-09T12:18:35.562-04:00";
 		
 		FileUtils.writeStringToFile(tempXmlFile, sep);
 
