@@ -299,8 +299,6 @@ public class DeployMojo extends AbstractManagementMojo {
                 if (isClassNewer(library, targetLibs)) {
                     FileUtils.copyFileToDirectory(library, targetLibs);
                     count++;
-                } else {
-                    getLog().info(library.getName() + " is already deployed and newer than the current entry");
                 }
             }
             getLog().info("Copied " + count + " lib(s) from " + libs + " into " + targetLibs);
