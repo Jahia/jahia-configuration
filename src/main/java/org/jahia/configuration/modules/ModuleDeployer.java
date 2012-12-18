@@ -16,17 +16,21 @@ import java.util.jar.JarFile;
 public class ModuleDeployer {
     private File output;
     private AbstractLogger logger;
+    private boolean deployModuleForOSGiTransformation;
 
-    public ModuleDeployer(File output, AbstractLogger logger) {
+    public ModuleDeployer(File output, AbstractLogger logger, boolean deployModuleForOSGiTransformation) {
         this.output = output;
         this.logger = logger;
+        this.deployModuleForOSGiTransformation = deployModuleForOSGiTransformation;
     }
 
     public void deployModule(File file) throws IOException {
         logger.info("Copy modules JAR " + file.getName() + " to shared modules folder");
         FileUtils.copyFileToDirectory(file, output);
-        copyJars(file, new File(output,"../../.."));
-        copyDbScripts(file, new File(output,"../../.."));
+        if (!deployModuleForOSGiTransformation) {
+            copyJars(file, new File(output,"../../.."));
+            copyDbScripts(file, new File(output,"../../.."));
+        }
     }
 
     /**

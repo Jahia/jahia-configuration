@@ -25,7 +25,7 @@ public class Main {
                         System.exit(-1);
                     }
     
-                    ModuleDeployer deployer = new ModuleDeployer(output, logger);
+                    ModuleDeployer deployer = new ModuleDeployer(output, logger, false);
     
                     try {
                         logger.info("Deploying modules to Jahia Web application at " + target + "\n");
