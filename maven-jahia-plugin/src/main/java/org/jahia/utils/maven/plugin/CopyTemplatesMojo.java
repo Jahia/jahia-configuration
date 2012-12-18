@@ -70,6 +70,11 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
      */
     protected boolean deployToServer;
 
+    /**
+     * @parameter expression="${jahia.deploy.deployModuleForOSGiTransformation}" default-value="false"
+     */
+    private boolean deployModuleForOSGiTransformation;
+
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
@@ -80,15 +85,28 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
         File target;
         if(deployToServer) {
             try {
-                target = new File(getWebappDeploymentDir(), "WEB-INF/var/shared_modules");
+                if (deployModuleForOSGiTransformation) {
+                    target = new File(getWebappDeploymentDir(), "WEB-INF/var/modules");
+                    if (!target.exists()) {
+                        target.mkdirs();
+                    }
+                } else {
+                    target = new File(getWebappDeploymentDir(), "WEB-INF/var/shared_modules");
+                }
             } catch(Exception e) {
                 throw new MojoExecutionException("Cannot deploy module", e);
             }
         } else {
+            if (deployModuleForOSGiTransformation) {
+                target = new File(output, "jahia/WEB-INF/var/modules");
+                if (!target.exists()) {
+                    target.mkdirs();
+                }
+            }
             target = new File(output, "jahia/WEB-INF/var/shared_modules");
         }
 
-        ModuleDeployer deployer = new ModuleDeployer(target, new MojoLogger(getLog()));
+        ModuleDeployer deployer = new ModuleDeployer(target, new MojoLogger(getLog()), deployModuleForOSGiTransformation);
         for (Artifact dependencyFile : (Iterable<Artifact>) dependencyFiles) {
             File file = dependencyFile.getFile();
             if (deployModules && (dependencyFile.getGroupId().equals("org.jahia.modules") || dependencyFile.getGroupId().equals("org.jahia.templates") || dependencyFile.getGroupId().endsWith(".jahia.modules")) || deployTests && dependencyFile.getGroupId().equals("org.jahia.test")) {

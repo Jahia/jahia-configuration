@@ -121,6 +121,11 @@ public class DeployMojo extends AbstractManagementMojo {
      * @parameter expression="${jahia.deploy.deployTests}" default-value="false"
      */
     private boolean deployTests;
+
+    /**
+     * @parameter expression="${jahia.deploy.deployModuleForOSGiTransformation}" default-value="false"
+     */
+    private boolean deployModuleForOSGiTransformation;
     
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
@@ -257,7 +262,6 @@ public class DeployMojo extends AbstractManagementMojo {
      * Checks if the jar is already deployed
      * and we don't try to deploy a new version (using "last modified time")
      * @todo should be put in a central location to be reused in the mojos and listeners
-     * @param entry
      * @param targetDir
      * @return isNewer
      */
@@ -280,6 +284,17 @@ public class DeployMojo extends AbstractManagementMojo {
         File webappDir = getWebappDeploymentDir();
         // starting from 6.5 we deploy templates as WAR files into
         // shared_templates
+        if (deployModuleForOSGiTransformation) {
+            File source = new File(output, project.getArtifactId() + "-" + project.getVersion() + "."
+                    + project.getPackaging());
+            File target = new File(webappDir, "WEB-INF/var/modules");
+            if (!target.exists()) {
+                target.mkdirs();
+            }
+            FileUtils.copyFileToDirectory(source, target);
+            getLog().info("Copied " + source + " into OSGi transformation directory " + target);
+            return;
+        }
         File source = new File(output, project.getArtifactId() + "-" + project.getVersion() + "."
                 + project.getPackaging());
         File target = new File(webappDir, "WEB-INF/var/shared_modules");
