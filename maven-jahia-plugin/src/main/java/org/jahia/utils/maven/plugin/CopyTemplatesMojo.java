@@ -102,8 +102,9 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
                 if (!target.exists()) {
                     target.mkdirs();
                 }
+            } else {
+                target = new File(output, "jahia/WEB-INF/var/shared_modules");
             }
-            target = new File(output, "jahia/WEB-INF/var/shared_modules");
         }
 
         ModuleDeployer deployer = new ModuleDeployer(target, new MojoLogger(getLog()), deployModuleForOSGiTransformation);
