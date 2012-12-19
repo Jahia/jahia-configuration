@@ -25,7 +25,11 @@ public class ModuleDeployer {
     }
 
     public void deployModule(File file) throws IOException {
-        logger.info("Copy modules JAR " + file.getName() + " to shared modules folder");
+        if (deployModuleForOSGiTransformation) {
+            logger.info("Copy module to OSGi transformation directory");
+        } else {
+            logger.info("Copy modules JAR " + file.getName() + " to shared modules folder");
+        }
         FileUtils.copyFileToDirectory(file, output);
         if (!deployModuleForOSGiTransformation) {
             copyJars(file, new File(output,"../../.."));
