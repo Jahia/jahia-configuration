@@ -237,13 +237,26 @@
 
 	<build>
         <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.jahia.server</groupId>
-                    <artifactId>jahia-maven-plugin</artifactId>
-                    <version>${project.version}</version>
-                </plugin>
-            </plugins>
+			<plugins>
+				<plugin>
+					<groupId>org.jahia.server</groupId>
+					<artifactId>jahia-maven-plugin</artifactId>
+					<version>${project.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>3.2</version>
+					<dependencies>
+						<dependency>
+							<!-- add support for ssh/scp -->
+							<groupId>org.apache.maven.wagon</groupId>
+							<artifactId>wagon-ssh</artifactId>
+							<version>1.0</version>
+						</dependency>
+					</dependencies>
+				</plugin>
+			</plugins>
         </pluginManagement>
 		<plugins>
 			<plugin>
