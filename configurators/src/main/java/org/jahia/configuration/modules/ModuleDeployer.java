@@ -26,7 +26,7 @@ public class ModuleDeployer {
 
     public void deployModule(File file) throws IOException {
         if (deployModuleForOSGiTransformation) {
-            logger.info("Copy module to OSGi transformation directory");
+            logger.info("Copy module "+file.getName()+" to OSGi transformation directory");
         } else {
             logger.info("Copy modules JAR " + file.getName() + " to shared modules folder");
         }
