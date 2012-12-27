@@ -59,25 +59,24 @@ import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.shared.dependency.tree.DependencyNode;
-import org.apache.maven.shared.dependency.tree.DependencyTree;
 import org.apache.maven.shared.dependency.tree.DependencyTreeBuilder;
 import org.apache.maven.shared.dependency.tree.DependencyTreeBuilderException;
 import org.codehaus.plexus.util.SelectorUtils;
 import org.jahia.configuration.deployers.ServerDeploymentFactory;
 import org.jahia.configuration.deployers.ServerDeploymentInterface;
+import org.jahia.configuration.modules.ModuleDeployer;
 
 import com.sun.jdi.Bootstrap;
 import com.sun.jdi.ReferenceType;
 import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.connect.AttachingConnector;
 import com.sun.jdi.connect.Connector;
+import com.sun.jdi.connect.Connector.Argument;
 import com.sun.jdi.connect.IllegalConnectorArgumentsException;
 
 /**
  * Jahia server deployment mojo.
  * @author Serge Huber
- * Date: 26 d�c. 2007
- * Time: 16:43:38
  * @goal deploy
  * @requiresDependencyResolution runtime
  */
@@ -259,76 +258,19 @@ public class DeployMojo extends AbstractManagementMojo {
     }
     
     /**
-     * Checks if the jar is already deployed
-     * and we don't try to deploy a new version (using "last modified time")
-     * @todo should be put in a central location to be reused in the mojos and listeners
-     * @param targetDir
-     * @return isNewer
-     */
-    private boolean isClassNewer(File classFile, File targetDir) {
-    	boolean isNewer = false;
-    	File f = new File (targetDir, classFile.getName());
-    	if (f.exists() && f.lastModified() >= classFile.lastModified()) {
-    		getLog().info(classFile.getName() + " is already deployed and newer than the current entry");
-    	} else {
-    		isNewer = true;
-    	}
-    	return isNewer;
-    }
-
-    /**
      * Copy template resources from output folder to the jsp/templates and WEB-INF/classes of jahia
      * @throws Exception
      */
     private void deployModuleProject() throws Exception {
-        File webappDir = getWebappDeploymentDir();
-        // starting from 6.5 we deploy templates as WAR files into
-        // shared_templates
-        if (deployModuleForOSGiTransformation) {
-            File source = new File(output, project.getArtifactId() + "-" + project.getVersion() + "."
-                    + project.getPackaging());
-            File target = new File(webappDir, "WEB-INF/var/modules");
-            if (!target.exists()) {
-                target.mkdirs();
-            }
-            FileUtils.copyFileToDirectory(source, target);
-            getLog().info("Copied " + source + " into OSGi transformation directory " + target);
-            return;
-        }
         File source = new File(output, project.getArtifactId() + "-" + project.getVersion() + "."
                 + project.getPackaging());
-        File target = new File(webappDir, "WEB-INF/var/shared_modules");
-        FileUtils.copyFileToDirectory(source, target);
-        getLog().info("Copied " + source + " into " + target);
+        File target = new File(getWebappDeploymentDir(), deployModuleForOSGiTransformation ? "WEB-INF/var/modules"
+                : "WEB-INF/var/shared_modules");
+        getLog().info("Deploying module " + source + " into " + target);
         
-        // deploy libraries if any
-        File libs = new File(new File(output, project.getBuild().getFinalName()), "WEB-INF/lib");
-        if (libs.isDirectory()) {
-            File targetLibs = new File(webappDir, "WEB-INF/lib");
-            if (!targetLibs.isDirectory()) {
-                targetLibs.mkdirs();
-            }
-            getLog().info("Copying module libraries from " + libs + " into " + targetLibs);
-            int count = 0;
-            for (File library : libs.listFiles()) {
-                if (isClassNewer(library, targetLibs)) {
-                    FileUtils.copyFileToDirectory(library, targetLibs);
-                    count++;
-                }
-            }
-            getLog().info("Copied " + count + " lib(s) from " + libs + " into " + targetLibs);
-        }
-        
-        // copy DB scripts if any
-        File dbScripts = new File(new File(output, project.getBuild().getFinalName()), "META-INF/db");
-        if (dbScripts.isDirectory()) {
-            File targetScripts = new File(webappDir, "WEB-INF/var/db/sql/schema");
-            if (!targetScripts.isDirectory()) {
-            	targetScripts.mkdirs();
-            }
-            getLog().info("Copying database scripts from " + dbScripts + " into " + targetScripts);
-            FileUtils.copyDirectory(dbScripts, targetScripts);
-        }
+        new ModuleDeployer(target, new MojoLogger(getLog()), deployModuleForOSGiTransformation).deployModule(source);
+
+        getLog().info("...done");
     }
 
     private void deployPrepackagedSiteProject() throws Exception {
@@ -375,8 +317,8 @@ public class DeployMojo extends AbstractManagementMojo {
         try {
         	boolean sharedLibraries = project.getGroupId().equals("org.jahia.server") && project.getArtifactId().equals("shared-libraries");
             DependencyNode rootNode = getRootDependencyNode();
-            List l = rootNode.getChildren();
-            for (Iterator iterator = l.iterator(); iterator.hasNext();) {
+            List<?> l = rootNode.getChildren();
+            for (Iterator<?> iterator = l.iterator(); iterator.hasNext();) {
                 DependencyNode dependencyNode = (DependencyNode) iterator.next();
                 Artifact artifact = dependencyNode.getArtifact();
                 if (artifact.getGroupId().equals("org.jahia.server")) {
@@ -412,11 +354,8 @@ public class DeployMojo extends AbstractManagementMojo {
 
 
     protected DependencyNode getRootDependencyNode() throws DependencyTreeBuilderException {
-        DependencyTree dependencyTree =
-                dependencyTreeBuilder.buildDependencyTree(project, localRepository, artifactFactory,
-                        artifactMetadataSource, artifactCollector);
-        DependencyNode rootNode = dependencyTree.getRootNode();
-        return rootNode;
+        return dependencyTreeBuilder.buildDependencyTree(project, localRepository, artifactFactory,
+                        artifactMetadataSource, null, artifactCollector);
     }
 
 
@@ -425,8 +364,8 @@ public class DeployMojo extends AbstractManagementMojo {
      * @throws Exception
      */
     protected void deployEarDependency(DependencyNode dependencyNode) throws ArtifactResolutionException, ArtifactNotFoundException {
-        List child = dependencyNode.getChildren();
-        for (Iterator iterator1 = child.iterator(); iterator1.hasNext();) {
+        List<?> child = dependencyNode.getChildren();
+        for (Iterator<?> iterator1 = child.iterator(); iterator1.hasNext();) {
             DependencyNode node = (DependencyNode) iterator1.next();
             Artifact artifact = node.getArtifact();
 
@@ -546,7 +485,7 @@ public class DeployMojo extends AbstractManagementMojo {
         String argumentsString = address.substring(colonIndex+1);
 
         AttachingConnector connector = (AttachingConnector) findConnector(connectorName);
-        Map arguments = connector.defaultArguments();
+        Map<String, Argument> arguments = connector.defaultArguments();
 
         StringTokenizer st = new StringTokenizer(argumentsString,",");
         while (st.hasMoreTokens()) {
@@ -598,8 +537,8 @@ public class DeployMojo extends AbstractManagementMojo {
     }
 
     private Connector findConnector(String name) {
-        List connectors = Bootstrap.virtualMachineManager().allConnectors();
-        Iterator iter = connectors.iterator();
+        List<?> connectors = Bootstrap.virtualMachineManager().allConnectors();
+        Iterator<?> iter = connectors.iterator();
         while (iter.hasNext()) {
             Connector connector = (Connector)iter.next();
             if (connector.name().equals(name)) {
@@ -634,7 +573,7 @@ public class DeployMojo extends AbstractManagementMojo {
         Map<ReferenceType,byte[]> map = new HashMap<ReferenceType,byte[]>();
 
         for (String className : classFiles.keySet()) {
-            List classes = vm.classesByName(className);
+            List<?> classes = vm.classesByName(className);
             if (classes.size() != 1) {
                 continue;
             }
