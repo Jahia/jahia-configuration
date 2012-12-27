@@ -11,8 +11,8 @@ import java.io.IOException;
 public class Main {
     public static void main(String[] args) {
         AbstractLogger logger = new ConsoleLogger(ConsoleLogger.LEVEL_INFO);
-        logger.info("\nJahia 6.6 Configuration Tool");
-        logger.info("Copyright 2002-2012 - Jahia Solutions Group SA http://www.jahia.com - All Rights Reserved\n");
+        logger.info("\nJahia 6.7 Configuration Tool");
+        logger.info("Copyright 2002-2013 - Jahia Solutions Group SA http://www.jahia.com - All Rights Reserved\n");
         if (args.length > 0) {
             if ((args[0].equals("--deploy-module") || args[0].equals("-dm")) && args.length > 2) {
                 try {
@@ -74,7 +74,7 @@ public class Main {
 
         logger.info("\nExamples:");
         logger.info(" java -jar configurators-x.yy-standalone.jar --configure /opt/jahia/install.properties");
-        logger.info(" java -jar configurators-x.yy-standalone.jar --deploy-module blog-1.1.war forum-1.1.war /opt/jahia-6.5/tomcat/webapps/ROOT");
+        logger.info(" java -jar configurators-x.yy-standalone.jar --deploy-module blog-1.1.war forum-1.1.war /opt/jahia-6.7/tomcat/webapps/ROOT");
     }
 
 }
