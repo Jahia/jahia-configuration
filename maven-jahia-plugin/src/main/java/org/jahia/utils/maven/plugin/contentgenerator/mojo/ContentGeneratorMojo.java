@@ -240,7 +240,7 @@ public abstract class ContentGeneratorMojo extends AbstractMojo {
 		String sep = System.getProperty("file.separator");
 		File tmp = new File(outputDirectory + sep + "tmp");
 		tmp.mkdir();
-		export.setTmp(tmp);
+		ExportBO.tmp = tmp;
 		
 		File outputMapFile = new File(outputDirectory, "sitemap.txt");
 		export.setMapFile(outputMapFile);
