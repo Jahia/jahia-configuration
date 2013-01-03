@@ -42,21 +42,23 @@ import org.apache.commons.io.FileUtils;
 /**
  * JBoss 4.2.x server deployer implementation.
  * @author Serge Huber
- * Date: 26 d�c. 2007
- * Time: 14:18:34
  */
 public class JBossServerDeploymentImpl extends AbstractServerDeploymentImpl {
 
     public JBossServerDeploymentImpl(String targetServerDirectory) {
         super(targetServerDirectory);
     }
+    
+    public String getServerConfiguration() {
+        return "default";
+    }
 
     protected String getSharedLibraryDirectory() {
-        return "server/default/lib";
+        return "server/" + getServerConfiguration() + "/lib";
     }
 
     public boolean validateInstallationDirectory(String targetServerDirectory) {
-        return new File(targetServerDirectory, "server/default/deploy/jboss-web.deployer/server.xml").exists();
+        return new File(targetServerDirectory, "server/" + getServerConfiguration() + "/deploy/jboss-web.deployer/server.xml").exists();
     }
 
     public boolean deploySharedLibraries(String targetServerDirectory,
@@ -79,7 +81,7 @@ public class JBossServerDeploymentImpl extends AbstractServerDeploymentImpl {
     }
     
     public String getDeploymentBaseDir() {
-        return "server/default/deploy";
+        return "server/" + getServerConfiguration() + "/deploy";
     }
 
     public String getDeploymentDirPath(String name, String type) {

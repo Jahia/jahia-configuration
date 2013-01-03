@@ -47,6 +47,9 @@ import org.apache.maven.shared.dependency.tree.DependencyTree;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.plexus.archiver.ArchiverException;
+import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
+import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.SelectorUtils;
 
 import java.util.*;
@@ -61,6 +64,9 @@ import com.sun.jdi.connect.IllegalConnectorArgumentsException;
 import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.Bootstrap;
 import com.sun.jdi.ReferenceType;
+
+import org.jahia.configuration.deployers.JBoss51ServerDeploymentImpl;
+import org.jahia.configuration.deployers.JBossServerDeploymentImpl;
 import org.jahia.configuration.deployers.ServerDeploymentFactory;
 import org.jahia.configuration.deployers.ServerDeploymentInterface;
 
@@ -161,6 +167,12 @@ public class DeployMojo extends AbstractManagementMojo {
                                 + " option for the 'mvn jahia:deploy' command");
             }
         } else if (project.getPackaging().equals("sar") || project.getPackaging().equals("jboss-sar") || project.getPackaging().equals("rar")) {
+            if ("jboss".equals(targetServerType)) {
+                if (!"jahia-jboss-config".equals(project.getArtifactId()) || StringUtils.isEmpty(targetServerVersion) || targetServerVersion.startsWith("4")) {
+                    deploySarRarProject();
+                }
+            }
+        } else if (project.getPackaging().equals("rar")) {
             deploySarRarProject();
         } else if (project.getPackaging().equals("jar")) {
             if (project.getGroupId().equals("org.jahia.test") && !deployTests) {
@@ -173,7 +185,37 @@ public class DeployMojo extends AbstractManagementMojo {
                 deployJarProject();
             }
         } else if (project.getPackaging().equals("pom")) {
-            deployPomProject();
+            if ("jahia-jboss-5.1-config".equals(project.getArtifactId())
+                    && JBoss51ServerDeploymentImpl.isSupported(targetServerType, targetServerVersion)) {
+                deployJBossConfig();
+            } else {
+                deployPomProject();
+            }
+        }
+    }
+
+    private void deployJBossConfig() throws MojoFailureException, MojoExecutionException {
+        File dest = new File(new File(targetServerDirectory, "server"),
+                ((JBossServerDeploymentImpl) serverDeployer).getServerConfiguration());
+        
+        dest.mkdirs();
+        
+        File cfgZip = new File(output, project.getBuild().getFinalName() + "-all.zip");
+        if (!cfgZip.exists()) {
+            throw new MojoFailureException("Unable to find artifact under " + cfgZip
+                    + ". Have you run install goal before?");
+        }
+        getLog().info(
+                "Unpacking JBoss application server libraries and configuration for " + targetServerType + " v"
+                        + targetServerVersion + "from " + cfgZip + " into directory " + dest);
+
+        ZipUnArchiver unarch = new ZipUnArchiver(cfgZip);
+        unarch.enableLogging(new org.codehaus.plexus.logging.console.ConsoleLogger(Logger.LEVEL_DEBUG, "console"));
+        unarch.setDestDirectory(dest);
+        try {
+            unarch.extract();
+        } catch (ArchiverException e) {
+            throw new MojoExecutionException(e.getMessage(), e);
         }
     }
 
@@ -323,7 +365,11 @@ public class DeployMojo extends AbstractManagementMojo {
      */
     private void deployPomProject() {
         try {
-        	boolean sharedLibraries = project.getGroupId().equals("org.jahia.server") && project.getArtifactId().equals("shared-libraries");
+            boolean sharedLibraries = project.getGroupId().equals("org.jahia.server") && project.getArtifactId().equals("shared-libraries");
+            if (sharedLibraries && "jboss".equals(targetServerType)) {
+                // skip shared libraries for JBoss
+                return;
+            }
             DependencyNode rootNode = getRootDependencyNode();
             List l = rootNode.getChildren();
             for (Iterator iterator = l.iterator(); iterator.hasNext();) {

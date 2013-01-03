@@ -16,6 +16,7 @@ import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.StringUtils;
 import org.jahia.configuration.deployers.ServerDeploymentFactory;
+import org.jahia.configuration.deployers.ServerDeploymentInterface;
 import org.jahia.configuration.logging.AbstractLogger;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -181,14 +182,7 @@ public class JahiaGlobalConfigurator {
             new MailServerConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,mailServerTemplate), webappPath + "/WEB-INF/etc/repository/root-mail-server.xml");
         }        
         if ("jboss".equalsIgnoreCase(jahiaConfigInterface.getTargetServerType())) {
-            File datasourcePath = new File(jahiaConfigInterface.getTargetServerDirectory(), ServerDeploymentFactory.getInstance().getImplementation(jahiaConfigInterface.getTargetServerType() + jahiaConfigInterface.getTargetServerVersion()).getDeploymentFilePath("jahia-jboss-config.sar/jahia-ds", "xml"));
-            if (datasourcePath.exists()) {
-                new JBossDatasourceConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,datasourcePath.getPath()), datasourcePath.getPath());
-            }
-            datasourcePath = new File(sourceWebAppPath, "../jahia-jboss-config/jahia-ds.xml");
-            if (datasourcePath.exists()) {
-                new JBossDatasourceConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,datasourcePath.getPath()), datasourcePath.getPath());
-            }
+            configureJBoss(sourceWebAppPath, webappPath, dbProps, jahiaConfigInterface, fsManager);
         }
 
         String targetConfigPath = webappPath + "/WEB-INF/etc/config";
@@ -234,6 +228,33 @@ public class JahiaGlobalConfigurator {
         }
     }
 
+    private void configureJBoss(String sourceWebAppPath, String webappPath, Properties dbProps,
+            JahiaConfigInterface cfg, FileSystemManager fsManager) throws Exception, FileSystemException {
+        ServerDeploymentInterface serverDeployer = ServerDeploymentFactory.getInstance()
+                .getImplementation(cfg.getTargetServerType() + cfg.getTargetServerVersion());
+        File datasourcePath = new File(cfg.getTargetServerDirectory(), serverDeployer.getDeploymentFilePath(
+                "jahia-jboss-config.sar/jahia-ds", "xml"));
+        if (datasourcePath.exists()) {
+            new JBossDatasourceConfigurator(dbProps, cfg).updateConfiguration(new VFSConfigFile(fsManager,
+                    datasourcePath.getPath()), datasourcePath.getPath());
+        }
+        datasourcePath = new File(sourceWebAppPath, "../jahia-jboss-config/jahia-ds.xml");
+        if (datasourcePath.exists()) {
+            new JBossDatasourceConfigurator(dbProps, cfg).updateConfiguration(new VFSConfigFile(fsManager,
+                    datasourcePath.getPath()), datasourcePath.getPath());
+        }
+        
+        // check for JBoss 5.1 datasource, which is in the server/default/deploy
+        datasourcePath = new File(new File(cfg.getTargetServerDirectory(), serverDeployer.getDeploymentBaseDir()),
+                "jahia-ds.xml");
+        if (datasourcePath.exists()) {
+            new JBossDatasourceConfigurator(dbProps, cfg).updateConfiguration(new VFSConfigFile(fsManager,
+                    datasourcePath.getPath()), datasourcePath.getPath());
+        }
+        new JBossWebConfigurator().configure(new File(sourceWebAppPath, "WEB-INF"), new File(webappPath, "WEB-INF"),
+                cfg, logger);
+    }
+    
     public FileObject findVFSFile(String parentPath, String fileMatchingPattern) {
         Pattern matchingPattern = Pattern.compile(fileMatchingPattern);
         try {

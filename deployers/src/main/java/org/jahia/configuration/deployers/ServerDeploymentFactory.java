@@ -55,8 +55,12 @@ public class ServerDeploymentFactory {
         addImplementation("tomcat", getImplementation("tomcat6"));
         
         addImplementation("jboss4.2.x", new JBossServerDeploymentImpl(targetServerDirectory));
-//        addImplementation("jboss5.0.x", new JBoss50ServerDeploymentImpl(targetServerDirectory));
         addImplementation("jboss", getImplementation("jboss4.2.x"));
+        
+        addImplementation("jboss5.1", new JBoss51ServerDeploymentImpl(targetServerDirectory));
+        addImplementation("jboss5.1.2", getImplementation("jboss5.1"));
+        addImplementation("jboss5.1.x", getImplementation("jboss5.1"));
+
         
         addImplementation("was6.1.0.25", new WebsphereServerDeploymentImpl(targetServerDirectory));
         addImplementation("was7", new WebsphereServerDeploymentImpl(targetServerDirectory));
