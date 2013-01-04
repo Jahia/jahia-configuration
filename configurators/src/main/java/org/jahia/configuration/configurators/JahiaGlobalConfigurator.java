@@ -251,6 +251,13 @@ public class JahiaGlobalConfigurator {
             new JBossDatasourceConfigurator(dbProps, cfg).updateConfiguration(new VFSConfigFile(fsManager,
                     datasourcePath.getPath()), datasourcePath.getPath());
         }
+        // check for JBoss 5.1 datasource, which is in the jahia-jboss-config/deploy
+        datasourcePath = new File(sourceWebAppPath, "../jahia-jboss-config/deploy/jahia-ds.xml");
+        if (datasourcePath.exists()) {
+            new JBossDatasourceConfigurator(dbProps, cfg).updateConfiguration(new VFSConfigFile(fsManager,
+                    datasourcePath.getPath()), datasourcePath.getPath());
+        }
+        
         new JBossWebConfigurator().configure(new File(sourceWebAppPath, "WEB-INF"), new File(webappPath, "WEB-INF"),
                 cfg, logger);
     }
