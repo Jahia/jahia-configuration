@@ -35,7 +35,7 @@ public class FileBO implements java.io.Serializable, Comparable<FileBO> {
 
 	protected String editor;
 
-	protected String documentStatus = "Draft";
+	protected String documentStatus = "draft";
 
 	protected String extractedContent;
 
