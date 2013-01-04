@@ -5,8 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -32,7 +30,6 @@ import org.jahia.utils.maven.plugin.contentgenerator.bo.TagBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FolderBO;
-
 
 public class FileAndFolderService {
 
@@ -403,7 +400,8 @@ public class FileAndFolderService {
 		f = f * timestampDifference;
 		f = f + startTimestamp;
 		Date d = new Date(f.longValue());
-		DateFormat df = new SimpleDateFormat(ContentGeneratorCst.JCR_DATE_FORMAT);
-		return df.format(d); 
+		Calendar c = GregorianCalendar.getInstance();
+		c.setTime(d);
+		return org.apache.jackrabbit.util.ISO8601.format(c); 
 	}
 }
