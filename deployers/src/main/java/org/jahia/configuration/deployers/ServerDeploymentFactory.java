@@ -58,6 +58,8 @@ public class ServerDeploymentFactory {
         addImplementation("jboss", getImplementation("jboss4.2.x"));
         
         addImplementation("jboss5.1", new JBoss51ServerDeploymentImpl(targetServerDirectory));
+        addImplementation("jboss5.1.0", getImplementation("jboss5.1"));
+        addImplementation("jboss5.1.0.GA", getImplementation("jboss5.1"));
         addImplementation("jboss5.1.2", getImplementation("jboss5.1"));
         addImplementation("jboss5.1.x", getImplementation("jboss5.1"));
 
