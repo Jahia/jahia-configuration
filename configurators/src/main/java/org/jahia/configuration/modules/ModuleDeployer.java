@@ -229,12 +229,12 @@ public class ModuleDeployer {
         }
         FileUtils.copyFileToDirectory(file, output);
         logger.info("Copied " + file + " to " + output);
+        File targetDir = new File(output, "../../..");
         if (!deployModuleForOSGiTransformation) {
-            File targetDir = new File(output, "../../..");
             copyJars(file, targetDir);
             copyClasses(file, targetDir);
-            copyDbScripts(file, targetDir);
         }
+        copyDbScripts(file, targetDir);
     }
 
     /**
