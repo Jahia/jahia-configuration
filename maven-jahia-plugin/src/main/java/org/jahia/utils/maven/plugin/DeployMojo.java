@@ -187,6 +187,8 @@ public class DeployMojo extends AbstractManagementMojo {
             }
         } else if (project.getPackaging().equals("pom")) {
             deployPomProject();
+        } else if (deployModuleForOSGiTransformation && project.getPackaging().equals("bundle")) {
+            deployModuleProject();
         }
     }
 
@@ -263,7 +265,7 @@ public class DeployMojo extends AbstractManagementMojo {
      */
     private void deployModuleProject() throws Exception {
         File source = new File(output, project.getArtifactId() + "-" + project.getVersion() + "."
-                + project.getPackaging());
+                + (project.getPackaging().equals("bundle") ? "jar" : project.getPackaging()));
         File target = new File(getWebappDeploymentDir(), deployModuleForOSGiTransformation ? "WEB-INF/var/modules"
                 : "WEB-INF/var/shared_modules");
         getLog().info("Deploying module " + source + " into " + target);
