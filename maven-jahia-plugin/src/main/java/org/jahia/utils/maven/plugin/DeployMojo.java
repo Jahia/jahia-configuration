@@ -187,7 +187,7 @@ public class DeployMojo extends AbstractManagementMojo {
             }
         } else if (project.getPackaging().equals("pom")) {
             deployPomProject();
-        } else if (deployModuleForOSGiTransformation && project.getPackaging().equals("bundle")) {
+        } else if (deployModuleForOSGiTransformation && project.getPackaging().equals("bundle") && !project.getGroupId().equals("org.jahia.bundles")) {
             deployModuleProject();
         }
     }
