@@ -122,7 +122,7 @@ public class DeployMojo extends AbstractManagementMojo {
     private boolean deployTests;
 
     /**
-     * @parameter expression="${jahia.deploy.deployModuleForOSGiTransformation}" default-value="false"
+     * @parameter expression="${jahia.deploy.deployModuleForOSGiTransformation}" default-value="true"
      */
     private boolean deployModuleForOSGiTransformation;
     

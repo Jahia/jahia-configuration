@@ -71,7 +71,7 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
     protected boolean deployToServer;
 
     /**
-     * @parameter expression="${jahia.deploy.deployModuleForOSGiTransformation}" default-value="false"
+     * @parameter expression="${jahia.deploy.deployModuleForOSGiTransformation}" default-value="true"
      */
     private boolean deployModuleForOSGiTransformation;
 
