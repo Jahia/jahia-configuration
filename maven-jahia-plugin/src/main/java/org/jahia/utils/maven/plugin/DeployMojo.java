@@ -121,11 +121,6 @@ public class DeployMojo extends AbstractManagementMojo {
      */
     private boolean deployTests;
 
-    /**
-     * @parameter expression="${jahia.deploy.deployModuleForOSGiTransformation}" default-value="true"
-     */
-    private boolean deployModuleForOSGiTransformation;
-    
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
             if (targetServerDirectory != null) {
@@ -175,7 +170,7 @@ public class DeployMojo extends AbstractManagementMojo {
             }
         } else if (project.getPackaging().equals("sar") || project.getPackaging().equals("jboss-sar") || project.getPackaging().equals("rar")) {
             deploySarRarProject();
-        } else if (project.getPackaging().equals("jar") || !deployModuleForOSGiTransformation && project.getPackaging().equals("bundle")) {
+        } else if (project.getPackaging().equals("jar")) {
             if (project.getGroupId().equals("org.jahia.test") && !deployTests) {
                 getLog().info(
                         "Deployment of test projects "
@@ -187,8 +182,18 @@ public class DeployMojo extends AbstractManagementMojo {
             }
         } else if (project.getPackaging().equals("pom")) {
             deployPomProject();
-        } else if (deployModuleForOSGiTransformation && project.getPackaging().equals("bundle") && !project.getGroupId().equals("org.jahia.bundles")) {
-            deployModuleProject();
+        } else if (project.getPackaging().equals("bundle")) {
+            if (project.getGroupId().equals("org.jahia.bundles")
+                    && (project.getArtifactId().equals("org.jahia.bundles.url.jahiawar") || project.getArtifactId()
+                            .equals("org.jahia.bundles.extender.jahiamodules"))) {
+                File srcFile = new File(output, project.getArtifactId() + "-" + project.getVersion() + "." + "jar");
+                File destDir = new File(getWebappDeploymentDir(), "WEB-INF/bundles");
+                FileUtils.copyFileToDirectory(srcFile, destDir);
+                getLog().info("Copied " + srcFile + " to " + destDir);
+            } else {
+                // add check here if the bundle is actually a module
+                deployModuleProject();
+            }
         }
     }
 
@@ -266,11 +271,10 @@ public class DeployMojo extends AbstractManagementMojo {
     private void deployModuleProject() throws Exception {
         File source = new File(output, project.getArtifactId() + "-" + project.getVersion() + "."
                 + (project.getPackaging().equals("bundle") ? "jar" : project.getPackaging()));
-        File target = new File(getWebappDeploymentDir(), deployModuleForOSGiTransformation ? "WEB-INF/var/modules"
-                : "WEB-INF/var/shared_modules");
+        File target = new File(getWebappDeploymentDir(), "WEB-INF/var/modules");
         getLog().info("Deploying module " + source + " into " + target);
         
-        new ModuleDeployer(target, new MojoLogger(getLog()), deployModuleForOSGiTransformation).deployModule(source);
+        new ModuleDeployer(target, new MojoLogger(getLog())).deployModule(source);
 
         getLog().info("...done");
     }

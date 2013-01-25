@@ -5,19 +5,18 @@
     <parent>
         <groupId>org.jahia.configuration</groupId>
         <artifactId>jahia-configuration-root</artifactId>
-        <version>2.2</version>
+        <version>4.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>archivers</artifactId>
-    <version>2.11-SNAPSHOT</version>
     <name>Jahia Server Archivers</name>
 
     <dependencies>
         <dependency>
             <groupId>org.jahia.configuration</groupId>
             <artifactId>deployers</artifactId>
-            <version>2.8-SNAPSHOT</version>
+            <version>4.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
@@ -28,19 +27,9 @@
 
     <build>
         <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <version>2.5.1</version>
-            <configuration>
-              <source>1.5</source>
-              <target>1.5</target>
-            </configuration>
-          </plugin>
             <plugin>
                 <groupId>org.dstovall</groupId>
                 <artifactId>onejar-maven-plugin</artifactId>
-                <version>1.4.1</version>
                 <executions>
                     <execution>
                         <goals>
