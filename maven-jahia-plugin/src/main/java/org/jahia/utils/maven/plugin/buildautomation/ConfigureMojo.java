@@ -205,7 +205,7 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * URL to connect to the database
      *
-     * @parameter expression="${jahia.configure.databaseUrl}" default-value="jdbc:derby:directory:jahia;create=true"
+     * @parameter expression="${jahia.configure.databaseUrl}" default-value="jdbc:derby:directory:jahia"
      */
     protected String databaseUrl;
 
