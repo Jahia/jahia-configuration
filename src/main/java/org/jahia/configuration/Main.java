@@ -69,12 +69,12 @@ public class Main {
         logger.info("\t\t\t"+"settings as a parameter.");
 
         logger.info(" -dm,--deploy-module"+"\t"+"Deploys provided module to a specified Jahia server.");
-        logger.info("\t\t\t"+"Expects one or more paths to module WAR files followed");
+        logger.info("\t\t\t"+"Expects one or more paths to module WAR or JAR (OSGi bundle) files followed");
         logger.info("\t\t\t"+"by a path to the Jahia Web application folder.");
 
         logger.info("\nExamples:");
         logger.info(" java -jar configurators-x.yy-standalone.jar --configure /opt/jahia/install.properties");
-        logger.info(" java -jar configurators-x.yy-standalone.jar --deploy-module blog-1.1.war forum-1.1.war /opt/jahia-6.7/tomcat/webapps/ROOT");
+        logger.info(" java -jar configurators-x.yy-standalone.jar --deploy-module blog-2.0.jar forum-2.0.jar /opt/jahia-6.7/tomcat/webapps/ROOT");
     }
 
 }
