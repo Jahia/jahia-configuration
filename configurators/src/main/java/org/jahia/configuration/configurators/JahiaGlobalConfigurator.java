@@ -412,18 +412,11 @@ public class JahiaGlobalConfigurator {
 
     private void deleteTomcatFiles() {
 
-        cleanDirectory(new File(jahiaConfig.getTargetServerDirectory() + "/temp"));
-        cleanDirectory(new File(jahiaConfig.getTargetServerDirectory() + "/work"));
-        getLogger().info("Finished deleting content of Tomcat's "+jahiaConfig.getTargetServerDirectory() + "/temp and "+jahiaConfig.getTargetServerDirectory() + "/work folders");
-        
-        File ctx = new File(jahiaConfig.getTargetServerDirectory() + "/conf/Catalina/localhost/" + jahiaConfig.getWebAppDirName() + ".xml");
-        if (ctx.exists()) {
-            if (ctx.delete()) {
-                getLogger().info("Deleted Tomcat context file " + ctx);
-            } else {
-                getLogger().warn("Unable to delete Tomcat context file " + ctx);
-            }
-        }
+        File toDelete1 = new File(jahiaConfig.getTargetServerDirectory() + "/temp");
+        cleanDirectory(toDelete1);
+        File toDelete2 = new File(jahiaConfig.getTargetServerDirectory() + "/work");
+        cleanDirectory(toDelete2);
+        getLogger().info("Finished deleting content of Tomcat's " + toDelete1 + " and " + toDelete2 + " folders");
     }
 
     private void deleteRepositoryAndIndexes() {
@@ -446,7 +439,7 @@ public class JahiaGlobalConfigurator {
                             + e.getMessage(), e);
         }
 
-        cleanDirectory(new File(webappDir + "/WEB-INF/var/search_indexes"));
+        cleanDirectory(new File(webappDir + "/WEB-INF/var/compiledRules"));
 
         cleanDirectory(new File(webappDir + "/WEB-INF/var/felix-cache"));
 
@@ -459,11 +452,9 @@ public class JahiaGlobalConfigurator {
             }
         }
 
-        if (new File(webappDir + "/WEB-INF/var/definitions.properties").exists()) {
-            new File(webappDir + "/WEB-INF/var/definitions.properties").delete();
-        }
+        FileUtils.deleteQuietly(new File(webappDir + "/WEB-INF/var/definitions.properties"));
 
-        getLogger().info("Finished deleting content of the " + webappDir + "/WEB-INF/var/repository and " + webappDir + "+/WEB-INF/var/search_indexes folders");
+        getLogger().info("Finished deleting content of the data and cache related folders");
     }
 
     //copy method for the license for instance
