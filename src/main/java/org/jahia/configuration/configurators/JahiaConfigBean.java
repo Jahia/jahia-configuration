@@ -69,7 +69,7 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String targetServerVersion = "";
     private String targetServerDirectory = "";
     private String databaseType = "derby_embedded";
-    private String databaseUrl = "jdbc:derby:directory:jahia;create=true";
+    private String databaseUrl = "jdbc:derby:directory:jahia";
     private String databaseUsername = "";
     private String databasePassword = "";
     private List<String> siteImportLocation;

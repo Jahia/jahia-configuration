@@ -314,6 +314,9 @@ public class JahiaGlobalConfigurator {
                     getLogger().info("cannot find script in " + databaseScript.getPath());
                     throw new Exception("Cannot find script for database " + jahiaConfig.getDatabaseType());
                 }
+                if (jahiaConfig.getDatabaseType().contains("derby") && !dbUrl.contains("create=true")) {
+                    dbUrl = dbUrl + ";create=true";
+                }
                 db.databaseOpen(dbProps.getProperty("jahia.database.driver"), dbUrl, jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
                 if (jahiaConfig.getDatabaseType().equals("mysql")) {
                     getLogger().info("database is mysql trying to drop it and create a new one");
