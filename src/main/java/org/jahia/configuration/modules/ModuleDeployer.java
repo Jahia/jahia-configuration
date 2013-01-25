@@ -39,100 +39,25 @@
  */
 package org.jahia.configuration.modules;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.jar.JarFile;
+
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.jahia.configuration.logging.AbstractLogger;
-
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 /**
  * Deployment utility that is responsible for correctly deploying all resources of a module into the server runtime.
  */
 public class ModuleDeployer {
 
-    private class NewerFileFilter implements FileFilter {
-        
-        private int count; 
-        private File dest;
-        private File src;
-        
-        NewerFileFilter(File src, File dest) {
-            super();
-            this.src = src;
-            this.dest = dest;
-        }
-        
-        public boolean accept(File fileToCopy) {
-            if (fileToCopy.isDirectory()) {
-                return true;
-            } else {
-                boolean newer = isNewer(fileToCopy);
-                if (newer) {
-                    count++;
-                }
-                return newer;
-            }
-        }
-
-        public int getCount() {
-            return count;
-        }
-
-        private boolean isNewer(File fileToCopy) {
-            File target = new File(dest, fileToCopy.getPath().substring(src.getPath().length()));
-            return !target.exists() || FileUtils.isFileNewer(fileToCopy, target);
-        }
-    };
-    
-    private boolean deployModuleForOSGiTransformation;
     private AbstractLogger logger;
     private File output;
 
-    public ModuleDeployer(File output, AbstractLogger logger, boolean deployModuleForOSGiTransformation) {
+    public ModuleDeployer(File output, AbstractLogger logger) {
         this.output = output;
         this.logger = logger;
-        this.deployModuleForOSGiTransformation = deployModuleForOSGiTransformation;
-    }
-
-    private void copyClasses(File warFile, File targetDir) {
-        JarFile war = null;
-        try {
-            war = new JarFile(warFile);
-            if (war.getJarEntry("WEB-INF/classes") != null) {
-                war.close();
-                ZipUnArchiver unarch = new ZipUnArchiver(warFile);
-                File tmp = new File(targetDir, String.valueOf(System.currentTimeMillis()));
-                tmp.mkdirs();
-                File srcDir = new File(tmp, "WEB-INF/classes");
-                File destDir = new File(targetDir, "WEB-INF/classes");
-                NewerFileFilter filter = new NewerFileFilter(srcDir, destDir);
-                try {
-                    unarch.extract("WEB-INF/classes", tmp);
-                    FileUtils.copyDirectory(srcDir, destDir, filter);
-                } finally {
-                    FileUtils.deleteQuietly(tmp);
-                }
-                logger.info("Copied " + filter.getCount() + " new/newer class(es) from " + warFile.getName() + " to WEB-INF/classes");
-            }
-        } catch (Exception e) {
-            logger.error("Error copying classes for module " + warFile, e);
-        } finally {
-            if (war != null) {
-                try {
-                    war.close();
-                } catch (Exception e) {
-                    logger.warn("Unable to close the JAR file " + warFile, e);
-                }
-            }
-        }
     }
 
     private void copyDbScripts(File warFile, File targetDir) {
@@ -165,90 +90,11 @@ public class ModuleDeployer {
         }
     }
 
-    public void copyJars(File warFile, File targetDir) {
-        JarFile war = null;
-        try {
-            war = new JarFile(warFile);
-            int deployed = 0;
-            int found = 0;
-            if (war.getJarEntry("WEB-INF/lib") != null) {
-                Enumeration<JarEntry> entries = war.entries();
-                while (entries.hasMoreElements()) {
-                    JarEntry entry = entries.nextElement();
-
-                    String entryName = entry.getName();
-                    if (!entryName.startsWith("WEB-INF/lib/") || !entryName.endsWith(".jar")) {
-                        continue;
-                    }
-                    if (isNewer(entry, targetDir)) {
-                            deployed++;
-                            InputStream source = war.getInputStream(entry);
-                            File libsDir = new File(targetDir, "WEB-INF/lib");
-                            if (!libsDir.exists()) {
-                                libsDir.mkdirs();
-                            }
-                            File targetFile = new File(targetDir, entryName);
-                            FileOutputStream target = new FileOutputStream(targetFile);
-                            try {
-                                IOUtils.copy(source, target);
-                            } finally {
-                                IOUtils.closeQuietly(source);
-                                target.flush();
-                                IOUtils.closeQuietly(target);
-                            }
-                            if (entry.getTime() > 0) {
-                                targetFile.setLastModified(entry.getTime());
-                            }
-                    } else {
-                        found++;
-                        logger.debug(entryName + " is already deployed and is not older than the current entry");
-                    }
-                }
-            }
-            if (found > 0) {
-                logger.info("Found " + found + " JARs in " + warFile.getName() + ". Copied " + deployed + " new/newer JARs to WEB-INF/lib");
-            }
-        } catch (IOException e) {
-            logger.error("Error copying JAR files for module " + warFile, e);
-        } finally {
-            if (war != null) {
-                try {
-                    war.close();
-                } catch (Exception e) {
-                    logger.warn("Unable to close the JAR file " + warFile, e);
-                }
-            }
-        }
-    }
-
     public void deployModule(File file) throws IOException {
-        if (deployModuleForOSGiTransformation) {
-            logger.info("Copy module " + file.getName() + " to OSGi transformation directory");
-        } else {
-            logger.info("Copy modules JAR " + file.getName() + " to shared modules folder");
-        }
+        logger.info("Copy module " + file.getName() + " to OSGi transformation directory");
         FileUtils.copyFileToDirectory(file, output);
         logger.info("Copied " + file + " to " + output);
         File targetDir = new File(output, "../../..");
-        if (!deployModuleForOSGiTransformation) {
-            copyJars(file, targetDir);
-            copyClasses(file, targetDir);
-        }
         copyDbScripts(file, targetDir);
-    }
-
-    /**
-     * Checks if the jar is already deployed and we don't try to deploy a new version (using "last modified time")
-     * 
-     * @param entry the Jar file entry
-     * @param targetDir the target directory
-     * @return the result of the last modified value check
-     */
-    private boolean isNewer(JarEntry entry, File targetDir) {
-        File fEntry = new File(targetDir, entry.getName());
-        if (fEntry.exists() && fEntry.lastModified() >= entry.getTime()) {
-            return false;
-        }
-        return true;
     }
 }

@@ -18,14 +18,14 @@ public class Main {
                 try {
                     String target = args[args.length-1];
     
-                    File output = new File(target, "WEB-INF/var/shared_modules");
+                    File output = new File(target, "WEB-INF/var/modules");
     
                     if (!output.exists()) {
                         logger.error("Target does not seem to be a valid jahia root folder.");
                         System.exit(-1);
                     }
     
-                    ModuleDeployer deployer = new ModuleDeployer(output, logger, false);
+                    ModuleDeployer deployer = new ModuleDeployer(output, logger);
     
                     try {
                         logger.info("Deploying modules to Jahia Web application at " + target + "\n");
