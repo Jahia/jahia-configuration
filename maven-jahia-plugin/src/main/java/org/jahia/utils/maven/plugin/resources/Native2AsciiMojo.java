@@ -133,7 +133,7 @@ public class Native2AsciiMojo extends AbstractMojo {
         boolean inplace = src != null && dest != null && src.equals(dest);
         if (inplace) {
             dest = new File(FileUtils.getTempDirectory(), "native2ascii-" + System.currentTimeMillis());
-            dest.mkdir();
+            dest.mkdirs();
             try {
                 FileUtils.deleteDirectory(dest);
             } catch (IOException e) {
@@ -169,7 +169,7 @@ public class Native2AsciiMojo extends AbstractMojo {
             }
         }
         
-        if (defaultPropertiesFileLocale != null) {
+        if (defaultPropertiesFileLocale != null && dest.exists()) {
             createFilesForDefaultLocale();
         }
 
