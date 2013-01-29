@@ -34,6 +34,7 @@ package org.jahia.utils.maven.plugin.modules;
 
 import java.io.File;
 
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -43,7 +44,7 @@ import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
 
 /**
- * Used to automatically package module's import resources (as a ZIP file) into the target module WAR file.<br>
+ * Used to automatically package module's import resources (as a ZIP file) into the target module bundle file.<br>
  * 
  * @goal package-imports
  * @phase prepare-package
@@ -52,6 +53,13 @@ import org.codehaus.plexus.logging.console.ConsoleLogger;
  */
 public class PackageModuleImportsMojo extends AbstractMojo {
 
+    /**
+     * Do we need to add the generated import.zip file into project's resources.
+     * 
+     * @parameter default-value="true"
+     */
+    protected boolean addToProjectResources;
+    
     /**
      * The resulting archive name
      * 
@@ -62,7 +70,7 @@ public class PackageModuleImportsMojo extends AbstractMojo {
     /**
      * The directory to output file to
      * 
-     * @parameter default-value="${project.build.directory}/${project.build.finalName}/META-INF"
+     * @parameter default-value="${project.build.directory}/packaged-imports/META-INF"
      */
     protected File dest;
 
@@ -89,7 +97,7 @@ public class PackageModuleImportsMojo extends AbstractMojo {
     protected MavenProject project;
 
     /**
-     * If set to true the goal will be executed only if the current project is a Jahia module project with 'war' packaging. Otherwise the
+     * If set to true the goal will be executed only if the current project is a Jahia module project with 'bundle' or 'war' packaging. Otherwise the
      * goal will be skipped.
      * 
      * @parameter default-value="true"
@@ -112,11 +120,10 @@ public class PackageModuleImportsMojo extends AbstractMojo {
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (requiresModuleProject
-                && (!"war".equals(project.getPackaging()) || (!project
-                        .getGroupId().equals("org.jahia.modules") && !project
-                        .getGroupId().endsWith(".jahia.modules")))) {
+                && (!"war".equals(project.getPackaging()) && !"bundle".equals(project.getPackaging()) && !"jar".equals(project.getPackaging()) || (!project
+                        .getGroupId().equals("org.jahia.modules") && !project.getGroupId().endsWith(".jahia.modules")))) {
             getLog().info(
-                    "Current project should have 'war' packaging type"
+                    "Current project should have 'bundle'/'jar' packaging type"
                             + " and be a Jahia module project to be able to execute this goal."
                             + " Skipping package-imports task.");
             return;
@@ -157,5 +164,13 @@ public class PackageModuleImportsMojo extends AbstractMojo {
         } catch (Exception e) {
             throw new MojoExecutionException(e.getMessage(), e);
         }
+        
+        if (addToProjectResources) {
+            Resource resource = new Resource();
+            resource.setDirectory(dest.getPath().endsWith("META-INF") ? dest.getParentFile().getPath() : dest.getPath());
+            getLog().info("Attaching directory " + resource.getDirectory() + " to project resources");
+            this.project.addResource(resource);
+        }
+        
     }
 }
