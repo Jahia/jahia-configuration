@@ -91,7 +91,7 @@ public interface JahiaConfigInterface {
 
     String getJahiaRootUsername();
 
-    String getJahiaSharedModulesDiskPath();
+    String getJahiaModulesDiskPath();
 
     /**
      * Returns the password of the user that is used to protect Jahia tools area (/tools, etc.).

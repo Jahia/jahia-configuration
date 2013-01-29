@@ -79,9 +79,9 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      */
     protected String jahiaVarDiskPath;
     /**
-     * @parameter default-value="$context/WEB-INF/var/shared_modules/"
+     * @parameter default-value="$context/WEB-INF/var/modules/"
      */
-    protected String jahiaSharedModulesDiskPath;
+    protected String jahiaModulesDiskPath;
     /**
      * properties file path
      *
@@ -571,8 +571,8 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return clusterStartIpAddress;
     }
 
-    public String getJahiaSharedModulesDiskPath() {
-        return jahiaSharedModulesDiskPath;
+    public String getJahiaModulesDiskPath() {
+        return jahiaModulesDiskPath;
     }
 
     public String getJahiaToolManagerUsername() {

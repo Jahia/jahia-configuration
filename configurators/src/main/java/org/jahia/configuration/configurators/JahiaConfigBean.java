@@ -49,7 +49,7 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private File outputDirectory;
     private String jahiaEtcDiskPath = "$context/WEB-INF/etc/";
     private String jahiaVarDiskPath = "$context/WEB-INF/var/";
-    private String jahiaSharedModulesDiskPath = "$context/WEB-INF/var/shared_modules/";
+    private String jahiaModulesDiskPath = "$context/WEB-INF/var/modules/";
     private String jahiaWebAppsDeployerBaseURL = "http\\://localhost\\:8080/manager";
     private String cluster_activated = "false";
     private String cluster_node_serverId;
@@ -155,11 +155,11 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.jahiaVarDiskPath = jahiaVarDiskPath;
     }
 
-    public String getJahiaSharedModulesDiskPath() {
-        return jahiaSharedModulesDiskPath;
+    public String getJahiaModulesDiskPath() {
+        return jahiaModulesDiskPath;
     }
     public void setJahiaSharedModulesDiskPath(String jahiaSharedModulesDiskPath) {
-        this.jahiaSharedModulesDiskPath = jahiaSharedModulesDiskPath;
+        this.jahiaModulesDiskPath = jahiaSharedModulesDiskPath;
     }
 
     public String getJahiaWebAppsDeployerBaseURL() {

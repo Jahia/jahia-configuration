@@ -225,7 +225,7 @@ public class JahiaGlobalConfigurator {
             // in the case we cannot access the file, it means we should not do the advanced configuration, which is expected for Jahia "core".
         }
 
-        String ldapTargetFile = webappPath + "/WEB-INF/var/shared_modules";
+        String ldapTargetFile = webappPath + "/WEB-INF/var/modules";
         new LDAPConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,sourceWebAppPath), ldapTargetFile);
 
         String jeeApplicationLocation = jahiaConfigInterface.getJeeApplicationLocation();
