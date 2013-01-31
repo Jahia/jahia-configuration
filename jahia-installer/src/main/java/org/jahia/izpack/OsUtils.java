@@ -48,9 +48,19 @@ package org.jahia.izpack;
 public final class OsUtils {
 
     /**
-     * Contains <code>64</code> for 64bit platform, <code>32</code> for 32bit platforms and "unknown" otherwise.
+     * Contains <code>64</code> for 64 bit platform, <code>32</code> for 32 bit platforms and "unknown" otherwise.
      */
     public static final String OS_ARCH_DATA_MODEL = detectDataModel();
+
+    /**
+     * Is <code>true</code> for 32 bit platforms.
+     */
+    public static final boolean IS_OS_ARCH_DATA_MODEL_32 = OS_ARCH_DATA_MODEL.equals("32");
+
+    /**
+     * Is <code>true</code> for 64bit platforms.
+     */
+    public static final boolean IS_OS_ARCH_DATA_MODEL_64 = OS_ARCH_DATA_MODEL.equals("64");
 
     private static final String detectDataModel() {
         String dm = System.getProperty("sun.arch.data.model");
