@@ -96,6 +96,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
      */
     private List<RemoteRepository> remoteRepos;
 
+    private Map<String, DependencyNode> resolvedDependencyNodes = new HashMap<String, DependencyNode>();
 
     private class VersionLocation {
         private String location;
@@ -476,27 +477,43 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
     private Set<Artifact> findInWarDependencies(Artifact warArtifact, final String artifactId) {
         final Set<Artifact> matchingArtifacts = new HashSet<Artifact>();
         ArtifactRequest request = new ArtifactRequest();
-        request.setArtifact(
-                new DefaultArtifact(warArtifact.getGroupId() + ":" + warArtifact.getArtifactId() + ":" + warArtifact.getBaseVersion()));
-        request.setRepositories(remoteRepos);
-
-        // getLog().info("Resolving artifact " + warArtifact +
-        //         " from " + remoteRepos);
-
-        Dependency dependency =
-                new Dependency(new DefaultArtifact(warArtifact.getGroupId() + ":" + warArtifact.getArtifactId() + ":" + warArtifact.getType() + ":" + warArtifact.getBaseVersion()), "compile");
-
-        CollectRequest collectRequest = new CollectRequest();
-        collectRequest.setRoot(dependency);
-        collectRequest.setRepositories(remoteRepos);
+        String artifactCoords = warArtifact.getGroupId() + ":" + warArtifact.getArtifactId() + ":" + warArtifact.getType() + ":" + warArtifact.getBaseVersion();
         DependencyNode node = null;
-        try {
-            node = repoSystem.collectDependencies(repoSession, collectRequest).getRoot();
+        if (resolvedDependencyNodes.containsKey(artifactCoords)) {
+            node = resolvedDependencyNodes.get(artifactCoords);
+        }
 
-            DependencyRequest dependencyRequest = new DependencyRequest(node, null);
+        if (node == null) {
+            try {
 
-            repoSystem.resolveDependencies(repoSession, dependencyRequest);
+                getLog().info("Resolving artifact " + artifactCoords + "...");
+                request.setArtifact(
+                        new DefaultArtifact(artifactCoords));
+                request.setRepositories(remoteRepos);
 
+                Dependency dependency =
+                        new Dependency(new DefaultArtifact(artifactCoords), "compile");
+
+                CollectRequest collectRequest = new CollectRequest();
+                collectRequest.setRoot(dependency);
+                collectRequest.setRepositories(remoteRepos);
+
+                node = repoSystem.collectDependencies(repoSession, collectRequest).getRoot();
+
+                DependencyRequest dependencyRequest = new DependencyRequest(node, null);
+
+                repoSystem.resolveDependencies(repoSession, dependencyRequest);
+
+                resolvedDependencyNodes.put(artifactCoords, node);
+
+            } catch (DependencyCollectionException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (DependencyResolutionException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+        }
+
+        if (node != null) {
             node.accept(new DependencyVisitor() {
                 @Override
                 public boolean visitEnter(DependencyNode node) {
@@ -511,12 +528,8 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                     return true;
                 }
             });
-        } catch (DependencyCollectionException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        } catch (DependencyResolutionException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
 
+        }
         return matchingArtifacts;
 
     }
