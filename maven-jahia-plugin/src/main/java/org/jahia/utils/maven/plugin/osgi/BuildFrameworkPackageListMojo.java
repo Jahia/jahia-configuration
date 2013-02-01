@@ -1,6 +1,7 @@
 package org.jahia.utils.maven.plugin.osgi;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.maven.RepositoryUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -10,6 +11,16 @@ import org.apache.tika.io.IOUtils;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.eclipse.osgi.util.ManifestElement;
 import org.osgi.framework.BundleException;
+import org.sonatype.aether.RepositorySystem;
+import org.sonatype.aether.RepositorySystemSession;
+import org.sonatype.aether.collection.CollectRequest;
+import org.sonatype.aether.collection.DependencyCollectionException;
+import org.sonatype.aether.graph.Dependency;
+import org.sonatype.aether.graph.DependencyNode;
+import org.sonatype.aether.graph.DependencyVisitor;
+import org.sonatype.aether.repository.RemoteRepository;
+import org.sonatype.aether.resolution.*;
+import org.sonatype.aether.util.artifact.DefaultArtifact;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -56,6 +67,30 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
      * @required
      */
     protected MavenProject project;
+
+    /**
+     * The entry point to Aether, i.e. the component doing all the work.
+     *
+     * @component
+     */
+    private RepositorySystem repoSystem;
+
+    /**
+     * The current repository/network configuration of Maven.
+     *
+     * @parameter default-value="${repositorySystemSession}"
+     * @readonly
+     */
+    private RepositorySystemSession repoSession;
+
+    /**
+     * The project's remote repositories to use for the resolution of plugins and their dependencies.
+     *
+     * @parameter default-value="${project.remotePluginRepositories}"
+     * @readonly
+     */
+    private List<RemoteRepository> remoteRepos;
+
 
     private class VersionLocation {
         private String location;
@@ -406,7 +441,14 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         }
         Set<Artifact> artifacts = project.getArtifacts();
         for (Artifact artifact : artifacts) {
-            if (artifact.getFile().getName().equals(artifactId)) {
+            if (artifact.getType().equals("war")) {
+                // we have a WAR dependency, we will look in that project dependencies seperately since it is not
+                // directly transitive.
+                Set<Artifact> warArtifacts = findInWarDependencies(artifact, artifactId);
+                if (warArtifacts.size() > 0) {
+                    resultArtifacts.addAll(warArtifacts);
+                }
+            } else if (artifact.getFile().getName().equals(artifactId)) {
                 resultArtifacts.add(artifact);
             }
         }
@@ -421,4 +463,51 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         return resultArtifacts;
     }
 
+    private Set<Artifact> findInWarDependencies(Artifact warArtifact, final String artifactId) {
+        final Set<Artifact> matchingArtifacts = new HashSet<Artifact>();
+        ArtifactRequest request = new ArtifactRequest();
+        request.setArtifact(
+                new DefaultArtifact(warArtifact.getGroupId() + ":" + warArtifact.getArtifactId() + ":" + warArtifact.getBaseVersion()));
+        request.setRepositories(remoteRepos);
+
+        // getLog().info("Resolving artifact " + warArtifact +
+        //         " from " + remoteRepos);
+
+        Dependency dependency =
+                new Dependency(new DefaultArtifact(warArtifact.getGroupId() + ":" + warArtifact.getArtifactId() + ":" + warArtifact.getType() + ":" + warArtifact.getBaseVersion()), "compile");
+
+        CollectRequest collectRequest = new CollectRequest();
+        collectRequest.setRoot(dependency);
+        collectRequest.setRepositories(remoteRepos);
+        DependencyNode node = null;
+        try {
+            node = repoSystem.collectDependencies(repoSession, collectRequest).getRoot();
+
+            DependencyRequest dependencyRequest = new DependencyRequest(node, null);
+
+            repoSystem.resolveDependencies(repoSession, dependencyRequest);
+
+            node.accept(new DependencyVisitor() {
+                @Override
+                public boolean visitEnter(DependencyNode node) {
+                    if (node.getDependency().getArtifact().getFile().getName().equals(artifactId)) {
+                        matchingArtifacts.add(RepositoryUtils.toArtifact(node.getDependency().getArtifact()));
+                    }
+                    return true;
+                }
+
+                @Override
+                public boolean visitLeave(DependencyNode node) {
+                    return true;
+                }
+            });
+        } catch (DependencyCollectionException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (DependencyResolutionException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
+        return matchingArtifacts;
+
+    }
 }
