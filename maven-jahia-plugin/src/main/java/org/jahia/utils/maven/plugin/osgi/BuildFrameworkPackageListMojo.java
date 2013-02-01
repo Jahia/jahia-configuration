@@ -352,7 +352,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                         packageVersion = manifestEntries.getValue().getValue("Implementation-Version");
                     }
                     if (packageVersion != null) {
-                        System.out.println("Found package version in JAR MANIFEST : " + packageName + " v" + packageVersion);
+                        System.out.println("Found package version in "+jarFile.getName()+" MANIFEST : " + packageName + " v" + packageVersion);
                         updateVersionLocationCounts(packageVersionCounts, jarFile.getCanonicalPath(), packageVersion, specificationVersion, packageName);
                         // manifestVersions.put(packageName, packageVersion);
                     }
@@ -429,7 +429,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                 String artifactFileName = includedFileFile.getName();
                 Set<Artifact> relatedArtifacts = findArtifactsByArtifactId(artifactFileName);
                 if (relatedArtifacts.size() > 1) {
-                    System.out.println("Warning : multiple dependencies found for artifactId " + artifactFileName);
+                    System.out.println("Warning : multiple matching dependencies found for artifactId " + artifactFileName);
                 } else if (relatedArtifacts.size() == 1) {
                     version = relatedArtifacts.iterator().next().getBaseVersion();
                 } else {
