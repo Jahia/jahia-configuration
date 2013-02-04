@@ -44,6 +44,16 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
 
     public static final String VERSION_NUMBER_PATTERN_STRING = "([\\d\\.]*\\d)(.*)";
     private static final Pattern VERSION_NUMBER_PATTERN = Pattern.compile(VERSION_NUMBER_PATTERN_STRING);
+    /**
+     * Clean up version parameters. Other builders use more fuzzy definitions of
+     * the version syntax. This method cleans up such a version to match an OSGi
+     * version.
+     *
+     * @param VERSION_STRING
+     * @return
+     */
+    static final Pattern FUZZY_VERSION = Pattern.compile("(\\d+)(\\.(\\d+)(\\.(\\d+))?)?([^a-zA-Z0-9](.*))?",
+            Pattern.DOTALL);
 
     /**
      * @parameter default-value="${project.build.directory}/classes/META-INF/MANIFEST.MF"
@@ -74,6 +84,11 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
      * @parameter default-value="true"
      */
     protected boolean scanDependencies = true;
+
+    /**
+     * @parameter default-value="false"
+     */
+    protected boolean exportEachPackageOnce = false;
 
     /**
      * @parameter expression="${project}"
@@ -142,9 +157,8 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        FileInputStream in = null;
         Map<String, Map<String, VersionLocation>> packageVersionCounts = new TreeMap<String, Map<String, VersionLocation>>();
-        Map<String, String> packageVersions = new TreeMap<String, String>();
+        Map<String, List<String>> packageVersions = new TreeMap<String, List<String>>();
         String generatedPackageList = null;
 
         try {
@@ -163,38 +177,10 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
 
                 scanJarDirectories(packageVersionCounts);
 
-                resolveSplitPackages(packageVersionCounts, packageVersions);
             }
+            scanExistingManifest(packageVersionCounts);
 
-            if (inputManifestFile.exists()) {
-                in = new FileInputStream(inputManifestFile);
-                Manifest mf = new Manifest(in);
-                String exportPackageStr = mf.getMainAttributes().getValue("Export-Package");
-                String bundleVersion = mf.getMainAttributes().getValue("Bundle-Version");
-                ManifestElement[] manifestElements = ManifestElement.parseHeader("Export-Package", exportPackageStr);
-                for (ManifestElement manifestElement : manifestElements) {
-                    String value = manifestElement.getValue();
-                    String version = manifestElement.getAttribute("version");
-                    if (version != null) {
-                        if (version.equals(bundleVersion)) {
-                            if (value.startsWith("org.jahia")) {
-                                packageVersions.put(value, version);
-                            } else {
-                                if (!packageVersions.containsKey(value)) {
-                                    packageVersions.put(value, null);
-                                }
-                            }
-                        } else {
-                            packageVersions.put(value, version);
-                        }
-                    } else {
-                        if (!packageVersions.containsKey(value)) {
-                            packageVersions.put(value, null);
-                        }
-                    }
-                }
-                getLog().info("Found " + manifestElements.length + " package exports.");
-            }
+            resolveSplitPackages(packageVersionCounts, packageVersions);
 
             if (propertiesOutputFile != null && !propertiesOutputFile.exists()) {
                 propertiesOutputFile.getParentFile().mkdirs();
@@ -214,26 +200,24 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             List<String> packageList = new ArrayList<String>();
 
             StringBuilder generatedPackageBuffer = new StringBuilder();
-            for (Map.Entry<String, String> packageVersion : packageVersions.entrySet()) {
-                StringBuilder packageExport = new StringBuilder();
-                packageExport.append(packageVersion.getKey());
+            for (Map.Entry<String, List<String>> packageVersion : packageVersions.entrySet()) {
                 if (packageVersion.getValue() != null) {
                     // @todo we should perform parent lookup here and re-use version if activated.
-                    String versionString = packageVersion.getValue();
-                    Matcher versionMatcher = VERSION_NUMBER_PATTERN.matcher(versionString);
-                    if (versionMatcher.matches()) {
-                        versionString = versionMatcher.group(1);
-                        packageExport.append(";version=\"");
-                        packageExport.append(versionString);
-                        packageExport.append("\"");
-                    } else {
-                        getLog().warn("Ignoring invalid OSGi version "+versionString+" for package " + packageVersion.getKey());
+                    for (String versionString : packageVersion.getValue()) {
+                        if (versionString != null) {
+                            StringBuilder packageExport = new StringBuilder();
+                            packageExport.append(packageVersion.getKey());
+                            versionString = cleanupVersion(versionString);
+                            packageExport.append(";version=\"");
+                            packageExport.append(versionString);
+                            packageExport.append("\"");
+                            packageList.add(packageExport.toString());
+                            packageExport.append(",");
+                            generatedPackageBuffer.append(packageExport);
+                            getLog().debug("    " + packageExport + "\\");
+                        }
                     }
                 }
-                packageList.add(packageExport.toString());
-                packageExport.append(",");
-                generatedPackageBuffer.append(packageExport);
-                // getLog().debug("    " + packageExport + "\\");
             }
             if (manualPackageList != null) {
                 for (String manualPackage : manualPackageList) {
@@ -264,12 +248,47 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (ConfigurationException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+    }
+
+    private void scanExistingManifest(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException, BundleException {
+        FileInputStream in = null;
+        try {
+            if (inputManifestFile.exists()) {
+                in = new FileInputStream(inputManifestFile);
+                Manifest mf = new Manifest(in);
+                String exportPackageStr = mf.getMainAttributes().getValue("Export-Package");
+                String bundleVersion = mf.getMainAttributes().getValue("Bundle-Version");
+                ManifestElement[] manifestElements = ManifestElement.parseHeader("Export-Package", exportPackageStr);
+                for (ManifestElement manifestElement : manifestElements) {
+                    String[] packageNames = manifestElement.getValueComponents();
+                    String version = manifestElement.getAttribute("version");
+                    if (version != null) {
+                        for (String packageName : packageNames) {
+                            if (version.equals(bundleVersion)) {
+                                if (packageName.startsWith("org.jahia")) {
+                                    updateVersionLocationCounts(packageVersionCounts, inputManifestFile.toString(), version, bundleVersion, packageName);
+                                } else {
+                                    updateVersionLocationCounts(packageVersionCounts, inputManifestFile.toString(), null, bundleVersion, packageName);
+                                }
+                            } else {
+                                updateVersionLocationCounts(packageVersionCounts, inputManifestFile.toString(), version, bundleVersion, packageName);
+                            }
+                        }
+                    } else {
+                        for (String packageName : packageNames) {
+                            updateVersionLocationCounts(packageVersionCounts, inputManifestFile.toString(), null, bundleVersion, packageName);
+                        }
+                    }
+                }
+                getLog().info("Found " + manifestElements.length + " package exports.");
+            }
         } finally {
             IOUtils.closeQuietly(in);
         }
     }
 
-    private void resolveSplitPackages(Map<String, Map<String, VersionLocation>> packageVersionCounts, Map<String, String> packageVersions) {
+    private void resolveSplitPackages(Map<String, Map<String, VersionLocation>> packageVersionCounts, Map<String, List<String>> packageVersions) {
         for (Map.Entry<String, Map<String, VersionLocation>> resolvedPackageVersion : packageVersionCounts.entrySet()) {
             VersionLocation highestVersionLocation = null;
             boolean allVersionsEqual = true;
@@ -284,6 +303,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             if (resolvedPackageVersion.getValue().size() > 1 && !allVersionsEqual) {
                 getLog().warn("Split-package with different versions detected for package " + resolvedPackageVersion.getKey() + ":");
             }
+            List<String> versions = new ArrayList<String>();
             for (Map.Entry<String, VersionLocation> versionLocationEntry : resolvedPackageVersion.getValue().entrySet()) {
                 if (resolvedPackageVersion.getValue().size() > 1 && !allVersionsEqual) {
                     getLog().warn("  - " + versionLocationEntry.getKey() + " v" + versionLocationEntry.getValue().getVersion() + " count=" + versionLocationEntry.getValue().getCounter() + " Specification-Version=" + versionLocationEntry.getValue().getSpecificationVersion());
@@ -298,10 +318,17 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                         highestVersionLocation = versionLocationEntry.getValue();
                     }
                 }
+                versions.add(versionLocationEntry.getValue().getVersion());
             }
-            packageVersions.put(resolvedPackageVersion.getKey(), highestVersionLocation.getVersion());
-            if (resolvedPackageVersion.getValue().size() > 1 && !allVersionsEqual) {
-                getLog().warn("--> " + resolvedPackageVersion.getKey() + " v" + highestVersionLocation.getVersion());
+            if (exportEachPackageOnce) {
+                versions.clear();
+                versions.add(highestVersionLocation.getVersion());
+                packageVersions.put(resolvedPackageVersion.getKey(), versions);
+                if (resolvedPackageVersion.getValue().size() > 1 && !allVersionsEqual) {
+                    getLog().warn("--> " + resolvedPackageVersion.getKey() + " v" + highestVersionLocation.getVersion());
+                }
+            } else {
+                packageVersions.put(resolvedPackageVersion.getKey(), versions);
             }
         }
     }
@@ -406,7 +433,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                         packageVersion = manifestEntries.getValue().getValue("Implementation-Version");
                     }
                     if (packageVersion != null) {
-                        getLog().info("Found package version in "+jarFile.getName()+" MANIFEST : " + packageName + " v" + packageVersion);
+                        getLog().info("Found package version in " + jarFile.getName() + " MANIFEST : " + packageName + " v" + packageVersion);
                         updateVersionLocationCounts(packageVersionCounts, jarFile.getCanonicalPath(), packageVersion, specificationVersion, packageName);
                         // manifestVersions.put(packageName, packageVersion);
                     }
@@ -438,26 +465,26 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
     }
 
     private void updateVersionLocationCounts(Map<String, Map<String, VersionLocation>> packageVersionCounts,
-                                             String location,
-                                             String defaultVersion,
+                                             String originLocation,
+                                             String newVersion,
                                              String specificationVersion,
-                                             String entryPackage) throws IOException {
+                                             String packageName) throws IOException {
         Map<String, VersionLocation> versionLocations = null;
-        if (packageVersionCounts.containsKey(entryPackage)) {
-            versionLocations = packageVersionCounts.get(entryPackage);
+        if (packageVersionCounts.containsKey(packageName)) {
+            versionLocations = packageVersionCounts.get(packageName);
         } else {
             versionLocations = new HashMap<String, VersionLocation>();
         }
-        VersionLocation existingVersionLocation = versionLocations.get(location);
+        VersionLocation existingVersionLocation = versionLocations.get(originLocation);
         if (existingVersionLocation != null) {
             existingVersionLocation.incrementCounter();
         } else {
-            existingVersionLocation = new VersionLocation(location, defaultVersion, specificationVersion);
+            existingVersionLocation = new VersionLocation(originLocation, newVersion, specificationVersion);
             existingVersionLocation.incrementCounter();
         }
-        versionLocations.put(location, existingVersionLocation);
+        versionLocations.put(originLocation, existingVersionLocation);
 
-        packageVersionCounts.put(entryPackage, versionLocations);
+        packageVersionCounts.put(packageName, versionLocations);
     }
 
     private void scanJarDirectories(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException {
@@ -588,4 +615,79 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         return matchingArtifacts;
 
     }
+
+    // The following code was copied from the Maven Bundle Plugin code.
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+    static public String cleanupVersion(String version) {
+        StringBuffer result = new StringBuffer();
+        Matcher m = FUZZY_VERSION.matcher(version);
+        if (m.matches()) {
+            String major = m.group(1);
+            String minor = m.group(3);
+            String micro = m.group(5);
+            String qualifier = m.group(7);
+
+            if (major != null) {
+                result.append(major);
+                if (minor != null) {
+                    result.append(".");
+                    result.append(minor);
+                    if (micro != null) {
+                        result.append(".");
+                        result.append(micro);
+                        if (qualifier != null) {
+                            result.append(".");
+                            cleanupModifier(result, qualifier);
+                        }
+                    } else if (qualifier != null) {
+                        result.append(".0.");
+                        cleanupModifier(result, qualifier);
+                    } else {
+                        result.append(".0");
+                    }
+                } else if (qualifier != null) {
+                    result.append(".0.0.");
+                    cleanupModifier(result, qualifier);
+                } else {
+                    result.append(".0.0");
+                }
+            }
+        } else {
+            result.append("0.0.0.");
+            cleanupModifier(result, version);
+        }
+        return result.toString();
+    }
+
+    static void cleanupModifier(StringBuffer result, String modifier) {
+        for (int i = 0; i < modifier.length(); i++) {
+            char c = modifier.charAt(i);
+            if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
+                    || c == '-')
+                result.append(c);
+            else
+                result.append('_');
+        }
+    }
+
+    // end of copied code.
+
 }
