@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
  * packages that is exposed by the OSGi framework by default.
  *
  * @goal buildFrameworkPackageList
- * @requiresDependencyResolution runtime
+ * @requiresDependencyResolution test
  */
 public class BuildFrameworkPackageListMojo extends AbstractMojo {
 
@@ -66,9 +66,14 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
     protected File propertiesOutputFile;
 
     /**
-     * @parameter default-value="false"
+     * @parameter default-value="javax.servlet;version=3.0";
      */
-    protected boolean scanDependencies = false;
+    protected List<String> manualPackageList;
+
+    /**
+     * @parameter default-value="true"
+     */
+    protected boolean scanDependencies = true;
 
     /**
      * @parameter expression="${project}"
@@ -141,6 +146,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         Map<String, Map<String, VersionLocation>> packageVersionCounts = new TreeMap<String, Map<String, VersionLocation>>();
         Map<String, String> packageVersions = new TreeMap<String, String>();
         String generatedPackageList = null;
+
         try {
             if (project != null) {
                 // first let's scan the dependencies
@@ -187,7 +193,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                         }
                     }
                 }
-                System.out.println("Found " + manifestElements.length + " package exports.");
+                getLog().info("Found " + manifestElements.length + " package exports.");
             }
 
             if (propertiesOutputFile != null && !propertiesOutputFile.exists()) {
@@ -196,7 +202,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             }
 
             PropertiesConfiguration frameworkProperties = new PropertiesConfiguration();
-            if (propertiesInputFile != null) {
+            if (propertiesInputFile != null && propertiesInputFile.exists()) {
                 FileReader propertiesInputFileReader = null;
                 try {
                     propertiesInputFileReader = new FileReader(propertiesInputFile);
@@ -221,18 +227,27 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                         packageExport.append(versionString);
                         packageExport.append("\"");
                     } else {
-                        getLog().warn("Ignoring invalid OSGi version " + versionString);
+                        getLog().warn("Ignoring invalid OSGi version "+versionString+" for package " + packageVersion.getKey());
                     }
                 }
                 packageList.add(packageExport.toString());
                 packageExport.append(",");
                 generatedPackageBuffer.append(packageExport);
-                System.out.println("    " + packageExport + "\\");
+                // getLog().debug("    " + packageExport + "\\");
+            }
+            if (manualPackageList != null) {
+                for (String manualPackage : manualPackageList) {
+                    if (!packageList.contains(manualPackage)) {
+                        packageList.add(manualPackage);
+                        generatedPackageBuffer.append(manualPackage);
+                        generatedPackageBuffer.append(",");
+                    }
+                }
             }
             generatedPackageList = generatedPackageBuffer.toString();
             generatedPackageList = generatedPackageList.substring(0, generatedPackageList.length() - 1); // remove the last comma
-            System.out.println("Found " + packageVersions.size() + " packages in dependencies.");
-            // System.out.println("org.osgi.framework.system.packages.extra="+ generatedPackageList);
+            getLog().info("Found " + packageVersions.size() + " packages in dependencies.");
+            // getLog().debug("org.osgi.framework.system.packages.extra="+ generatedPackageList);
             if (generatedPackageList != null && project != null) {
                 project.getProperties().put("jahiaGeneratedFrameworkPackageList", generatedPackageList);
             }
@@ -267,11 +282,11 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                 previousVersion = versionLocationEntry.getValue().getVersion();
             }
             if (resolvedPackageVersion.getValue().size() > 1 && !allVersionsEqual) {
-                System.out.println("Split-package with different versions detected for package " + resolvedPackageVersion.getKey() + ":");
+                getLog().warn("Split-package with different versions detected for package " + resolvedPackageVersion.getKey() + ":");
             }
             for (Map.Entry<String, VersionLocation> versionLocationEntry : resolvedPackageVersion.getValue().entrySet()) {
                 if (resolvedPackageVersion.getValue().size() > 1 && !allVersionsEqual) {
-                    System.out.println("  - " + versionLocationEntry.getKey() + " v" + versionLocationEntry.getValue().getVersion() + " count=" + versionLocationEntry.getValue().getCounter() + " Specification-Version=" + versionLocationEntry.getValue().getSpecificationVersion());
+                    getLog().warn("  - " + versionLocationEntry.getKey() + " v" + versionLocationEntry.getValue().getVersion() + " count=" + versionLocationEntry.getValue().getCounter() + " Specification-Version=" + versionLocationEntry.getValue().getSpecificationVersion());
                 }
                 if (versionLocationEntry.getValue() == null) {
                     continue;
@@ -286,14 +301,14 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             }
             packageVersions.put(resolvedPackageVersion.getKey(), highestVersionLocation.getVersion());
             if (resolvedPackageVersion.getValue().size() > 1 && !allVersionsEqual) {
-                System.out.println("--> " + resolvedPackageVersion.getKey() + " v" + highestVersionLocation.getVersion());
+                getLog().warn("--> " + resolvedPackageVersion.getKey() + " v" + highestVersionLocation.getVersion());
             }
         }
     }
 
     private void scanClassesBuildDirectory(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException {
         File outputDirectoryFile = new File(project.getBuild().getOutputDirectory());
-        System.out.println("Scanning project build directory " + outputDirectoryFile.getCanonicalPath());
+        getLog().info("Scanning project build directory " + outputDirectoryFile.getCanonicalPath());
         DirectoryScanner ds = new DirectoryScanner();
         String[] excludes = {"META-INF/**", "OSGI-INF/**", "OSGI-OPT/**", "WEB-INF/**"};
         ds.setExcludes(excludes);
@@ -302,7 +317,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         ds.scan();
         String[] includedFiles = ds.getIncludedFiles();
         for (String includedFile : includedFiles) {
-            // System.out.println("Processing file " + includedFile + "...");
+            // getLog().debug("Processing file " + includedFile + "...");
             String entryPackage = "";
             int lastSlash = includedFile.lastIndexOf("/");
             if (lastSlash > -1) {
@@ -320,13 +335,17 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
     }
 
     private void scanDependencies(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException {
-        System.out.println("Scanning project dependencies...");
+        getLog().info("Scanning project dependencies...");
         for (Artifact artifact : project.getArtifacts()) {
-            if (!artifact.getType().equals("jar")) {
-                System.out.println("Ignoring artifact " + artifact.getFile() + " since it is of type " + artifact.getType());
-                continue;
+            // getLog().debug(artifact + " scope=" + artifact.getScope());
+            if (artifact.getScope().contains(Artifact.SCOPE_PROVIDED)) {
+                if (!artifact.getType().equals("jar")) {
+                    getLog().warn("Ignoring artifact " + artifact.getFile() + " since it is of type " + artifact.getType());
+                    continue;
+                }
+                getLog().info("Scanning provided dependency " + artifact.getFile());
+                scanJar(packageVersionCounts, artifact.getFile(), artifact.getBaseVersion());
             }
-            scanJar(packageVersionCounts, artifact.getFile(), artifact.getBaseVersion());
         }
     }
 
@@ -336,10 +355,10 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         // Map<String, String> manifestVersions = new HashMap<String,String>();
         String specificationVersion = null;
         if (jarManifest == null) {
-            System.out.println("Warning: no MANIFEST.MF file found for dependency " + jarFile);
+            getLog().warn("No MANIFEST.MF file found for dependency " + jarFile);
         } else {
             if (jarManifest.getMainAttributes() == null) {
-                System.out.println("Warning: no main attributes found in MANIFEST.MF file found for dependency " + jarFile);
+                getLog().warn("No main attributes found in MANIFEST.MF file found for dependency " + jarFile);
             } else {
                 specificationVersion = jarManifest.getMainAttributes().getValue("Specification-Version");
                 if (defaultVersion == null) {
@@ -385,7 +404,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                         packageVersion = manifestEntries.getValue().getValue("Implementation-Version");
                     }
                     if (packageVersion != null) {
-                        System.out.println("Found package version in "+jarFile.getName()+" MANIFEST : " + packageName + " v" + packageVersion);
+                        getLog().info("Found package version in "+jarFile.getName()+" MANIFEST : " + packageName + " v" + packageVersion);
                         updateVersionLocationCounts(packageVersionCounts, jarFile.getCanonicalPath(), packageVersion, specificationVersion, packageName);
                         // manifestVersions.put(packageName, packageVersion);
                     }
@@ -393,7 +412,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             }
         }
         JarEntry jarEntry = null;
-        // System.out.println("Processing file " + artifact.getFile() + "...");
+        // getLog().debug("Processing file " + artifact.getFile() + "...");
         while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
             if (!jarEntry.isDirectory()) {
                 String entryName = jarEntry.getName();
@@ -445,10 +464,10 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         for (String jarDirectory : jarDirectories) {
             File jarDirectoryFile = new File(jarDirectory);
             if (!jarDirectoryFile.exists() || !jarDirectoryFile.isDirectory()) {
-                System.out.println("Ignoring invalid directory " + jarDirectory + ".");
+                getLog().warn("Ignoring invalid directory " + jarDirectory + ".");
                 continue;
             }
-            System.out.println("Scanning JARs in directory " + jarDirectory + "...");
+            getLog().info("Scanning JARs in directory " + jarDirectory + "...");
             DirectoryScanner ds = new DirectoryScanner();
             String[] includes = {"*.jar"};
             ds.setIncludes(includes);
@@ -462,11 +481,11 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                 String artifactFileName = includedFileFile.getName();
                 Set<Artifact> relatedArtifacts = findArtifactsByArtifactId(artifactFileName);
                 if (relatedArtifacts.size() > 1) {
-                    System.out.println("Warning : multiple matching dependencies found for artifactId " + artifactFileName);
+                    getLog().warn("multiple matching dependencies found for artifactId " + artifactFileName);
                 } else if (relatedArtifacts.size() == 1) {
                     version = relatedArtifacts.iterator().next().getBaseVersion();
                 } else {
-                    System.out.println("Couldn't find dependency for artifactId " + artifactFileName);
+                    getLog().warn("Couldn't find dependency for artifactId " + artifactFileName);
                     // @todo let's try to extract the version from the file name.
                 }
 
@@ -498,9 +517,9 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         }
         /*
         if (resultArtifacts.size() == 0) {
-            System.out.println("Couldn't find " + artifactId + ". Searched in: ");
+            getLog().warn("Couldn't find " + artifactId + ". Searched in: ");
             for (Artifact artifact : artifacts) {
-                System.out.println("- " + artifact.getGroupId() + ":" + artifact.getArtifactId() + " at " + artifact.getFile());
+                getLog().warn("- " + artifact.getGroupId() + ":" + artifact.getArtifactId() + " at " + artifact.getFile());
             }
         }
         */
