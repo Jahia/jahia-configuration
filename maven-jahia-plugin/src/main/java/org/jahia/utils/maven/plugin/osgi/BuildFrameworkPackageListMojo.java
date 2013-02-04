@@ -327,7 +327,8 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                         !entryPackage.startsWith("META-INF") &&
                         !entryPackage.startsWith("OSGI-INF") &&
                         !entryPackage.startsWith("OSGI-OPT") &&
-                        !entryPackage.startsWith("WEB-INF")) {
+                        !entryPackage.startsWith("WEB-INF") &&
+                        !entryPackage.startsWith("org.osgi")) {
                     updateVersionLocationCounts(packageVersionCounts, project.getBuild().getFinalName(), project.getVersion(), null, entryPackage);
                 }
             }
@@ -393,7 +394,8 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                             packageName.startsWith("META-INF") ||
                             packageName.startsWith("OSGI-INF") ||
                             packageName.startsWith("OSGI-OPT") ||
-                            packageName.startsWith("WEB-INF")) {
+                            packageName.startsWith("WEB-INF") ||
+                            packageName.startsWith("org.osgi")) {
                         // ignore private package names
                         continue;
                     }
@@ -425,7 +427,8 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                             !entryPackage.startsWith("META-INF") &&
                             !entryPackage.startsWith("OSGI-INF") &&
                             !entryPackage.startsWith("OSGI-OPT") &&
-                            !entryPackage.startsWith("WEB-INF")) {
+                            !entryPackage.startsWith("WEB-INF") &&
+                            !entryPackage.startsWith("org.osgi")) {
                         updateVersionLocationCounts(packageVersionCounts, jarFile.getCanonicalPath(), defaultVersion, specificationVersion, entryPackage);
                     }
                 }
