@@ -349,8 +349,8 @@ public class DeployMojo extends AbstractManagementMojo {
                 	deploySharedLibrary(artifact);
                 }
             }
-            if ((project.getParent() != null) &&
-                    ("prepackagedSites".equals(project.getParent().getArtifactId()))) {
+            if ((project.getParent() != null) && ("prepackagedSites".equals(project.getParent().getArtifactId()))
+                    || project.getGroupId().equals("org.jahia.prepackagedsites")) {
                 deployPrepackagedSiteProject();
             }
         } catch (Exception e) {
