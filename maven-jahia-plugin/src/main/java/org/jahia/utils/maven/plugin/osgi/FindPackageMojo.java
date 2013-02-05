@@ -1,0 +1,251 @@
+package org.jahia.utils.maven.plugin.osgi;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProject;
+import org.apache.tika.io.IOUtils;
+import org.sonatype.aether.RepositorySystem;
+import org.sonatype.aether.RepositorySystemSession;
+import org.sonatype.aether.collection.CollectRequest;
+import org.sonatype.aether.collection.DependencyCollectionException;
+import org.sonatype.aether.graph.Dependency;
+import org.sonatype.aether.graph.DependencyNode;
+import org.sonatype.aether.graph.DependencyVisitor;
+import org.sonatype.aether.graph.Exclusion;
+import org.sonatype.aether.repository.RemoteRepository;
+import org.sonatype.aether.resolution.ArtifactRequest;
+import org.sonatype.aether.resolution.DependencyRequest;
+import org.sonatype.aether.resolution.DependencyResolutionException;
+import org.sonatype.aether.util.artifact.DefaultArtifact;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
+
+/**
+ * A little utility goal to locate a package inside the project's dependencies, including optional or provided ones.
+ *
+ * @goal findPackage
+ * @requiresDependencyResolution test
+ */
+
+public class FindPackageMojo extends AbstractMojo {
+
+    /**
+     * @parameter default-value="${packageNames}"
+     */
+    protected List<String> packageNames = new ArrayList<String>();
+
+    /**
+     * @parameter expression="${project}"
+     * @readonly
+     * @required
+     */
+    protected MavenProject project;
+
+    /**
+     * The entry point to Aether, i.e. the component doing all the work.
+     *
+     * @component
+     */
+    private RepositorySystem repoSystem;
+
+    /**
+     * The current repository/network configuration of Maven.
+     *
+     * @parameter default-value="${repositorySystemSession}"
+     * @readonly
+     */
+    private RepositorySystemSession repoSession;
+
+    /**
+     * The project's remote repositories to use for the resolution of plugins and their dependencies.
+     *
+     * @parameter default-value="${project.remotePluginRepositories}"
+     * @readonly
+     */
+    private List<RemoteRepository> remoteRepos;
+
+    public class PackagerFinderDependencyVisitor implements DependencyVisitor {
+
+        private String packageName;
+        private Set<String> foundPackages;
+        private boolean excludedDependency = false;
+        private boolean optionalDependency = false;
+
+        public PackagerFinderDependencyVisitor(String packageName, Set<String> foundPackages, boolean excludedDependency, boolean optionalDependency) {
+            this.packageName = packageName;
+            this.foundPackages = foundPackages;
+            this.excludedDependency = excludedDependency;
+            this.optionalDependency = optionalDependency;
+        }
+
+        @Override
+        public boolean visitEnter(DependencyNode node) {
+            if (node.getDependency().getArtifact().getFile() == null) {
+                getLog().warn("No local file for artifact " + node.getDependency().getArtifact());
+                return true;
+            }
+            if (node.getDependency().isOptional()) {
+                getLog().info("Processing optional file " + node.getDependency().getArtifact().getFile() + "...");
+
+            }
+            if (doesJarHavePackageName(node.getDependency().getArtifact().getFile(), packageName)) {
+                if (!excludedDependency) {
+                    if (optionalDependency) {
+                        getLog().info("Found package " + packageName + " in artifact " + node.getDependency().getArtifact().getFile());
+                    } else {
+                        getLog().info("Found package " + packageName + " in optional artifact " + node.getDependency().getArtifact().getFile());
+                    }
+                } else {
+                    getLog().warn("Found package " + packageName + " in excluded artifact " + node.getDependency().getArtifact().getFile());
+
+                }
+                foundPackages.add(packageName);
+            }
+            for (Exclusion exclusion : node.getDependency().getExclusions()) {
+                getLog().info("Processing exclusion " + exclusion + " of artifact "  + node.getDependency().getArtifact());
+                DependencyNode exclusionNode = resolveExclusion(node, exclusion);
+                if (exclusionNode != null) {
+                    exclusionNode.accept(new PackagerFinderDependencyVisitor(packageName, foundPackages, true, exclusionNode.getDependency().isOptional()));
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public boolean visitLeave(DependencyNode node) {
+            return true;
+        }
+    }
+
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        if (packageNames == null || packageNames.size() == 0) {
+            getLog().warn("No package names specified, will abort now !");
+            return;
+        }
+        getLog().info("Scanning project dependencies...");
+        final Set<String> foundPackages = new HashSet<String>();
+        for (Artifact artifact : project.getArtifacts()) {
+            if (artifact.isOptional()) {
+                getLog().info("Processing optional dependency " + artifact + "...");
+            }
+            if (!artifact.getType().equals("jar")) {
+                getLog().info("Found non JAR artifact " + artifact);
+            }
+            for (String packageName : packageNames) {
+                if (doesJarHavePackageName(artifact.getFile(), packageName)) {
+                    getLog().info("Found package " + packageName + " in artifact " + artifact);
+                    foundPackages.add(packageName);
+                }
+            }
+        }
+        for (String packageName : packageNames) {
+            if (!foundPackages.contains(packageName)) {
+                getLog().warn("Couldn't find " + packageName + " in normal project dependencies, will now search optional (and excluded) dependencies");
+                for (Artifact artifact : project.getArtifacts()) {
+                    if (artifact.isOptional()) {
+                        getLog().info("Processing optional artifact " + artifact + "...");
+                    }
+                    DependencyNode dependencyNode = getDependencyNode(artifact);
+                    if (dependencyNode != null) {
+                        dependencyNode.accept(new PackagerFinderDependencyVisitor(packageName, foundPackages, false, artifact.isOptional()));
+                    }
+                }
+            }
+        }
+        for (String packageName : packageNames) {
+            if (!foundPackages.contains(packageName)) {
+                getLog().warn("Couldn't find " + packageName + " anywhere !");
+            }
+        }
+    }
+
+    private DependencyNode getDependencyNode(Artifact artifact) {
+        String artifactCoords = artifact.getGroupId() + ":" + artifact.getArtifactId();
+        if (StringUtils.isNotEmpty(artifact.getType()) && !("*".equals(artifact.getType())) ) {
+            artifactCoords += ":" + artifact.getType();
+        }
+        if (StringUtils.isNotEmpty(artifact.getBaseVersion()) && !("*".equals(artifact.getBaseVersion())) ) {
+            artifactCoords += ":" + artifact.getBaseVersion();
+        }
+
+        return getDependencyNode(artifactCoords);
+    }
+
+    private DependencyNode resolveExclusion(DependencyNode dependencyNode, Exclusion exclusion) {
+        if (dependencyNode.getDependency().getArtifact().getGroupId().equals(exclusion.getGroupId()) &&
+                dependencyNode.getDependency().getArtifact().getArtifactId().equals(exclusion.getArtifactId())) {
+            return dependencyNode;
+        }
+        for (DependencyNode childNode : dependencyNode.getChildren()) {
+            DependencyNode childDependency = resolveExclusion(childNode, exclusion);
+            if (childDependency != null) {
+                return childDependency;
+            }
+        }
+        return null;
+    }
+
+    private DependencyNode getDependencyNode(String artifactCoords) {
+        ArtifactRequest request = new ArtifactRequest();
+        DefaultArtifact aetherArtifact = new DefaultArtifact(artifactCoords);
+        request.setArtifact(aetherArtifact);
+        request.setRepositories(remoteRepos);
+
+        Dependency dependency =
+                new Dependency(aetherArtifact, "compile");
+
+        CollectRequest collectRequest = new CollectRequest();
+        collectRequest.setRoot(dependency);
+        collectRequest.setRepositories(remoteRepos);
+
+        DependencyNode dependencyNode = null;
+        try {
+            dependencyNode = repoSystem.collectDependencies(repoSession, collectRequest).getRoot();
+            DependencyRequest dependencyRequest = new DependencyRequest(dependencyNode, null);
+
+            repoSystem.resolveDependencies(repoSession, dependencyRequest);
+
+        } catch (DependencyCollectionException e) {
+            getLog().error("Error collecting dependencies for " + artifactCoords + ": " + e.getMessage());
+        } catch (DependencyResolutionException e) {
+            getLog().error("Error resolving dependencies for " + artifactCoords + ": " + e.getMessage());
+        }
+        return dependencyNode;
+    }
+
+    private boolean doesJarHavePackageName(File jarFile, String packageName) {
+        JarInputStream jarInputStream = null;
+        if (jarFile == null) {
+            getLog().warn("File is null !");
+            return false;
+        }
+        if (!jarFile.exists()) {
+            getLog().warn("File " + jarFile + " does not exist !");
+            return false;
+        }
+        try {
+            jarInputStream = new JarInputStream(new FileInputStream(jarFile));
+            JarEntry jarEntry = null;
+            while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
+                String jarPackageName = jarEntry.getName().replaceAll("/", ".");
+                if (jarPackageName.equals(packageName)) {
+                    return true;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } finally {
+            IOUtils.closeQuietly(jarInputStream);
+        }
+        return false;
+    }
+}

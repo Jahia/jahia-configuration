@@ -562,7 +562,6 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
 
     private Set<Artifact> findInWarDependencies(Artifact warArtifact, final String artifactId) {
         final Set<Artifact> matchingArtifacts = new HashSet<Artifact>();
-        ArtifactRequest request = new ArtifactRequest();
         String artifactCoords = warArtifact.getGroupId() + ":" + warArtifact.getArtifactId() + ":" + warArtifact.getType() + ":" + warArtifact.getBaseVersion();
         DependencyNode node = null;
         if (resolvedDependencyNodes.containsKey(artifactCoords)) {
@@ -573,6 +572,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             try {
 
                 getLog().info("Resolving artifact " + artifactCoords + "...");
+                ArtifactRequest request = new ArtifactRequest();
                 request.setArtifact(
                         new DefaultArtifact(artifactCoords));
                 request.setRepositories(remoteRepos);
