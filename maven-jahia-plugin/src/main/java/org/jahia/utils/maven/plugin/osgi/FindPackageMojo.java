@@ -75,15 +75,15 @@ public class FindPackageMojo extends AbstractMojo {
     public class PackagerFinderDependencyVisitor implements DependencyVisitor {
 
         private String packageName;
-        private Set<String> foundPackages;
+        private Map<String,List<String>> foundPackages;
         private boolean excludedDependency = false;
-        private boolean optionalDependency = false;
+        private List<String> dependencyTrail = null;
 
-        public PackagerFinderDependencyVisitor(String packageName, Set<String> foundPackages, boolean excludedDependency, boolean optionalDependency) {
+        public PackagerFinderDependencyVisitor(String packageName, Map<String,List<String>> foundPackages, boolean excludedDependency, List<String> dependencyTrail) {
             this.packageName = packageName;
             this.foundPackages = foundPackages;
             this.excludedDependency = excludedDependency;
-            this.optionalDependency = optionalDependency;
+            this.dependencyTrail = new ArrayList(dependencyTrail);
         }
 
         @Override
@@ -93,27 +93,45 @@ public class FindPackageMojo extends AbstractMojo {
                 return true;
             }
             if (node.getDependency().isOptional()) {
-                getLog().info("Processing optional file " + node.getDependency().getArtifact().getFile() + "...");
-
+                getLog().debug("Processing optional file " + node.getDependency().getArtifact().getFile() + "...");
             }
+            List<String> curTrail = new ArrayList(dependencyTrail) ;
+            String trailSuffix="";
+            if (!excludedDependency) {
+                if (node.getDependency().isOptional()) {
+                    trailSuffix="[optional]";
+                }
+            } else {
+                if (node.getDependency().isOptional()) {
+                    trailSuffix="[excluded+optional]";
+                } else {
+                    trailSuffix="[excluded]";
+                }
+            }
+            curTrail.add(node.toString()+trailSuffix);
+            String trail = getTrail(dependencyTrail);
             if (doesJarHavePackageName(node.getDependency().getArtifact().getFile(), packageName)) {
                 if (!excludedDependency) {
-                    if (optionalDependency) {
-                        getLog().info("Found package " + packageName + " in artifact " + node.getDependency().getArtifact().getFile());
+                    if (node.getDependency().isOptional()) {
+                        getLog().info(trail +": Found package " + packageName + " in optional artifact " + node.getDependency().getArtifact().getFile());
                     } else {
-                        getLog().info("Found package " + packageName + " in optional artifact " + node.getDependency().getArtifact().getFile());
+                        getLog().info(trail +": Found package " + packageName + " in artifact " + node.getDependency().getArtifact().getFile());
                     }
                 } else {
-                    getLog().warn("Found package " + packageName + " in excluded artifact " + node.getDependency().getArtifact().getFile());
-
+                    if (node.getDependency().isOptional()) {
+                        getLog().warn(trail + ": Found package " + packageName + " in optional excluded artifact " + node.getDependency().getArtifact().getFile());
+                    } else {
+                        getLog().warn(trail + ": Found package " + packageName + " in excluded artifact " + node.getDependency().getArtifact().getFile());
+                    }
                 }
-                foundPackages.add(packageName);
-            }
-            for (Exclusion exclusion : node.getDependency().getExclusions()) {
-                getLog().info("Processing exclusion " + exclusion + " of artifact "  + node.getDependency().getArtifact());
-                DependencyNode exclusionNode = resolveExclusion(node, exclusion);
-                if (exclusionNode != null) {
-                    exclusionNode.accept(new PackagerFinderDependencyVisitor(packageName, foundPackages, true, exclusionNode.getDependency().isOptional()));
+                foundPackages.put(packageName, curTrail);
+            } else {
+                for (Exclusion exclusion : node.getDependency().getExclusions()) {
+                    getLog().debug(trail + ": Processing exclusion " + exclusion + " of artifact " + node.getDependency().getArtifact());
+                    DependencyNode exclusionNode = resolveExclusion(node, exclusion);
+                    if (exclusionNode != null) {
+                        exclusionNode.accept(new PackagerFinderDependencyVisitor(packageName, foundPackages, true, new ArrayList<String>(curTrail)));
+                    }
                 }
             }
             return true;
@@ -132,38 +150,46 @@ public class FindPackageMojo extends AbstractMojo {
             return;
         }
         getLog().info("Scanning project dependencies...");
-        final Set<String> foundPackages = new HashSet<String>();
+        final Map<String, List<String>> foundPackages = new HashMap<String, List<String>>();
         for (Artifact artifact : project.getArtifacts()) {
             if (artifact.isOptional()) {
-                getLog().info("Processing optional dependency " + artifact + "...");
+                getLog().debug("Processing optional dependency " + artifact + "...");
             }
             if (!artifact.getType().equals("jar")) {
-                getLog().info("Found non JAR artifact " + artifact);
+                getLog().warn("Found non JAR artifact " + artifact);
             }
             for (String packageName : packageNames) {
                 if (doesJarHavePackageName(artifact.getFile(), packageName)) {
-                    getLog().info("Found package " + packageName + " in artifact " + artifact);
-                    foundPackages.add(packageName);
+                    List<String> trail = new ArrayList<String>(artifact.getDependencyTrail());
+                    trail.add(artifact.toString());
+                    getLog().info("Found package " + packageName + " in " + getTrail(trail));
+                    foundPackages.put(packageName, trail);
                 }
             }
         }
         for (String packageName : packageNames) {
-            if (!foundPackages.contains(packageName)) {
+            if (!foundPackages.containsKey(packageName)) {
                 getLog().warn("Couldn't find " + packageName + " in normal project dependencies, will now search optional (and excluded) dependencies");
                 for (Artifact artifact : project.getArtifacts()) {
                     if (artifact.isOptional()) {
-                        getLog().info("Processing optional artifact " + artifact + "...");
+                        getLog().debug("Processing optional artifact " + artifact + "...");
                     }
                     DependencyNode dependencyNode = getDependencyNode(artifact);
                     if (dependencyNode != null) {
-                        dependencyNode.accept(new PackagerFinderDependencyVisitor(packageName, foundPackages, false, artifact.isOptional()));
+                        List<String> trail = new ArrayList<String>(artifact.getDependencyTrail());
+                        dependencyNode.accept(new PackagerFinderDependencyVisitor(packageName, foundPackages, false, trail));
                     }
                 }
             }
         }
+        getLog().info("=================================================================================");
+        getLog().info("SEARCH RESULTS");
+        getLog().info("---------------------------------------------------------------------------------");
         for (String packageName : packageNames) {
-            if (!foundPackages.contains(packageName)) {
+            if (!foundPackages.containsKey(packageName)) {
                 getLog().warn("Couldn't find " + packageName + " anywhere !");
+            } else {
+                getLog().info("Found package " + packageName + " in " + getTrail(foundPackages.get(packageName)));
             }
         }
     }
@@ -232,11 +258,15 @@ public class FindPackageMojo extends AbstractMojo {
             getLog().warn("File " + jarFile + " does not exist !");
             return false;
         }
+        getLog().debug("Scanning JAR " + jarFile + "...");
         try {
             jarInputStream = new JarInputStream(new FileInputStream(jarFile));
             JarEntry jarEntry = null;
             while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
                 String jarPackageName = jarEntry.getName().replaceAll("/", ".");
+                if (jarPackageName.endsWith(".")) {
+                    jarPackageName = jarPackageName.substring(0, jarPackageName.length()-1);
+                }
                 if (jarPackageName.equals(packageName)) {
                     return true;
                 }
@@ -248,4 +278,18 @@ public class FindPackageMojo extends AbstractMojo {
         }
         return false;
     }
+
+    private String getTrail(List<String> dependencyTrail) {
+        StringBuilder builder = new StringBuilder();
+        int i=0;
+        for (String trailEntry : dependencyTrail) {
+            builder.append(trailEntry);
+            if (i < dependencyTrail.size()-1) {
+                builder.append(" -> ");
+            }
+            i++;
+        }
+        return builder.toString();
+    }
+
 }
