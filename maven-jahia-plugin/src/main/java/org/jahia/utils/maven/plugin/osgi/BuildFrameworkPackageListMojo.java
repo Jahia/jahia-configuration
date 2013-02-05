@@ -129,7 +129,13 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
      */
     private List<RemoteRepository> remoteRepos;
 
+    /**
+     * @parameter default-value="org.osgi.framework.system.packages.extra"
+     */
+    private String propertyFilePropertyName = "org.osgi.framework.system.packages.extra";
+
     private Map<String, DependencyNode> resolvedDependencyNodes = new HashMap<String, DependencyNode>();
+    private List<Pattern> exclusionPatterns = new ArrayList<Pattern>();
 
     private class VersionLocation {
         private String location;
@@ -166,13 +172,17 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+
+        buildExclusionPatterns();
+
         Map<String, Map<String, VersionLocation>> packageVersionCounts = new TreeMap<String, Map<String, VersionLocation>>();
         Map<String, List<String>> packageVersions = new TreeMap<String, List<String>>();
         String generatedPackageList = null;
 
         try {
             if (project != null) {
-                // first let's scan the dependencies
+
+                scanExistingExports(packageVersionCounts);
 
                 if (scanDependencies) {
                     scanDependencies(packageVersionCounts);
@@ -245,7 +255,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                 project.getProperties().put("jahiaGeneratedFrameworkPackageList", generatedPackageList);
             }
             if ((propertiesOutputFile != null) && (generatedPackageList != null)) {
-                frameworkProperties.setProperty("org.osgi.framework.system.packages.extra", packageList);
+                frameworkProperties.setProperty(propertyFilePropertyName, packageList);
                 frameworkProperties.save(new FileWriter(propertiesOutputFile));
                 getLog().info("Generated property file saved in " + propertiesOutputFile.getCanonicalPath());
             }
@@ -257,6 +267,65 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (ConfigurationException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+    }
+
+    private void buildExclusionPatterns() {
+        if (artifactExcludes == null) {
+            return;
+        }
+        for (String artifactExclude : artifactExcludes) {
+            int colonPos = artifactExclude.indexOf(":");
+            String groupPattern = ".*";
+            String artifactPattern = null;
+            if (colonPos > -1) {
+                groupPattern = artifactExclude.substring(0, colonPos);
+                artifactPattern = artifactExclude.substring(colonPos + 1);
+            } else {
+                artifactPattern = artifactExclude;
+            }
+            groupPattern.replaceAll("\\*", ".*");
+            artifactPattern.replaceAll("\\*", ".*");
+            exclusionPatterns.add(Pattern.compile(groupPattern + ":" + artifactPattern));
+        }
+    }
+
+    private void scanExistingExports(Map<String, Map<String, VersionLocation>> packageVersionCounts) {
+        if (!propertiesInputFile.exists()) {
+            return;
+        }
+        FileInputStream fileInputStream = null;
+        try {
+            Properties properties = new Properties();
+            fileInputStream = new FileInputStream(propertiesInputFile);
+            properties.load(fileInputStream);
+            String exportPropertyValue = (String) properties.get(propertyFilePropertyName);
+            if (exportPropertyValue == null) {
+                return;
+            }
+            ManifestElement[] manifestElements = ManifestElement.parseHeader("Export-Package", exportPropertyValue);
+            for (ManifestElement manifestElement : manifestElements) {
+                String[] packageNames = manifestElement.getValueComponents();
+                String version = manifestElement.getAttribute("version");
+                if (version != null) {
+                    for (String packageName : packageNames) {
+                        updateVersionLocationCounts(packageVersionCounts, propertiesInputFile.toString(), version, null, packageName);
+                    }
+                } else {
+                    for (String packageName : packageNames) {
+                        updateVersionLocationCounts(packageVersionCounts, propertiesInputFile.toString(), version, null, packageName);
+                    }
+                }
+            }
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (BundleException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } finally {
+            IOUtils.closeQuietly(fileInputStream);
         }
     }
 
@@ -374,9 +443,21 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
     private void scanDependencies(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException {
         getLog().info("Scanning project dependencies...");
         for (Artifact artifact : project.getArtifacts()) {
-            // getLog().debug(artifact + " scope=" + artifact.getScope());
-            // @todo integrate artifact excludes and reactivate scanning of compile and runtime scopes
-            if (artifact.getScope().contains(Artifact.SCOPE_PROVIDED)) {
+            String exclusionMatched = null;
+            for (Pattern exclusionPattern : exclusionPatterns) {
+                Matcher exclusionMatcher = exclusionPattern.matcher(artifact.getGroupId() + ":" + artifact.getArtifactId());
+                if (exclusionMatcher.matches()) {
+                    exclusionMatched = artifact.getGroupId() + ":" + artifact.getArtifactId();
+                    break;
+                }
+            }
+            if (exclusionMatched != null) {
+                getLog().info("Matched exclusion " + exclusionMatched + ", ignoring artifact.");
+            }
+
+            if (artifact.getScope().contains(Artifact.SCOPE_PROVIDED) ||
+                artifact.getScope().contains(Artifact.SCOPE_COMPILE) ||
+                artifact.getScope().contains(Artifact.SCOPE_RUNTIME)) {
                 if (!artifact.getType().equals("jar")) {
                     getLog().warn("Ignoring artifact " + artifact.getFile() + " since it is of type " + artifact.getType());
                     continue;
