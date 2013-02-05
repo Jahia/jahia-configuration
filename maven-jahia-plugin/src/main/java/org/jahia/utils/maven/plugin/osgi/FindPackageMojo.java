@@ -161,7 +161,9 @@ public class FindPackageMojo extends AbstractMojo {
             for (String packageName : packageNames) {
                 if (doesJarHavePackageName(artifact.getFile(), packageName)) {
                     List<String> trail = new ArrayList<String>(artifact.getDependencyTrail());
-                    trail.add(artifact.toString());
+                    if (artifact.isOptional()) {
+                        trail.add("[optional]");
+                    }
                     getLog().info("Found package " + packageName + " in " + getTrail(trail));
                     foundPackages.put(packageName, trail);
                 }
