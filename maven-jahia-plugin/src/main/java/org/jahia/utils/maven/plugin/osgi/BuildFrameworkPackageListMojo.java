@@ -95,6 +95,11 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
     protected boolean exportEachPackageOnce = false;
 
     /**
+     * @parameter default-value="org.jahia.modules:*,org.jahia.templates:*,org.jahia.test:*,*.jahia.modules"
+     */
+    protected List<String> artifactExcludes;
+
+    /**
      * @parameter expression="${project}"
      * @readonly
      * @required
@@ -370,6 +375,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         getLog().info("Scanning project dependencies...");
         for (Artifact artifact : project.getArtifacts()) {
             // getLog().debug(artifact + " scope=" + artifact.getScope());
+            // @todo integrate artifact excludes and reactivate scanning of compile and runtime scopes
             if (artifact.getScope().contains(Artifact.SCOPE_PROVIDED)) {
                 if (!artifact.getType().equals("jar")) {
                     getLog().warn("Ignoring artifact " + artifact.getFile() + " since it is of type " + artifact.getType());
