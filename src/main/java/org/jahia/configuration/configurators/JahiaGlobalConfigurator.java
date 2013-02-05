@@ -444,7 +444,7 @@ public class JahiaGlobalConfigurator {
 
         cleanDirectory(new File(webappDir + "/WEB-INF/var/compiledRules"));
 
-        cleanDirectory(new File(webappDir + "/WEB-INF/var/bundles-cache"));
+        cleanDirectory(new File(webappDir + "/WEB-INF/var/bundles-deployed"));
 
         File[] templateDirs = new File(webappDir + "/modules")
                 .listFiles((FilenameFilter) DirectoryFileFilter.DIRECTORY);
