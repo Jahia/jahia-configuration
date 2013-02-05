@@ -75,7 +75,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
     protected File propertiesInputFile;
 
     /**
-     * @parameter default-value="${project.build.directory}/generated-resources/WEB-INF/etc/config/felix-framework.properties"
+     * @parameter default-value="${project.build.directory}/${project.build.finalName}/WEB-INF/etc/config/felix-framework.properties"
      */
     protected File propertiesOutputFile;
 
