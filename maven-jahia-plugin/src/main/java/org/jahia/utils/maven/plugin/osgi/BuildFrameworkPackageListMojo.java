@@ -177,7 +177,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         buildExclusionPatterns();
 
         Map<String, Map<String, VersionLocation>> packageVersionCounts = new TreeMap<String, Map<String, VersionLocation>>();
-        Map<String, List<String>> packageVersions = new TreeMap<String, List<String>>();
+        Map<String, Set<String>> packageVersions = new TreeMap<String, Set<String>>();
         String generatedPackageList = null;
 
         try {
@@ -210,7 +210,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             List<String> packageList = new ArrayList<String>();
 
             StringBuilder generatedPackageBuffer = new StringBuilder();
-            for (Map.Entry<String, List<String>> packageVersion : packageVersions.entrySet()) {
+            for (Map.Entry<String, Set<String>> packageVersion : packageVersions.entrySet()) {
                 if (packageVersion.getValue() != null) {
                     // @todo we should perform parent lookup here and re-use version if activated.
                     for (String versionString : packageVersion.getValue()) {
@@ -385,7 +385,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         }
     }
 
-    private void resolveSplitPackages(Map<String, Map<String, VersionLocation>> packageVersionCounts, Map<String, List<String>> packageVersions) {
+    private void resolveSplitPackages(Map<String, Map<String, VersionLocation>> packageVersionCounts, Map<String, Set<String>> packageVersions) {
         for (Map.Entry<String, Map<String, VersionLocation>> resolvedPackageVersion : packageVersionCounts.entrySet()) {
             VersionLocation highestVersionLocation = null;
             boolean allVersionsEqual = true;
@@ -400,7 +400,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             if (resolvedPackageVersion.getValue().size() > 1 && !allVersionsEqual) {
                 getLog().warn("Split-package with different versions detected for package " + resolvedPackageVersion.getKey() + ":");
             }
-            List<String> versions = new ArrayList<String>();
+            Set<String> versions = new HashSet<String>();
             for (Map.Entry<String, VersionLocation> versionLocationEntry : resolvedPackageVersion.getValue().entrySet()) {
                 if (resolvedPackageVersion.getValue().size() > 1 && !allVersionsEqual) {
                     getLog().warn("  - " + versionLocationEntry.getKey() + " v" + versionLocationEntry.getValue().getVersion() + " count=" + versionLocationEntry.getValue().getCounter() + " Specification-Version=" + versionLocationEntry.getValue().getSpecificationVersion());
@@ -415,7 +415,9 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                         highestVersionLocation = versionLocationEntry.getValue();
                     }
                 }
-                versions.add(versionLocationEntry.getValue().getVersion());
+                if (!versions.contains(versionLocationEntry.getValue().getVersion())) {
+                    versions.add(versionLocationEntry.getValue().getVersion());
+                }
             }
             if (exportEachPackageOnce) {
                 versions.clear();
