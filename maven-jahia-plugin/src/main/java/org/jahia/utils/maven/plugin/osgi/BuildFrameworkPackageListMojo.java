@@ -222,7 +222,11 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                             packageExport.append(versionString);
                             packageExport.append("\"");
                             packageExport.append(",");
-                            packageList.add(packageExport.toString());
+                            if (packageList.contains(packageExport.toString())) {
+                                getLog().warn("Package export " + packageExport.toString() + " already present in list, will not add again!");
+                            } else {
+                                packageList.add(packageExport.toString());
+                            }
                             generatedPackageBuffer.append(packageExport);
                         }
                     }
@@ -581,6 +585,10 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                                              String newVersion,
                                              String specificationVersion,
                                              String packageName) throws IOException {
+        String cleanedUpNewVersion = null;
+        if (newVersion != null) {
+            cleanedUpNewVersion = cleanupVersion(newVersion);
+        }
         Map<String, VersionLocation> versionLocations = null;
         if (packageVersionCounts.containsKey(packageName)) {
             versionLocations = packageVersionCounts.get(packageName);
@@ -591,7 +599,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         if (existingVersionLocation != null) {
             existingVersionLocation.incrementCounter();
         } else {
-            existingVersionLocation = new VersionLocation(originLocation, newVersion, specificationVersion);
+            existingVersionLocation = new VersionLocation(originLocation, cleanedUpNewVersion, specificationVersion);
             existingVersionLocation.incrementCounter();
         }
         versionLocations.put(originLocation, existingVersionLocation);
