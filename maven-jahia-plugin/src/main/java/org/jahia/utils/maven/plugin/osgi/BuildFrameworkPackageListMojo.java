@@ -235,6 +235,9 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             if (manualPackageList != null) {
                 for (String manualPackage : manualPackageList) {
                     if (!packageList.contains(manualPackage+",")) {
+                        if (manualPackage.contains("=")) {
+                            manualPackage = manualPackage.replaceAll("=", "\\=");
+                        }
                         packageList.add(manualPackage +",");
                         generatedPackageBuffer.append(manualPackage);
                         generatedPackageBuffer.append(",");
