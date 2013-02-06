@@ -239,6 +239,8 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             }
             generatedPackageList = generatedPackageBuffer.toString();
             generatedPackageList = generatedPackageList.substring(0, generatedPackageList.length() - 1); // remove the last comma
+            String lastPackage = packageList.remove(packageList.size()-1);
+            packageList.add(lastPackage.substring(0,lastPackage.length()-1)); // remove the last comma
             getLog().info("Found " + packageVersions.size() + " packages in dependencies.");
             // getLog().debug("org.osgi.framework.system.packages.extra="+ generatedPackageList);
             if (generatedPackageList != null && project != null) {
