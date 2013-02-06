@@ -198,7 +198,10 @@ public class DeployMojo extends AbstractManagementMojo {
                 if (isStandardModule || isJahiaModuleBundle(new File(output, project.getArtifactId() + "-" + project.getVersion() + "." + "jar"))) {
                     deployModuleProject();
                 } else {
-                    getLog().warn("Unrecognized type of the bundle project. Skipping deployment");
+                    File srcFile = new File(output, project.getArtifactId() + "-" + project.getVersion() + "." + "jar");
+                    File destDir = new File(getWebappDeploymentDir(), "WEB-INF/var/bundles");
+                    FileUtils.copyFileToDirectory(srcFile, destDir);
+                    getLog().info("Copied " + srcFile + " to " + destDir);
                 }
             }
         }
