@@ -81,7 +81,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
     protected File propertiesOutputFile;
 
     /**
-     * @parameter default-value="javax.servlet;version=3.0";
+     * @parameter
      */
     protected List<String> manualPackageList;
 
@@ -230,7 +230,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             }
             if (manualPackageList != null) {
                 for (String manualPackage : manualPackageList) {
-                    if (!packageList.contains(manualPackage)) {
+                    if (!packageList.contains(manualPackage+",")) {
                         packageList.add(manualPackage +",");
                         generatedPackageBuffer.append(manualPackage);
                         generatedPackageBuffer.append(",");
