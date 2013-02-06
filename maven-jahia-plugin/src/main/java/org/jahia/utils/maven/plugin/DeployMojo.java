@@ -45,6 +45,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -167,6 +168,8 @@ public class DeployMojo extends AbstractManagementMojo {
                                 + "(with groupId 'org.jahia.test') is disabled by default. "
                                 + "You can enable it by specifying -Djahia.deploy.deployTests"
                                 + " option for the 'mvn jahia:deploy' command");
+            } else {
+                getLog().warn("Unrecognized type of the WAR project. Skipping deployment");
             }
         } else if (project.getPackaging().equals("sar") || project.getPackaging().equals("jboss-sar") || project.getPackaging().equals("rar")) {
             deploySarRarProject();
@@ -191,10 +194,39 @@ public class DeployMojo extends AbstractManagementMojo {
                 FileUtils.copyFileToDirectory(srcFile, destDir);
                 getLog().info("Copied " + srcFile + " to " + destDir);
             } else {
-                // add check here if the bundle is actually a module
-                deployModuleProject();
+                boolean isStandardModule = project.getGroupId().equals("org.jahia.module") || project.getGroupId().endsWith(".jahia.modules");
+                if (isStandardModule || isJahiaModuleBundle(new File(output, project.getArtifactId() + "-" + project.getVersion() + "." + "jar"))) {
+                    deployModuleProject();
+                } else {
+                    getLog().warn("Unrecognized type of the bundle project. Skipping deployment");
+                }
             }
         }
+    }
+
+    private boolean isJahiaModuleBundle(File file) {
+        if (!file.exists()) {
+            return false;
+        }
+
+        // check the manifest
+        JarFile jar = null;
+        try {
+            jar = new JarFile(file, false);
+            return jar.getManifest().getMainAttributes().containsKey("Jahia-Module-Type");
+        } catch (IOException e) {
+            getLog().error(e);
+        } finally {
+            if (jar != null) {
+                try {
+                    jar.close();
+                } catch (IOException e) {
+                    getLog().warn(e);
+                }
+            }
+        }
+
+        return false;
     }
 
     private boolean skipDeploy() {
