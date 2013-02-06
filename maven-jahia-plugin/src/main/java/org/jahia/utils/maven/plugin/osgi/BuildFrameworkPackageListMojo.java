@@ -133,7 +133,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
     /**
      * @parameter default-value="org.osgi.framework.system.packages.extra"
      */
-    private String propertyFilePropertyName = "org.osgi.framework.system.packages.extra";
+    protected String propertyFilePropertyName = "org.osgi.framework.system.packages.extra";
 
     private Map<String, DependencyNode> resolvedDependencyNodes = new HashMap<String, DependencyNode>();
     private List<Pattern> exclusionPatterns = new ArrayList<Pattern>();
