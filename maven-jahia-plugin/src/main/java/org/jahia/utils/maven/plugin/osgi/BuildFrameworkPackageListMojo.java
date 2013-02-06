@@ -1,7 +1,6 @@
 package org.jahia.utils.maven.plugin.osgi;
 
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import asia.redact.bracket.properties.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.RepositoryUtils;
 import org.apache.maven.artifact.Artifact;
@@ -26,6 +25,7 @@ import org.sonatype.aether.util.artifact.DefaultArtifact;
 
 import java.io.*;
 import java.util.*;
+import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
@@ -36,6 +36,7 @@ import java.util.regex.Pattern;
 /**
  * This maven goal will build the list of system packages that is exposed by the OSGi framework by default.
  * In order to this it can use as input:
+ * - An existing property file that already includes a package list in OSGi format.
  * - A previously generated MANIFEST.MF by the Maven Bundle Plugin
  * - The contents of WEB-INF/classes
  * - The contents of WEB-INF/lib
@@ -180,9 +181,10 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         String generatedPackageList = null;
 
         try {
+            scanExistingExports(packageVersionCounts);
+
             if (project != null) {
 
-                scanExistingExports(packageVersionCounts);
 
                 if (scanDependencies) {
                     scanDependencies(packageVersionCounts);
@@ -194,9 +196,8 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
 
                 scanJarDirectories(packageVersionCounts);
 
-                scanJarDirectories(packageVersionCounts);
-
             }
+
             scanExistingManifest(packageVersionCounts);
 
             resolveSplitPackages(packageVersionCounts, packageVersions);
@@ -206,16 +207,6 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                 propertiesOutputFile.createNewFile();
             }
 
-            PropertiesConfiguration frameworkProperties = new PropertiesConfiguration();
-            if (propertiesInputFile != null && propertiesInputFile.exists()) {
-                FileReader propertiesInputFileReader = null;
-                try {
-                    propertiesInputFileReader = new FileReader(propertiesInputFile);
-                    frameworkProperties.load(propertiesInputFileReader);
-                } finally {
-                    IOUtils.closeQuietly(propertiesInputFileReader);
-                }
-            }
             List<String> packageList = new ArrayList<String>();
 
             StringBuilder generatedPackageBuffer = new StringBuilder();
@@ -227,13 +218,12 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                             StringBuilder packageExport = new StringBuilder();
                             packageExport.append(packageVersion.getKey());
                             versionString = cleanupVersion(versionString);
-                            packageExport.append(";version=\"");
+                            packageExport.append(";version\\=\"");
                             packageExport.append(versionString);
                             packageExport.append("\"");
-                            packageList.add(packageExport.toString());
                             packageExport.append(",");
+                            packageList.add(packageExport.toString());
                             generatedPackageBuffer.append(packageExport);
-                            getLog().debug("    " + packageExport + "\\");
                         }
                     }
                 }
@@ -241,7 +231,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             if (manualPackageList != null) {
                 for (String manualPackage : manualPackageList) {
                     if (!packageList.contains(manualPackage)) {
-                        packageList.add(manualPackage);
+                        packageList.add(manualPackage +",");
                         generatedPackageBuffer.append(manualPackage);
                         generatedPackageBuffer.append(",");
                     }
@@ -255,8 +245,42 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                 project.getProperties().put("jahiaGeneratedFrameworkPackageList", generatedPackageList);
             }
             if ((propertiesOutputFile != null) && (generatedPackageList != null)) {
-                frameworkProperties.setProperty(propertyFilePropertyName, packageList);
-                frameworkProperties.save(new FileWriter(propertiesOutputFile));
+                asia.redact.bracket.properties.Properties frameworkProperties = null;
+                if (propertiesInputFile != null && propertiesInputFile.exists()) {
+                    FileReader propertiesInputFileReader = null;
+                    try {
+                        propertiesInputFileReader = new FileReader(propertiesInputFile);
+                        asia.redact.bracket.properties.Properties.Factory.mode = asia.redact.bracket.properties.Properties.Mode.Line;
+                        asia.redact.bracket.properties.Properties props = asia.redact.bracket.properties.Properties.Factory.getInstance(propertiesInputFileReader);
+                        // we will now reprocess the keys to trim them since there is a bug in the library http://code.google.com/p/bracket-properties/issues/detail?id=1
+                        Map<String,ValueModel> propertyMap = props.getPropertyMap();
+                        Map<String,ValueModel> propertyMapCopy = new LinkedHashMap<String,ValueModel>(props.getPropertyMap());
+                        propertyMap.clear();
+                        for (Map.Entry<String,ValueModel> propertyMapEntry : propertyMapCopy.entrySet()) {
+                            String trimmedPropertyKey = propertyMapEntry.getKey().trim();
+                            if (!trimmedPropertyKey.equals(propertyMapEntry.getKey())) {
+                                getLog().debug("Replacing invalid property key [" + propertyMapEntry.getKey() + "] with [" + trimmedPropertyKey + "]");
+                            }
+                            propertyMap.put(trimmedPropertyKey, propertyMapEntry.getValue());
+                        }
+                        frameworkProperties = props;
+                    } finally {
+                        IOUtils.closeQuietly(propertiesInputFileReader);
+                    }
+                } else {
+                    frameworkProperties = asia.redact.bracket.properties.Properties.Factory.getInstance();
+                }
+                frameworkProperties.put(propertyFilePropertyName, packageList.toArray(new String[packageList.size()]));
+                OutputAdapter out = new OutputAdapter(frameworkProperties);
+                FileWriter propertyOutputFileWriter = null;
+                try {
+                    propertyOutputFileWriter = new FileWriter(propertiesOutputFile);
+                    out.writeTo(propertyOutputFileWriter);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    IOUtils.closeQuietly(propertyOutputFileWriter);
+                }
                 getLog().info("Generated property file saved in " + propertiesOutputFile.getCanonicalPath());
             }
         } catch (FileNotFoundException e) {
@@ -264,8 +288,6 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (BundleException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        } catch (ConfigurationException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
     }
@@ -303,18 +325,13 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             if (exportPropertyValue == null) {
                 return;
             }
+            getLog().info("Processing existing property " + propertyFilePropertyName + " from file " + propertiesInputFile + "...");
             ManifestElement[] manifestElements = ManifestElement.parseHeader("Export-Package", exportPropertyValue);
             for (ManifestElement manifestElement : manifestElements) {
                 String[] packageNames = manifestElement.getValueComponents();
                 String version = manifestElement.getAttribute("version");
-                if (version != null) {
-                    for (String packageName : packageNames) {
-                        updateVersionLocationCounts(packageVersionCounts, propertiesInputFile.toString(), version, null, packageName);
-                    }
-                } else {
-                    for (String packageName : packageNames) {
-                        updateVersionLocationCounts(packageVersionCounts, propertiesInputFile.toString(), version, null, packageName);
-                    }
+                for (String packageName : packageNames) {
+                    updateVersionLocationCounts(packageVersionCounts, propertiesInputFile.toString(), version, null, packageName);
                 }
             }
 
@@ -456,13 +473,13 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             }
 
             if (artifact.getScope().contains(Artifact.SCOPE_PROVIDED) ||
-                artifact.getScope().contains(Artifact.SCOPE_COMPILE) ||
-                artifact.getScope().contains(Artifact.SCOPE_RUNTIME)) {
+                    artifact.getScope().contains(Artifact.SCOPE_COMPILE) ||
+                    artifact.getScope().contains(Artifact.SCOPE_RUNTIME)) {
                 if (!artifact.getType().equals("jar")) {
                     getLog().warn("Ignoring artifact " + artifact.getFile() + " since it is of type " + artifact.getType());
                     continue;
                 }
-                getLog().info("Scanning provided dependency " + artifact.getFile());
+                getLog().debug("Scanning dependency " + artifact.getFile());
                 scanJar(packageVersionCounts, artifact.getFile(), artifact.getBaseVersion());
             }
         }
