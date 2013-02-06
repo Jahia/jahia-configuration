@@ -5,10 +5,13 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.poi.util.IOUtils;
 import org.codehaus.plexus.util.FileUtils;
+import org.eclipse.osgi.util.ManifestElement;
 import org.junit.Test;
+import org.osgi.framework.BundleException;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 
@@ -18,7 +21,7 @@ import java.util.Properties;
 public class BuildFrameworkPackageListMojoTest {
 
     @Test
-    public void testPackageListBuilding() throws IOException, MojoFailureException, MojoExecutionException {
+    public void testPackageListBuilding() throws IOException, MojoFailureException, MojoExecutionException, BundleException {
         BuildFrameworkPackageListMojo mojo = new BuildFrameworkPackageListMojo();
         String tmpDirLocation = System.getProperty("java.io.tmpdir");
         File tmpDirFile = new File(tmpDirLocation);
@@ -46,7 +49,22 @@ public class BuildFrameworkPackageListMojoTest {
         properties.load(new FileReader(propertiesOutputFile));
         String systemPackagePropValue = properties.getProperty(mojo.propertyFilePropertyName);
         Assert.assertTrue("Couldn't find system package list property value ", systemPackagePropValue != null);
-        Assert.assertTrue("System package list should not end with comma", systemPackagePropValue.charAt(systemPackagePropValue.length()-1) != ',');
+        Assert.assertTrue("System package list should not end with comma", systemPackagePropValue.charAt(systemPackagePropValue.length() - 1) != ',');
+        ManifestElement[] manifestElements = ManifestElement.parseHeader("Export-Package", systemPackagePropValue);
+        for (ManifestElement manifestElement : manifestElements) {
+            String[] packageNames = manifestElement.getValueComponents();
+            String version = manifestElement.getAttribute("version");
+            for (String packageName : packageNames) {
+                // System.out.println(packageName + " version=" + version);
+            }
+        }
+        Enumeration<?> propertyNames = properties.propertyNames();
+        while (propertyNames.hasMoreElements()) {
+            String propertyName = (String) propertyNames.nextElement();
+            if (propertyName.contains(";version")) {
+                Assert.assertTrue("Found property with ;version in it, probably a missing comma from another multi-valued property: " + propertyName, false);
+            }
+        }
     }
 
     private void copyClassLoaderResourceToFile(String resourcePath, File manifestFile) throws IOException {
