@@ -101,7 +101,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
     protected List<String> artifactExcludes;
 
     /**
-     * @parameter default-value="org.jahia.taglibs.*,org.apache.taglibs.*,javax.servlet.jsp.*"
+     * @parameter default-value="org.jahia.taglibs*,org.apache.taglibs.standard*,javax.servlet.jsp*,org.codehaus.groovy.ast*"
      */
     protected List<String> packageExcludes;
 
@@ -237,6 +237,8 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                                     packageList.add(packageExport.toString());
                                 }
                                 generatedPackageBuffer.append(packageExport);
+                            } else {
+                                getLog().info("Package " + packageExport.toString() + " matched exclusion list, will not be included !" );
                             }
                         }
                     }
@@ -251,6 +253,8 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                         packageList.add(manualPackage +",");
                         generatedPackageBuffer.append(manualPackage);
                         generatedPackageBuffer.append(",");
+                    } else if (isPackageExcluded(manualPackage)) {
+                        getLog().info("Package " + manualPackage + " matched exclusion list, will not be included !" );
                     }
                 }
             }
@@ -325,10 +329,10 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             } else {
                 artifactPattern = artifactExclude;
             }
-            groupPattern.replaceAll("\\.", "\\.");
-            groupPattern.replaceAll("\\*", ".*");
-            artifactPattern.replaceAll("\\.", "\\.");
-            artifactPattern.replaceAll("\\*", ".*");
+            groupPattern = groupPattern.replaceAll("\\.", "\\\\.");
+            groupPattern = groupPattern.replaceAll("\\*", ".*");
+            artifactPattern = artifactPattern.replaceAll("\\.", "\\\\.");
+            artifactPattern = artifactPattern.replaceAll("\\*", ".*");
             artifactExclusionPatterns.add(Pattern.compile(groupPattern + ":" + artifactPattern));
         }
     }
@@ -339,8 +343,8 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         }
         for (String packageExclude : packageExcludes) {
             String packageExcludePattern = packageExclude;
-            packageExcludePattern.replaceAll("\\.", "\\.");
-            packageExcludePattern.replaceAll("\\*", ".*");
+            packageExcludePattern = packageExcludePattern.replaceAll("\\.", "\\\\.");
+            packageExcludePattern = packageExcludePattern.replaceAll("\\*", ".*");
             packageExclusionPatterns.add(Pattern.compile(packageExcludePattern));
         }
     }
