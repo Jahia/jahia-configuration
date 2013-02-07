@@ -101,6 +101,11 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
     protected List<String> artifactExcludes;
 
     /**
+     * @parameter default-value="groovy.grape.*,org.jahia.taglibs.*,org.apache.taglibs.*,javax.servlet.jsp.*"
+     */
+    protected List<String> packageExcludes;
+
+    /**
      * @parameter expression="${project}"
      * @readonly
      * @required
@@ -136,7 +141,8 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
     protected String propertyFilePropertyName = "org.osgi.framework.system.packages.extra";
 
     private Map<String, DependencyNode> resolvedDependencyNodes = new HashMap<String, DependencyNode>();
-    private List<Pattern> exclusionPatterns = new ArrayList<Pattern>();
+    private List<Pattern> artifactExclusionPatterns = new ArrayList<Pattern>();
+    private List<Pattern> packageExclusionPatterns = new ArrayList<Pattern>();
 
     private class VersionLocation {
         private String location;
@@ -175,6 +181,8 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
 
         buildExclusionPatterns();
+
+        buildPackageExcludes();
 
         Map<String, Map<String, VersionLocation>> packageVersionCounts = new TreeMap<String, Map<String, VersionLocation>>();
         Map<String, Set<String>> packageVersions = new TreeMap<String, Set<String>>();
@@ -221,20 +229,22 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                             packageExport.append(";version\\=\"");
                             packageExport.append(versionString);
                             packageExport.append("\"");
-                            packageExport.append(",");
-                            if (packageList.contains(packageExport.toString())) {
-                                getLog().warn("Package export " + packageExport.toString() + " already present in list, will not add again!");
-                            } else {
-                                packageList.add(packageExport.toString());
+                            if (!isPackageExcluded(packageExport.toString())) {
+                                packageExport.append(",");
+                                if (packageList.contains(packageExport.toString())) {
+                                    getLog().warn("Package export " + packageExport.toString() + " already present in list, will not add again!");
+                                } else {
+                                    packageList.add(packageExport.toString());
+                                }
+                                generatedPackageBuffer.append(packageExport);
                             }
-                            generatedPackageBuffer.append(packageExport);
                         }
                     }
                 }
             }
             if (manualPackageList != null) {
                 for (String manualPackage : manualPackageList) {
-                    if (!packageList.contains(manualPackage+",")) {
+                    if (!packageList.contains(manualPackage+",") && !isPackageExcluded(manualPackage)) {
                         if (manualPackage.contains("=")) {
                             manualPackage = manualPackage.replaceAll("=", "\\=");
                         }
@@ -315,10 +325,34 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             } else {
                 artifactPattern = artifactExclude;
             }
+            groupPattern.replaceAll("\\.", "\\.");
             groupPattern.replaceAll("\\*", ".*");
+            artifactPattern.replaceAll("\\.", "\\.");
             artifactPattern.replaceAll("\\*", ".*");
-            exclusionPatterns.add(Pattern.compile(groupPattern + ":" + artifactPattern));
+            artifactExclusionPatterns.add(Pattern.compile(groupPattern + ":" + artifactPattern));
         }
+    }
+
+    private void buildPackageExcludes() {
+        if (packageExcludes == null) {
+            return;
+        }
+        for (String packageExclude : packageExcludes) {
+            String packageExcludePattern = packageExclude;
+            packageExcludePattern.replaceAll("\\.", "\\.");
+            packageExcludePattern.replaceAll("\\*", ".*");
+            packageExclusionPatterns.add(Pattern.compile(packageExcludePattern));
+        }
+    }
+
+    private boolean isPackageExcluded(String packageExport) {
+        for (Pattern packageExclusionPattern : packageExclusionPatterns) {
+            Matcher packageExclusionMatcher = packageExclusionPattern.matcher(packageExport);
+            if (packageExclusionMatcher.matches()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void scanExistingExports(Map<String, Map<String, VersionLocation>> packageVersionCounts) {
@@ -472,7 +506,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         getLog().info("Scanning project dependencies...");
         for (Artifact artifact : project.getArtifacts()) {
             String exclusionMatched = null;
-            for (Pattern exclusionPattern : exclusionPatterns) {
+            for (Pattern exclusionPattern : artifactExclusionPatterns) {
                 Matcher exclusionMatcher = exclusionPattern.matcher(artifact.getGroupId() + ":" + artifact.getArtifactId());
                 if (exclusionMatcher.matches()) {
                     exclusionMatched = artifact.getGroupId() + ":" + artifact.getArtifactId();

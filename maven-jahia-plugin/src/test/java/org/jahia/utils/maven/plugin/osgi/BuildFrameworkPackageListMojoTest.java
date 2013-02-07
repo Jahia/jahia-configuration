@@ -42,6 +42,12 @@ public class BuildFrameworkPackageListMojoTest {
         artifactExcludes.add("org.jahia.test:*");
         artifactExcludes.add("*.jahia.modules");
         mojo.artifactExcludes = artifactExcludes;
+        List<String> packageExcludes = new ArrayList<String>();
+        packageExcludes.add("groovy.grape.*");
+        packageExcludes.add("org.jahia.taglibs.*");
+        packageExcludes.add("org.apache.taglibs.*");
+        packageExcludes.add("javax.servlet.jsp.*");
+        mojo.packageExcludes = packageExcludes;
         mojo.execute();
         manifestFile.delete();
         propertiesInputFile.delete();
@@ -55,6 +61,8 @@ public class BuildFrameworkPackageListMojoTest {
             String[] packageNames = manifestElement.getValueComponents();
             String version = manifestElement.getAttribute("version");
             for (String packageName : packageNames) {
+                Assert.assertTrue("Package should have been excluded", !packageName.contains("groovy.grape"));
+                Assert.assertTrue("Package should have been excluded", !packageName.contains("javax.servlet.jsp"));
                 // System.out.println(packageName + " version=" + version);
             }
         }
