@@ -106,6 +106,11 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
     protected List<String> packageExcludes;
 
     /**
+     * @parameter default-value="true"
+     */
+    protected boolean outputPackagesWithNoVersions = true;
+
+    /**
      * @parameter expression="${project}"
      * @readonly
      * @required
@@ -221,8 +226,10 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             for (Map.Entry<String, Set<String>> packageVersion : packageVersions.entrySet()) {
                 if (packageVersion.getValue() != null) {
                     // @todo we should perform parent lookup here and re-use version if activated.
+                    boolean allVersionsAreNull = true;
                     for (String versionString : packageVersion.getValue()) {
                         if (versionString != null) {
+                            allVersionsAreNull = false;
                             StringBuilder packageExport = new StringBuilder();
                             packageExport.append(packageVersion.getKey());
                             versionString = cleanupVersion(versionString);
@@ -240,6 +247,21 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                             } else {
                                 getLog().info("Package " + packageExport.toString() + " matched exclusion list, will not be included !" );
                             }
+                        }
+                    }
+                    if (allVersionsAreNull && outputPackagesWithNoVersions) {
+                        StringBuilder packageExport = new StringBuilder();
+                        packageExport.append(packageVersion.getKey());
+                        if (!isPackageExcluded(packageExport.toString())) {
+                            packageExport.append(",");
+                            if (packageList.contains(packageExport.toString())) {
+                                getLog().warn("Package export " + packageExport.toString() + " already present in list, will not add again!");
+                            } else {
+                                packageList.add(packageExport.toString());
+                            }
+                            generatedPackageBuffer.append(packageExport);
+                        } else {
+                            getLog().info("Package " + packageExport.toString() + " matched exclusion list, will not be included !" );
                         }
                     }
                 }
@@ -267,51 +289,55 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             if (generatedPackageList != null && project != null) {
                 project.getProperties().put("jahiaGeneratedFrameworkPackageList", generatedPackageList);
             }
-            if ((propertiesOutputFile != null) && (generatedPackageList != null)) {
-                asia.redact.bracket.properties.Properties frameworkProperties = null;
-                if (propertiesInputFile != null && propertiesInputFile.exists()) {
-                    FileReader propertiesInputFileReader = null;
-                    try {
-                        propertiesInputFileReader = new FileReader(propertiesInputFile);
-                        asia.redact.bracket.properties.Properties.Factory.mode = asia.redact.bracket.properties.Properties.Mode.Line;
-                        asia.redact.bracket.properties.Properties props = asia.redact.bracket.properties.Properties.Factory.getInstance(propertiesInputFileReader);
-                        // we will now reprocess the keys to trim them since there is a bug in the library http://code.google.com/p/bracket-properties/issues/detail?id=1
-                        Map<String,ValueModel> propertyMap = props.getPropertyMap();
-                        Map<String,ValueModel> propertyMapCopy = new LinkedHashMap<String,ValueModel>(props.getPropertyMap());
-                        propertyMap.clear();
-                        for (Map.Entry<String,ValueModel> propertyMapEntry : propertyMapCopy.entrySet()) {
-                            String trimmedPropertyKey = propertyMapEntry.getKey().trim();
-                            if (!trimmedPropertyKey.equals(propertyMapEntry.getKey())) {
-                                getLog().debug("Replacing invalid property key [" + propertyMapEntry.getKey() + "] with [" + trimmedPropertyKey + "]");
-                            }
-                            propertyMap.put(trimmedPropertyKey, propertyMapEntry.getValue());
-                        }
-                        frameworkProperties = props;
-                    } finally {
-                        IOUtils.closeQuietly(propertiesInputFileReader);
-                    }
-                } else {
-                    frameworkProperties = asia.redact.bracket.properties.Properties.Factory.getInstance();
-                }
-                frameworkProperties.put(propertyFilePropertyName, packageList.toArray(new String[packageList.size()]));
-                OutputAdapter out = new OutputAdapter(frameworkProperties);
-                FileWriter propertyOutputFileWriter = null;
-                try {
-                    propertyOutputFileWriter = new FileWriter(propertiesOutputFile);
-                    out.writeTo(propertyOutputFileWriter);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    IOUtils.closeQuietly(propertyOutputFileWriter);
-                }
-                getLog().info("Generated property file saved in " + propertiesOutputFile.getCanonicalPath());
-            }
+            updatePropertyFile(generatedPackageList, packageList);
         } catch (FileNotFoundException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (BundleException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+    }
+
+    private void updatePropertyFile(String generatedPackageList, List<String> packageList) throws IOException {
+        if ((propertiesOutputFile != null) && (generatedPackageList != null)) {
+            asia.redact.bracket.properties.Properties frameworkProperties = null;
+            if (propertiesInputFile != null && propertiesInputFile.exists()) {
+                FileReader propertiesInputFileReader = null;
+                try {
+                    propertiesInputFileReader = new FileReader(propertiesInputFile);
+                    asia.redact.bracket.properties.Properties.Factory.mode = asia.redact.bracket.properties.Properties.Mode.Line;
+                    asia.redact.bracket.properties.Properties props = asia.redact.bracket.properties.Properties.Factory.getInstance(propertiesInputFileReader);
+                    // we will now reprocess the keys to trim them since there is a bug in the library http://code.google.com/p/bracket-properties/issues/detail?id=1
+                    Map<String,ValueModel> propertyMap = props.getPropertyMap();
+                    Map<String,ValueModel> propertyMapCopy = new LinkedHashMap<String,ValueModel>(props.getPropertyMap());
+                    propertyMap.clear();
+                    for (Map.Entry<String,ValueModel> propertyMapEntry : propertyMapCopy.entrySet()) {
+                        String trimmedPropertyKey = propertyMapEntry.getKey().trim();
+                        if (!trimmedPropertyKey.equals(propertyMapEntry.getKey())) {
+                            getLog().debug("Replacing invalid property key [" + propertyMapEntry.getKey() + "] with [" + trimmedPropertyKey + "]");
+                        }
+                        propertyMap.put(trimmedPropertyKey, propertyMapEntry.getValue());
+                    }
+                    frameworkProperties = props;
+                } finally {
+                    IOUtils.closeQuietly(propertiesInputFileReader);
+                }
+            } else {
+                frameworkProperties = asia.redact.bracket.properties.Properties.Factory.getInstance();
+            }
+            frameworkProperties.put(propertyFilePropertyName, packageList.toArray(new String[packageList.size()]));
+            OutputAdapter out = new OutputAdapter(frameworkProperties);
+            FileWriter propertyOutputFileWriter = null;
+            try {
+                propertyOutputFileWriter = new FileWriter(propertiesOutputFile);
+                out.writeTo(propertyOutputFileWriter);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                IOUtils.closeQuietly(propertyOutputFileWriter);
+            }
+            getLog().info("Generated property file saved in " + propertiesOutputFile.getCanonicalPath());
         }
     }
 
