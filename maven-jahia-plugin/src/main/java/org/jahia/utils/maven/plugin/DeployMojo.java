@@ -51,6 +51,8 @@ import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.NameFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
@@ -189,10 +191,12 @@ public class DeployMojo extends AbstractManagementMojo {
             if (project.getGroupId().equals("org.jahia.bundles")
                     && (project.getArtifactId().equals("org.jahia.bundles.url.jahiawar") || project.getArtifactId()
                             .equals("org.jahia.bundles.extender.jahiamodules"))) {
-                File srcFile = new File(output, project.getArtifactId() + "-" + project.getVersion() + "." + "jar");
+                String fileName = project.getArtifactId() + "-" + project.getVersion() + "." + "jar";
+                File srcFile = new File(output, fileName);
                 File destDir = new File(getWebappDeploymentDir(), "WEB-INF/bundles");
                 FileUtils.copyFileToDirectory(srcFile, destDir);
                 getLog().info("Copied " + srcFile + " to " + destDir);
+                removeCachedBundle(fileName, new File(getWebappDeploymentDir(), "WEB-INF/var/bundles-deployed"));
             } else {
                 boolean isStandardModule = project.getGroupId().equals("org.jahia.module") || project.getGroupId().endsWith(".jahia.modules");
                 if (isStandardModule || isJahiaModuleBundle(new File(output, project.getArtifactId() + "-" + project.getVersion() + "." + "jar"))) {
@@ -203,6 +207,31 @@ public class DeployMojo extends AbstractManagementMojo {
                     FileUtils.copyFileToDirectory(srcFile, destDir);
                     getLog().info("Copied " + srcFile + " to " + destDir);
                 }
+            }
+        }
+    }
+
+    private void removeCachedBundle(String fileName, File deployedBundeDir) {
+        if (!deployedBundeDir.isDirectory()) {
+            return;
+        }
+
+        for (File info : FileUtils.listFiles(deployedBundeDir, new NameFileFilter("bundle.info"),
+                TrueFileFilter.INSTANCE)) {
+            try {
+                if (FileUtils.readFileToString(info).contains(fileName)) {
+                    try {
+                        FileUtils.deleteDirectory(info.getParentFile());
+                        getLog().info("Deleted deployed bundle in folder " + info.getParentFile());
+                    } catch (IOException e) {
+                        getLog().warn(
+                                "Unable to deleted deployed bundle in folder " + info.getParentFile() + ". Cause: "
+                                        + e.getMessage());
+                    }
+                    break;
+                }
+            } catch (IOException e) {
+                getLog().warn(e.getMessage());
             }
         }
     }
