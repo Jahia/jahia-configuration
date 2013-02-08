@@ -31,11 +31,11 @@ import java.util.jar.JarInputStream;
 /**
  * A little utility goal to locate a package inside the project's dependencies, including optional or provided ones.
  *
- * @goal findPackage
+ * @goal findPackages
  * @requiresDependencyResolution test
  */
 
-public class FindPackageMojo extends AbstractMojo {
+public class FindPackagesMojo extends AbstractMojo {
 
     /**
      * @parameter default-value="${packageNames}"
