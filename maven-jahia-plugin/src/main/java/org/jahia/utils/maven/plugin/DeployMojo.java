@@ -39,11 +39,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
@@ -84,6 +87,10 @@ import com.sun.jdi.connect.IllegalConnectorArgumentsException;
  * @requiresDependencyResolution runtime
  */
 public class DeployMojo extends AbstractManagementMojo {
+    
+    private static final Set<String> JAHIA_SYSTEM_BUNDLES = new HashSet<String>(Arrays.asList(
+            "org.jahia.bundles.url.jahiawar", "org.jahia.bundles.extender.jahiamodules",
+            "org.jahia.bundles.blueprint.extender.config"));
 
     /**
      * The dependency tree builder to use.
@@ -189,8 +196,7 @@ public class DeployMojo extends AbstractManagementMojo {
             deployPomProject();
         } else if (project.getPackaging().equals("bundle")) {
             if (project.getGroupId().equals("org.jahia.bundles")
-                    && (project.getArtifactId().equals("org.jahia.bundles.url.jahiawar") || project.getArtifactId()
-                            .equals("org.jahia.bundles.extender.jahiamodules"))) {
+                    && JAHIA_SYSTEM_BUNDLES.contains(project.getArtifactId())) {
                 String fileName = project.getArtifactId() + "-" + project.getVersion() + "." + "jar";
                 File srcFile = new File(output, fileName);
                 File destDir = new File(getWebappDeploymentDir(), "WEB-INF/bundles");
