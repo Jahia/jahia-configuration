@@ -101,7 +101,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
     protected List<String> artifactExcludes;
 
     /**
-     * @parameter default-value="org.jahia.taglibs*,org.apache.taglibs.standard*,javax.servlet.jsp*,org.codehaus.groovy.ast*"
+     * @parameter default-value="org.jahia.taglibs*,org.apache.taglibs.standard*,javax.servlet.jsp*,org.codehaus.groovy.ast*,javax.el*,de.odysseus.el*"
      */
     protected List<String> packageExcludes;
 
