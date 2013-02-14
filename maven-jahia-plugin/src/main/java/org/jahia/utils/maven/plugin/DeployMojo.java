@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -251,7 +252,7 @@ public class DeployMojo extends AbstractManagementMojo {
         JarFile jar = null;
         try {
             jar = new JarFile(file, false);
-            return jar.getManifest().getMainAttributes().containsKey("Jahia-Module-Type");
+            return jar.getManifest().getMainAttributes().containsKey(new Attributes.Name("Jahia-Module-Type"));
         } catch (IOException e) {
             getLog().error(e);
         } finally {
