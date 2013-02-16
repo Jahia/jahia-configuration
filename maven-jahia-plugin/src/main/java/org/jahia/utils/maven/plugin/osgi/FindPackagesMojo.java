@@ -262,6 +262,7 @@ public class FindPackagesMojo extends AbstractMojo {
         }
         getLog().debug("Scanning JAR " + jarFile + "...");
         try {
+            DependencyTracker.findDependencyInJar(jarFile, packageName);
             jarInputStream = new JarInputStream(new FileInputStream(jarFile));
             JarEntry jarEntry = null;
             while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
