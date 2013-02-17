@@ -60,9 +60,11 @@ public class DependencyTracker {
             String classNames = manifest.getMainAttributes().getValue("Jahia-Imports-Package");
             if (classNames != null) {
                 String[] classNameArray = classNames.split(",");
+                /*
                 for (String className : classNameArray) {
                     System.out.println(jarFile + ": Class " + className + " uses package " + packageToFind);
                 }
+                */
                 classesThatHaveDependency.addAll(Arrays.asList(classNameArray));
             }
 
