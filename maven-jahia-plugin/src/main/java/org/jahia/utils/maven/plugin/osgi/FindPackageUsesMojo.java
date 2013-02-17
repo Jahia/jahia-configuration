@@ -10,10 +10,7 @@ import org.apache.tika.io.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.jar.JarInputStream;
 
 /**
@@ -44,7 +41,7 @@ public class FindPackageUsesMojo extends AbstractMojo {
             return;
         }
         getLog().info("Scanning project dependencies...");
-        final Map<String, Map<String,List<String>>> packageResults = new HashMap<String, Map<String,List<String>>>();
+        final Map<String, Map<String,List<String>>> packageResults = new TreeMap<String, Map<String,List<String>>>();
         for (Artifact artifact : project.getArtifacts()) {
             if (artifact.isOptional()) {
                 getLog().debug("Processing optional dependency " + artifact + "...");
@@ -53,8 +50,11 @@ public class FindPackageUsesMojo extends AbstractMojo {
                 getLog().warn("Found non JAR artifact " + artifact);
             }
             for (String packageName : packageNames) {
-                final Map<String, List<String>> foundClasses = new HashMap<String, List<String>>();
-                List<String> classesThatHaveDependency = findClassesThatUsePackage(artifact.getFile(), packageName);
+                Map<String, List<String>> foundClasses = packageResults.get(packageName);
+                if (foundClasses == null) {
+                    foundClasses = new TreeMap<String, List<String>>();
+                }
+                Set<String> classesThatHaveDependency = findClassesThatUsePackage(artifact.getFile(), packageName);
                 if (classesThatHaveDependency != null & classesThatHaveDependency.size() > 0) {
                     List<String> trail = new ArrayList<String>(artifact.getDependencyTrail());
                     if (artifact.isOptional()) {
@@ -84,8 +84,8 @@ public class FindPackageUsesMojo extends AbstractMojo {
 
     }
 
-    private List<String> findClassesThatUsePackage(File jarFile, String packageName) {
-        List<String> classesThatHaveDependency = new ArrayList<String>();
+    private Set<String> findClassesThatUsePackage(File jarFile, String packageName) {
+        Set<String> classesThatHaveDependency = new TreeSet<String>();
         JarInputStream jarInputStream = null;
         if (jarFile == null) {
             getLog().warn("File is null !");

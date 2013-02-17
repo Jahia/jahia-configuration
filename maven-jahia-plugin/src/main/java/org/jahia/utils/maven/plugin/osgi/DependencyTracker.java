@@ -14,12 +14,12 @@ import java.util.jar.Manifest;
  */
 public class DependencyTracker {
 
-    public static List<String> findDependencyInJar(final File jarFile, final String packageToFind, List<String> classPathElements) throws IOException {
+    public static Set<String> findDependencyInJar(final File jarFile, final String packageToFind, List<String> classPathElements) throws IOException {
         return findDependencyInJarUsingBND(jarFile, packageToFind, classPathElements);
     }
 
-    public static List<String> findDependencyInJarUsingBND(final File jarFile, final String packageToFind, List<String> classPathElements) throws IOException {
-        List<String> classesThatHaveDependency = new ArrayList<String>();
+    public static Set<String> findDependencyInJarUsingBND(final File jarFile, final String packageToFind, List<String> classPathElements) throws IOException {
+        Set<String> classesThatHaveDependency = new TreeSet<String>();
         Analyzer analyzer = new Analyzer();
         Jar bin = new Jar(jarFile);  // where our data is
         analyzer.setJar(bin);                // give bnd the contents
