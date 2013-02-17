@@ -223,6 +223,12 @@
             <version>3.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>biz.aQute</groupId>
+            <artifactId>bndlib</artifactId>
+            <version>1.50.0</version>
+        </dependency>
+
 	</dependencies>
 
 	<build>

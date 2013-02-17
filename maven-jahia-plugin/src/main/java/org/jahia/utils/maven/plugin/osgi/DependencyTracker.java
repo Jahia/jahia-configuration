@@ -1,100 +1,104 @@
-/***
- * ASM examples: examples showing how ASM can be used
- * Copyright (c) 2000-2011 INRIA, France Telecom
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the copyright holders nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
- * THE POSSIBILITY OF SUCH DAMAGE.
- */
 package org.jahia.utils.maven.plugin.osgi;
 
-import org.objectweb.asm.ClassReader;
+import aQute.lib.osgi.Analyzer;
+import aQute.lib.osgi.Jar;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.jar.Manifest;
 
 /**
  * DependencyTracker
  *
- * @author Eugene Kuleshov
- * @see "http://www.onjava.com/pub/a/onjava/2005/08/17/asm3.html"
  */
 public class DependencyTracker {
 
-    public static List<String> findDependencyInJar(final File jarFile, final String packageToFind) throws IOException {
-        DependencyVisitor v = new DependencyVisitor();
-        List<String> classesThatHaveDependency = new ArrayList<String>();
-        final String dirToFind = packageToFind.replaceAll("\\.", "/");
+    public static List<String> findDependencyInJar(final File jarFile, final String packageToFind, List<String> classPathElements) throws IOException {
+        return findDependencyInJarUsingBND(jarFile, packageToFind, classPathElements);
+    }
 
-        ZipFile f = new ZipFile(jarFile);
-        Enumeration<? extends ZipEntry> en = f.entries();
-        while (en.hasMoreElements()) {
-            ZipEntry e = en.nextElement();
-            String name = e.getName();
-            if (name.endsWith(".class")) {
-                try {
-                    new ClassReader(f.getInputStream(e)).accept(v, 0);
-                    if (v.getPackages().contains(dirToFind)) {
-                        classesThatHaveDependency.add(e.getName());
-                        System.out.println("Found dependency "+ packageToFind + " in class " + name + " of JAR " + jarFile);
-                        // dumpVisitorResults(v);
-                    }
-                    v.reset();
-                } catch (Throwable t) {
-                    System.err.println("Error parsing class " + name + ":");
-                    t.printStackTrace();
+    public static List<String> findDependencyInJarUsingBND(final File jarFile, final String packageToFind, List<String> classPathElements) throws IOException {
+        List<String> classesThatHaveDependency = new ArrayList<String>();
+        Analyzer analyzer = new Analyzer();
+        Jar bin = new Jar(jarFile);  // where our data is
+        analyzer.setJar(bin);                // give bnd the contents
+
+        // You can provide additional class path entries to allow
+        // bnd to pickup export version from the packageinfo file,
+        // Version annotation, or their manifests.
+        // analyzer.addClasspath( new File("jar/spring.jar") );
+        if (classPathElements != null) {
+            for (String classPathElement : classPathElements) {
+                File classPathElementFile = new File(classPathElement);
+                if (classPathElementFile.exists()) {
+                    analyzer.addClasspath(new File(classPathElement));
+                } else {
+                    // System.out.println("Ignoring inexisting class path element " + classPathElement);
                 }
             }
+        }
+
+        // we just set dummy properties here for BND but we don't need them since we are only looking for a package use
+        analyzer.setProperty("Bundle-SymbolicName", "org.osgi.core");
+        analyzer.setProperty("Export-Package",
+                "org.osgi.framework,org.osgi.service.event");
+        analyzer.setProperty("Bundle-Version", "1.0");
+
+        // this macro is the main work horse
+        analyzer.setProperty("Jahia-Imports-Package", "${classes;IMPORTING;" + packageToFind + "}");
+
+        // There are no good defaults so make sure you set the
+        // Import-Package
+        analyzer.setProperty("Import-Package", "*");
+
+        // Calculate the manifest
+        try {
+            Manifest manifest = analyzer.calcManifest();
+
+            Set<String> usedBy = getUsedBy(analyzer, packageToFind);
+            String classNames = manifest.getMainAttributes().getValue("Jahia-Imports-Package");
+            if (classNames != null) {
+                String[] classNameArray = classNames.split(",");
+                for (String className : classNameArray) {
+                    System.out.println(jarFile + ": Class " + className + " uses package " + packageToFind);
+                }
+                classesThatHaveDependency.addAll(Arrays.asList(classNameArray));
+            }
+
+            // dumpAnalyzerImports(jarFile, analyzer);
+
+        } catch (Exception e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
         return classesThatHaveDependency;
     }
 
-    private static void dumpVisitorResults(DependencyVisitor v) {
-        Map<String, Map<String, Integer>> globals = v.getGlobals();
-        Set<String> jarPackages = globals.keySet();
-        Set<String> classPackages = v.getPackages();
-        String[] jarNames = jarPackages.toArray(new String[jarPackages.size()]);
-        String[] classNames = classPackages.toArray(new String[classPackages
-                .size()]);
-        Arrays.sort(jarNames);
-        Arrays.sort(classNames);
-
-        System.out.println("Jar packages and their dependencies: ");
-        for (String jarName : jarNames) {
-            System.out.println("- " + jarName);
-            for (Map.Entry<String, Integer> groupEntry : globals.get(jarName).entrySet()) {
-                System.out.println("  +- " + groupEntry.getKey() + " = " + groupEntry.getValue());
+    private static void dumpAnalyzerImports(File jarFile, Analyzer analyzer) {
+        Map<String, Map<String, String>> imports = analyzer.getImports();
+        System.out.println("Imports for " + jarFile + ":");
+        StringBuilder importBuffer = new StringBuilder();
+        Set<String> packageNames = new TreeSet<String>(imports.keySet());
+        for (String packageName : packageNames) {
+            importBuffer.append("- " + packageName);
+            for (Map.Entry<String, String> importEntryEntry : imports.get(packageName).entrySet()) {
+                importBuffer.append(";" + importEntryEntry.getKey() + "=\"" + importEntryEntry.getValue() + "\"");
             }
+            importBuffer.append("\n");
         }
-
-        System.out.println("Encountered package names: ");
-        for (String className : classNames) {
-            System.out.println("= " + className);
-        }
+        System.out.println(importBuffer.toString());
     }
+
+    public static Set<String> getUsedBy(Analyzer analyzer, String packageToFind) {
+        Set<String> set = new TreeSet<String>();
+        for (Iterator<Map.Entry<String, Set<String>>> i = analyzer.getUses().entrySet().iterator(); i.hasNext(); ) {
+            Map.Entry<String, Set<String>> entry = i.next();
+            Set<String> used = entry.getValue();
+            if (used.contains(packageToFind))
+                set.add(entry.getKey());
+        }
+        return set;
+    }
+
 
 }
