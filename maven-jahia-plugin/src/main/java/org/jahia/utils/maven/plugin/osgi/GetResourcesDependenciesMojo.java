@@ -42,7 +42,10 @@ public class GetResourcesDependenciesMojo extends AbstractMojo {
 
     public static final Pattern JSP_PAGE_IMPORT_PATTERN = Pattern.compile("<%@.*page.*import=\\\"(.*?)\\\".*%>");
     public static final Pattern JSP_TAGLIB_PATTERN = Pattern.compile("<%@.*taglib.*uri=\\\"(.*?)\\\".*%>");
-    public static final Pattern CND_NODETYPE_PATTERN = Pattern.compile("\\[([\\w:]+)\\]\\s*(?:>\\s*([\\w:]+)(?:\\s*,\\s*([\\w:]+))*)?");
+    public static final Pattern CND_NODETYPE_DEFINITION_PATTERN = Pattern.compile("\\[([\\w:]+)\\]\\s+");
+    public static final Pattern CND_ALL_NAMES_PATTERN = Pattern.compile("\\w+:\\w+");
+    public static final Pattern CND_ALL_PROPERTY_NAMES_PATTERN = Pattern.compile("\\s+-\\s*([\\w:]+)");
+    public static final Pattern CND_ALL_CHILD_NAMES_PATTERN = Pattern.compile("\\s+\\+\\s*([\\w:\\*]+)");
     public static final Pattern RULE_IMPORT_PATTERN = Pattern.compile("^\\s*import\\s*([\\w.\\*]*)\\s*$");
 
     /**
@@ -61,8 +64,8 @@ public class GetResourcesDependenciesMojo extends AbstractMojo {
     private Set<String> taglibUris = new TreeSet<String>();
     private Map<String, Set<String>> taglibPackages = new HashMap<String, Set<String>>();
     private Map<String, Boolean> externalTaglibs = new HashMap<String, Boolean>();
-    private Set<String> contentTypeNames = new TreeSet<String>();
-    private Set<String> contentSuperTypeNames = new TreeSet<String>();
+    private Set<String> contentTypeDefinitions = new TreeSet<String>();
+    private Set<String> contentTypeReferences = new TreeSet<String>();
     private List<Pattern> artifactExclusionPatterns = new ArrayList<Pattern>();
     private Set<String> projectPackages = new TreeSet<String>();
 
@@ -123,12 +126,12 @@ public class GetResourcesDependenciesMojo extends AbstractMojo {
             }
             getLog().info("  " + taglibUri + " " + foundMessage);
         }
-        getLog().info("Found content type names:");
-        for (String contentTypeName : contentTypeNames) {
+        getLog().info("Found content type definitions:");
+        for (String contentTypeName : contentTypeDefinitions) {
             getLog().info("  " + contentTypeName);
         }
-        getLog().info("Found content supertype names:");
-        for (String contentSuperTypeName : contentSuperTypeNames) {
+        getLog().info("Found content type references:");
+        for (String contentSuperTypeName : contentTypeReferences) {
             getLog().info("  " + contentSuperTypeName);
         }
         String generatedPackageList = generatedPackageBuffer.toString();
@@ -389,23 +392,35 @@ public class GetResourcesDependenciesMojo extends AbstractMojo {
     }
 
     private void processCnd(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
-        /*
         getLog().debug("Processing CND " + fileName + "...");
         String cndFileContent = IOUtils.toString(inputStream);
-        Matcher cndNodeTypeDefinitionMatcher = CND_NODETYPE_PATTERN.matcher(cndFileContent);
-        while (cndNodeTypeDefinitionMatcher.find()) {
-            getLog().debug(fileName + ": found node type " + cndNodeTypeDefinitionMatcher.group(1) + " groupCount=" + cndNodeTypeDefinitionMatcher.groupCount()) ;
-            contentTypeNames.add(cndNodeTypeDefinitionMatcher.group(1));
-            if (cndNodeTypeDefinitionMatcher.groupCount() > 1) {
-                for (int i=2; i < cndNodeTypeDefinitionMatcher.groupCount(); i++) {
-                    if (cndNodeTypeDefinitionMatcher.group(i) != null) {
-                        getLog().debug(fileName + ":   with super type " + cndNodeTypeDefinitionMatcher.group(i)) ;
-                        contentSuperTypeNames.add(cndNodeTypeDefinitionMatcher.group(i));
-                    }
-                }
-            }
+        Matcher nodeTypeDefinitionMatcher = CND_NODETYPE_DEFINITION_PATTERN.matcher(cndFileContent);
+        while (nodeTypeDefinitionMatcher.find()) {
+            String definitionName = nodeTypeDefinitionMatcher.group(1);
+            getLog().debug(fileName + ": Found definition name " + definitionName);
+            contentTypeDefinitions.add(definitionName);
         }
-        */
+        Set<String> allNames = new TreeSet<String>();
+        Matcher allNamesMatcher = CND_ALL_NAMES_PATTERN.matcher(cndFileContent);
+        while (allNamesMatcher.find()) {
+            String aName = allNamesMatcher.group(0);
+            getLog().debug(fileName + ": Found name " + aName);
+            allNames.add(aName);
+        }
+        Matcher propertyNamesMatcher = CND_ALL_PROPERTY_NAMES_PATTERN.matcher(cndFileContent);
+        while (propertyNamesMatcher.find()) {
+            String propertyName = propertyNamesMatcher.group(1);
+            getLog().debug(fileName + ": Found property name " + propertyName);
+            allNames.remove(propertyName);
+        }
+        Matcher childNamesMatcher = CND_ALL_CHILD_NAMES_PATTERN.matcher(cndFileContent);
+        while (childNamesMatcher.find()) {
+            String childName = childNamesMatcher.group(1);
+            getLog().debug(fileName + ": Found child name " + childName);
+            allNames.remove(childName);
+        }
+        allNames.removeAll(contentTypeDefinitions);
+        contentTypeReferences.addAll(allNames);
     }
 
     private void processTld(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
