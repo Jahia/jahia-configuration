@@ -103,9 +103,10 @@ public class GetResourcesDependenciesMojo extends AbstractMojo {
         // now let's remove all the project packages from the imports, we assume we will not import split packages.
         packageImports.removeAll(projectPackages);
 
-        getLog().info("Found package imports:");
+        StringBuffer generatedPackageBuffer = new StringBuffer();
         for (String packageImport : packageImports) {
-            getLog().info("  " + packageImport);
+            generatedPackageBuffer.append(packageImport);
+            generatedPackageBuffer.append(",\n");
         }
         getLog().info("Found referenced tag library URIs (from JSPs) :");
         for (String taglibUri : taglibUris) {
@@ -130,7 +131,11 @@ public class GetResourcesDependenciesMojo extends AbstractMojo {
         for (String contentSuperTypeName : contentSuperTypeNames) {
             getLog().info("  " + contentSuperTypeName);
         }
-
+        String generatedPackageList = generatedPackageBuffer.toString();
+        generatedPackageList = generatedPackageList.substring(0, generatedPackageList.length() - ",\n".length()); // remove the last comma
+        project.getProperties().put("jahia.plugin.projectPackageImport", generatedPackageList);
+        getLog().info("Set project property jahia.plugin.projectPackageImport to package import list value: ");
+        getLog().info(generatedPackageList);
     }
 
     private void scanClassesBuildDirectory() throws IOException {
