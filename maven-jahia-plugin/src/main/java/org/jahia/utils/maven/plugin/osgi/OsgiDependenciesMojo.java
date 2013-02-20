@@ -103,6 +103,11 @@ public class OsgiDependenciesMojo extends AbstractMojo {
      */
     protected List<String> scanDirectories;
 
+    /**
+     * @parameter default-value="${project.build.outputDirectory}
+     */
+    protected String projectOutputDirectory;
+
     private Set<String> packageImports = new TreeSet<String>();
     private Set<String> taglibUris = new TreeSet<String>();
     private Map<String, Set<String>> taglibPackages = new HashMap<String, Set<String>>();
@@ -207,7 +212,11 @@ public class OsgiDependenciesMojo extends AbstractMojo {
     }
 
     private void scanClassesBuildDirectory() throws IOException {
-        File outputDirectoryFile = new File(project.getBuild().getOutputDirectory());
+        File outputDirectoryFile = new File(projectOutputDirectory);
+        if (!outputDirectoryFile.exists()) {
+            getLog().warn("Couldn't scan project output directory " + outputDirectoryFile + " because it doesn't exist !");
+            return;
+        }
         getLog().info("Scanning project build directory " + outputDirectoryFile.getCanonicalPath());
         DirectoryScanner ds = new DirectoryScanner();
         String[] excludes = {"META-INF/**", "OSGI-INF/**", "OSGI-OPT/**", "WEB-INF/**"};
@@ -600,13 +609,31 @@ public class OsgiDependenciesMojo extends AbstractMojo {
     private void processTld(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
         getLog().debug("Processing TLD " + fileName + "...");
         SAXBuilder saxBuilder = new SAXBuilder();
+        saxBuilder.setValidation(false);
+        saxBuilder.setFeature("http://xml.org/sax/features/validation", false);
+        saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
+        saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         FileInputStream childFileInputStream = null;
         try {
             InputStreamReader fileReader = new InputStreamReader(inputStream);
             org.jdom.Document jdomDocument = saxBuilder.build(fileReader);
             Element root = jdomDocument.getRootElement();
+            dumpElementNamespaces(root);
+            boolean hasDefaultNamespace = !StringUtils.isEmpty(root.getNamespaceURI());
+            if (hasDefaultNamespace) {
+                getLog().debug("Using default namespace XPath queries");
+            }
 
-            Element uriElement = getElement(root, "/xp:taglib/xp:uri");
+            Element uriElement = null;
+            if (hasDefaultNamespace) {
+                uriElement = getElement(root, "/xp:taglib/xp:uri");
+            } else {
+                uriElement = getElement(root, "/taglib/uri");
+            }
+            if (uriElement == null) {
+                getLog().warn("Couldn't find /taglib/uri tag in " + fileName + ", aborting TLD parsing !");
+                return;
+            }
             String uri = uriElement.getTextTrim();
             getLog().debug("Taglib URI=" + uri);
             Set<String> taglibPackageSet = taglibPackages.get(uri);
@@ -614,12 +641,22 @@ public class OsgiDependenciesMojo extends AbstractMojo {
                 taglibPackageSet = new TreeSet<String>();
             }
 
-            List<Element> tagClassElements = getElements(root, "//xp:tag/xp:tag-class");
+            List<Element> tagClassElements = null;
+            if (hasDefaultNamespace) {
+                tagClassElements = getElements(root, "//xp:tag/xp:tag-class");
+            } else {
+                tagClassElements = getElements(root, "//tag/tag-class");
+            }
             for (Element tagClassElement : tagClassElements) {
                 getLog().debug(fileName + " Found tag class " + tagClassElement.getTextTrim() + " package=" + getPackageFromClass(tagClassElement.getTextTrim()));
                 taglibPackageSet.add(getPackageFromClass(tagClassElement.getTextTrim()));
             }
-            List<Element> functionClassElements = getElements(root, "//xp:function/xp:function-class");
+            List<Element> functionClassElements = null;
+            if (hasDefaultNamespace) {
+                functionClassElements = getElements(root, "//xp:function/xp:function-class");
+            } else {
+                functionClassElements = getElements(root, "//function/function-class");
+            }
             for (Element functionClassElement : functionClassElements) {
                 getLog().debug(fileName + " Found function class " + functionClassElement.getTextTrim() + " package=" + getPackageFromClass(functionClassElement.getTextTrim()));
                 taglibPackageSet.add(getPackageFromClass(functionClassElement.getTextTrim()));
@@ -764,6 +801,14 @@ public class OsgiDependenciesMojo extends AbstractMojo {
     private void addAllPackageImports(Collection<String> packageNames) {
         for (String packageName : packageNames) {
             addPackageImport(packageName);
+        }
+    }
+
+    private void dumpElementNamespaces(Element element) {
+        Namespace mainNamespace = element.getNamespace();
+        getLog().info("Main namespace prefix=[" + mainNamespace.getPrefix() + "] uri=[" + mainNamespace.getURI() + "] getNamespaceURI=[" + element.getNamespaceURI() + "]");
+        for (Namespace additionalNamespace : (List<Namespace>) element.getAdditionalNamespaces()) {
+            getLog().info("Additional namespace prefix=" + additionalNamespace.getPrefix() + " uri=" + additionalNamespace.getURI());
         }
     }
 
