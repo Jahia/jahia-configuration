@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 /**
  * A maven goal to scan the project  for package dependencies, useful for building OSGi Import-Package
  * Manifest header.
- *
+ * <p/>
  * This goal is currently capable of scanning:
  * - TLD files in dependencies and the project
  * - JSP for page import and Taglib references (tag files are not supported yet)
@@ -38,7 +38,6 @@ import java.util.regex.Pattern;
  *
  * @goal osgi-dependencies
  * @requiresDependencyResolution test
- *
  * @todo add support for CND definition files, groovy files, JSP tag files
  */
 public class OsgiDependenciesMojo extends AbstractMojo {
@@ -53,6 +52,40 @@ public class OsgiDependenciesMojo extends AbstractMojo {
 
     public static final Pattern XPATH_PREFIX_PATTERN = Pattern.compile("(\\w+):[\\w-]+");
 
+    private final static String[] SPRING_XPATH_QUERIES = {
+            "//beans:bean/@class",
+            "//aop:declare-parents/@implement-interface",
+            "//aop:declare-parents/@default-impl",
+            "//context:load-time-weaver/@weaver-class",
+            "//context:component-scan/@name-generator",
+            "//context:component-scan/@scope-resolver",
+            "//jee:jndi-lookup/@expected-type",
+            "//jee:jndi-lookup/@proxy-interface",
+            "//jee:remote-slsb/@home-interface",
+            "//jee:remote-slsb/@business-interface",
+            "//jee:local-slsb/@business-interface",
+            "//jms:listener-container/@container-class",
+            "//lang:jruby/@script-interfaces",
+            "//lang:bsh/@script-interfaces",
+            "//oxm:class-to-be-bound/@name",
+            "//oxm:jibx-marshaller/@target-class",
+            "//osgi:reference/@interface",
+            "//osgi:service/@interface",
+            "//util:list/@list-class",
+            "//util:map/@map-class",
+            "//util:set/@set-class",
+            "//webflow:flow-builder/@class",
+            "//webflow:attribute/@type",
+            "//osgi:service/osgi:interfaces/beans:value",
+            "//osgi:reference/osgi:interfaces/beans:value",
+            "//context:component-scan/@base-package",
+    };
+
+    private final static String[] JCR_IMPORT_XPATH_QUERIES = {
+            "//@jcr:primaryType",
+            "//jcr:mixinTypes"
+    };
+
     /**
      * @parameter expression="${project}"
      * @readonly
@@ -64,6 +97,11 @@ public class OsgiDependenciesMojo extends AbstractMojo {
      * @parameter default-value="org.jahia.modules:*,org.jahia.templates:*,org.jahia.test:*,*.jahia.modules"
      */
     protected List<String> artifactExcludes;
+
+    /**
+     * @parameter default-value="${project.basedir}/src/main/resources,${project.basedir}/src/main/import"
+     */
+    protected List<String> scanDirectories;
 
     private Set<String> packageImports = new TreeSet<String>();
     private Set<String> taglibUris = new TreeSet<String>();
@@ -87,20 +125,18 @@ public class OsgiDependenciesMojo extends AbstractMojo {
             throw new MojoFailureException("Error while scanning dependencies", e);
         }
 
-        List<Resource> resources = project.getResources();
-
-        for (Resource resource : resources) {
-            File resourceDirectory = new File(resource.getDirectory());
-            if (!resourceDirectory.exists()) {
-                getLog().warn("Couldn't find directory " + resourceDirectory + ", skipping !");
+        for (String scanDirectory : scanDirectories) {
+            File scanDirectoryFile = new File(scanDirectory);
+            if (!scanDirectoryFile.exists()) {
+                getLog().warn("Couldn't find directory " + scanDirectoryFile + ", skipping !");
                 continue;
             }
             try {
-                getLog().info("Scanning resource directory " + resourceDirectory + "...");
-                processDirectoryTlds(resourceDirectory);
-                processDirectory(resourceDirectory);
+                getLog().info("Scanning resource directory " + scanDirectoryFile + "...");
+                processDirectoryTlds(scanDirectoryFile);
+                processDirectory(scanDirectoryFile);
             } catch (IOException e) {
-                throw new MojoFailureException("Error processing resource directory " + resourceDirectory, e);
+                throw new MojoFailureException("Error processing resource directory " + scanDirectoryFile, e);
             }
         }
         getLog().info("Found project packages (potential exports) :");
@@ -111,10 +147,16 @@ public class OsgiDependenciesMojo extends AbstractMojo {
         // now let's remove all the project packages from the imports, we assume we will not import split packages.
         packageImports.removeAll(projectPackages);
 
+        contentTypeReferences.removeAll(contentTypeDefinitions);
+
         StringBuffer generatedPackageBuffer = new StringBuffer();
+        int i = 0;
         for (String packageImport : packageImports) {
             generatedPackageBuffer.append(packageImport);
-            generatedPackageBuffer.append(",\n");
+            if (i < packageImports.size() - 1) {
+                generatedPackageBuffer.append(",\n");
+            }
+            i++;
         }
         getLog().info("Found referenced tag library URIs (from JSPs) :");
         for (String taglibUri : taglibUris) {
@@ -131,16 +173,34 @@ public class OsgiDependenciesMojo extends AbstractMojo {
             }
             getLog().info("  " + taglibUri + " " + foundMessage);
         }
-        getLog().info("Found content type definitions:");
+
+        StringBuffer contentTypeDefinitionsBuffer = new StringBuffer();
+        contentTypeDefinitionsBuffer.append("com.jahia.services.content; nodetypes:List<String>=\"");
+        i = 0;
         for (String contentTypeName : contentTypeDefinitions) {
-            getLog().info("  " + contentTypeName);
+            contentTypeDefinitionsBuffer.append(contentTypeName);
+            if (i < contentTypeDefinitions.size() - 1) {
+                contentTypeDefinitionsBuffer.append(",");
+            }
+            i++;
         }
-        getLog().info("Found content type references:");
+        contentTypeDefinitionsBuffer.append("\"");
+        getLog().info("Provide-Capability: " + contentTypeDefinitionsBuffer.toString());
+        project.getProperties().put("jahia.plugin.providedNodeTypes", contentTypeDefinitionsBuffer.toString());
+
+        StringBuffer contentTypeReferencesBuffer = new StringBuffer();
+        i = 0;
         for (String contentSuperTypeName : contentTypeReferences) {
-            getLog().info("  " + contentSuperTypeName);
+            contentTypeReferencesBuffer.append("com.jahia.services.content; filter:=\"(nodetypes=" + contentSuperTypeName + ")\"");
+            if (i < contentTypeReferences.size() - 1) {
+                contentTypeReferencesBuffer.append(",");
+            }
+            i++;
         }
+        getLog().info("Require-Capability: " + contentTypeReferencesBuffer.toString());
+        project.getProperties().put("jahia.plugin.requiredNodeTypes", contentTypeReferencesBuffer.toString());
+
         String generatedPackageList = generatedPackageBuffer.toString();
-        generatedPackageList = generatedPackageList.substring(0, generatedPackageList.length() - ",\n".length()); // remove the last comma
         project.getProperties().put("jahia.plugin.projectPackageImport", generatedPackageList);
         getLog().info("Set project property jahia.plugin.projectPackageImport to package import list value: ");
         getLog().info(generatedPackageList);
@@ -223,7 +283,7 @@ public class OsgiDependenciesMojo extends AbstractMojo {
                 if (artifact.getScope().contains(Artifact.SCOPE_PROVIDED)) {
                     externalDependency = true;
                 }
-                getLog().debug("Scanning "+(externalDependency ? "external" : "")+" dependency " + artifact.getFile());
+                getLog().debug("Scanning " + (externalDependency ? "external" : "") + " dependency " + artifact.getFile());
                 scanJar(artifact.getFile(), artifact.getBaseVersion(), externalDependency);
             }
         }
@@ -279,13 +339,13 @@ public class OsgiDependenciesMojo extends AbstractMojo {
             if (lastSlash > -1) {
                 entryPackage = includedFile.substring(0, lastSlash);
                 entryPackage = entryPackage.replaceAll("/", ".");
-                FileInputStream fileInputStream = null;
-                try {
-                    fileInputStream = new FileInputStream(includedFileFile);
-                    processTldFile(includedFile, fileInputStream, entryPackage, false);
-                } finally {
-                    IOUtils.closeQuietly(fileInputStream);
-                }
+            }
+            FileInputStream fileInputStream = null;
+            try {
+                fileInputStream = new FileInputStream(includedFileFile);
+                processTldFile(includedFile, fileInputStream, entryPackage, false);
+            } finally {
+                IOUtils.closeQuietly(fileInputStream);
             }
         }
     }
@@ -306,13 +366,13 @@ public class OsgiDependenciesMojo extends AbstractMojo {
             if (lastSlash > -1) {
                 entryPackage = includedFile.substring(0, lastSlash);
                 entryPackage = entryPackage.replaceAll("/", ".");
-                FileInputStream fileInputStream = null;
-                try {
-                    fileInputStream = new FileInputStream(includedFileFile);
-                    processNonTldFile(includedFile, fileInputStream, entryPackage, false);
-                } finally {
-                    IOUtils.closeQuietly(fileInputStream);
-                }
+            }
+            FileInputStream fileInputStream = null;
+            try {
+                fileInputStream = new FileInputStream(includedFileFile);
+                processNonTldFile(includedFile, fileInputStream, entryPackage, false);
+            } finally {
+                IOUtils.closeQuietly(fileInputStream);
             }
         }
     }
@@ -336,8 +396,9 @@ public class OsgiDependenciesMojo extends AbstractMojo {
             return;
         }
         childFileExtension = childFileExtension.toLowerCase();
+        // getLog().debug(fileName + ": File extension=" + childFileExtension);
         if ("jsp".equals(childFileExtension) ||
-            "jspf".equals(childFileExtension)) {
+                "jspf".equals(childFileExtension)) {
             if (!externalDependency) {
                 processJsp(fileName, inputStream, externalDependency);
             }
@@ -357,7 +418,6 @@ public class OsgiDependenciesMojo extends AbstractMojo {
     }
 
     private void processXml(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
-        getLog().debug("Processing XML file " + fileName + "...");
         SAXBuilder saxBuilder = new SAXBuilder();
         saxBuilder.setValidation(false);
         saxBuilder.setFeature("http://xml.org/sax/features/validation", false);
@@ -368,13 +428,16 @@ public class OsgiDependenciesMojo extends AbstractMojo {
             InputStreamReader fileReader = new InputStreamReader(inputStream);
             org.jdom.Document jdomDocument = saxBuilder.build(fileReader);
             Element root = jdomDocument.getRootElement();
+            // getLog().debug("Parsed XML file" + fileName + " successfully.");
 
             if (fileName.toLowerCase().endsWith(".jpdl.xml")) {
                 if (!externalDependency) {
                     processJpdl(fileName, root, externalDependency);
                 }
             } else if (hasNamespaceURI(root, "http://www.jcp.org/jcr/1.0")) {
-                // process JCR import file
+                if (!externalDependency) {
+                    processJCRImport(fileName, root, externalDependency);
+                }
             } else if (hasNamespaceURI(root, "http://www.springframework.org/schema/beans")) {
                 if (!externalDependency) {
                     processSpringContext(fileName, root, externalDependency);
@@ -388,59 +451,47 @@ public class OsgiDependenciesMojo extends AbstractMojo {
         }
     }
 
+    private void processJCRImport(String fileName, Element root, boolean externalDependency) throws JDOMException {
+        getLog().debug("Processing JCR import file " + fileName + "...");
+
+        getRefsUsingXPathQueries(fileName, root, false, externalDependency, JCR_IMPORT_XPATH_QUERIES, "xp");
+    }
+
     private void processSpringContext(String fileName, Element root, boolean externalDependency) throws JDOMException {
         getLog().debug("Processing Spring context file " + fileName + "...");
 
+        getRefsUsingXPathQueries(fileName, root, true, externalDependency, SPRING_XPATH_QUERIES, "beans");
+    }
 
-        String[] xPathQueries = {
-            "//beans:bean/@class",
-            "//aop:declare-parents/@implement-interface",
-            "//aop:declare-parents/@default-impl",
-            "//context:load-time-weaver/@weaver-class",
-            "//context:component-scan/@name-generator",
-            "//context:component-scan/@scope-resolver",
-            "//jee:jndi-lookup/@expected-type",
-            "//jee:jndi-lookup/@proxy-interface",
-            "//jee:remote-slsb/@home-interface",
-            "//jee:remote-slsb/@business-interface",
-            "//jee:local-slsb/@business-interface",
-            "//jms:listener-container/@container-class",
-            "//lang:jruby/@script-interfaces",
-            "//lang:bsh/@script-interfaces",
-            "//oxm:class-to-be-bound/@name",
-            "//oxm:jibx-marshaller/@target-class",
-            "//osgi:reference/@interface",
-            "//osgi:service/@interface",
-            "//util:list/@list-class",
-            "//util:map/@map-class",
-            "//util:set/@set-class",
-            "//webflow:flow-builder/@class",
-            "//webflow:attribute/@type",
-            "//osgi:service/osgi:interfaces/beans:value",
-            "//osgi:reference/osgi:interfaces/beans:value",
-            "//context:component-scan/@base-package",
-        };
-
+    private void getRefsUsingXPathQueries(String fileName, Element root,
+                                          boolean packageReferences,
+                                          boolean externalDependency,
+                                          String[] xPathQueries, String defaultNamespacePrefix) throws JDOMException {
         for (String xPathQuery : xPathQueries) {
             Set<String> missingPrefixes = getMissingQueryPrefixes(root, xPathQuery);
             if (missingPrefixes.size() > 0) {
                 getLog().debug(fileName + ": xPath query " + xPathQuery + " cannot be executed on this file since it has prefixes not declared in the file: " + missingPrefixes);
                 continue;
             }
-            List<Object> classObjects = getNodes(root, xPathQuery, "beans");
+            List<Object> classObjects = getNodes(root, xPathQuery, defaultNamespacePrefix);
             for (Object classObject : classObjects) {
-                String className = null;
+                String referenceValue = null;
                 if (classObject instanceof Attribute) {
-                    className = ((Attribute) classObject).getValue();
+                    referenceValue = ((Attribute) classObject).getValue();
                 } else if (classObject instanceof Element) {
-                    className = ((Element) classObject).getTextTrim();
+                    referenceValue = ((Element) classObject).getTextTrim();
                 } else {
-                    getLog().warn(fileName + ": xPath query" + xPathQuery + " return unknown XML node type " + className.getClass().getName() + "..." );
+                    getLog().warn(fileName + ": xPath query" + xPathQuery + " return unknown XML node type " + referenceValue.getClass().getName() + "...");
                 }
-                if (className != null) {
-                    getLog().debug(fileName + " Found class " + className + " package=" + getPackageFromClass(className));
+                if (referenceValue != null) {
                     if (!externalDependency) {
-                        addPackageImport(getPackageFromClass(className));
+                        if (packageReferences) {
+                            getLog().debug(fileName + " Found class " + referenceValue + " package=" + getPackageFromClass(referenceValue));
+                            addPackageImport(getPackageFromClass(referenceValue));
+                        } else {
+                            getLog().debug(fileName + " Found content type " + referenceValue + " reference");
+                            contentTypeReferences.add(referenceValue);
+                        }
                     }
                 }
             }
@@ -473,11 +524,13 @@ public class OsgiDependenciesMojo extends AbstractMojo {
     }
 
     private boolean hasNamespaceURI(Element element, String namespaceURI) {
+        //getLog().debug("Main namespace URI=" + element.getNamespace().getURI());
         if (element.getNamespace().getURI().equals(namespaceURI)) {
             return true;
         }
         List<Namespace> additionalNamespaces = (List<Namespace>) element.getAdditionalNamespaces();
         for (Namespace additionalNamespace : additionalNamespaces) {
+            //getLog().debug("Additional namespace URI=" + additionalNamespace.getURI());
             if (additionalNamespace.getURI().equals(namespaceURI)) {
                 return true;
             }
@@ -487,24 +540,24 @@ public class OsgiDependenciesMojo extends AbstractMojo {
 
     private void processJpdl(String fileName, Element root, boolean externalDependency) throws IOException, JDOMException {
         getLog().debug("Processing workflow definition file (JBPM JPDL) " + fileName + "...");
-            List<Attribute> classAttributes = getAttributes(root, "//@class");
-            for (Attribute classAttribute : classAttributes) {
-                getLog().debug(fileName + " Found class " + classAttribute.getValue() + " package=" + getPackageFromClass(classAttribute.getValue()));
-                if (!externalDependency) {
-                    addPackageImport(getPackageFromClass(classAttribute.getValue()));
-                }
+        List<Attribute> classAttributes = getAttributes(root, "//@class");
+        for (Attribute classAttribute : classAttributes) {
+            getLog().debug(fileName + " Found class " + classAttribute.getValue() + " package=" + getPackageFromClass(classAttribute.getValue()));
+            if (!externalDependency) {
+                addPackageImport(getPackageFromClass(classAttribute.getValue()));
             }
+        }
     }
 
     private void processDrl(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
         getLog().debug("Processing Drools Rule file " + fileName + "...");
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
         String line = null;
-        while ((line=bufferedReader.readLine()) != null) {
+        while ((line = bufferedReader.readLine()) != null) {
             Matcher ruleImportMatcher = RULE_IMPORT_PATTERN.matcher(line);
             if (ruleImportMatcher.matches()) {
                 String ruleImport = ruleImportMatcher.group(1);
-                getLog().debug(fileName + ": found rule import " + ruleImport) ;
+                getLog().debug(fileName + ": found rule import " + ruleImport);
                 if (!externalDependency) {
                     addPackageImport(getPackageFromClass(ruleImport));
                 }
@@ -555,7 +608,7 @@ public class OsgiDependenciesMojo extends AbstractMojo {
 
             Element uriElement = getElement(root, "/xp:taglib/xp:uri");
             String uri = uriElement.getTextTrim();
-            getLog().debug("Taglib URI="+uri);
+            getLog().debug("Taglib URI=" + uri);
             Set<String> taglibPackageSet = taglibPackages.get(uri);
             if (taglibPackageSet == null) {
                 taglibPackageSet = new TreeSet<String>();
@@ -607,7 +660,7 @@ public class OsgiDependenciesMojo extends AbstractMojo {
             String taglibUri = taglibUriMatcher.group(1);
             taglibUris.add(taglibUri);
             if (!taglibPackages.containsKey(taglibUri)) {
-                getLog().warn("JSP " + fileName + " has a reference to taglib "+taglibUri+" that is not in the project's dependencies !");
+                getLog().warn("JSP " + fileName + " has a reference to taglib " + taglibUri + " that is not in the project's dependencies !");
             } else {
                 if (!externalDependency) {
                     Set<String> taglibPackageSet = taglibPackages.get(taglibUri);
@@ -626,9 +679,10 @@ public class OsgiDependenciesMojo extends AbstractMojo {
      * for a Spring XML configuration will look like this :
      * /xp:beans/xp:bean[@id="FileListSync"]/xp:property[@name="syncUrl"]
      * Currently there is no way to rename the prefix.
-     * @param scopeElement the scope in which to execute the XPath query
+     *
+     * @param scopeElement    the scope in which to execute the XPath query
      * @param xPathExpression the XPath query to select the element we wish to retrieve. In the case where multiple
-     * elements match, only the first one will be returned.
+     *                        elements match, only the first one will be returned.
      * @return the first element that matches the XPath expression, or null if no element matches.
      * @throws JDOMException raised if there was a problem navigating the JDOM structure.
      */
@@ -699,6 +753,9 @@ public class OsgiDependenciesMojo extends AbstractMojo {
     }
 
     private void addPackageImport(String packageName) {
+        if (StringUtils.isEmpty(packageName)) {
+            return;
+        }
         if (!packageName.startsWith("java.")) {
             packageImports.add(packageName);
         }
