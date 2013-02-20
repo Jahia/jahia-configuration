@@ -13,6 +13,7 @@ import org.codehaus.plexus.util.FileUtils;
 import org.jdom.Attribute;
 import org.jdom.Element;
 import org.jdom.JDOMException;
+import org.jdom.Namespace;
 import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
 
@@ -24,7 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * A maven goal to scan the project resources for package dependencies, useful for building OSGi Import-Package
+ * A maven goal to scan the project  for package dependencies, useful for building OSGi Import-Package
  * Manifest header.
  *
  * This goal is currently capable of scanning:
@@ -32,21 +33,25 @@ import java.util.regex.Pattern;
  * - JSP for page import and Taglib references (tag files are not supported yet)
  * - Drools rule definition imports
  * - JBPM Workflow definition files
+ * - String context files
+ * - JCR CND content definition files for node type definition and references
  *
- * @goal get-resource-dependencies
+ * @goal osgi-dependencies
  * @requiresDependencyResolution test
  *
  * @todo add support for CND definition files, groovy files, JSP tag files
  */
-public class GetResourcesDependenciesMojo extends AbstractMojo {
+public class OsgiDependenciesMojo extends AbstractMojo {
 
     public static final Pattern JSP_PAGE_IMPORT_PATTERN = Pattern.compile("<%@.*page.*import=\\\"(.*?)\\\".*%>");
     public static final Pattern JSP_TAGLIB_PATTERN = Pattern.compile("<%@.*taglib.*uri=\\\"(.*?)\\\".*%>");
-    public static final Pattern CND_NODETYPE_DEFINITION_PATTERN = Pattern.compile("\\[([\\w:]+)\\]\\s+");
+    public static final Pattern CND_NODETYPE_DEFINITION_PATTERN = Pattern.compile("\\s+\\[([\\w:]+)\\]\\s+");
     public static final Pattern CND_ALL_NAMES_PATTERN = Pattern.compile("\\w+:\\w+");
     public static final Pattern CND_ALL_PROPERTY_NAMES_PATTERN = Pattern.compile("\\s+-\\s*([\\w:]+)");
     public static final Pattern CND_ALL_CHILD_NAMES_PATTERN = Pattern.compile("\\s+\\+\\s*([\\w:\\*]+)");
     public static final Pattern RULE_IMPORT_PATTERN = Pattern.compile("^\\s*import\\s*([\\w.\\*]*)\\s*$");
+
+    public static final Pattern XPATH_PREFIX_PATTERN = Pattern.compile("(\\w+):[\\w-]+");
 
     /**
      * @parameter expression="${project}"
@@ -285,7 +290,6 @@ public class GetResourcesDependenciesMojo extends AbstractMojo {
         }
     }
 
-
     private void processDirectory(File directoryFile) throws IOException {
         DirectoryScanner ds = new DirectoryScanner();
         String[] excludes = {};
@@ -345,22 +349,144 @@ public class GetResourcesDependenciesMojo extends AbstractMojo {
             if (!externalDependency) {
                 processDrl(fileName, inputStream, externalDependency);
             }
-        } else if (fileName.toLowerCase().endsWith(".jpdl.xml")) {
+        } else if ("xml".equals(childFileExtension)) {
             if (!externalDependency) {
-                processJpdl(fileName, inputStream, externalDependency);
+                processXml(fileName, inputStream, externalDependency);
             }
         }
     }
 
-    private void processJpdl(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
-        getLog().debug("Processing workflow definition file (JBPM JPDL) " + fileName + "...");
+    private void processXml(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
+        getLog().debug("Processing XML file " + fileName + "...");
         SAXBuilder saxBuilder = new SAXBuilder();
+        saxBuilder.setValidation(false);
+        saxBuilder.setFeature("http://xml.org/sax/features/validation", false);
+        saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
+        saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         FileInputStream childFileInputStream = null;
         try {
             InputStreamReader fileReader = new InputStreamReader(inputStream);
             org.jdom.Document jdomDocument = saxBuilder.build(fileReader);
             Element root = jdomDocument.getRootElement();
 
+            if (fileName.toLowerCase().endsWith(".jpdl.xml")) {
+                if (!externalDependency) {
+                    processJpdl(fileName, root, externalDependency);
+                }
+            } else if (hasNamespaceURI(root, "http://www.jcp.org/jcr/1.0")) {
+                // process JCR import file
+            } else if (hasNamespaceURI(root, "http://www.springframework.org/schema/beans")) {
+                if (!externalDependency) {
+                    processSpringContext(fileName, root, externalDependency);
+                }
+            }
+
+        } catch (JDOMException e) {
+            getLog().warn("Error parsing XML file " + fileName, e);
+        } finally {
+            IOUtils.closeQuietly(childFileInputStream);
+        }
+    }
+
+    private void processSpringContext(String fileName, Element root, boolean externalDependency) throws JDOMException {
+        getLog().debug("Processing Spring context file " + fileName + "...");
+
+
+        String[] xPathQueries = {
+            "//beans:bean/@class",
+            "//aop:declare-parents/@implement-interface",
+            "//aop:declare-parents/@default-impl",
+            "//context:load-time-weaver/@weaver-class",
+            "//context:component-scan/@name-generator",
+            "//context:component-scan/@scope-resolver",
+            "//jee:jndi-lookup/@expected-type",
+            "//jee:jndi-lookup/@proxy-interface",
+            "//jee:remote-slsb/@home-interface",
+            "//jee:remote-slsb/@business-interface",
+            "//jee:local-slsb/@business-interface",
+            "//jms:listener-container/@container-class",
+            "//lang:jruby/@script-interfaces",
+            "//lang:bsh/@script-interfaces",
+            "//oxm:class-to-be-bound/@name",
+            "//oxm:jibx-marshaller/@target-class",
+            "//osgi:reference/@interface",
+            "//osgi:service/@interface",
+            "//util:list/@list-class",
+            "//util:map/@map-class",
+            "//util:set/@set-class",
+            "//webflow:flow-builder/@class",
+            "//webflow:attribute/@type",
+            "//osgi:service/osgi:interfaces/beans:value",
+            "//osgi:reference/osgi:interfaces/beans:value",
+            "//context:component-scan/@base-package",
+        };
+
+        for (String xPathQuery : xPathQueries) {
+            Set<String> missingPrefixes = getMissingQueryPrefixes(root, xPathQuery);
+            if (missingPrefixes.size() > 0) {
+                getLog().debug(fileName + ": xPath query " + xPathQuery + " cannot be executed on this file since it has prefixes not declared in the file: " + missingPrefixes);
+                continue;
+            }
+            List<Object> classObjects = getNodes(root, xPathQuery, "beans");
+            for (Object classObject : classObjects) {
+                String className = null;
+                if (classObject instanceof Attribute) {
+                    className = ((Attribute) classObject).getValue();
+                } else if (classObject instanceof Element) {
+                    className = ((Element) classObject).getTextTrim();
+                } else {
+                    getLog().warn(fileName + ": xPath query" + xPathQuery + " return unknown XML node type " + className.getClass().getName() + "..." );
+                }
+                if (className != null) {
+                    getLog().debug(fileName + " Found class " + className + " package=" + getPackageFromClass(className));
+                    if (!externalDependency) {
+                        addPackageImport(getPackageFromClass(className));
+                    }
+                }
+            }
+        }
+    }
+
+    private Set<String> getMissingQueryPrefixes(Element root, String xPathQuery) {
+        Set<String> xPathQueryPrefixes = getPrefixesInXPath(xPathQuery);
+        Set<String> elementPrefixes = new HashSet<String>();
+        for (Namespace additionalNamespaces : (List<Namespace>) root.getAdditionalNamespaces()) {
+            elementPrefixes.add(additionalNamespaces.getPrefix());
+        }
+        elementPrefixes.add("beans");
+        Set<String> missingPrefixes = new TreeSet<String>();
+        for (String xPathQueryPrefix : xPathQueryPrefixes) {
+            if (!elementPrefixes.contains(xPathQueryPrefix)) {
+                missingPrefixes.add(xPathQueryPrefix);
+            }
+        }
+        return missingPrefixes;
+    }
+
+    private Set<String> getPrefixesInXPath(String xPathQuery) {
+        Set<String> prefixes = new TreeSet<String>();
+        Matcher xPathPrefixMatcher = XPATH_PREFIX_PATTERN.matcher(xPathQuery);
+        while (xPathPrefixMatcher.find()) {
+            prefixes.add(xPathPrefixMatcher.group(1));
+        }
+        return prefixes;
+    }
+
+    private boolean hasNamespaceURI(Element element, String namespaceURI) {
+        if (element.getNamespace().getURI().equals(namespaceURI)) {
+            return true;
+        }
+        List<Namespace> additionalNamespaces = (List<Namespace>) element.getAdditionalNamespaces();
+        for (Namespace additionalNamespace : additionalNamespaces) {
+            if (additionalNamespace.getURI().equals(namespaceURI)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void processJpdl(String fileName, Element root, boolean externalDependency) throws IOException, JDOMException {
+        getLog().debug("Processing workflow definition file (JBPM JPDL) " + fileName + "...");
             List<Attribute> classAttributes = getAttributes(root, "//@class");
             for (Attribute classAttribute : classAttributes) {
                 getLog().debug(fileName + " Found class " + classAttribute.getValue() + " package=" + getPackageFromClass(classAttribute.getValue()));
@@ -368,11 +494,6 @@ public class GetResourcesDependenciesMojo extends AbstractMojo {
                     addPackageImport(getPackageFromClass(classAttribute.getValue()));
                 }
             }
-        } catch (JDOMException e) {
-            getLog().warn("Error parsing TLD file " + fileName, e);
-        } finally {
-            IOUtils.closeQuietly(childFileInputStream);
-        }
     }
 
     private void processDrl(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
@@ -517,6 +638,9 @@ public class GetResourcesDependenciesMojo extends AbstractMojo {
         if ((namespaceURI != null) && (!"".equals(namespaceURI))) {
             xPath.addNamespace("xp", namespaceURI);
         }
+        for (Namespace additionalNamespace : (List<Namespace>) scopeElement.getDocument().getRootElement().getAdditionalNamespaces()) {
+            xPath.addNamespace(additionalNamespace);
+        }
         return (Element) xPath.selectSingleNode(scopeElement);
     }
 
@@ -526,6 +650,9 @@ public class GetResourcesDependenciesMojo extends AbstractMojo {
         String namespaceURI = scopeElement.getDocument().getRootElement().getNamespaceURI();
         if ((namespaceURI != null) && (!"".equals(namespaceURI))) {
             xPath.addNamespace("xp", namespaceURI);
+        }
+        for (Namespace additionalNamespace : (List<Namespace>) scopeElement.getDocument().getRootElement().getAdditionalNamespaces()) {
+            xPath.addNamespace(additionalNamespace);
         }
         for (Object obj : xPath.selectNodes(scopeElement)) {
             if (obj instanceof Element) {
@@ -543,6 +670,9 @@ public class GetResourcesDependenciesMojo extends AbstractMojo {
         if ((namespaceURI != null) && (!"".equals(namespaceURI))) {
             xPath.addNamespace("xp", namespaceURI);
         }
+        for (Namespace additionalNamespace : (List<Namespace>) scopeElement.getDocument().getRootElement().getAdditionalNamespaces()) {
+            xPath.addNamespace(additionalNamespace);
+        }
         for (Object obj : xPath.selectNodes(scopeElement)) {
             if (obj instanceof Attribute) {
                 elems.add((Attribute) obj);
@@ -550,6 +680,22 @@ public class GetResourcesDependenciesMojo extends AbstractMojo {
         }
 
         return elems;
+    }
+
+    public List<Object> getNodes(Element scopeElement, String xPathExpression, String defaultPrefix) throws JDOMException {
+        List<Object> nodes = new LinkedList<Object>();
+        XPath xPath = XPath.newInstance(xPathExpression);
+        String namespaceURI = scopeElement.getDocument().getRootElement().getNamespaceURI();
+        if ((namespaceURI != null) && (!"".equals(namespaceURI))) {
+            xPath.addNamespace(defaultPrefix, namespaceURI);
+        }
+        for (Namespace additionalNamespace : (List<Namespace>) scopeElement.getDocument().getRootElement().getAdditionalNamespaces()) {
+            xPath.addNamespace(additionalNamespace);
+        }
+        for (Object obj : xPath.selectNodes(scopeElement)) {
+            nodes.add(obj);
+        }
+        return nodes;
     }
 
     private void addPackageImport(String packageName) {
