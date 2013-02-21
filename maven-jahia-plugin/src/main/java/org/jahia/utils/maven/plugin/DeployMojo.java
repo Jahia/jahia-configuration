@@ -91,7 +91,7 @@ public class DeployMojo extends AbstractManagementMojo {
     
     private static final Set<String> JAHIA_SYSTEM_BUNDLES = new HashSet<String>(Arrays.asList(
             "org.jahia.bundles.url.jahiawar", "org.jahia.bundles.extender.jahiamodules",
-            "org.jahia.bundles.blueprint.extender.config"));
+            "org.jahia.bundles.blueprint.extender.config", "org.jahia.bundles.http.bridge"));
 
     /**
      * The dependency tree builder to use.
