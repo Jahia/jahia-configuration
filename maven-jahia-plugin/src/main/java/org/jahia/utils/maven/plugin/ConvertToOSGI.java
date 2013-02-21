@@ -40,6 +40,13 @@ public class ConvertToOSGI extends AbstractManagementMojo {
         File webapp = new File(baseDir, "src/main/webapp");
         File resources = new File(baseDir, "src/main/resources");
         try {
+            if (resources.exists()) {
+                File oldWorkflowDir = new File(resources, "org/jahia/services/workflow");
+                File newWorkflowDirParent = new File(resources, "org/jahia/modules/custom");
+                if (oldWorkflowDir.exists()) {
+                    FileUtils.moveDirectoryToDirectory(oldWorkflowDir, newWorkflowDirParent, true);
+                }
+            }
             if (webapp.exists()) {
                 FileUtils.deleteQuietly(new File(webapp, "WEB-INF/web.xml"));
                 moveWithMerge(webapp, resources);
