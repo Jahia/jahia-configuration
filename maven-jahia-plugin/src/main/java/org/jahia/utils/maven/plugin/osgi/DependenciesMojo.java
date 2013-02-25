@@ -43,8 +43,9 @@ public class DependenciesMojo extends AbstractMojo {
 
     public static final Pattern JSP_PAGE_IMPORT_PATTERN = Pattern.compile("<%@.*page.*import=\\\"(.*?)\\\".*%>");
     public static final Pattern JSP_TAGLIB_PATTERN = Pattern.compile("<%@.*taglib.*uri=\\\"(.*?)\\\".*%>");
+    public static final Pattern CND_NAMESPACE_PATTERN = Pattern.compile("<\\s*(\\w*)\\s*=\\s*'(.*)'\\s*>");
     public static final Pattern CND_NODETYPE_DEFINITION_PATTERN = Pattern.compile("\\s+\\[([\\w:]+)\\]\\s+");
-    public static final Pattern CND_ALL_NAMES_PATTERN = Pattern.compile("\\w+:\\w+");
+    public static final Pattern CND_ALL_NAMES_PATTERN = Pattern.compile("([a-zA-Z_]\\w+:\\w+)(?:\\s|'|\\]|\\)|,)");
     public static final Pattern CND_ALL_PROPERTY_NAMES_PATTERN = Pattern.compile("\\s+-\\s*([\\w:]+)");
     public static final Pattern CND_ALL_CHILD_NAMES_PATTERN = Pattern.compile("\\s+\\+\\s*([\\w:\\*]+)");
     public static final Pattern RULE_IMPORT_PATTERN = Pattern.compile("^\\s*import\\s*([\\w.\\*]*)\\s*$");
@@ -107,6 +108,21 @@ public class DependenciesMojo extends AbstractMojo {
      * @parameter default-value="${project.build.outputDirectory}
      */
     protected String projectOutputDirectory;
+
+    /**
+     * @parameter
+     */
+    protected File propertiesInputFile;
+
+    /**
+     * @parameter
+     */
+    protected File propertiesOutputFile;
+
+    /**
+     * @parameter default-value="org.osgi.framework.system.capabilities.extra"
+     */
+    protected String systemExtraCapabilitiesPropertyName = "org.osgi.framework.system.capabilities.extra";
 
     private Set<String> packageImports = new TreeSet<String>();
     private Set<String> taglibUris = new TreeSet<String>();
@@ -209,6 +225,22 @@ public class DependenciesMojo extends AbstractMojo {
         project.getProperties().put("jahia.plugin.projectPackageImport", generatedPackageList);
         getLog().info("Set project property jahia.plugin.projectPackageImport to package import list value: ");
         getLog().info(generatedPackageList);
+
+        if (propertiesOutputFile != null) {
+            String[] extraCapabilitiesPropertyValue = new String[] {
+                    contentTypeDefinitionsBuffer.toString()
+            };
+            try {
+                PropertyFileUtils.updatePropertyFile(
+                        propertiesInputFile,
+                        propertiesOutputFile,
+                        systemExtraCapabilitiesPropertyName,
+                        extraCapabilitiesPropertyValue,
+                        getLog());
+            } catch (IOException e) {
+                getLog().warn("Error saving extra system capabilities to file " + propertiesOutputFile);
+            }
+        }
     }
 
     private void scanClassesBuildDirectory() throws IOException {
@@ -608,16 +640,32 @@ public class DependenciesMojo extends AbstractMojo {
     private void processCnd(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
         getLog().debug("Processing CND " + fileName + "...");
         String cndFileContent = IOUtils.toString(inputStream);
+        Set<String> namespacePrefixes =new TreeSet<String>();
+        Matcher namespaceMatcher = CND_NAMESPACE_PATTERN.matcher(cndFileContent);
+        while (namespaceMatcher.find()) {
+            String namespacePrefix = namespaceMatcher.group(1);
+            if (namespacePrefix != null) {
+                namespacePrefix = namespacePrefix.trim();
+            }
+            if (StringUtils.isNotEmpty(namespacePrefix) &&
+                !namespacePrefixes.contains(namespacePrefix)) {
+                namespacePrefixes.add(namespaceMatcher.group(1));
+            }
+        }
         Matcher nodeTypeDefinitionMatcher = CND_NODETYPE_DEFINITION_PATTERN.matcher(cndFileContent);
         while (nodeTypeDefinitionMatcher.find()) {
             String definitionName = nodeTypeDefinitionMatcher.group(1);
-            getLog().debug(fileName + ": Found definition name " + definitionName);
+            if (hasDeclaredNamespace(definitionName, namespacePrefixes)) {
+                getLog().debug(fileName + ": Found valid definition name " + definitionName);
+            } else {
+                getLog().debug(fileName + ": Found definition name " + definitionName + " with invalid or missing namespace prefix");
+            }
             contentTypeDefinitions.add(definitionName);
         }
         Set<String> allNames = new TreeSet<String>();
         Matcher allNamesMatcher = CND_ALL_NAMES_PATTERN.matcher(cndFileContent);
         while (allNamesMatcher.find()) {
-            String aName = allNamesMatcher.group(0);
+            String aName = allNamesMatcher.group(1);
             getLog().debug(fileName + ": Found name " + aName);
             allNames.add(aName);
         }
@@ -635,6 +683,19 @@ public class DependenciesMojo extends AbstractMojo {
         }
         allNames.removeAll(contentTypeDefinitions);
         contentTypeReferences.addAll(allNames);
+    }
+
+    private boolean hasDeclaredNamespace(String nodetypeDefinition, Set<String> namespacePrefixes) {
+        String[] definitionParts = nodetypeDefinition.split("\\:");
+        if (definitionParts.length != 2) {
+            getLog().debug("Ignoring node type definition with invalid number of parts: " + nodetypeDefinition);
+            return false;
+        }
+        if (namespacePrefixes.contains(definitionParts[0])) {
+            return true;
+        }
+        getLog().debug("Ignoring node type definition with invalid prefix: " + nodetypeDefinition);
+        return false;
     }
 
     private void processTld(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
