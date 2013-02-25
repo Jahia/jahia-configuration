@@ -100,12 +100,12 @@ public class DependenciesMojo extends AbstractMojo {
     protected List<String> artifactExcludes;
 
     /**
-     * @parameter default-value="${project.basedir}/src/main/resources,${project.basedir}/src/main/import"
+     * @parameter default-value="${project.basedir}/src/main/resources,${project.basedir}/src/main/import,${project.basedir}/src/main/webapp"
      */
     protected List<String> scanDirectories;
 
     /**
-     * @parameter default-value="${project.build.outputDirectory}
+     * @parameter default-value="${project.build.outputDirectory}"
      */
     protected String projectOutputDirectory;
 
@@ -149,7 +149,7 @@ public class DependenciesMojo extends AbstractMojo {
         for (String scanDirectory : scanDirectories) {
             File scanDirectoryFile = new File(scanDirectory);
             if (!scanDirectoryFile.exists()) {
-                getLog().warn("Couldn't find directory " + scanDirectoryFile + ", skipping !");
+                getLog().debug("Couldn't find directory " + scanDirectoryFile + ", skipping !");
                 continue;
             }
             try {
@@ -312,6 +312,7 @@ public class DependenciesMojo extends AbstractMojo {
             }
             if (exclusionMatched != null) {
                 getLog().info("Matched exclusion " + exclusionMatched + ", ignoring artifact.");
+                continue;
             }
 
             if (artifact.getScope().contains(Artifact.SCOPE_PROVIDED) ||
