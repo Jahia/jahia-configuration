@@ -448,9 +448,9 @@ public class OsgiDependenciesMojo extends AbstractMojo {
             Matcher groovyImportMatcher = GROOVY_IMPORT_PATTERN.matcher(line);
             if (groovyImportMatcher.matches()) {
                 String groovyImport = groovyImportMatcher.group(1);
-                getLog().debug(fileName + ": found Groovy import " + groovyImport + " package=" + getPackageFromClass(groovyImport));
+                getLog().debug(fileName + ": found Groovy import " + groovyImport + " package=" + PackageUtils.getPackageFromClass(groovyImport));
                 if (!externalDependency) {
-                    addPackageImport(getPackageFromClass(groovyImport));
+                    addPackageImport(PackageUtils.getPackageFromClass(groovyImport));
                 }
             }
         }
@@ -525,8 +525,8 @@ public class OsgiDependenciesMojo extends AbstractMojo {
                 if (referenceValue != null) {
                     if (!externalDependency) {
                         if (packageReferences) {
-                            getLog().debug(fileName + " Found class " + referenceValue + " package=" + getPackageFromClass(referenceValue));
-                            addPackageImport(getPackageFromClass(referenceValue));
+                            getLog().debug(fileName + " Found class " + referenceValue + " package=" + PackageUtils.getPackageFromClass(referenceValue));
+                            addPackageImport(PackageUtils.getPackageFromClass(referenceValue));
                         } else {
                             getLog().debug(fileName + " Found content type " + referenceValue + " reference");
                             contentTypeReferences.add(referenceValue);
@@ -581,9 +581,9 @@ public class OsgiDependenciesMojo extends AbstractMojo {
         getLog().debug("Processing workflow definition file (JBPM JPDL) " + fileName + "...");
         List<Attribute> classAttributes = getAttributes(root, "//@class");
         for (Attribute classAttribute : classAttributes) {
-            getLog().debug(fileName + " Found class " + classAttribute.getValue() + " package=" + getPackageFromClass(classAttribute.getValue()));
+            getLog().debug(fileName + " Found class " + classAttribute.getValue() + " package=" + PackageUtils.getPackageFromClass(classAttribute.getValue()));
             if (!externalDependency) {
-                addPackageImport(getPackageFromClass(classAttribute.getValue()));
+                addPackageImport(PackageUtils.getPackageFromClass(classAttribute.getValue()));
             }
         }
     }
@@ -596,9 +596,9 @@ public class OsgiDependenciesMojo extends AbstractMojo {
             Matcher ruleImportMatcher = RULE_IMPORT_PATTERN.matcher(line);
             if (ruleImportMatcher.matches()) {
                 String ruleImport = ruleImportMatcher.group(1);
-                getLog().debug(fileName + ": found rule import " + ruleImport + " package=" + getPackageFromClass(ruleImport));
+                getLog().debug(fileName + ": found rule import " + ruleImport + " package=" + PackageUtils.getPackageFromClass(ruleImport));
                 if (!externalDependency) {
-                    addPackageImport(getPackageFromClass(ruleImport));
+                    addPackageImport(PackageUtils.getPackageFromClass(ruleImport));
                 }
             }
         }
@@ -678,8 +678,8 @@ public class OsgiDependenciesMojo extends AbstractMojo {
                 tagClassElements = getElements(root, "//tag/tag-class");
             }
             for (Element tagClassElement : tagClassElements) {
-                getLog().debug(fileName + " Found tag class " + tagClassElement.getTextTrim() + " package=" + getPackageFromClass(tagClassElement.getTextTrim()));
-                taglibPackageSet.add(getPackageFromClass(tagClassElement.getTextTrim()));
+                getLog().debug(fileName + " Found tag class " + tagClassElement.getTextTrim() + " package=" + PackageUtils.getPackageFromClass(tagClassElement.getTextTrim()));
+                taglibPackageSet.add(PackageUtils.getPackageFromClass(tagClassElement.getTextTrim()));
             }
             List<Element> functionClassElements = null;
             if (hasDefaultNamespace) {
@@ -688,8 +688,8 @@ public class OsgiDependenciesMojo extends AbstractMojo {
                 functionClassElements = getElements(root, "//function/function-class");
             }
             for (Element functionClassElement : functionClassElements) {
-                getLog().debug(fileName + " Found function class " + functionClassElement.getTextTrim() + " package=" + getPackageFromClass(functionClassElement.getTextTrim()));
-                taglibPackageSet.add(getPackageFromClass(functionClassElement.getTextTrim()));
+                getLog().debug(fileName + " Found function class " + functionClassElement.getTextTrim() + " package=" + PackageUtils.getPackageFromClass(functionClassElement.getTextTrim()));
+                taglibPackageSet.add(PackageUtils.getPackageFromClass(functionClassElement.getTextTrim()));
             }
             taglibPackages.put(uri, taglibPackageSet);
             externalTaglibs.put(uri, externalDependency);
@@ -700,13 +700,6 @@ public class OsgiDependenciesMojo extends AbstractMojo {
         }
     }
 
-    private String getPackageFromClass(String className) {
-        int lastDot = className.lastIndexOf(".");
-        if (lastDot < 0) {
-            return null;
-        }
-        return className.substring(0, lastDot);
-    }
 
     private void processJsp(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
         getLog().debug("Processing JSP " + fileName + "...");
@@ -714,11 +707,17 @@ public class OsgiDependenciesMojo extends AbstractMojo {
         Matcher pageImportMatcher = JSP_PAGE_IMPORT_PATTERN.matcher(jspFileContent);
         while (pageImportMatcher.find()) {
             if (!externalDependency) {
-                String classImport = pageImportMatcher.group(1);
-                int lastDot = classImport.lastIndexOf(".");
-                if (lastDot > 0) {
-                    String packageName = classImport.substring(0, lastDot);
-                    addPackageImport(packageName);
+                String classImportString = pageImportMatcher.group(1);
+                if (classImportString.contains(",")) {
+                    getLog().debug("Multiple imports in a single JSP page import statement detected: " + classImportString);
+                    String[] classImports = classImportString.split(",");
+                    Set<String> packageImports = new TreeSet<String>();
+                    for (String classImport :classImports) {
+                        packageImports.add(PackageUtils.getPackageFromClass(classImport.trim()));
+                    }
+                    addAllPackageImports(packageImports);
+                } else {
+                    addPackageImport(PackageUtils.getPackageFromClass(classImportString));
                 }
             }
         }
