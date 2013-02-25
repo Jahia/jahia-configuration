@@ -35,11 +35,11 @@ import java.util.regex.Pattern;
  * - String context files
  * - JCR CND content definition files for node type definition and references
  *
- * @goal osgi-dependencies
+ * @goal dependencies
  * @requiresDependencyResolution test
  * @todo add support for groovy files, JSP tag files, more...
  */
-public class OsgiDependenciesMojo extends AbstractMojo {
+public class DependenciesMojo extends AbstractMojo {
 
     public static final Pattern JSP_PAGE_IMPORT_PATTERN = Pattern.compile("<%@.*page.*import=\\\"(.*?)\\\".*%>");
     public static final Pattern JSP_TAGLIB_PATTERN = Pattern.compile("<%@.*taglib.*uri=\\\"(.*?)\\\".*%>");
@@ -144,9 +144,9 @@ public class OsgiDependenciesMojo extends AbstractMojo {
                 throw new MojoFailureException("Error processing resource directory " + scanDirectoryFile, e);
             }
         }
-        getLog().info("Found project packages (potential exports) :");
+        getLog().debug("Found project packages (potential exports) :");
         for (String projectPackage : projectPackages) {
-            getLog().info("  " + projectPackage);
+            getLog().debug("  " + projectPackage);
         }
 
         // now let's remove all the project packages from the imports, we assume we will not import split packages.
@@ -287,7 +287,7 @@ public class OsgiDependenciesMojo extends AbstractMojo {
                     artifact.getScope().contains(Artifact.SCOPE_RUNTIME)) {
                 if ("war".equals(artifact.getType())) {
                     packageDirectory = "WEB-INF/classes/";
-                    getLog().warn(artifact.getFile() + " is of type WAR, changing package scanning directory to WEB-INF/classes");
+                    getLog().debug(artifact.getFile() + " is of type WAR, changing package scanning directory to WEB-INF/classes");
                 } else if (!artifact.getType().equals("jar")) {
                     getLog().warn("Ignoring artifact " + artifact.getFile() + " since it is of type " + artifact.getType());
                     continue;
@@ -484,7 +484,8 @@ public class OsgiDependenciesMojo extends AbstractMojo {
             }
 
         } catch (JDOMException e) {
-            getLog().warn("Error parsing XML file " + fileName, e);
+            getLog().warn("Error parsing XML file " + fileName + ": " + e.getMessage() + " enable debug mode (-X) for more detailed exception");
+            getLog().debug("Detailed exception", e);
         } finally {
             IOUtils.closeQuietly(childFileInputStream);
         }
