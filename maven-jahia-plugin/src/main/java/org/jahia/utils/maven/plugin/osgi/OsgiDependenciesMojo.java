@@ -2,7 +2,6 @@ package org.jahia.utils.maven.plugin.osgi;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -38,7 +37,7 @@ import java.util.regex.Pattern;
  *
  * @goal osgi-dependencies
  * @requiresDependencyResolution test
- * @todo add support for CND definition files, groovy files, JSP tag files
+ * @todo add support for groovy files, JSP tag files, more...
  */
 public class OsgiDependenciesMojo extends AbstractMojo {
 
@@ -49,6 +48,7 @@ public class OsgiDependenciesMojo extends AbstractMojo {
     public static final Pattern CND_ALL_PROPERTY_NAMES_PATTERN = Pattern.compile("\\s+-\\s*([\\w:]+)");
     public static final Pattern CND_ALL_CHILD_NAMES_PATTERN = Pattern.compile("\\s+\\+\\s*([\\w:\\*]+)");
     public static final Pattern RULE_IMPORT_PATTERN = Pattern.compile("^\\s*import\\s*([\\w.\\*]*)\\s*$");
+    public static final Pattern GROOVY_IMPORT_PATTERN = Pattern.compile("^\\s*import\\s*(?:static)?\\s*([\\w\\.\\*]*)\\s*(?:as\\s*(\\w*)\\s*)?");
 
     public static final Pattern XPATH_PREFIX_PATTERN = Pattern.compile("(\\w+):[\\w-]+");
 
@@ -268,6 +268,7 @@ public class OsgiDependenciesMojo extends AbstractMojo {
 
     private void scanDependencies() throws IOException {
         getLog().info("Scanning project dependencies...");
+        String packageDirectory = "";
         for (Artifact artifact : project.getArtifacts()) {
             String exclusionMatched = null;
             for (Pattern exclusionPattern : artifactExclusionPatterns) {
@@ -284,7 +285,10 @@ public class OsgiDependenciesMojo extends AbstractMojo {
             if (artifact.getScope().contains(Artifact.SCOPE_PROVIDED) ||
                     artifact.getScope().contains(Artifact.SCOPE_COMPILE) ||
                     artifact.getScope().contains(Artifact.SCOPE_RUNTIME)) {
-                if (!artifact.getType().equals("jar")) {
+                if ("war".equals(artifact.getType())) {
+                    packageDirectory = "WEB-INF/classes/";
+                    getLog().warn(artifact.getFile() + " is of type WAR, changing package scanning directory to WEB-INF/classes");
+                } else if (!artifact.getType().equals("jar")) {
                     getLog().warn("Ignoring artifact " + artifact.getFile() + " since it is of type " + artifact.getType());
                     continue;
                 }
@@ -293,13 +297,13 @@ public class OsgiDependenciesMojo extends AbstractMojo {
                     externalDependency = true;
                 }
                 getLog().debug("Scanning " + (externalDependency ? "external" : "") + " dependency " + artifact.getFile());
-                scanJar(artifact.getFile(), artifact.getBaseVersion(), externalDependency);
+                scanJar(artifact.getFile(), artifact.getBaseVersion(), externalDependency, packageDirectory);
             }
         }
 
     }
 
-    private void scanJar(File jarFile, String defaultVersion, boolean externalDependency) throws IOException {
+    private void scanJar(File jarFile, String defaultVersion, boolean externalDependency, String packageDirectory) throws IOException {
         JarInputStream jarInputStream = new JarInputStream(new FileInputStream(jarFile));
         JarEntry jarEntry = null;
         // getLog().debug("Processing file " + artifact.getFile() + "...");
@@ -307,26 +311,32 @@ public class OsgiDependenciesMojo extends AbstractMojo {
             if (!jarEntry.isDirectory()) {
                 String entryName = jarEntry.getName();
                 String entryPackage = "";
-                int lastSlash = entryName.lastIndexOf("/");
-                if (lastSlash > -1) {
-                    entryPackage = entryName.substring(0, lastSlash);
-                    entryPackage = entryPackage.replaceAll("/", ".");
-                    if (!externalDependency) {
-                        if (StringUtils.isNotEmpty(entryPackage) &&
-                                !entryPackage.startsWith("META-INF") &&
-                                !entryPackage.startsWith("OSGI-INF") &&
-                                !entryPackage.startsWith("OSGI-OPT") &&
-                                !entryPackage.startsWith("WEB-INF") &&
-                                !entryPackage.startsWith("org.osgi")) {
-                            projectPackages.add(entryPackage);
+                if (entryName.startsWith(packageDirectory)) {
+                    entryName = entryName.substring(packageDirectory.length());
+                    int lastSlash = entryName.lastIndexOf("/");
+                    if (lastSlash > -1) {
+                        entryPackage = entryName.substring(0, lastSlash);
+                        entryPackage = entryPackage.replaceAll("/", ".");
+                        if (!externalDependency) {
+                            if (StringUtils.isNotEmpty(entryPackage) &&
+                                    !entryPackage.startsWith("META-INF") &&
+                                    !entryPackage.startsWith("OSGI-INF") &&
+                                    !entryPackage.startsWith("OSGI-OPT") &&
+                                    !entryPackage.startsWith("WEB-INF") &&
+                                    !entryPackage.startsWith("org.osgi")) {
+                                if (!projectPackages.contains(entryPackage)) {
+                                    getLog().debug(jarFile + ": found package " + entryPackage);
+                                    projectPackages.add(entryPackage);
+                                }
+                            }
                         }
                     }
-                    ByteArrayOutputStream entryOutputStream = new ByteArrayOutputStream();
-                    IOUtils.copy(jarInputStream, entryOutputStream);
-                    ByteArrayInputStream tempEntryInputStream = new ByteArrayInputStream(entryOutputStream.toByteArray());
-                    processTldFile(jarEntry.getName(), tempEntryInputStream, entryPackage, externalDependency);
-                    processNonTldFile(jarEntry.getName(), tempEntryInputStream, entryPackage, externalDependency);
                 }
+                ByteArrayOutputStream entryOutputStream = new ByteArrayOutputStream();
+                IOUtils.copy(jarInputStream, entryOutputStream);
+                ByteArrayInputStream tempEntryInputStream = new ByteArrayInputStream(entryOutputStream.toByteArray());
+                processTldFile(jarEntry.getName(), tempEntryInputStream, entryPackage, externalDependency);
+                processNonTldFile(jarEntry.getName(), tempEntryInputStream, entryPackage, externalDependency);
             }
         }
         jarInputStream.close();
@@ -422,6 +432,26 @@ public class OsgiDependenciesMojo extends AbstractMojo {
         } else if ("xml".equals(childFileExtension)) {
             if (!externalDependency) {
                 processXml(fileName, inputStream, externalDependency);
+            }
+        } else if ("groovy".equals(childFileExtension)) {
+            if (!externalDependency) {
+                processGroovy(fileName, inputStream, externalDependency);
+            }
+        }
+    }
+
+    private void processGroovy(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
+        getLog().debug("Processing Groovy file " + fileName + "...");
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+        String line = null;
+        while ((line = bufferedReader.readLine()) != null) {
+            Matcher groovyImportMatcher = GROOVY_IMPORT_PATTERN.matcher(line);
+            if (groovyImportMatcher.matches()) {
+                String groovyImport = groovyImportMatcher.group(1);
+                getLog().debug(fileName + ": found Groovy import " + groovyImport + " package=" + getPackageFromClass(groovyImport));
+                if (!externalDependency) {
+                    addPackageImport(getPackageFromClass(groovyImport));
+                }
             }
         }
     }
@@ -566,7 +596,7 @@ public class OsgiDependenciesMojo extends AbstractMojo {
             Matcher ruleImportMatcher = RULE_IMPORT_PATTERN.matcher(line);
             if (ruleImportMatcher.matches()) {
                 String ruleImport = ruleImportMatcher.group(1);
-                getLog().debug(fileName + ": found rule import " + ruleImport);
+                getLog().debug(fileName + ": found rule import " + ruleImport + " package=" + getPackageFromClass(ruleImport));
                 if (!externalDependency) {
                     addPackageImport(getPackageFromClass(ruleImport));
                 }
@@ -806,9 +836,9 @@ public class OsgiDependenciesMojo extends AbstractMojo {
 
     private void dumpElementNamespaces(Element element) {
         Namespace mainNamespace = element.getNamespace();
-        getLog().info("Main namespace prefix=[" + mainNamespace.getPrefix() + "] uri=[" + mainNamespace.getURI() + "] getNamespaceURI=[" + element.getNamespaceURI() + "]");
+        getLog().debug("Main namespace prefix=[" + mainNamespace.getPrefix() + "] uri=[" + mainNamespace.getURI() + "] getNamespaceURI=[" + element.getNamespaceURI() + "]");
         for (Namespace additionalNamespace : (List<Namespace>) element.getAdditionalNamespaces()) {
-            getLog().info("Additional namespace prefix=" + additionalNamespace.getPrefix() + " uri=" + additionalNamespace.getURI());
+            getLog().debug("Additional namespace prefix=" + additionalNamespace.getPrefix() + " uri=" + additionalNamespace.getURI());
         }
     }
 
