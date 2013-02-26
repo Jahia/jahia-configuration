@@ -124,6 +124,11 @@ public class DependenciesMojo extends AbstractMojo {
      */
     protected String systemExtraCapabilitiesPropertyName = "org.osgi.framework.system.capabilities.extra";
 
+    /**
+     * @parameter default-value="" expression="${jahia.modules.importPackage}"
+     */
+    protected List<String> existingImports = new ArrayList<String>();
+
     private Set<String> packageImports = new TreeSet<String>();
     private Set<String> taglibUris = new TreeSet<String>();
     private Map<String, Set<String>> taglibPackages = new HashMap<String, Set<String>>();
@@ -135,6 +140,15 @@ public class DependenciesMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+
+        if (existingImports != null && existingImports.size() > 0) {
+            getLog().info("Using " + existingImports.size() + " existing imports as import");
+            for (String existingImport : existingImports) {
+                if (existingImport != null) {
+                    packageImports.add(existingImport.trim());
+                }
+            }
+        }
 
         buildExclusionPatterns();
 
