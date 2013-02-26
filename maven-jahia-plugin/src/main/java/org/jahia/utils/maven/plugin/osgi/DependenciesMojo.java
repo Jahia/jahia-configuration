@@ -193,6 +193,7 @@ public class DependenciesMojo extends AbstractMojo {
             }
             i++;
         }
+        getLog().info("Generated " + packageImports.size() + " package imports for project.");
         getLog().info("Found referenced tag library URIs (from JSPs) :");
         for (String taglibUri : taglibUris) {
             boolean foundInDependencies = taglibPackages.containsKey(taglibUri);
