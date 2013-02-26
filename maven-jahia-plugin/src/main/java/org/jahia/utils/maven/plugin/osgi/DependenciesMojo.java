@@ -196,27 +196,31 @@ public class DependenciesMojo extends AbstractMojo {
         }
 
         StringBuffer contentTypeDefinitionsBuffer = new StringBuffer();
-        contentTypeDefinitionsBuffer.append("com.jahia.services.content; nodetypes:List<String>=\"");
-        i = 0;
-        for (String contentTypeName : contentTypeDefinitions) {
-            contentTypeDefinitionsBuffer.append(contentTypeName);
-            if (i < contentTypeDefinitions.size() - 1) {
-                contentTypeDefinitionsBuffer.append(",");
+        if (contentTypeDefinitions.size() > 0) {
+            contentTypeDefinitionsBuffer.append("com.jahia.services.content; nodetypes:List<String>=\"");
+            i = 0;
+            for (String contentTypeName : contentTypeDefinitions) {
+                contentTypeDefinitionsBuffer.append(contentTypeName);
+                if (i < contentTypeDefinitions.size() - 1) {
+                    contentTypeDefinitionsBuffer.append(",");
+                }
+                i++;
             }
-            i++;
+            contentTypeDefinitionsBuffer.append("\"");
         }
-        contentTypeDefinitionsBuffer.append("\"");
         getLog().info("Provide-Capability: " + contentTypeDefinitionsBuffer.toString());
         project.getProperties().put("jahia.plugin.providedNodeTypes", contentTypeDefinitionsBuffer.toString());
 
         StringBuffer contentTypeReferencesBuffer = new StringBuffer();
-        i = 0;
-        for (String contentSuperTypeName : contentTypeReferences) {
-            contentTypeReferencesBuffer.append("com.jahia.services.content; filter:=\"(nodetypes=" + contentSuperTypeName + ")\"");
-            if (i < contentTypeReferences.size() - 1) {
-                contentTypeReferencesBuffer.append(",");
+        if (contentTypeReferences.size() > 0) {
+            i = 0;
+            for (String contentSuperTypeName : contentTypeReferences) {
+                contentTypeReferencesBuffer.append("com.jahia.services.content; filter:=\"(nodetypes=" + contentSuperTypeName + ")\"");
+                if (i < contentTypeReferences.size() - 1) {
+                    contentTypeReferencesBuffer.append(",");
+                }
+                i++;
             }
-            i++;
         }
         getLog().info("Require-Capability: " + contentTypeReferencesBuffer.toString());
         project.getProperties().put("jahia.plugin.requiredNodeTypes", contentTypeReferencesBuffer.toString());
