@@ -9,6 +9,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.tika.io.IOUtils;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
+import org.jahia.utils.maven.plugin.osgi.parsers.cnd.*;
 import org.jdom.Attribute;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -16,6 +17,9 @@ import org.jdom.Namespace;
 import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
 
+import javax.jcr.RepositoryException;
+import javax.jcr.Value;
+import javax.jcr.ValueFormatException;
 import java.io.*;
 import java.util.*;
 import java.util.jar.JarEntry;
@@ -229,8 +233,8 @@ public class DependenciesMojo extends AbstractMojo {
         StringBuffer contentTypeReferencesBuffer = new StringBuffer();
         if (contentTypeReferences.size() > 0) {
             i = 0;
-            for (String contentSuperTypeName : contentTypeReferences) {
-                contentTypeReferencesBuffer.append("com.jahia.services.content; filter:=\"(nodetypes=" + contentSuperTypeName + ")\"");
+            for (String contentTypeReference : contentTypeReferences) {
+                contentTypeReferencesBuffer.append("com.jahia.services.content; filter:=\"(nodetypes=" + contentTypeReference + ")\"");
                 if (i < contentTypeReferences.size() - 1) {
                     contentTypeReferencesBuffer.append(",");
                 }
@@ -659,6 +663,21 @@ public class DependenciesMojo extends AbstractMojo {
 
     private void processCnd(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
         getLog().debug("Processing CND " + fileName + "...");
+
+        try {
+            JahiaCndReader jahiaCndReader = new JahiaCndReader(new InputStreamReader(inputStream), fileName, fileName, NodeTypeRegistry.getInstance());
+            jahiaCndReader.setDoRegister(false);
+            jahiaCndReader.parse();
+
+            jahiaCndReader.getDefinitionsAndReferences(contentTypeDefinitions, contentTypeReferences);
+        } catch (ParseException e) {
+            getLog().error("Error while parsing CND file " + fileName, e);
+        } catch (ValueFormatException e) {
+            getLog().error("Error while parsing CND file " + fileName, e);
+        } catch (RepositoryException e) {
+            getLog().error("Error while parsing CND file " + fileName, e);
+        }
+        /*
         String cndFileContent = IOUtils.toString(inputStream);
         Set<String> namespacePrefixes =new TreeSet<String>();
         Matcher namespaceMatcher = CND_NAMESPACE_PATTERN.matcher(cndFileContent);
@@ -703,6 +722,7 @@ public class DependenciesMojo extends AbstractMojo {
         }
         allNames.removeAll(contentTypeDefinitions);
         contentTypeReferences.addAll(allNames);
+        */
     }
 
     private boolean hasDeclaredNamespace(String nodetypeDefinition, Set<String> namespacePrefixes) {
