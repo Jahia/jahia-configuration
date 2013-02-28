@@ -4,6 +4,7 @@ package org.jahia.utils.maven.plugin;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProject;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -37,6 +38,10 @@ public class ConvertToOSGI extends AbstractManagementMojo {
 
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
+        if (!checkProjectParent(project, "org.jahia.modules", "jahia-modules")) {
+            throw new MojoExecutionException("Project must inherit from org.jahia.modules:jahia-modules");
+        }
+
         File webapp = new File(baseDir, "src/main/webapp");
         File resources = new File(baseDir, "src/main/resources");
         try {
@@ -57,6 +62,18 @@ public class ConvertToOSGI extends AbstractManagementMojo {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+    }
+
+    private boolean checkProjectParent(MavenProject p, String groupId, String artifactId) {
+        MavenProject parent = p.getParent();
+        if (parent == null) {
+            return false;
+        }
+        if (groupId.equals(parent.getGroupId()) && artifactId.equals(parent.getArtifactId())) {
+            return true;
+        } else {
+            return checkProjectParent(parent, groupId, artifactId);
         }
     }
 
@@ -81,7 +98,7 @@ public class ConvertToOSGI extends AbstractManagementMojo {
         }
     }
 
-    private void parsePom() throws DocumentException, IOException, MojoExecutionException {
+    private void parsePom() throws DocumentException, IOException {
         SAXReader reader = new SAXReader();
         File pom = new File(baseDir, "pom.xml");
         Document pomDocument = reader.read(pom);
@@ -89,16 +106,6 @@ public class ConvertToOSGI extends AbstractManagementMojo {
         Document bundleModuleDocument = reader.read(getClass().getClassLoader().getResourceAsStream("bundleModule.xml"));
 
         Element root = pomDocument.getRootElement();
-
-        Element parent = root.element("parent");
-        if (parent == null) {
-            throw new MojoExecutionException("Project parent must be org.jahia.modules:jahia-modules");
-        }
-        Element groupId = parent.element("groupId");
-        Element artifactId = parent.element("artifactId");
-        if (groupId == null || artifactId == null || !"org.jahia.modules".equals(groupId.getText()) || !"jahia-modules".equals(artifactId.getText())) {
-            throw new MojoExecutionException("Project parent must be org.jahia.modules:jahia-modules");
-        }
 
         // Set packaging
         Element packaging = root.element("packaging");
