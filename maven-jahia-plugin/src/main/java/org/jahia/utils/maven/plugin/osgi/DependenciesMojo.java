@@ -238,7 +238,8 @@ public class DependenciesMojo extends AbstractMojo {
             contentTypeDefinitionsBuffer.append("\"");
         }
         if (contentDefinitionCapabilitiesActivated) {
-            getLog().info("Provide-Capability: " + contentTypeDefinitionsBuffer.toString());
+            getLog().info("Found " + contentTypeDefinitions.size() + " new content node type definitions in project.");
+            getLog().debug("Provide-Capability: " + contentTypeDefinitionsBuffer.toString());
             project.getProperties().put("jahia.plugin.providedNodeTypes", contentTypeDefinitionsBuffer.toString());
         } else {
             // we set an empty property so that Maven will not fail the build with a non-existing property
@@ -258,7 +259,8 @@ public class DependenciesMojo extends AbstractMojo {
         }
 
         if (contentDefinitionCapabilitiesActivated) {
-            getLog().info("Require-Capability: " + contentTypeReferencesBuffer.toString());
+            getLog().info("Found " + contentTypeReferences.size() + " content node type definitions referenced in project.");
+            getLog().debug("Require-Capability: " + contentTypeReferencesBuffer.toString());
             project.getProperties().put("jahia.plugin.requiredNodeTypes", contentTypeReferencesBuffer.toString());
         } else {
             // we set an empty property so that Maven will not fail the build with a non-existing property
@@ -267,8 +269,8 @@ public class DependenciesMojo extends AbstractMojo {
 
         String generatedPackageList = generatedPackageBuffer.toString();
         project.getProperties().put("jahia.plugin.projectPackageImport", generatedPackageList);
-        getLog().info("Set project property jahia.plugin.projectPackageImport to package import list value: ");
-        getLog().info(generatedPackageList);
+        getLog().debug("Set project property jahia.plugin.projectPackageImport to package import list value: ");
+        getLog().debug(generatedPackageList);
 
         if (propertiesOutputFile != null) {
             String[] extraCapabilitiesPropertyValue = new String[] {
@@ -606,8 +608,24 @@ public class DependenciesMojo extends AbstractMojo {
                             getLog().debug(fileName + " Found class " + referenceValue + " package=" + PackageUtils.getPackageFromClass(referenceValue));
                             addPackageImport(PackageUtils.getPackageFromClass(referenceValue));
                         } else {
-                            getLog().debug(fileName + " Found content type " + referenceValue + " reference");
-                            contentTypeReferences.add(referenceValue);
+                            if (referenceValue.contains(" ")) {
+                                getLog().debug(fileName + "Found multi-valued reference: " + referenceValue);
+                                String[] referenceValueArray = referenceValue.split(" ");
+                                for (String reference : referenceValueArray) {
+                                    getLog().debug(fileName + " Found content type " + referenceValue + " reference");
+                                    contentTypeReferences.add(reference);
+                                }
+                            } else if (referenceValue.contains(",")) {
+                                getLog().debug(fileName + "Found multi-valued reference: " + referenceValue);
+                                String[] referenceValueArray = referenceValue.split(",");
+                                for (String reference : referenceValueArray) {
+                                    getLog().debug(fileName + " Found content type " + referenceValue + " reference");
+                                    contentTypeReferences.add(reference);
+                                }
+                            } else {
+                                getLog().debug(fileName + " Found content type " + referenceValue + " reference");
+                                contentTypeReferences.add(referenceValue);
+                            }
                         }
                     }
                 }
