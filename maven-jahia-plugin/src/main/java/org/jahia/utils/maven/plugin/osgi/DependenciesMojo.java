@@ -84,7 +84,7 @@ public class DependenciesMojo extends AbstractMojo {
 
     private final static String[] JCR_IMPORT_XPATH_QUERIES = {
             "//@jcr:primaryType",
-            "//jcr:mixinTypes"
+            "//@jcr:mixinTypes"
     };
 
     /**
