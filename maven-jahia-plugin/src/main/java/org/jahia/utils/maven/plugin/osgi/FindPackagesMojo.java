@@ -24,14 +24,17 @@ import org.sonatype.aether.util.artifact.DefaultArtifact;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
 /**
  * A little utility goal to locate a package inside the project's dependencies, including optional or provided ones.
  *
- * @goal findPackages
+ * @goal find-packages
  * @requiresDependencyResolution test
  */
 

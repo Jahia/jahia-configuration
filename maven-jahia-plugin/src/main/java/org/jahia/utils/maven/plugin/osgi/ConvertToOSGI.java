@@ -1,4 +1,4 @@
-package org.jahia.utils.maven.plugin;
+package org.jahia.utils.maven.plugin.osgi;
 
 
 import org.apache.commons.io.FileUtils;
@@ -11,17 +11,20 @@ import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
+import org.jahia.utils.maven.plugin.AbstractManagementMojo;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Jahia server deployment mojo.
  *
- * @goal convertToOSGI
+ * @goal convert-to-osgi
  * @requiresDependencyResolution runtime
  */
 public class ConvertToOSGI extends AbstractManagementMojo {

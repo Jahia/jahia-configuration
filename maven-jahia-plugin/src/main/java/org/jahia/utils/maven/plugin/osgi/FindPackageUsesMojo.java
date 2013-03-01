@@ -17,7 +17,7 @@ import java.util.jar.JarInputStream;
  * A little utility goal to locate a package usage inside the project's dependencies, using BND to make sure we
  * scan the same way.
  *
- * @goal findPackageUses
+ * @goal find-package-uses
  * @requiresDependencyResolution test
  */
 public class FindPackageUsesMojo extends AbstractMojo {

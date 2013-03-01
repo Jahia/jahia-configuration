@@ -257,9 +257,6 @@ orderable
  itemtype = metadata
  - j:keywords (string) multiple
 
-<jmix = 'http://www.jahia.org/jahia/mix/1.0'>
-<jnt = 'http://www.jahia.org/jahia/nt/1.0'>
-
 [jmix:rating] mixin
  - j:nbOfVotes (long) = 0  autocreated hidden onconflict=sum
  - j:sumOfVotes (long) = 0 autocreated hidden onconflict=sum

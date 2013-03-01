@@ -9,7 +9,9 @@ import org.apache.maven.project.MavenProject;
 import org.apache.tika.io.IOUtils;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
-import org.jahia.utils.maven.plugin.osgi.parsers.cnd.*;
+import org.jahia.utils.maven.plugin.osgi.parsers.cnd.JahiaCndReader;
+import org.jahia.utils.maven.plugin.osgi.parsers.cnd.NodeTypeRegistry;
+import org.jahia.utils.maven.plugin.osgi.parsers.cnd.ParseException;
 import org.jdom.Attribute;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -18,7 +20,6 @@ import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
 
 import javax.jcr.RepositoryException;
-import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 import java.io.*;
 import java.util.*;
@@ -47,11 +48,6 @@ public class DependenciesMojo extends AbstractMojo {
 
     public static final Pattern JSP_PAGE_IMPORT_PATTERN = Pattern.compile("<%@.*page.*import=\\\"(.*?)\\\".*%>");
     public static final Pattern JSP_TAGLIB_PATTERN = Pattern.compile("<%@.*taglib.*uri=\\\"(.*?)\\\".*%>");
-    public static final Pattern CND_NAMESPACE_PATTERN = Pattern.compile("<\\s*(\\w*)\\s*=\\s*'(.*)'\\s*>");
-    public static final Pattern CND_NODETYPE_DEFINITION_PATTERN = Pattern.compile("\\s+\\[([\\w:]+)\\]\\s+");
-    public static final Pattern CND_ALL_NAMES_PATTERN = Pattern.compile("([a-zA-Z_]\\w+:\\w+)(?:\\s|'|\\]|\\)|,)");
-    public static final Pattern CND_ALL_PROPERTY_NAMES_PATTERN = Pattern.compile("\\s+-\\s*([\\w:]+)");
-    public static final Pattern CND_ALL_CHILD_NAMES_PATTERN = Pattern.compile("\\s+\\+\\s*([\\w:\\*]+)");
     public static final Pattern RULE_IMPORT_PATTERN = Pattern.compile("^\\s*import\\s*([\\w.\\*]*)\\s*$");
     public static final Pattern GROOVY_IMPORT_PATTERN = Pattern.compile("^\\s*import\\s*(?:static)?\\s*([\\w\\.\\*]*)\\s*(?:as\\s*(\\w*)\\s*)?");
 
@@ -99,14 +95,19 @@ public class DependenciesMojo extends AbstractMojo {
     protected MavenProject project;
 
     /**
-     * @parameter default-value="org.jahia.modules:*,org.jahia.templates:*,org.jahia.test:*,*.jahia.modules"
+     * @parameter
      */
-    protected List<String> artifactExcludes;
+    protected List<String> artifactExcludes = new ArrayList<String>();
 
     /**
      * @parameter default-value="${project.basedir}/src/main/resources,${project.basedir}/src/main/import,${project.basedir}/src/main/webapp"
      */
     protected List<String> scanDirectories;
+
+    /**
+     * @parameter
+     */
+    protected List<String> excludeFromDirectoryScan = new ArrayList<String>();
 
     /**
      * @parameter default-value="${project.build.outputDirectory}"
@@ -129,9 +130,14 @@ public class DependenciesMojo extends AbstractMojo {
     protected String systemExtraCapabilitiesPropertyName = "org.osgi.framework.system.capabilities.extra";
 
     /**
+     * @parameter default-value="true"
+     */
+    protected boolean contentDefinitionCapabilitiesActivated = true;
+
+    /**
      * @parameter default-value="" expression="${jahia.modules.importPackage}"
      */
-    protected List<String> existingImports = new ArrayList<String>();
+    protected String existingImports = "";
 
     private Set<String> packageImports = new TreeSet<String>();
     private Set<String> taglibUris = new TreeSet<String>();
@@ -145,11 +151,15 @@ public class DependenciesMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
 
-        if (existingImports != null && existingImports.size() > 0) {
-            getLog().info("Using " + existingImports.size() + " existing imports as import");
-            for (String existingImport : existingImports) {
+        String[] existingImportArray = new String[0];
+        if (existingImports != null) {
+            existingImportArray = existingImports.split(",");
+        }
+        if (existingImportArray != null && existingImportArray.length > 0) {
+            getLog().info("Using " + existingImportArray.length + " existing imports as import");
+            for (String existingImport : existingImportArray) {
                 if (existingImport != null) {
-                    packageImports.add(existingImport.trim());
+                    addPackageImport(existingImport.trim());
                 }
             }
         }
@@ -227,8 +237,13 @@ public class DependenciesMojo extends AbstractMojo {
             }
             contentTypeDefinitionsBuffer.append("\"");
         }
-        getLog().info("Provide-Capability: " + contentTypeDefinitionsBuffer.toString());
-        project.getProperties().put("jahia.plugin.providedNodeTypes", contentTypeDefinitionsBuffer.toString());
+        if (contentDefinitionCapabilitiesActivated) {
+            getLog().info("Provide-Capability: " + contentTypeDefinitionsBuffer.toString());
+            project.getProperties().put("jahia.plugin.providedNodeTypes", contentTypeDefinitionsBuffer.toString());
+        } else {
+            // we set an empty property so that Maven will not fail the build with a non-existing property
+            project.getProperties().put("jahia.plugin.providedNodeTypes", "");
+        }
 
         StringBuffer contentTypeReferencesBuffer = new StringBuffer();
         if (contentTypeReferences.size() > 0) {
@@ -241,8 +256,14 @@ public class DependenciesMojo extends AbstractMojo {
                 i++;
             }
         }
-        getLog().info("Require-Capability: " + contentTypeReferencesBuffer.toString());
-        project.getProperties().put("jahia.plugin.requiredNodeTypes", contentTypeReferencesBuffer.toString());
+
+        if (contentDefinitionCapabilitiesActivated) {
+            getLog().info("Require-Capability: " + contentTypeReferencesBuffer.toString());
+            project.getProperties().put("jahia.plugin.requiredNodeTypes", contentTypeReferencesBuffer.toString());
+        } else {
+            // we set an empty property so that Maven will not fail the build with a non-existing property
+            project.getProperties().put("jahia.plugin.requiredNodeTypes", "");
+        }
 
         String generatedPackageList = generatedPackageBuffer.toString();
         project.getProperties().put("jahia.plugin.projectPackageImport", generatedPackageList);
@@ -400,7 +421,7 @@ public class DependenciesMojo extends AbstractMojo {
 
     private void processDirectoryTlds(File directoryFile) throws IOException {
         DirectoryScanner ds = new DirectoryScanner();
-        String[] excludes = {};
+        String[] excludes = excludeFromDirectoryScan.toArray(new String[excludeFromDirectoryScan.size()]);
         ds.setExcludes(excludes);
         ds.setBasedir(directoryFile);
         ds.setCaseSensitive(true);
@@ -427,7 +448,7 @@ public class DependenciesMojo extends AbstractMojo {
 
     private void processDirectory(File directoryFile) throws IOException {
         DirectoryScanner ds = new DirectoryScanner();
-        String[] excludes = {};
+        String[] excludes = excludeFromDirectoryScan.toArray(new String[excludeFromDirectoryScan.size()]);
         ds.setExcludes(excludes);
         ds.setBasedir(directoryFile);
         ds.setCaseSensitive(true);
@@ -677,65 +698,6 @@ public class DependenciesMojo extends AbstractMojo {
         } catch (RepositoryException e) {
             getLog().error("Error while parsing CND file " + fileName, e);
         }
-        /*
-        String cndFileContent = IOUtils.toString(inputStream);
-        Set<String> namespacePrefixes =new TreeSet<String>();
-        Matcher namespaceMatcher = CND_NAMESPACE_PATTERN.matcher(cndFileContent);
-        while (namespaceMatcher.find()) {
-            String namespacePrefix = namespaceMatcher.group(1);
-            if (namespacePrefix != null) {
-                namespacePrefix = namespacePrefix.trim();
-            }
-            if (StringUtils.isNotEmpty(namespacePrefix) &&
-                !namespacePrefixes.contains(namespacePrefix)) {
-                namespacePrefixes.add(namespaceMatcher.group(1));
-            }
-        }
-        Matcher nodeTypeDefinitionMatcher = CND_NODETYPE_DEFINITION_PATTERN.matcher(cndFileContent);
-        while (nodeTypeDefinitionMatcher.find()) {
-            String definitionName = nodeTypeDefinitionMatcher.group(1);
-            if (hasDeclaredNamespace(definitionName, namespacePrefixes)) {
-                getLog().debug(fileName + ": Found valid definition name " + definitionName);
-            } else {
-                getLog().debug(fileName + ": Found definition name " + definitionName + " with invalid or missing namespace prefix");
-            }
-            contentTypeDefinitions.add(definitionName);
-        }
-        Set<String> allNames = new TreeSet<String>();
-        Matcher allNamesMatcher = CND_ALL_NAMES_PATTERN.matcher(cndFileContent);
-        while (allNamesMatcher.find()) {
-            String aName = allNamesMatcher.group(1);
-            getLog().debug(fileName + ": Found name " + aName);
-            allNames.add(aName);
-        }
-        Matcher propertyNamesMatcher = CND_ALL_PROPERTY_NAMES_PATTERN.matcher(cndFileContent);
-        while (propertyNamesMatcher.find()) {
-            String propertyName = propertyNamesMatcher.group(1);
-            getLog().debug(fileName + ": Found property name " + propertyName);
-            allNames.remove(propertyName);
-        }
-        Matcher childNamesMatcher = CND_ALL_CHILD_NAMES_PATTERN.matcher(cndFileContent);
-        while (childNamesMatcher.find()) {
-            String childName = childNamesMatcher.group(1);
-            getLog().debug(fileName + ": Found child name " + childName);
-            allNames.remove(childName);
-        }
-        allNames.removeAll(contentTypeDefinitions);
-        contentTypeReferences.addAll(allNames);
-        */
-    }
-
-    private boolean hasDeclaredNamespace(String nodetypeDefinition, Set<String> namespacePrefixes) {
-        String[] definitionParts = nodetypeDefinition.split("\\:");
-        if (definitionParts.length != 2) {
-            getLog().debug("Ignoring node type definition with invalid number of parts: " + nodetypeDefinition);
-            return false;
-        }
-        if (namespacePrefixes.contains(definitionParts[0])) {
-            return true;
-        }
-        getLog().debug("Ignoring node type definition with invalid prefix: " + nodetypeDefinition);
-        return false;
     }
 
     private void processTld(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
@@ -924,7 +886,9 @@ public class DependenciesMojo extends AbstractMojo {
         if (StringUtils.isEmpty(packageName)) {
             return;
         }
-        if (!packageName.startsWith("java.")) {
+        if (!packageName.startsWith("java.") &&
+            !packageImports.contains(packageName) &&
+            !packageImports.contains(packageName + ";resolution:=optional")) {
             packageImports.add(packageName);
         }
     }

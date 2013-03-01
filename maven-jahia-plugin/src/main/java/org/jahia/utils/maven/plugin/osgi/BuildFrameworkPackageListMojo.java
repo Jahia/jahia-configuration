@@ -1,6 +1,5 @@
 package org.jahia.utils.maven.plugin.osgi;
 
-import asia.redact.bracket.properties.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.RepositoryUtils;
 import org.apache.maven.artifact.Artifact;
@@ -20,12 +19,16 @@ import org.sonatype.aether.graph.Dependency;
 import org.sonatype.aether.graph.DependencyNode;
 import org.sonatype.aether.graph.DependencyVisitor;
 import org.sonatype.aether.repository.RemoteRepository;
-import org.sonatype.aether.resolution.*;
+import org.sonatype.aether.resolution.ArtifactRequest;
+import org.sonatype.aether.resolution.DependencyRequest;
+import org.sonatype.aether.resolution.DependencyResolutionException;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
-import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
@@ -42,7 +45,7 @@ import java.util.regex.Pattern;
  * - The contents of WEB-INF/lib
  * - Dependencies of the project marked with "provided" scope.
  *
- * @goal buildFrameworkPackageList
+ * @goal build-framework-package-list
  * @requiresDependencyResolution test
  */
 public class BuildFrameworkPackageListMojo extends AbstractMojo {
