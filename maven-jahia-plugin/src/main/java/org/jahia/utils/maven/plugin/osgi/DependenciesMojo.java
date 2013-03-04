@@ -86,6 +86,9 @@ public class DependenciesMojo extends AbstractMojo {
             "//@jcr:primaryType",
             "//@jcr:mixinTypes"
     };
+    
+    private static final Set<String> SUPPORTED_FILE_EXTENSIONS_TO_SCAN = new HashSet<String>(Arrays.asList("jsp",
+            "jspf", "cnd", "drl", "xml", "groovy"));
 
     /**
      * @parameter expression="${project}"
@@ -188,9 +191,11 @@ public class DependenciesMojo extends AbstractMojo {
                 throw new MojoFailureException("Error processing resource directory " + scanDirectoryFile, e);
             }
         }
-        getLog().debug("Found project packages (potential exports) :");
-        for (String projectPackage : projectPackages) {
-            getLog().debug("  " + projectPackage);
+        if (getLog().isDebugEnabled()) {
+            getLog().debug("Found project packages (potential exports) :");
+            for (String projectPackage : projectPackages) {
+                getLog().debug("  " + projectPackage);
+            }
         }
 
         // now let's remove all the project packages from the imports, we assume we will not import split packages.
@@ -289,6 +294,21 @@ public class DependenciesMojo extends AbstractMojo {
         }
     }
 
+    private void processProjectPackageEntry(String entry, String fileSeparator) {
+        int lastSlash = entry.lastIndexOf(fileSeparator);
+        if (lastSlash == -1) {
+            return;
+        }
+        String entryPackage = StringUtils.replace(entry.substring(0, lastSlash), fileSeparator, ".");
+        if (StringUtils.isNotEmpty(entryPackage) && !projectPackages.contains(entryPackage)
+                && !entryPackage.startsWith("META-INF") && !entryPackage.startsWith("OSGI-INF")
+                && !entryPackage.startsWith("OSGI-OPT") && !entryPackage.startsWith("WEB-INF")
+                && !entryPackage.startsWith("org.osgi")) {
+            projectPackages.add(entryPackage);
+        }
+    }
+    
+
     private void scanClassesBuildDirectory() throws IOException {
         File outputDirectoryFile = new File(projectOutputDirectory);
         if (!outputDirectoryFile.exists()) {
@@ -304,21 +324,7 @@ public class DependenciesMojo extends AbstractMojo {
         ds.scan();
         String[] includedFiles = ds.getIncludedFiles();
         for (String includedFile : includedFiles) {
-            // getLog().debug("Processing file " + includedFile + "...");
-            String entryPackage = "";
-            int lastSlash = includedFile.lastIndexOf("/");
-            if (lastSlash > -1) {
-                entryPackage = includedFile.substring(0, lastSlash);
-                entryPackage = entryPackage.replaceAll("/", ".");
-                if (StringUtils.isNotEmpty(entryPackage) &&
-                        !entryPackage.startsWith("META-INF") &&
-                        !entryPackage.startsWith("OSGI-INF") &&
-                        !entryPackage.startsWith("OSGI-OPT") &&
-                        !entryPackage.startsWith("WEB-INF") &&
-                        !entryPackage.startsWith("org.osgi")) {
-                    projectPackages.add(entryPackage);
-                }
-            }
+            processProjectPackageEntry(includedFile, File.separator);
         }
     }
 
@@ -387,35 +393,29 @@ public class DependenciesMojo extends AbstractMojo {
         JarEntry jarEntry = null;
         // getLog().debug("Processing file " + artifact.getFile() + "...");
         while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
-            if (!jarEntry.isDirectory()) {
-                String entryName = jarEntry.getName();
-                String entryPackage = "";
-                if (entryName.startsWith(packageDirectory)) {
-                    entryName = entryName.substring(packageDirectory.length());
-                    int lastSlash = entryName.lastIndexOf("/");
-                    if (lastSlash > -1) {
-                        entryPackage = entryName.substring(0, lastSlash);
-                        entryPackage = entryPackage.replaceAll("/", ".");
-                        if (!externalDependency) {
-                            if (StringUtils.isNotEmpty(entryPackage) &&
-                                    !entryPackage.startsWith("META-INF") &&
-                                    !entryPackage.startsWith("OSGI-INF") &&
-                                    !entryPackage.startsWith("OSGI-OPT") &&
-                                    !entryPackage.startsWith("WEB-INF") &&
-                                    !entryPackage.startsWith("org.osgi")) {
-                                if (!projectPackages.contains(entryPackage)) {
-                                    getLog().debug(jarFile + ": found package " + entryPackage);
-                                    projectPackages.add(entryPackage);
-                                }
-                            }
-                        }
-                    }
-                }
-                ByteArrayOutputStream entryOutputStream = new ByteArrayOutputStream();
-                IOUtils.copy(jarInputStream, entryOutputStream);
-                ByteArrayInputStream tempEntryInputStream = new ByteArrayInputStream(entryOutputStream.toByteArray());
-                processTldFile(jarEntry.getName(), tempEntryInputStream, entryPackage, externalDependency);
-                processNonTldFile(jarEntry.getName(), tempEntryInputStream, entryPackage, externalDependency);
+            if (jarEntry.isDirectory()) {
+                continue;
+            }
+            String entryName = jarEntry.getName();
+            String ext = FileUtils.getExtension(entryName).toLowerCase();
+
+            if (!externalDependency && entryName.startsWith(packageDirectory)) {
+                entryName = entryName.substring(packageDirectory.length());
+                processProjectPackageEntry(entryName, "/");
+            }
+            
+            if (!"tld".equals(ext) && !SUPPORTED_FILE_EXTENSIONS_TO_SCAN.contains(ext) || entryName.endsWith("/pom.xml")) {
+                continue;
+            }
+            ByteArrayOutputStream entryOutputStream = new ByteArrayOutputStream();
+            IOUtils.copy(jarInputStream, entryOutputStream);
+            if ("tld".equals(ext)) {
+                processTld(jarEntry.getName(), new ByteArrayInputStream(entryOutputStream.toByteArray()),
+                        externalDependency);
+            }
+            if (SUPPORTED_FILE_EXTENSIONS_TO_SCAN.contains(ext)) {
+                processNonTldFile(jarEntry.getName(), new ByteArrayInputStream(entryOutputStream.toByteArray()),
+                        externalDependency);
             }
         }
         jarInputStream.close();
@@ -425,26 +425,13 @@ public class DependenciesMojo extends AbstractMojo {
         DirectoryScanner ds = new DirectoryScanner();
         String[] excludes = excludeFromDirectoryScan.toArray(new String[excludeFromDirectoryScan.size()]);
         ds.setExcludes(excludes);
+        ds.setIncludes(new String[] {"**/*.tld"});
         ds.setBasedir(directoryFile);
         ds.setCaseSensitive(true);
         ds.scan();
         String[] includedFiles = ds.getIncludedFiles();
         for (String includedFile : includedFiles) {
-            // getLog().debug("Processing file " + includedFile + "...");
-            File includedFileFile = new File(directoryFile, includedFile);
-            String entryPackage = "";
-            int lastSlash = includedFile.lastIndexOf("/");
-            if (lastSlash > -1) {
-                entryPackage = includedFile.substring(0, lastSlash);
-                entryPackage = entryPackage.replaceAll("/", ".");
-            }
-            FileInputStream fileInputStream = null;
-            try {
-                fileInputStream = new FileInputStream(includedFileFile);
-                processTldFile(includedFile, fileInputStream, entryPackage, false);
-            } finally {
-                IOUtils.closeQuietly(fileInputStream);
-            }
+            processTld(includedFile, new BufferedInputStream(new FileInputStream(new File(directoryFile, includedFile))), false);
         }
     }
 
@@ -457,62 +444,50 @@ public class DependenciesMojo extends AbstractMojo {
         ds.scan();
         String[] includedFiles = ds.getIncludedFiles();
         for (String includedFile : includedFiles) {
-            // getLog().debug("Processing file " + includedFile + "...");
-            File includedFileFile = new File(directoryFile, includedFile);
-            String entryPackage = "";
-            int lastSlash = includedFile.lastIndexOf("/");
-            if (lastSlash > -1) {
-                entryPackage = includedFile.substring(0, lastSlash);
-                entryPackage = entryPackage.replaceAll("/", ".");
+            String ext = FileUtils.getExtension(includedFile).toLowerCase();
+            if (!SUPPORTED_FILE_EXTENSIONS_TO_SCAN.contains(ext)) {
+                continue;
             }
-            FileInputStream fileInputStream = null;
+
+            InputStream fileInputStream = null;
             try {
-                fileInputStream = new FileInputStream(includedFileFile);
-                processNonTldFile(includedFile, fileInputStream, entryPackage, false);
+                fileInputStream = new BufferedInputStream(new FileInputStream(new File(directoryFile, includedFile)));
+                processNonTldFile(includedFile, fileInputStream, false);
             } finally {
                 IOUtils.closeQuietly(fileInputStream);
             }
         }
     }
 
-    private void processTldFile(String fileName, InputStream inputStream, String packageName, boolean externalDependency) throws IOException {
-        String childFileExtension = FileUtils.getExtension(fileName);
-        if (childFileExtension == null) {
-            getLog().warn("Couldn't find extension for file " + fileName + ", ignoring it...");
-            return;
-        }
-        childFileExtension = childFileExtension.toLowerCase();
-        if ("tld".equals(childFileExtension)) {
-            processTld(fileName, inputStream, externalDependency);
-        }
+    private String getEntryPackage(String entry) {
+        return "";
     }
+    
+    private void processNonTldFile(String fileName, InputStream inputStream, boolean externalDependency)
+            throws IOException {
+        String ext = FileUtils.getExtension(fileName).toLowerCase();
 
-    private void processNonTldFile(String fileName, InputStream inputStream, String packageName, boolean externalDependency) throws IOException {
-        String childFileExtension = FileUtils.getExtension(fileName);
-        if (childFileExtension == null) {
-            getLog().warn("Couldn't find extension for file " + fileName + ", ignoring it...");
+        if (!SUPPORTED_FILE_EXTENSIONS_TO_SCAN.contains(ext)) {
             return;
         }
-        childFileExtension = childFileExtension.toLowerCase();
-        // getLog().debug(fileName + ": File extension=" + childFileExtension);
-        if ("jsp".equals(childFileExtension) ||
-                "jspf".equals(childFileExtension)) {
+
+        if ("jsp".equals(ext) || "jspf".equals(ext)) {
             if (!externalDependency) {
                 processJsp(fileName, inputStream, externalDependency);
             }
-        } else if ("cnd".equals(childFileExtension)) {
+        } else if ("cnd".equals(ext)) {
             if (!externalDependency) {
                 processCnd(fileName, inputStream, externalDependency);
             }
-        } else if ("drl".equals(childFileExtension)) {
+        } else if ("drl".equals(ext)) {
             if (!externalDependency) {
                 processDrl(fileName, inputStream, externalDependency);
             }
-        } else if ("xml".equals(childFileExtension)) {
+        } else if ("xml".equals(ext)) {
             if (!externalDependency) {
                 processXml(fileName, inputStream, externalDependency);
             }
-        } else if ("groovy".equals(childFileExtension)) {
+        } else if ("groovy".equals(ext)) {
             if (!externalDependency) {
                 processGroovy(fileName, inputStream, externalDependency);
             }
