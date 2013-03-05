@@ -111,9 +111,9 @@ public class DependenciesMojo extends AbstractMojo {
     protected List<String> artifactExcludes = new ArrayList<String>();
 
     /**
-     * @parameter default-value="${project.basedir}/src/main/resources,${project.basedir}/src/main/import,${project.basedir}/src/main/webapp"
+     * @parameter
      */
-    protected List<String> scanDirectories;
+    protected List<String> scanDirectories = new ArrayList<String>();
 
     /**
      * @parameter
@@ -194,7 +194,11 @@ public class DependenciesMojo extends AbstractMojo {
         } catch (IOException e) {
             throw new MojoFailureException("Error while scanning dependencies", e);
         }
-
+        if (scanDirectories.isEmpty()) {
+            scanDirectories.add(project.getBasedir() + "/src/main/resources");
+            scanDirectories.add(project.getBasedir() + "/src/main/import");
+            scanDirectories.add(project.getBasedir() + "/src/main/webapp");
+        }
         timer = System.currentTimeMillis();
         for (String scanDirectory : scanDirectories) {
             File scanDirectoryFile = new File(scanDirectory);
