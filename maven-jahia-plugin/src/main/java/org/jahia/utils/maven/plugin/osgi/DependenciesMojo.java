@@ -1,12 +1,12 @@
 package org.jahia.utils.maven.plugin.osgi;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.apache.tika.io.IOUtils;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
 import org.jahia.utils.maven.plugin.osgi.parsers.cnd.JahiaCndReader;
@@ -37,12 +37,13 @@ import java.util.regex.Pattern;
  * - JSP for page import and Taglib references (tag files are not supported yet)
  * - Drools rule definition imports
  * - JBPM Workflow definition files
- * - String context files
+ * - Spring context files
  * - JCR CND content definition files for node type definition and references
+ * - Groovy files
  *
  * @goal dependencies
  * @requiresDependencyResolution test
- * @todo add support for groovy files, JSP tag files, more...
+ * @todo add support for JSP tag files, more...
  */
 public class DependenciesMojo extends AbstractMojo {
 
@@ -89,6 +90,13 @@ public class DependenciesMojo extends AbstractMojo {
     
     private static final Set<String> SUPPORTED_FILE_EXTENSIONS_TO_SCAN = new HashSet<String>(Arrays.asList("jsp",
             "jspf", "cnd", "drl", "xml", "groovy"));
+    
+    private static final Set<String> DEPENDENCIES_SCAN_PACKAGING = new HashSet<String>(Arrays.asList("jar", "war"));
+
+    private static final Set<String> DEPENDENCIES_SCAN_SCOPES = new HashSet<String>(Arrays.asList(
+            Artifact.SCOPE_PROVIDED, Artifact.SCOPE_COMPILE, Artifact.SCOPE_RUNTIME));
+    
+    private Set<String> dependenciesThatCanBeSkipped = new TreeSet<String>(); 
 
     /**
      * @parameter expression="${project}"
@@ -149,34 +157,45 @@ public class DependenciesMojo extends AbstractMojo {
     private Set<String> contentTypeDefinitions = new TreeSet<String>();
     private Set<String> contentTypeReferences = new TreeSet<String>();
     private List<Pattern> artifactExclusionPatterns = new ArrayList<Pattern>();
+    private Set<String> artifactsToSkip = new TreeSet<String>();
     private Set<String> projectPackages = new TreeSet<String>();
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-
-        String[] existingImportArray = new String[0];
-        if (existingImports != null) {
-            existingImportArray = existingImports.split(",");
+        if (project.getGroupId().equals("org.jahia.modules") && project.getArtifactId().equals("jahia-modules")) {
+            return;
         }
-        if (existingImportArray != null && existingImportArray.length > 0) {
-            getLog().info("Using " + existingImportArray.length + " existing imports as import");
-            for (String existingImport : existingImportArray) {
-                if (existingImport != null) {
-                    addPackageImport(existingImport.trim());
-                }
-            }
+        long startTime = System.currentTimeMillis();
+
+        if (existingImports != null) {
+            addAllPackageImports(Arrays.asList(StringUtils.split(existingImports, ", \n\r")));
         }
 
         buildExclusionPatterns();
-
+        
+        readArtifactsToSkip();
+        
+        long timer = System.currentTimeMillis();
+        
         try {
             scanClassesBuildDirectory();
+            
+            getLog().info(
+                    "Scanned classes directory in " + (System.currentTimeMillis() - timer) + " ms. Found "
+                            + projectPackages.size() + " project packages.");
 
-            scanDependencies();
+            timer = System.currentTimeMillis();
+            
+            int scanned = scanDependencies();
+            
+            getLog().info(
+                    "Scanned " + scanned + " project dependencies in " + (System.currentTimeMillis() - timer)
+                            + " ms. Currently we have " + projectPackages.size() + " project packages.");
         } catch (IOException e) {
             throw new MojoFailureException("Error while scanning dependencies", e);
         }
 
+        timer = System.currentTimeMillis();
         for (String scanDirectory : scanDirectories) {
             File scanDirectoryFile = new File(scanDirectory);
             if (!scanDirectoryFile.exists()) {
@@ -191,6 +210,9 @@ public class DependenciesMojo extends AbstractMojo {
                 throw new MojoFailureException("Error processing resource directory " + scanDirectoryFile, e);
             }
         }
+        getLog().info(
+                "Scanned resource directories in " + (System.currentTimeMillis() - timer)
+                        + " ms. Currently we have " + projectPackages.size() + " project packages.");
         if (getLog().isDebugEnabled()) {
             getLog().debug("Found project packages (potential exports) :");
             for (String projectPackage : projectPackages) {
@@ -203,7 +225,7 @@ public class DependenciesMojo extends AbstractMojo {
 
         contentTypeReferences.removeAll(contentTypeDefinitions);
 
-        StringBuffer generatedPackageBuffer = new StringBuffer();
+        StringBuilder generatedPackageBuffer = new StringBuilder(256);
         int i = 0;
         for (String packageImport : packageImports) {
             generatedPackageBuffer.append(packageImport);
@@ -229,7 +251,7 @@ public class DependenciesMojo extends AbstractMojo {
             getLog().info("  " + taglibUri + " " + foundMessage);
         }
 
-        StringBuffer contentTypeDefinitionsBuffer = new StringBuffer();
+        StringBuilder contentTypeDefinitionsBuffer = new StringBuilder(256);
         if (contentTypeDefinitions.size() > 0) {
             contentTypeDefinitionsBuffer.append("com.jahia.services.content; nodetypes:List<String>=\"");
             i = 0;
@@ -292,6 +314,25 @@ public class DependenciesMojo extends AbstractMojo {
                 getLog().warn("Error saving extra system capabilities to file " + propertiesOutputFile);
             }
         }
+        getLog().info("Took " + (System.currentTimeMillis() - startTime) + " ms for the dependencies analysis");
+    }
+
+    private void readArtifactsToSkip() {
+        InputStream is = this.getClass().getResourceAsStream("dependenciesToSkip.txt");
+        try {
+            for (String dependency : IOUtils.readLines(is)) {
+                String d = dependency.trim();
+                if (d.length() > 0) {
+                    artifactsToSkip.add(d);
+                }
+            }
+        } catch (IOException e) {
+            getLog().error("Unable to read dependenciesToSkip.txt", e);
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+        getLog().info(
+                artifactsToSkip.size() + " artifacts will be skipped (as configured in the dependenciesToSkip.txt)");
     }
 
     private void processProjectPackageEntry(String entry, String fileSeparator) {
@@ -329,96 +370,141 @@ public class DependenciesMojo extends AbstractMojo {
     }
 
     private void buildExclusionPatterns() {
-        if (artifactExcludes == null) {
-            return;
-        }
-        for (String artifactExclude : artifactExcludes) {
-            int colonPos = artifactExclude.indexOf(":");
-            String groupPattern = ".*";
-            String artifactPattern = null;
-            if (colonPos > -1) {
-                groupPattern = artifactExclude.substring(0, colonPos);
-                artifactPattern = artifactExclude.substring(colonPos + 1);
-            } else {
-                artifactPattern = artifactExclude;
+        if (artifactExcludes != null) {
+            for (String artifactExclude : artifactExcludes) {
+                int colonPos = artifactExclude.indexOf(":");
+                String groupPattern = ".*";
+                String artifactPattern = null;
+                if (colonPos > -1) {
+                    groupPattern = artifactExclude.substring(0, colonPos);
+                    artifactPattern = artifactExclude.substring(colonPos + 1);
+                } else {
+                    artifactPattern = artifactExclude;
+                }
+                groupPattern = groupPattern.replaceAll("\\.", "\\\\.");
+                groupPattern = groupPattern.replaceAll("\\*", ".*");
+                artifactPattern = artifactPattern.replaceAll("\\.", "\\\\.");
+                artifactPattern = artifactPattern.replaceAll("\\*", ".*");
+                artifactExclusionPatterns.add(Pattern.compile(groupPattern + ":" + artifactPattern));
             }
-            groupPattern = groupPattern.replaceAll("\\.", "\\\\.");
-            groupPattern = groupPattern.replaceAll("\\*", ".*");
-            artifactPattern = artifactPattern.replaceAll("\\.", "\\\\.");
-            artifactPattern = artifactPattern.replaceAll("\\*", ".*");
-            artifactExclusionPatterns.add(Pattern.compile(groupPattern + ":" + artifactPattern));
+        }
+        if (artifactExclusionPatterns.size() > 0) {
+            getLog().info(
+                    "Configured " + artifactExclusionPatterns.size()
+                            + " artifact exclusions for scanning project dependencies: "
+                            + artifactExclusionPatterns.toArray());
+        } else {
+            getLog().info("No artifact exclusions specified. Will scan all related dependencies of the project.");
         }
     }
 
-    private void scanDependencies() throws IOException {
+    private int scanDependencies() throws IOException {
         getLog().info("Scanning project dependencies...");
-        String packageDirectory = "";
+        int scanned = 0;
         for (Artifact artifact : project.getArtifacts()) {
-            String exclusionMatched = null;
-            for (Pattern exclusionPattern : artifactExclusionPatterns) {
-                Matcher exclusionMatcher = exclusionPattern.matcher(artifact.getGroupId() + ":" + artifact.getArtifactId());
-                if (exclusionMatcher.matches()) {
-                    exclusionMatched = artifact.getGroupId() + ":" + artifact.getArtifactId();
-                    break;
-                }
-            }
-            if (exclusionMatched != null) {
-                getLog().info("Matched exclusion " + exclusionMatched + ", ignoring artifact.");
+            if (!DEPENDENCIES_SCAN_PACKAGING.contains(artifact.getType())
+                    || !DEPENDENCIES_SCAN_SCOPES.contains(artifact.getScope()) || isExcludedFromScan(artifact)) {
                 continue;
             }
 
-            if (artifact.getScope().contains(Artifact.SCOPE_PROVIDED) ||
-                    artifact.getScope().contains(Artifact.SCOPE_COMPILE) ||
-                    artifact.getScope().contains(Artifact.SCOPE_RUNTIME)) {
-                if ("war".equals(artifact.getType())) {
-                    packageDirectory = "WEB-INF/classes/";
-                    getLog().debug(artifact.getFile() + " is of type WAR, changing package scanning directory to WEB-INF/classes");
-                } else if (!artifact.getType().equals("jar")) {
-                    getLog().warn("Ignoring artifact " + artifact.getFile() + " since it is of type " + artifact.getType());
+            boolean externalDependency = Artifact.SCOPE_PROVIDED.equals(artifact.getScope());
+
+            long timer = System.currentTimeMillis();
+
+            int scannedInJar = scanJar(artifact.getFile(), artifact.getBaseVersion(), externalDependency,
+                    "war".equals(artifact.getType()) ? "WEB-INF/classes/" : "");
+
+            long took = System.currentTimeMillis() - timer;
+            if (getLog().isInfoEnabled() && (scannedInJar > 0)) {
+                getLog().info(
+                        "Processed " + scannedInJar + ((scanned == 1) ? " entry" : " entries") + " in "
+                                + (externalDependency ? "external " : "") + "dependency " + artifact + " in " + took
+                                + " ms");
+            }
+            if (scannedInJar == 0 && !externalDependency) {
+                dependenciesThatCanBeSkipped.add(artifact.toString());
+            }
+
+            scanned++;
+        }
+        
+        if (dependenciesThatCanBeSkipped.size() > 0) {
+            File fld = new File(projectOutputDirectory).getParentFile();
+            fld.mkdirs();
+            File dependenciesFile = new File(fld, "dependenciesToSkip.txt");
+            getLog().info(
+                    dependenciesThatCanBeSkipped.size() + " dependencies could have been skipped"
+                            + " as they do not contain TLDs or other processable resources." + " See "
+                            + dependenciesFile + " for details.");
+            FileOutputStream os = new FileOutputStream(dependenciesFile);
+            try {
+                IOUtils.writeLines(dependenciesThatCanBeSkipped, "\n", os);
+            } finally {
+                IOUtils.closeQuietly(os);
+            }
+        }
+
+        return scanned;
+    }
+
+    private boolean isExcludedFromScan(Artifact artifact) {
+        String id = StringUtils.substringBeforeLast(artifact.toString(), ":");
+        if (artifactsToSkip.contains(id) || id.contains(":") && artifactsToSkip.contains(StringUtils.substringBeforeLast(id, ":"))) {
+            return true;
+        }
+        for (Pattern exclusionPattern : artifactExclusionPatterns) {
+            id = artifact.getGroupId() + ":" + artifact.getArtifactId();
+            Matcher exclusionMatcher = exclusionPattern.matcher(id);
+            if (exclusionMatcher.matches()) {
+                getLog().info("Ignoring artifact as the exclusion matched for " + id);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private int scanJar(File jarFile, String defaultVersion, boolean externalDependency, String packageDirectory) throws IOException {
+        int scanned = 0;
+        JarInputStream jarInputStream = new JarInputStream(new FileInputStream(jarFile));
+        try {
+            JarEntry jarEntry = null;
+            // getLog().debug("Processing file " + artifact.getFile() + "...");
+            while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
+                if (jarEntry.isDirectory()) {
                     continue;
                 }
-                boolean externalDependency = false;
-                if (artifact.getScope().contains(Artifact.SCOPE_PROVIDED)) {
-                    externalDependency = true;
+                String entryName = jarEntry.getName();
+                String ext = FileUtils.getExtension(entryName).toLowerCase();
+
+                if (!externalDependency && entryName.startsWith(packageDirectory)) {
+                    entryName = entryName.substring(packageDirectory.length());
+                    processProjectPackageEntry(entryName, "/");
                 }
-                getLog().debug("Scanning " + (externalDependency ? "external" : "") + " dependency " + artifact.getFile());
-                scanJar(artifact.getFile(), artifact.getBaseVersion(), externalDependency, packageDirectory);
+
+                if (!"tld".equals(ext) && (!SUPPORTED_FILE_EXTENSIONS_TO_SCAN.contains(ext) || externalDependency)
+                        || entryName.endsWith("/pom.xml")) {
+                    continue;
+                }
+                ByteArrayOutputStream entryOutputStream = new ByteArrayOutputStream();
+                IOUtils.copy(jarInputStream, entryOutputStream);
+                if ("tld".equals(ext)) {
+                    getLog().info("\tscanning entry: " + jarEntry.getName());
+                    processTld(jarEntry.getName(), new ByteArrayInputStream(entryOutputStream.toByteArray()),
+                            externalDependency);
+                    scanned++;
+                }
+                if (!externalDependency && SUPPORTED_FILE_EXTENSIONS_TO_SCAN.contains(ext)) {
+                    getLog().info("\tscanning entry: " + jarEntry.getName());
+                    if (processNonTldFile(jarEntry.getName(), new ByteArrayInputStream(entryOutputStream.toByteArray()))) {
+                        scanned++;
+                    }
+                }
             }
+        } finally {
+            jarInputStream.close();
         }
-
-    }
-
-    private void scanJar(File jarFile, String defaultVersion, boolean externalDependency, String packageDirectory) throws IOException {
-        JarInputStream jarInputStream = new JarInputStream(new FileInputStream(jarFile));
-        JarEntry jarEntry = null;
-        // getLog().debug("Processing file " + artifact.getFile() + "...");
-        while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
-            if (jarEntry.isDirectory()) {
-                continue;
-            }
-            String entryName = jarEntry.getName();
-            String ext = FileUtils.getExtension(entryName).toLowerCase();
-
-            if (!externalDependency && entryName.startsWith(packageDirectory)) {
-                entryName = entryName.substring(packageDirectory.length());
-                processProjectPackageEntry(entryName, "/");
-            }
-            
-            if (!"tld".equals(ext) && !SUPPORTED_FILE_EXTENSIONS_TO_SCAN.contains(ext) || entryName.endsWith("/pom.xml")) {
-                continue;
-            }
-            ByteArrayOutputStream entryOutputStream = new ByteArrayOutputStream();
-            IOUtils.copy(jarInputStream, entryOutputStream);
-            if ("tld".equals(ext)) {
-                processTld(jarEntry.getName(), new ByteArrayInputStream(entryOutputStream.toByteArray()),
-                        externalDependency);
-            }
-            if (SUPPORTED_FILE_EXTENSIONS_TO_SCAN.contains(ext)) {
-                processNonTldFile(jarEntry.getName(), new ByteArrayInputStream(entryOutputStream.toByteArray()),
-                        externalDependency);
-            }
-        }
-        jarInputStream.close();
+        
+        return scanned;
     }
 
     private void processDirectoryTlds(File directoryFile) throws IOException {
@@ -452,49 +538,40 @@ public class DependenciesMojo extends AbstractMojo {
             InputStream fileInputStream = null;
             try {
                 fileInputStream = new BufferedInputStream(new FileInputStream(new File(directoryFile, includedFile)));
-                processNonTldFile(includedFile, fileInputStream, false);
+                processNonTldFile(includedFile, fileInputStream);
             } finally {
                 IOUtils.closeQuietly(fileInputStream);
             }
         }
     }
 
-    private String getEntryPackage(String entry) {
-        return "";
-    }
-    
-    private void processNonTldFile(String fileName, InputStream inputStream, boolean externalDependency)
-            throws IOException {
+    private boolean processNonTldFile(String fileName, InputStream inputStream) throws IOException {
         String ext = FileUtils.getExtension(fileName).toLowerCase();
 
         if (!SUPPORTED_FILE_EXTENSIONS_TO_SCAN.contains(ext)) {
-            return;
+            return false;
         }
 
         if ("jsp".equals(ext) || "jspf".equals(ext)) {
-            if (!externalDependency) {
-                processJsp(fileName, inputStream, externalDependency);
-            }
+            processJsp(fileName, inputStream);
+            return true;
         } else if ("cnd".equals(ext)) {
-            if (!externalDependency) {
-                processCnd(fileName, inputStream, externalDependency);
-            }
+            processCnd(fileName, inputStream);
+            return true;
         } else if ("drl".equals(ext)) {
-            if (!externalDependency) {
-                processDrl(fileName, inputStream, externalDependency);
-            }
+            processDrl(fileName, inputStream);
+            return true;
         } else if ("xml".equals(ext)) {
-            if (!externalDependency) {
-                processXml(fileName, inputStream, externalDependency);
-            }
+            return processXml(fileName, inputStream);
         } else if ("groovy".equals(ext)) {
-            if (!externalDependency) {
-                processGroovy(fileName, inputStream, externalDependency);
-            }
+            processGroovy(fileName, inputStream);
+            return true;
         }
+        
+        return false;
     }
 
-    private void processGroovy(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
+    private void processGroovy(String fileName, InputStream inputStream) throws IOException {
         getLog().debug("Processing Groovy file " + fileName + "...");
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
         String line = null;
@@ -503,14 +580,13 @@ public class DependenciesMojo extends AbstractMojo {
             if (groovyImportMatcher.matches()) {
                 String groovyImport = groovyImportMatcher.group(1);
                 getLog().debug(fileName + ": found Groovy import " + groovyImport + " package=" + PackageUtils.getPackageFromClass(groovyImport));
-                if (!externalDependency) {
-                    addPackageImport(PackageUtils.getPackageFromClass(groovyImport));
-                }
+                addPackageImport(PackageUtils.getPackageFromClass(groovyImport));
             }
         }
     }
 
-    private void processXml(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
+    private boolean processXml(String fileName, InputStream inputStream) throws IOException {
+        boolean processed = true;
         SAXBuilder saxBuilder = new SAXBuilder();
         saxBuilder.setValidation(false);
         saxBuilder.setFeature("http://xml.org/sax/features/validation", false);
@@ -524,42 +600,37 @@ public class DependenciesMojo extends AbstractMojo {
             // getLog().debug("Parsed XML file" + fileName + " successfully.");
 
             if (fileName.toLowerCase().endsWith(".jpdl.xml")) {
-                if (!externalDependency) {
-                    processJpdl(fileName, root, externalDependency);
-                }
+                processJpdl(fileName, root);
             } else if (hasNamespaceURI(root, "http://www.jcp.org/jcr/1.0")) {
-                if (!externalDependency) {
-                    processJCRImport(fileName, root, externalDependency);
-                }
+                processJCRImport(fileName, root);
             } else if (hasNamespaceURI(root, "http://www.springframework.org/schema/beans")) {
-                if (!externalDependency) {
-                    processSpringContext(fileName, root, externalDependency);
-                }
+                processSpringContext(fileName, root);
+            } else {
+                processed = false;
             }
-
         } catch (JDOMException e) {
             getLog().warn("Error parsing XML file " + fileName + ": " + e.getMessage() + " enable debug mode (-X) for more detailed exception");
             getLog().debug("Detailed exception", e);
         } finally {
             IOUtils.closeQuietly(childFileInputStream);
         }
+        return processed;
     }
 
-    private void processJCRImport(String fileName, Element root, boolean externalDependency) throws JDOMException {
+    private void processJCRImport(String fileName, Element root) throws JDOMException {
         getLog().debug("Processing JCR import file " + fileName + "...");
 
-        getRefsUsingXPathQueries(fileName, root, false, externalDependency, JCR_IMPORT_XPATH_QUERIES, "xp");
+        getRefsUsingXPathQueries(fileName, root, false, JCR_IMPORT_XPATH_QUERIES, "xp");
     }
 
-    private void processSpringContext(String fileName, Element root, boolean externalDependency) throws JDOMException {
+    private void processSpringContext(String fileName, Element root) throws JDOMException {
         getLog().debug("Processing Spring context file " + fileName + "...");
 
-        getRefsUsingXPathQueries(fileName, root, true, externalDependency, SPRING_XPATH_QUERIES, "beans");
+        getRefsUsingXPathQueries(fileName, root, true, SPRING_XPATH_QUERIES, "beans");
     }
 
     private void getRefsUsingXPathQueries(String fileName, Element root,
                                           boolean packageReferences,
-                                          boolean externalDependency,
                                           String[] xPathQueries, String defaultNamespacePrefix) throws JDOMException {
         for (String xPathQuery : xPathQueries) {
             Set<String> missingPrefixes = getMissingQueryPrefixes(root, xPathQuery);
@@ -575,10 +646,9 @@ public class DependenciesMojo extends AbstractMojo {
                 } else if (classObject instanceof Element) {
                     referenceValue = ((Element) classObject).getTextTrim();
                 } else {
-                    getLog().warn(fileName + ": xPath query" + xPathQuery + " return unknown XML node type " + referenceValue.getClass().getName() + "...");
+                    getLog().warn(fileName + ": xPath query" + xPathQuery + " return unknown XML node type " + classObject + "...");
                 }
                 if (referenceValue != null) {
-                    if (!externalDependency) {
                         if (packageReferences) {
                             getLog().debug(fileName + " Found class " + referenceValue + " package=" + PackageUtils.getPackageFromClass(referenceValue));
                             addPackageImport(PackageUtils.getPackageFromClass(referenceValue));
@@ -602,12 +672,12 @@ public class DependenciesMojo extends AbstractMojo {
                                 contentTypeReferences.add(referenceValue);
                             }
                         }
-                    }
                 }
             }
         }
     }
 
+    @SuppressWarnings("unchecked")
     private Set<String> getMissingQueryPrefixes(Element root, String xPathQuery) {
         Set<String> xPathQueryPrefixes = getPrefixesInXPath(xPathQuery);
         Set<String> elementPrefixes = new HashSet<String>();
@@ -638,6 +708,7 @@ public class DependenciesMojo extends AbstractMojo {
         if (element.getNamespace().getURI().equals(namespaceURI)) {
             return true;
         }
+        @SuppressWarnings("unchecked")
         List<Namespace> additionalNamespaces = (List<Namespace>) element.getAdditionalNamespaces();
         for (Namespace additionalNamespace : additionalNamespaces) {
             //getLog().debug("Additional namespace URI=" + additionalNamespace.getURI());
@@ -648,18 +719,16 @@ public class DependenciesMojo extends AbstractMojo {
         return false;
     }
 
-    private void processJpdl(String fileName, Element root, boolean externalDependency) throws IOException, JDOMException {
+    private void processJpdl(String fileName, Element root) throws IOException, JDOMException {
         getLog().debug("Processing workflow definition file (JBPM JPDL) " + fileName + "...");
         List<Attribute> classAttributes = getAttributes(root, "//@class");
         for (Attribute classAttribute : classAttributes) {
             getLog().debug(fileName + " Found class " + classAttribute.getValue() + " package=" + PackageUtils.getPackageFromClass(classAttribute.getValue()));
-            if (!externalDependency) {
-                addPackageImport(PackageUtils.getPackageFromClass(classAttribute.getValue()));
-            }
+            addPackageImport(PackageUtils.getPackageFromClass(classAttribute.getValue()));
         }
     }
 
-    private void processDrl(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
+    private void processDrl(String fileName, InputStream inputStream) throws IOException {
         getLog().debug("Processing Drools Rule file " + fileName + "...");
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
         String line = null;
@@ -668,14 +737,12 @@ public class DependenciesMojo extends AbstractMojo {
             if (ruleImportMatcher.matches()) {
                 String ruleImport = ruleImportMatcher.group(1);
                 getLog().debug(fileName + ": found rule import " + ruleImport + " package=" + PackageUtils.getPackageFromClass(ruleImport));
-                if (!externalDependency) {
-                    addPackageImport(PackageUtils.getPackageFromClass(ruleImport));
-                }
+                addPackageImport(PackageUtils.getPackageFromClass(ruleImport));
             }
         }
     }
 
-    private void processCnd(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
+    private void processCnd(String fileName, InputStream inputStream) throws IOException {
         getLog().debug("Processing CND " + fileName + "...");
 
         try {
@@ -758,24 +825,22 @@ public class DependenciesMojo extends AbstractMojo {
     }
 
 
-    private void processJsp(String fileName, InputStream inputStream, boolean externalDependency) throws IOException {
+    private void processJsp(String fileName, InputStream inputStream) throws IOException {
         getLog().debug("Processing JSP " + fileName + "...");
         String jspFileContent = IOUtils.toString(inputStream);
         Matcher pageImportMatcher = JSP_PAGE_IMPORT_PATTERN.matcher(jspFileContent);
         while (pageImportMatcher.find()) {
-            if (!externalDependency) {
-                String classImportString = pageImportMatcher.group(1);
-                if (classImportString.contains(",")) {
-                    getLog().debug("Multiple imports in a single JSP page import statement detected: " + classImportString);
-                    String[] classImports = classImportString.split(",");
-                    Set<String> packageImports = new TreeSet<String>();
-                    for (String classImport :classImports) {
-                        packageImports.add(PackageUtils.getPackageFromClass(classImport.trim()));
-                    }
-                    addAllPackageImports(packageImports);
-                } else {
-                    addPackageImport(PackageUtils.getPackageFromClass(classImportString));
+            String classImportString = pageImportMatcher.group(1);
+            if (classImportString.contains(",")) {
+                getLog().debug("Multiple imports in a single JSP page import statement detected: " + classImportString);
+                String[] classImports = StringUtils.split(classImportString, ",");
+                Set<String> packageImports = new TreeSet<String>();
+                for (String classImport : classImports) {
+                    packageImports.add(PackageUtils.getPackageFromClass(classImport.trim()));
                 }
+                addAllPackageImports(packageImports);
+            } else {
+                addPackageImport(PackageUtils.getPackageFromClass(classImportString));
             }
         }
         Matcher taglibUriMatcher = JSP_TAGLIB_PATTERN.matcher(jspFileContent);
@@ -785,12 +850,10 @@ public class DependenciesMojo extends AbstractMojo {
             if (!taglibPackages.containsKey(taglibUri)) {
                 getLog().warn("JSP " + fileName + " has a reference to taglib " + taglibUri + " that is not in the project's dependencies !");
             } else {
-                if (!externalDependency) {
-                    Set<String> taglibPackageSet = taglibPackages.get(taglibUri);
-                    boolean externalTagLib = externalTaglibs.get(taglibUri);
-                    if (externalTagLib) {
-                        addAllPackageImports(taglibPackageSet);
-                    }
+                Set<String> taglibPackageSet = taglibPackages.get(taglibUri);
+                boolean externalTagLib = externalTaglibs.get(taglibUri);
+                if (externalTagLib) {
+                    addAllPackageImports(taglibPackageSet);
                 }
             }
         }
@@ -809,6 +872,7 @@ public class DependenciesMojo extends AbstractMojo {
      * @return the first element that matches the XPath expression, or null if no element matches.
      * @throws JDOMException raised if there was a problem navigating the JDOM structure.
      */
+    @SuppressWarnings("unchecked")
     public Element getElement(Element scopeElement, String xPathExpression) throws JDOMException {
         XPath xPath = XPath.newInstance(xPathExpression);
         String namespaceURI = scopeElement.getDocument().getRootElement().getNamespaceURI();
@@ -821,6 +885,7 @@ public class DependenciesMojo extends AbstractMojo {
         return (Element) xPath.selectSingleNode(scopeElement);
     }
 
+    @SuppressWarnings("unchecked")
     public List<Element> getElements(Element scopeElement, String xPathExpression) throws JDOMException {
         List<Element> elems = new LinkedList<Element>();
         XPath xPath = XPath.newInstance(xPathExpression);
@@ -840,6 +905,7 @@ public class DependenciesMojo extends AbstractMojo {
         return elems;
     }
 
+    @SuppressWarnings("unchecked")
     public List<Attribute> getAttributes(Element scopeElement, String xPathExpression) throws JDOMException {
         List<Attribute> elems = new LinkedList<Attribute>();
         XPath xPath = XPath.newInstance(xPathExpression);
@@ -859,6 +925,7 @@ public class DependenciesMojo extends AbstractMojo {
         return elems;
     }
 
+    @SuppressWarnings("unchecked")
     public List<Object> getNodes(Element scopeElement, String xPathExpression, String defaultPrefix) throws JDOMException {
         List<Object> nodes = new LinkedList<Object>();
         XPath xPath = XPath.newInstance(xPathExpression);
@@ -892,6 +959,7 @@ public class DependenciesMojo extends AbstractMojo {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void dumpElementNamespaces(Element element) {
         Namespace mainNamespace = element.getNamespace();
         getLog().debug("Main namespace prefix=[" + mainNamespace.getPrefix() + "] uri=[" + mainNamespace.getURI() + "] getNamespaceURI=[" + element.getNamespaceURI() + "]");
