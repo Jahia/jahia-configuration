@@ -91,7 +91,6 @@ public class ModuleDeployer {
     }
 
     public void deployModule(File file) throws IOException {
-        logger.info("Copy module " + file.getName() + " to OSGi transformation directory");
         FileUtils.copyFileToDirectory(file, output);
         logger.info("Copied " + file + " to " + output);
         File targetDir = new File(output, "../../..");
