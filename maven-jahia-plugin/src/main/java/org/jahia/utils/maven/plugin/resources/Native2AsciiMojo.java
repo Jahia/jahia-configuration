@@ -181,8 +181,7 @@ public class Native2AsciiMojo extends AbstractMojo {
     }
 
     private void createFilesForDefaultLocale() {
-        List<File> propertyFiles = new LinkedList<File>(FileUtils.listFiles(dest,
-                new String[] { "properties" }, false));
+        List<File> propertyFiles = new LinkedList<File>(FileUtils.listFiles(dest, new String[] { "properties" }, true));
         if (propertyFiles.isEmpty()) {
             return;
         }
@@ -193,7 +192,7 @@ public class Native2AsciiMojo extends AbstractMojo {
 
         for (File file : propertyFiles) {
             if (file.getName().endsWith(suffix)) {
-                File defFile = new File(dest, StringUtils.substringBefore(file.getName(), suffix)
+                File defFile = new File(file.getParentFile(), StringUtils.substringBefore(file.getName(), suffix)
                         + ".properties");
                 if (!defFile.exists()) {
                     getLog().info("Copying file " + file + " to " + defFile);
