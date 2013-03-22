@@ -92,8 +92,7 @@ public class DeployMojo extends AbstractManagementMojo {
     private static final Set<String> JAHIA_SYSTEM_BUNDLES = new HashSet<String>(Arrays.asList(
             "org.jahia.bundles.url.jahiawar", "org.jahia.bundles.extender.jahiamodules",
             "org.jahia.bundles.blueprint.extender.config", "org.jahia.bundles.http.bridge",
-            "org.jahia.bundles.webconsole.config",
-            "jahia-taglib"));
+            "org.jahia.bundles.webconsole.config"));
 
     /**
      * The dependency tree builder to use.
@@ -199,7 +198,8 @@ public class DeployMojo extends AbstractManagementMojo {
             deployPomProject();
         } else if (project.getPackaging().equals("bundle")) {
             if (project.getGroupId().equals("org.jahia.bundles")
-                    && JAHIA_SYSTEM_BUNDLES.contains(project.getArtifactId())) {
+                    && JAHIA_SYSTEM_BUNDLES.contains(project.getArtifactId())
+                    || project.getArtifactId().equals("jahia-taglib")) {
                 String fileName = project.getArtifactId() + "-" + project.getVersion() + "." + "jar";
                 File srcFile = new File(output, fileName);
                 File destDir = new File(getWebappDeploymentDir(), "WEB-INF/bundles");
