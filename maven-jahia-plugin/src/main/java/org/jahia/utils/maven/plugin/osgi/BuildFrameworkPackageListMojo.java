@@ -99,14 +99,32 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
     protected boolean exportEachPackageOnce = false;
 
     /**
-     * @parameter default-value="org.jahia.modules:*,org.jahia.templates:*,org.jahia.test:*,*.jahia.modules"
+     * Because of bug http://jira.codehaus.org/browse/MNG-5440 we cannot use a default-value otherwise the values from
+     * the POM will not be used, so we use a constant (below) and initialization code to set it if the project has
+     * not set it.
+     * @parameter
      */
     protected List<String> artifactExcludes;
 
     /**
-     * @parameter default-value="org.jahia.taglibs*,org.apache.taglibs.standard*,javax.servlet.jsp*,org.codehaus.groovy.ast*,javax.el*,de.odysseus.el*"
+     * Because of bug http://jira.codehaus.org/browse/MNG-5440 we set the default value at runtime using the following
+     * constant
+     */
+    private static final String ARTIFACT_EXCLUDE_DEFAULT_VALUE = "org.jahia.modules:*,org.jahia.templates:*,org.jahia.test:*,*.jahia.modules";
+
+    /**
+     * Because of bug http://jira.codehaus.org/browse/MNG-5440 we cannot use a default-value otherwise the values from
+     * the POM will not be used, so we use a constant (below) and initialization code to set it if the project has
+     * not set it.
+     * @parameter
      */
     protected List<String> packageExcludes;
+
+    /**
+     * Because of bug http://jira.codehaus.org/browse/MNG-5440 we set the default value at runtime using the following
+     * constant
+     */
+    private static final String PACKAGE_EXCLUDE_DEFAULT_VALUE = "org.jahia.taglibs*,org.apache.taglibs.standard*,javax.servlet.jsp*,org.codehaus.groovy.ast*,javax.el*,de.odysseus.el*";
 
     /**
      * @parameter default-value="true"
@@ -183,6 +201,10 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         public long getCounter() {
             return counter;
         }
+    }
+
+    public void setPackageExcludes(List<String> packageExcludes) {
+        this.packageExcludes = packageExcludes;
     }
 
     @Override
@@ -311,7 +333,9 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
 
     private void buildExclusionPatterns() {
         if (artifactExcludes == null) {
-            return;
+            // We put the default value here because of bug http://jira.codehaus.org/browse/MNG-5440
+            String[] artifactExcludesArray = ARTIFACT_EXCLUDE_DEFAULT_VALUE.split(",");
+            artifactExcludes = new ArrayList(Arrays.asList(artifactExcludesArray));
         }
         for (String artifactExclude : artifactExcludes) {
             int colonPos = artifactExclude.indexOf(":");
@@ -333,7 +357,9 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
 
     private void buildPackageExcludes() {
         if (packageExcludes == null) {
-            return;
+            // We put the default value here because of bug http://jira.codehaus.org/browse/MNG-5440
+            String[] packageExcludesArray = PACKAGE_EXCLUDE_DEFAULT_VALUE.split(",");
+            packageExcludes = new ArrayList(Arrays.asList(packageExcludesArray));
         }
         for (String packageExclude : packageExcludes) {
             String packageExcludePattern = packageExclude;
