@@ -1,8 +1,7 @@
 package org.jahia.utils.maven.plugin.osgi.parsers.cnd;
 
-import java.util.List;
-
 import javax.jcr.Value;
+import java.util.List;
 
 /**
  * Defines a property value initializer.

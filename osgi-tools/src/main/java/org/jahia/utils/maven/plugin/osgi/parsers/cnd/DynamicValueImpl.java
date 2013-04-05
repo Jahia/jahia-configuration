@@ -1,16 +1,18 @@
 package org.jahia.utils.maven.plugin.osgi.parsers.cnd;
 
-import java.io.InputStream;
-import java.util.*;
-import java.math.BigDecimal;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
 
+import javax.jcr.Binary;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
-import javax.jcr.Binary;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.List;
 
 /**
  *

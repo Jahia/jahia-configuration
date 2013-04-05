@@ -1,12 +1,11 @@
 package org.jahia.utils.maven.plugin.osgi.parsers.cnd;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-
 import javax.jcr.nodetype.ItemDefinition;
 import javax.jcr.version.OnParentVersionAction;
-
-import org.apache.commons.lang.StringUtils;
+import java.util.Collections;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Jahia specific {@link ItemDefinition} implementation.

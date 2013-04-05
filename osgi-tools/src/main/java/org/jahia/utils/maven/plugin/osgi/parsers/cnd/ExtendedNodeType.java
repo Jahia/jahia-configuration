@@ -7,7 +7,6 @@ import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import javax.jcr.nodetype.*;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 

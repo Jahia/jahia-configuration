@@ -59,7 +59,12 @@
 			<artifactId>configurators</artifactId>
 			<version>4.0-SNAPSHOT</version>
 		</dependency>
-		
+        <dependency>
+            <groupId>org.jahia.configuration</groupId>
+            <artifactId>osgi-tools</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
@@ -159,11 +164,13 @@
 			<version>3.2.1</version>
 		</dependency>
 
+        <!--
 		<dependency>
 			<groupId>org.apache.jackrabbit</groupId>
 			<artifactId>jackrabbit-spi-commons</artifactId>
 			<version>2.5.0</version>
 		</dependency>
+		-->
 		
 		<dependency>
 			<groupId>org.apache.tika</groupId>
@@ -187,51 +194,6 @@
             <groupId>org.jahia.commons</groupId>
             <artifactId>jahia-commons</artifactId>
             <version>1.0.1</version>
-        </dependency>
-
-        <!-- aether dependencies -->
-
-        <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-plugin-api</artifactId>
-            <version>3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.sonatype.aether</groupId>
-            <artifactId>aether-api</artifactId>
-            <version>1.13.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.sonatype.aether</groupId>
-            <artifactId>aether-util</artifactId>
-            <version>1.13.1</version>
-        </dependency>
-
-        <!-- end of aether dependencies -->
-
-        <dependency>
-            <groupId>asia.redact.bracket.properties</groupId>
-            <artifactId>bracket-properties</artifactId>
-            <version>1.3.0</version>
-        </dependency>
-
-        <!-- Would love to use more recent version of ASM but Tika doesn't support it :( -->
-        <dependency>
-            <groupId>asm</groupId>
-            <artifactId>asm</artifactId>
-            <version>3.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>biz.aQute</groupId>
-            <artifactId>bndlib</artifactId>
-            <version>1.50.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>javax.jcr</groupId>
-            <artifactId>jcr</artifactId>
-            <version>2.0</version>
         </dependency>
 
 	</dependencies>

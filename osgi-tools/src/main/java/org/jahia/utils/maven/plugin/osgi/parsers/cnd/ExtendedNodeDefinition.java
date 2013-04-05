@@ -1,11 +1,10 @@
 package org.jahia.utils.maven.plugin.osgi.parsers.cnd;
 
-import javax.jcr.nodetype.NoSuchNodeTypeException;
-import javax.jcr.nodetype.NodeDefinition;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.jcr.nodetype.NoSuchNodeTypeException;
+import javax.jcr.nodetype.NodeDefinition;
 import java.util.Arrays;
 
 /**

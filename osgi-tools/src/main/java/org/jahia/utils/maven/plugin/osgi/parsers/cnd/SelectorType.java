@@ -1,8 +1,8 @@
 package org.jahia.utils.maven.plugin.osgi.parsers.cnd;
 
 import javax.jcr.PropertyType;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  *

@@ -1,9 +1,9 @@
 package org.jahia.utils.maven.plugin.osgi.parsers.cnd;
 
 import javax.jcr.query.qom.QueryObjectModelConstants;
-import java.io.StreamTokenizer;
-import java.io.Reader;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StreamTokenizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 

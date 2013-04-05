@@ -3,10 +3,13 @@ package org.jahia.utils.maven.plugin.osgi.parsers.cnd;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 
-import javax.jcr.nodetype.*;
 import javax.jcr.RepositoryException;
 import javax.jcr.UnsupportedRepositoryOperationException;
-import java.io.*;
+import javax.jcr.nodetype.*;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.*;
 
 /**

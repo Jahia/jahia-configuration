@@ -1,8 +1,8 @@
 package org.jahia.utils.maven.plugin.osgi.parsers.cnd;
 
-import java.util.Map;
-
 import org.apache.commons.lang.StringUtils;
+
+import java.util.Map;
 
 /**
  *

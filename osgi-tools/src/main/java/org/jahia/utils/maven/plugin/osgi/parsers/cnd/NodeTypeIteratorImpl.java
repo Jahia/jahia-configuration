@@ -2,8 +2,8 @@ package org.jahia.utils.maven.plugin.osgi.parsers.cnd;
 
 import org.apache.jackrabbit.commons.iterator.RangeIteratorAdapter;
 
-import javax.jcr.nodetype.NodeTypeIterator;
 import javax.jcr.nodetype.NodeType;
+import javax.jcr.nodetype.NodeTypeIterator;
 import java.util.Iterator;
 
 /**
