@@ -104,7 +104,7 @@ public class FindPackageUsesMojo extends AbstractMojo {
         }
         getLog().debug("Scanning JAR " + jarFile + "...");
         try {
-            classesThatHaveDependency = DependencyTracker.findDependencyInJar(jarFile, packageName, project.getTestClasspathElements());
+            classesThatHaveDependency = ClassDependencyTracker.findDependencyInJar(jarFile, packageName, project.getTestClasspathElements());
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (DependencyResolutionRequiredException e) {

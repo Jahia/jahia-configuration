@@ -9,10 +9,11 @@ import java.util.*;
 import java.util.jar.Manifest;
 
 /**
- * DependencyTracker
- *
+ * This dependency tracker utility uses BND to track the package dependencies inside a JAR.
+ * So this will only extract the dependencies from Java code, unless BND plugins are added
+ * (not possible through the API yet).
  */
-public class DependencyTracker {
+public class ClassDependencyTracker {
 
     public static Set<String> findDependencyInJar(final File jarFile, final String packageToFind, List<String> classPathElements) throws IOException {
         return findDependencyInJarUsingBND(jarFile, packageToFind, classPathElements);
