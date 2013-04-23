@@ -10,6 +10,12 @@ import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
  *
  */
 public abstract class AbstractJahiaSiteMojo extends AbstractContentGeneratorMojo {
+	/**
+	 * Site key of your site. A trailing number will be added if you generate more than one site.
+	 * @parameter expression="${jahia.cg.siteKey}" default-value="testSite"
+	 * @required
+	 */
+	protected String siteKey;
 	
 	/**
 	 * Number of users to generate
@@ -43,6 +49,7 @@ public abstract class AbstractJahiaSiteMojo extends AbstractContentGeneratorMojo
 	protected ExportBO initExport(boolean filesRequired) throws MojoExecutionException {
 		ExportBO export = super.initExport(filesRequired);
 		super.initFilesProperties(export);
+		export.setSiteKey(siteKey);
 		export.setNumberOfUsers(numberOfUsers);
 		export.setNumberOfTags(numberOfTags);
 		export.setNumberOfCategories(numberOfCategories);

@@ -75,13 +75,6 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
 	protected Boolean pagesHaveVanity;
 
 	/**
-	 * Site key of your site. A trailing number will be added if you generate more than one site.
-	 * @parameter expression="${jahia.cg.siteKey}" default-value="testSite"
-	 * @required
-	 */
-	protected String siteKey;
-
-	/**
 	 * Site language(s), a comma-separated list
 	 * @parameter expression="${jahia.cg.siteLanguages}" default-value="en,fr"
 	 * @required
