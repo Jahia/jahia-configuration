@@ -379,14 +379,6 @@ public class ExportBO {
 	public void setVisibilityEndDate(String visibilityEndDate) {
 		this.visibilityEndDate = visibilityEndDate;
 	}
-
-	public void setWiseInstanceKey(String wiseInstanceKey) {
-		this.setSiteKey(wiseInstanceKey);
-	}
-	
-	public String getWiseInstanceKey() {
-		return this.getSiteKey();
-	}
 	
 	public Integer getNbPolls() {
 		return nbPolls;
