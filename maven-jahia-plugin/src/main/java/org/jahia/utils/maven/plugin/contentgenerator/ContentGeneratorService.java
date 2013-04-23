@@ -214,15 +214,16 @@ public class ContentGeneratorService {
 				}
 
 				// Groups
-				List<GroupBO> groups = userGroupService.generateGroups(
-						export.getNumberOfGroups(),
-						export.getNumberOfUsersPerGroup(), users);
-				Element groupsNode = userGroupService.generateJcrGroups(
-						siteKey, groups);
-				Document groupsDoc = new Document(groupsNode);
-				File groupsFile = new File(export.getOutputDir(), "groups.xml");
-				os.writeJdomDocumentToFile(groupsDoc, groupsFile);
+				File groupsFile = null;
+				if (export.getNumberOfUsers() > 0) {
+					List<GroupBO> groups = userGroupService.generateGroups(export.getNumberOfGroups(), export.getNumberOfUsersPerGroup(), users);
 
+					Element groupsNode = userGroupService.generateJcrGroups(siteKey, groups);
+					Document groupsDoc = new Document(groupsNode);
+					groupsFile = new File(export.getOutputDir(), "groups.xml");
+					os.writeJdomDocumentToFile(groupsDoc, groupsFile);
+				}
+				
 				// Tags
 				Element tagList = tagService.createTagListElement();
 				List tags = tagService.createTags(export.getNumberOfTags());
