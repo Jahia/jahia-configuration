@@ -49,7 +49,7 @@ public class WiseService {
 		WiseBO wise = null;
 		if (wiseExport.getNbDocspaces() > 0) {
 			List<DocspaceBO> docspaces = docspaceService.generateDocspaces(wiseExport);
-			wise = new WiseBO(wiseExport.getWiseInstanceKey(), docspaces, users);
+			wise = new WiseBO(wiseExport.getSiteKey(), docspaces, users);
 		}
 		return wise;
 	}
@@ -84,7 +84,7 @@ public class WiseService {
 		logger.info("Creating repository file");
 		
 		insertWiseInstanceIntoSiteRepository(systemSiteRepository, wiseInstance.getElement());
-		insertTagsListIntoWiseInstance(systemSiteRepository, tagsList, wiseExport.getWiseInstanceKey());
+		insertTagsListIntoWiseInstance(systemSiteRepository, tagsList, wiseExport.getSiteKey());
 		
 		CategoryService cs = new CategoryService();
 		Element categories = cs.createCategories(wiseExport.getNumberOfCategories(), wiseExport.getNumberOfCategoryLevels(), wiseExport);
@@ -95,7 +95,7 @@ public class WiseService {
 
 		// create properties file
 		logger.info("Creating site properties file");
-		siteService.createPropertiesFile(wiseExport.getWiseInstanceKey(), wiseExport.getSiteLanguages(), "templates-wise", wiseInstanceOutputDir);
+		siteService.createPropertiesFile(wiseExport.getSiteKey(), wiseExport.getSiteLanguages(), "templates-wise", wiseInstanceOutputDir);
 
 		// Zip wise instances files
 		List<File> wiseInstanceFiles = new ArrayList<File>(FileUtils.listFiles(wiseInstanceOutputDir, null, false));

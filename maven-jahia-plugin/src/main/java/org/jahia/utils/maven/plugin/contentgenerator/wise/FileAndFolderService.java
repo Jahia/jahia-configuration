@@ -97,8 +97,8 @@ public class FileAndFolderService {
 		logger.info("Folders generation is starting, " + totalFolders.intValue() + " folders to create, containing a total of "
 				+ totalFiles.intValue() + " files.");
 
-		String currentPath = initializeContentFolder(wiseExport.getOutputDir() + sep + "wise", wiseExport.getWiseInstanceKey(), docspaceName);
-		String currentNodePath = "/" + "sites" + "/" + wiseExport.getWiseInstanceKey() + "/" + "files" + "/" + "docspaces" + "/" + docspaceName;
+		String currentPath = initializeContentFolder(wiseExport.getOutputDir() + sep + "wise", wiseExport.getSiteKey(), docspaceName);
+		String currentNodePath = "/" + "sites" + "/" + wiseExport.getSiteKey() + "/" + "files" + "/" + "docspaces" + "/" + docspaceName;
 
 		// if there is not enough physical files available
 		// we'll take them all and stop
@@ -174,7 +174,7 @@ public class FileAndFolderService {
 
 			List<FolderBO> subFolders = null;
 			Set<FileBO> files = generateFiles(filesPerFolder, currentNodePath + "/" + depthName + i, fileNames, wiseExport.getNumberOfUsers(),
-					filesDirectory, wiseExport.getTags(), wiseExport.getWiseInstanceKey());
+					filesDirectory, wiseExport.getTags(), wiseExport.getSiteKey());
 			
 			// we serialize all generated files to use them in the collections
 			FileOutputStream tmpFile;

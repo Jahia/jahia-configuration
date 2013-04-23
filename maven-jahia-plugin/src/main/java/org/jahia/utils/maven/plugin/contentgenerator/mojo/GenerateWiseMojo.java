@@ -125,13 +125,6 @@ public class GenerateWiseMojo extends AbstractJahiaSiteMojo {
 	 */
 	protected String endCreationDateRange;
     
-	/**
-	 * Wise instance key
-	 * @parameter expression="${jahia.cg.wiseInstanceKey}"
-	 * @required
-	 */
-	protected String wiseInstanceKey;
-    
 	private ExportBO initExport() throws MojoExecutionException {
 		boolean filesRequired = false;
 		if (nbFilesPerFolder > 0) {
@@ -151,7 +144,6 @@ public class GenerateWiseMojo extends AbstractJahiaSiteMojo {
 		wiseExport.setNumberOfOwners(numberOfOwners);
 		wiseExport.setNumberOfEditors(numberOfEditors);
 		wiseExport.setNumberOfCollaborators(numberOfCollaborators);
-		wiseExport.setWiseInstanceKey(wiseInstanceKey);
 		
 		// site language hard coded to English
         List<String> languages = new ArrayList<String>();
