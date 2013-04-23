@@ -24,10 +24,6 @@ public class PageService {
 
 	private static Integer currentSeldomUsedDescriptionWordIndex;
 
-	private static Integer nbOfFilesUsedForOftenUsedDescriptionWords;
-
-	private static Integer nbOfFilesUsedForSeldomUsedDescriptionWords;
-
 	private static Integer nbOfOftenUsedDescriptionWords;
 
 	private static Integer nbOfSeldomUsedDescriptionWords;
@@ -38,8 +34,6 @@ public class PageService {
 		seldomUsedDescriptionWords = Arrays.asList(ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS.split("\\s*,\\s*"));
 		currentOftenUsedDescriptionWordIndex = 0;
 		currentSeldomUsedDescriptionWordIndex = 0;
-		nbOfFilesUsedForOftenUsedDescriptionWords = ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS_COUNTER;
-		nbOfFilesUsedForSeldomUsedDescriptionWords = ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS_COUNTER;
 		nbOfOftenUsedDescriptionWords = oftenUsedDescriptionWords.size();
 		nbOfSeldomUsedDescriptionWords = seldomUsedDescriptionWords.size();
 	}
@@ -219,6 +213,7 @@ public class PageService {
         PageBO page = new PageBO(pageName, articlesMap, level, subPages,
 				export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory, idTag,  visibilityOnPage, export.getVisibilityStartDate(), export.getVisibilityEndDate(), description);
         
+        
 		ContentGeneratorService.currentPageIndex = ContentGeneratorService.currentPageIndex + 1;
 		return page;
 	}
@@ -256,30 +251,27 @@ public class PageService {
 	
 	private String getCurrentOftenDescriptionWord() {
 		String descriptionWord = "";
-		if (currentOftenUsedDescriptionWordIndex < nbOfOftenUsedDescriptionWords) {
-			// logger.debug(nbOfFilesUsedForOftenUsedDescriptionWords.toString());
-			descriptionWord = oftenUsedDescriptionWords.get(currentOftenUsedDescriptionWordIndex);
-			nbOfFilesUsedForOftenUsedDescriptionWords--;
+		descriptionWord = oftenUsedDescriptionWords.get(currentOftenUsedDescriptionWordIndex);
+		currentOftenUsedDescriptionWordIndex++;
 
-			if (nbOfFilesUsedForOftenUsedDescriptionWords == 0) {
-				currentOftenUsedDescriptionWordIndex++;
-				nbOfFilesUsedForOftenUsedDescriptionWords = ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS_COUNTER;
-			}
+		// if we've used all the keywords, we start over
+		if (currentOftenUsedDescriptionWordIndex == nbOfOftenUsedDescriptionWords) {
+			currentOftenUsedDescriptionWordIndex = 0;
 		}
 		return descriptionWord;
 	}
 
 	private String getCurrentSeldomDescriptionWord() {
 		String descriptionWord = "";
-		if (currentSeldomUsedDescriptionWordIndex < nbOfSeldomUsedDescriptionWords) {
-			descriptionWord = seldomUsedDescriptionWords.get(currentSeldomUsedDescriptionWordIndex);
-			nbOfFilesUsedForSeldomUsedDescriptionWords--;
-
-			if (nbOfFilesUsedForSeldomUsedDescriptionWords == 0) {
-				currentSeldomUsedDescriptionWordIndex++;
-				nbOfFilesUsedForSeldomUsedDescriptionWords = ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS_COUNTER;
-			}
+		
+		descriptionWord = seldomUsedDescriptionWords.get(currentSeldomUsedDescriptionWordIndex);
+		currentSeldomUsedDescriptionWordIndex++;
+		
+		// if we've used all the keywords, we start over
+		if (currentSeldomUsedDescriptionWordIndex == nbOfSeldomUsedDescriptionWords) {
+			currentSeldomUsedDescriptionWordIndex = 0;
 		}
+		
 		return descriptionWord;
 	}
 	
