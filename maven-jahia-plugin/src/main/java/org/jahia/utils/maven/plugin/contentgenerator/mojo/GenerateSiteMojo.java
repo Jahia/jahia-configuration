@@ -1,9 +1,12 @@
 package org.jahia.utils.maven.plugin.contentgenerator.mojo;
 
+import java.util.Arrays;
+
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.codehaus.plexus.util.StringUtils;
 import org.jahia.utils.maven.plugin.contentgenerator.ContentGeneratorService;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
@@ -36,12 +39,12 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
 	protected Integer numberOfUsersPerGroup;
 
     /**
-     * @parameter expression="${jahia.cg.groupsAclRatio}" defaule-value="0"
+     * @parameter expression="${jahia.cg.groupsAclRatio}" default-value="0"
      */
     protected double groupAclRatio;
 
     /**
-     * @parameter expression="${jahia.cg.usersAclRatio}" defaule-value="0"
+     * @parameter expression="${jahia.cg.usersAclRatio}" default-value="0"
      */
     protected double usersAclRatio;
 
@@ -129,11 +132,14 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
         export.setGroupAclRatio(groupAclRatio);
         export.setUsersAclRatio(usersAclRatio);
         export.setNumberOfSites(numberOfSites);
+        export.setPagesHaveVanity(pagesHaveVanity);
+        
+        String[] aLanguages = StringUtils.split(siteLanguages, ",");
+        export.setSiteLanguages(Arrays.asList(aLanguages));
         
         if (visibilityEnabled == null) {
         	visibilityEnabled = Boolean.FALSE;
         }
-       
         export.setVisibilityEnabled(visibilityEnabled);
         export.setVisibilityStartDate(visibilityStartDate);
         export.setVisibilityEndDate(visibilityEndDate);
