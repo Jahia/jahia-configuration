@@ -180,12 +180,12 @@ public class PageBO {
 		
         for (Map.Entry<String, ArticleBO> entry : articles.entrySet()) {
             sb.append("		<j:translation_"+entry.getKey()+" jcr:language=\""+entry.getKey()+"\" jcr:mixinTypes=\"mix:title\" jcr:primaryType=\"jnt:translation\" jcr:title=\""
-				+ formatForXml(entry.getValue().getTitle()));
+				+ formatForXml(entry.getValue().getTitle()) + "\"");
             
             if (StringUtils.isNotEmpty(description)) {
             	sb.append(" jcr:description=\"" + description + "\"");
             }
-            sb.append("\" />\n");
+            sb.append("/>\n");
         }
 
         if (!acls.isEmpty()) {
