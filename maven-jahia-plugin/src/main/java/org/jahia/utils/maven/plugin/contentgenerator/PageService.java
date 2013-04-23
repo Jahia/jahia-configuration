@@ -16,8 +16,32 @@ public class PageService {
 	String sep;
     private Random random = new Random();
 
+	private static List<String> oftenUsedDescriptionWords;
+
+	private static List<String> seldomUsedDescriptionWords;
+
+	private static Integer currentOftenUsedDescriptionWordIndex;
+
+	private static Integer currentSeldomUsedDescriptionWordIndex;
+
+	private static Integer nbOfFilesUsedForOftenUsedDescriptionWords;
+
+	private static Integer nbOfFilesUsedForSeldomUsedDescriptionWords;
+
+	private static Integer nbOfOftenUsedDescriptionWords;
+
+	private static Integer nbOfSeldomUsedDescriptionWords;
+	
     public PageService() {
 		sep = System.getProperty("file.separator");
+		oftenUsedDescriptionWords = Arrays.asList(ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS.split("\\s*,\\s*"));
+		seldomUsedDescriptionWords = Arrays.asList(ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS.split("\\s*,\\s*"));
+		currentOftenUsedDescriptionWordIndex = 0;
+		currentSeldomUsedDescriptionWordIndex = 0;
+		nbOfFilesUsedForOftenUsedDescriptionWords = ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS_COUNTER;
+		nbOfFilesUsedForSeldomUsedDescriptionWords = ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS_COUNTER;
+		nbOfOftenUsedDescriptionWords = oftenUsedDescriptionWords.size();
+		nbOfSeldomUsedDescriptionWords = seldomUsedDescriptionWords.size();
 	}
 
 	/**
@@ -135,9 +159,9 @@ public class PageService {
                                 List<PageBO> subPages) {
 
 		boolean addFile = false;
-		if (export.getAddFilesToPage().equals(ContentGeneratorCst.VALUE_ALL)) {
+		if (ContentGeneratorCst.VALUE_ALL.equals(export.getAddFilesToPage())) {
 			addFile = true;
-		} else if (export.getAddFilesToPage().equals(ContentGeneratorCst.VALUE_RANDOM)) {
+		} else if (ContentGeneratorCst.VALUE_RANDOM.equals(export.getAddFilesToPage())) {
 			Random random = new Random();
 			addFile = random.nextBoolean();
 		}
@@ -185,8 +209,16 @@ public class PageService {
         	logger.debug("Visibility enabled");
         }
         
+        // add description for the first pages
+        String description = null;
+        if (ContentGeneratorService.currentPageIndex <= ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS_COUNTER) {
+        	description = getCurrentSeldomDescriptionWord();
+        } else if (ContentGeneratorService.currentPageIndex <= ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS_COUNTER + ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS_COUNTER) {
+        	description = getCurrentOftenDescriptionWord();
+        }
         PageBO page = new PageBO(pageName, articlesMap, level, subPages,
-				export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory, idTag,  visibilityOnPage, export.getVisibilityStartDate(), export.getVisibilityEndDate());
+				export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory, idTag,  visibilityOnPage, export.getVisibilityStartDate(), export.getVisibilityEndDate(), description);
+        
 		ContentGeneratorService.currentPageIndex = ContentGeneratorService.currentPageIndex + 1;
 		return page;
 	}
@@ -221,5 +253,35 @@ public class PageService {
 
 		return siteMap;
 	}
+	
+	private String getCurrentOftenDescriptionWord() {
+		String descriptionWord = "";
+		if (currentOftenUsedDescriptionWordIndex < nbOfOftenUsedDescriptionWords) {
+			// logger.debug(nbOfFilesUsedForOftenUsedDescriptionWords.toString());
+			descriptionWord = oftenUsedDescriptionWords.get(currentOftenUsedDescriptionWordIndex);
+			nbOfFilesUsedForOftenUsedDescriptionWords--;
+
+			if (nbOfFilesUsedForOftenUsedDescriptionWords == 0) {
+				currentOftenUsedDescriptionWordIndex++;
+				nbOfFilesUsedForOftenUsedDescriptionWords = ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS_COUNTER;
+			}
+		}
+		return descriptionWord;
+	}
+
+	private String getCurrentSeldomDescriptionWord() {
+		String descriptionWord = "";
+		if (currentSeldomUsedDescriptionWordIndex < nbOfSeldomUsedDescriptionWords) {
+			descriptionWord = seldomUsedDescriptionWords.get(currentSeldomUsedDescriptionWordIndex);
+			nbOfFilesUsedForSeldomUsedDescriptionWords--;
+
+			if (nbOfFilesUsedForSeldomUsedDescriptionWords == 0) {
+				currentSeldomUsedDescriptionWordIndex++;
+				nbOfFilesUsedForSeldomUsedDescriptionWords = ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS_COUNTER;
+			}
+		}
+		return descriptionWord;
+	}
+	
 
 }

@@ -1,6 +1,5 @@
 package org.jahia.utils.maven.plugin.contentgenerator.bo;
 
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +22,7 @@ public class PageBO {
 	private Boolean visibilityEnabled;
 	private String visibilityStartDate;	
 	private String visibilityEndDate;
+	private String description;
 
 	public void setIdCategory(Integer idCategory) {
 		this.idCategory = idCategory;
@@ -129,7 +129,7 @@ public class PageBO {
 	}
 
 	public PageBO(final String pUniqueName, Map<String, ArticleBO> articles, final int pLevel, final List<PageBO> pSubPages, Boolean pHasVanity,
-			String pSiteKey, String pFileName, Integer pNumberBigText, Map<String, List<String>> acls, Integer idCategory, Integer idTag, Boolean visibilityEnabled, String visibilityStartDate, String visibilityEndDate) {
+			String pSiteKey, String pFileName, Integer pNumberBigText, Map<String, List<String>> acls, Integer idCategory, Integer idTag, Boolean visibilityEnabled, String visibilityStartDate, String visibilityEndDate, String description) {
 		this.articles = articles;
 		this.level = pLevel;
 		this.subPages = pSubPages;
@@ -144,6 +144,7 @@ public class PageBO {
         this.visibilityEnabled = visibilityEnabled;
         this.visibilityStartDate = visibilityStartDate;
         this.visibilityEndDate = visibilityEndDate;
+        this.description = description;
 	}
 
 	
@@ -179,7 +180,12 @@ public class PageBO {
 		
         for (Map.Entry<String, ArticleBO> entry : articles.entrySet()) {
             sb.append("		<j:translation_"+entry.getKey()+" jcr:language=\""+entry.getKey()+"\" jcr:mixinTypes=\"mix:title\" jcr:primaryType=\"jnt:translation\" jcr:title=\""
-				+ formatForXml(entry.getValue().getTitle()) + "\" />\n");
+				+ formatForXml(entry.getValue().getTitle()));
+            
+            if (StringUtils.isNotEmpty(description)) {
+            	sb.append(" jcr:description=\"" + description + "\"");
+            }
+            sb.append("\" />\n");
         }
 
         if (!acls.isEmpty()) {
