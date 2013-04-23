@@ -36,10 +36,16 @@ public class SiteService {
 		if (filesFile != null) {
 			IOUtils.copy(new FileInputStream(filesFile), output);
 		}
-		IOUtils.copy(new FileInputStream(groupsFile), output);
-		IOUtils.copy(new FileInputStream(tagsFile), output);
-		IOUtils.copy(new FileInputStream(pagesFile), output);
-
+		if (groupsFile != null) {
+			IOUtils.copy(new FileInputStream(groupsFile), output);
+		}
+		if (tagsFile != null) {
+			IOUtils.copy(new FileInputStream(tagsFile), output);
+		}
+		if (pagesFile != null) {
+			IOUtils.copy(new FileInputStream(pagesFile), output);
+		}
+		
 		IOUtils.write(site.getFooter(), output);
 
 		return repositoryFile;
