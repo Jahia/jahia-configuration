@@ -32,16 +32,6 @@ public interface JahiaConfigInterface {
 
     List<String> getClusterTCPEHCacheJahiaHosts();
 
-    /**
-     * Returns the Web application context path Jahia is deployed to. Is empty
-     * for ROOT context and starts with a slash in other cases (e.g. /jahia).
-     * 
-     * @return the Web application context path Jahia is deployed to. Is empty
-     *         for ROOT context and starts with a slash in other cases (e.g.
-     *         /jahia)
-     */
-    String getContextPath();
-
     String getDatabasePassword();
     
     String getDatabaseType();
