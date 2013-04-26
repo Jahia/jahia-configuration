@@ -169,6 +169,7 @@ public class ContentGeneratorService {
 			TagService tagService = new TagService();
 			CategoryService categoryService = new CategoryService();
 			for (int i = 0; i < export.getNumberOfSites(); i++) {
+				logger.debug("Generating site #" + (i + 1));
 				// as we create a full site we will need a home page
 				export.setRootPageName(ContentGeneratorCst.ROOT_PAGE_NAME);
 				SiteBO site = new SiteBO();
