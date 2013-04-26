@@ -261,7 +261,8 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                             packageExport.append(";version\\=\"");
                             packageExport.append(versionString);
                             packageExport.append("\"");
-                            if (!isPackageExcluded(packageExport.toString())) {
+                            if (!isPackageExcluded(packageExport.toString()) &&
+                                    !isPackageExcluded(packageVersion.getKey())) {
                                 packageExport.append(",");
                                 if (packageList.contains(packageExport.toString())) {
                                     getLog().warn("Package export " + packageExport.toString() + " already present in list, will not add again!");
