@@ -23,8 +23,6 @@ public class PageService {
 
 	String sep;
     private Random random = new Random();
-
-    private static Integer currentPageNumber;
     
 	private static List<String> oftenUsedDescriptionWords;
 
@@ -39,7 +37,6 @@ public class PageService {
 		oftenUsedDescriptionWords = Arrays.asList(ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS.split("\\s*,\\s*"));
 		seldomUsedDescriptionWords = Arrays.asList(ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS.split("\\s*,\\s*"));
 		
-		currentPageNumber = 0;
 		nbOftenKeywordsAlreadyAssigned = 0;
 		nbSeldomKeywordsAlreadyAssigned = 0;
 	}
@@ -213,6 +210,7 @@ public class PageService {
         String oftenKeywords = getOftenKeywords(export.getTotalPages());
         String seldomKeywords = getSeldomKeywords(export.getTotalPages());        
         String description = oftenKeywords + " " + seldomKeywords;
+        logger.debug("description=" + description);
         
         PageBO page = new PageBO(pageName, articlesMap, level, subPages,
 				export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory, idTag,  visibilityOnPage, export.getVisibilityStartDate(), export.getVisibilityEndDate(), description);
