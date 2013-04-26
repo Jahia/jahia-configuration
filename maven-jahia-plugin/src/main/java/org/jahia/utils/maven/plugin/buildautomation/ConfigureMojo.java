@@ -276,11 +276,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     protected String mailParanoia;
     
     /**
-     * @parameter expression="${jahia.deploy.war.contextPath}" default-value=""
-     */
-    protected String contextPath;
-    
-    /**
      * @parameter expression="${jahia.configure.toolManagerUsername}" default-value="jahia"
      */
     protected String jahiaToolManagerUsername;
@@ -558,13 +553,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public String getMailServer() {
         return mailServer;
-    }
-
-    /**
-     * @return the contextPath
-     */
-    public String getContextPath() {
-        return StringUtils.defaultString(contextPath);
     }
 
     public String getClusterStartIpAddress() {
