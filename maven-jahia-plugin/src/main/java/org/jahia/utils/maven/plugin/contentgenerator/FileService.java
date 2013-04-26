@@ -139,12 +139,12 @@ public class FileService {
 			String fileName = file.getName();
 			
 			filesXml.append("          <"
-					+ fileName
+					+ org.apache.jackrabbit.util.ISO9075.encode(fileName)
 					+ " jcr:primaryType=\"jnt:file\" jcr:title=\""
                     + fileName
                     + "\">\n");
 			filesXml.append("             <jcr:content jcr:mimeType=\"application/txt\" jcr:primaryType=\"jnt:resource\" />\n");
-			filesXml.append("          </" + fileName + ">\n");
+			filesXml.append("          </" + org.apache.jackrabbit.util.ISO9075.encode(fileName) + ">\n");
 		}
 
 		filesXml.append("    </contributed>\n");

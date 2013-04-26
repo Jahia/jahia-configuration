@@ -218,7 +218,7 @@ public class PageBO {
 					+ "				<j:translation_en author=\"Jahia Content Generator\" body=\"&lt;p&gt;  Random publication&lt;/p&gt; \" date=\"01/01/1970\" file=\"/sites/"
 					+ this.getSiteKey()
 					+ "/files/contributed/"
-					+ this.getFileName()
+					+ org.apache.jackrabbit.util.ISO9075.encode(this.getFileName())
 					+ "\" jcr:language=\"en\" jcr:primaryType=\"jnt:translation\" jcr:title=\"Random publication\" source=\"Jahia\" />"
 					+ "			</publication>");
 		}
