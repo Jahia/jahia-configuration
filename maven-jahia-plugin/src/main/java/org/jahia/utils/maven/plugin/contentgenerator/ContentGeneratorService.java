@@ -1,22 +1,28 @@
 package org.jahia.utils.maven.plugin.contentgenerator;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
-import org.jahia.utils.maven.plugin.contentgenerator.bo.*;
+import org.jahia.utils.maven.plugin.contentgenerator.bo.ArticleBO;
+import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
+import org.jahia.utils.maven.plugin.contentgenerator.bo.GroupBO;
+import org.jahia.utils.maven.plugin.contentgenerator.bo.SiteBO;
+import org.jahia.utils.maven.plugin.contentgenerator.bo.UserBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jdom.Document;
 import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.input.SAXBuilder;
 import org.w3c.dom.DOMException;
-
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.*;
 
 public class ContentGeneratorService {
 
@@ -44,17 +50,14 @@ public class ContentGeneratorService {
 	 * 
 	 * @param export
 	 */
-	public void generatePages(ExportBO export) throws MojoExecutionException,
+	public void generatePages(ExportBO export, List<ArticleBO> articles) throws MojoExecutionException,
 			IOException {
 		if (!ContentGeneratorCst.VALUE_NONE.equals(export.getAddFilesToPage())
 				&& export.getFileNames().isEmpty()) {
 			throw new MojoExecutionException(
 					"Directory containing files to include is empty, use jahia-cg:generate-files first");
 		}
-
-		List<ArticleBO> articles = DatabaseService.getInstance()
-				.selectArticles(export, export.getTotalPages());
-
+		ContentGeneratorService.currentPageIndex = 0;
 		PageService pageService = new PageService();
 		pageService.createTopPages(export, articles);
 	}
@@ -168,6 +171,10 @@ public class ContentGeneratorService {
 			SiteService siteService = new SiteService();
 			TagService tagService = new TagService();
 			CategoryService categoryService = new CategoryService();
+			
+			List<ArticleBO> articles = DatabaseService.getInstance()
+					.selectArticles(export, export.getTotalPages());
+			
 			for (int i = 0; i < export.getNumberOfSites(); i++) {
 				logger.debug("Generating site #" + (i + 1));
 				// as we create a full site we will need a home page
@@ -177,7 +184,7 @@ public class ContentGeneratorService {
 				export.setSiteKey(siteKey);
 				site.setSiteKey(siteKey);
 
-				generatePages(export);
+				generatePages(export, articles);
 
 				logger.debug("Pages generated, now site");
 				filesToZip = new ArrayList<File>();
