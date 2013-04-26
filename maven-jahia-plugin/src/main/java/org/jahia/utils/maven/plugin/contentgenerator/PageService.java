@@ -1,5 +1,16 @@
 package org.jahia.utils.maven.plugin.contentgenerator;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ArticleBO;
@@ -7,35 +18,30 @@ import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.PageBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 
-import java.io.IOException;
-import java.util.*;
-
 public class PageService {
 	private Log logger = new SystemStreamLog();
 
 	String sep;
     private Random random = new Random();
 
+    private static Integer currentPageNumber;
+    
 	private static List<String> oftenUsedDescriptionWords;
 
 	private static List<String> seldomUsedDescriptionWords;
-
-	private static Integer currentOftenUsedDescriptionWordIndex;
-
-	private static Integer currentSeldomUsedDescriptionWordIndex;
-
-	private static Integer nbOfOftenUsedDescriptionWords;
-
-	private static Integer nbOfSeldomUsedDescriptionWords;
+	
+	private static Integer nbOftenKeywordsAlreadyAssigned;
+	
+	private static Integer nbSeldomKeywordsAlreadyAssigned;
 	
     public PageService() {
 		sep = System.getProperty("file.separator");
 		oftenUsedDescriptionWords = Arrays.asList(ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS.split("\\s*,\\s*"));
 		seldomUsedDescriptionWords = Arrays.asList(ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS.split("\\s*,\\s*"));
-		currentOftenUsedDescriptionWordIndex = 0;
-		currentSeldomUsedDescriptionWordIndex = 0;
-		nbOfOftenUsedDescriptionWords = oftenUsedDescriptionWords.size();
-		nbOfSeldomUsedDescriptionWords = seldomUsedDescriptionWords.size();
+		
+		currentPageNumber = 0;
+		nbOftenKeywordsAlreadyAssigned = 0;
+		nbSeldomKeywordsAlreadyAssigned = 0;
 	}
 
 	/**
@@ -204,12 +210,10 @@ public class PageService {
         }
         
         // add description for the first pages
-        String description = null;
-        if (ContentGeneratorService.currentPageIndex <= ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS_COUNTER) {
-        	description = getCurrentSeldomDescriptionWord();
-        } else if (ContentGeneratorService.currentPageIndex <= ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS_COUNTER + ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS_COUNTER) {
-        	description = getCurrentOftenDescriptionWord();
-        }
+        String oftenKeywords = getOftenKeywords(export.getTotalPages());
+        String seldomKeywords = getSeldomKeywords(export.getTotalPages());        
+        String description = oftenKeywords + " " + seldomKeywords;
+        
         PageBO page = new PageBO(pageName, articlesMap, level, subPages,
 				export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory, idTag,  visibilityOnPage, export.getVisibilityStartDate(), export.getVisibilityEndDate(), description);
         
@@ -248,32 +252,59 @@ public class PageService {
 
 		return siteMap;
 	}
-	
-	private String getCurrentOftenDescriptionWord() {
-		String descriptionWord = "";
-		descriptionWord = oftenUsedDescriptionWords.get(currentOftenUsedDescriptionWordIndex);
-		currentOftenUsedDescriptionWordIndex++;
-
-		// if we've used all the keywords, we start over
-		if (currentOftenUsedDescriptionWordIndex == nbOfOftenUsedDescriptionWords) {
-			currentOftenUsedDescriptionWordIndex = 0;
-		}
-		return descriptionWord;
-	}
-
-	private String getCurrentSeldomDescriptionWord() {
-		String descriptionWord = "";
 		
-		descriptionWord = seldomUsedDescriptionWords.get(currentSeldomUsedDescriptionWordIndex);
-		currentSeldomUsedDescriptionWordIndex++;
+	private String getOftenKeywords(int nbOfPagesToCreate) {
+		Integer nbKeywordsAvailable = oftenUsedDescriptionWords.size();
+		double ratio =  ((double) (ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS_COUNTER * (double) nbKeywordsAvailable) / (double) nbOfPagesToCreate);
 		
-		// if we've used all the keywords, we start over
-		if (currentSeldomUsedDescriptionWordIndex == nbOfSeldomUsedDescriptionWords) {
-			currentSeldomUsedDescriptionWordIndex = 0;
+		double nbKeywordsToGet = ((ContentGeneratorService.currentPageIndex + 1) * ratio) - nbOftenKeywordsAlreadyAssigned;
+		nbKeywordsToGet = Math.floor(nbKeywordsToGet);
+		
+		Set<String> keywords = new HashSet<String>();
+		int i = 1;
+		Random r = new Random();
+		while (i <= nbKeywordsToGet) {
+			int randomId = r.nextInt(nbKeywordsAvailable - 1);
+			boolean added = keywords.add(oftenUsedDescriptionWords.get(randomId));
+			if (added) {
+				i++;
+			}
 		}
 		
-		return descriptionWord;
+		StringBuffer sb = new StringBuffer();
+		for (Iterator<String> iterator = keywords.iterator(); iterator.hasNext();) {
+			sb = sb.append(iterator.next() + " ");			
+		}
+
+		PageService.nbOftenKeywordsAlreadyAssigned += (int) nbKeywordsToGet;
+		return sb.toString();
 	}
 	
+	private String getSeldomKeywords(int nbOfPagesToCreate) {
+		Integer nbKeywordsAvailable = seldomUsedDescriptionWords.size();
+		double ratio =  ((double) (ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS_COUNTER * (double) nbKeywordsAvailable) / (double) nbOfPagesToCreate);
+		
+		double nbKeywordsToGet = ((ContentGeneratorService.currentPageIndex + 1) * ratio) - nbSeldomKeywordsAlreadyAssigned;
+		nbKeywordsToGet = Math.floor(nbKeywordsToGet);
+		
+		Set<String> keywords = new HashSet<String>();
+		int i = 1;
+		Random r = new Random();
+		while (i <= nbKeywordsToGet) {
+			int randomId = r.nextInt(nbKeywordsAvailable - 1);
+			boolean added = keywords.add(seldomUsedDescriptionWords.get(randomId));
+			if (added) {
+				i++;
+			}
+		}
+		
+		StringBuffer sb = new StringBuffer();
+		for (Iterator<String> iterator = keywords.iterator(); iterator.hasNext();) {
+			sb = sb.append(iterator.next() + " ");			
+		}
+
+		PageService.nbSeldomKeywordsAlreadyAssigned += (int) nbKeywordsToGet;
+		return sb.toString();
+	}
 
 }
