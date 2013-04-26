@@ -116,6 +116,7 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
 			
 		ExportBO export = super.initExport(filesRequired);
 		
+		export.setAddFilesToPage(addFiles);
         export.setNbPagesTopLevel(nbPagesOnTopLevel);
         export.setNbSubLevels(nbSubLevels);
         export.setNbSubPagesPerPage(nbPagesPerLevel);
