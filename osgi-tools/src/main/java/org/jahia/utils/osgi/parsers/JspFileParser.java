@@ -48,7 +48,11 @@ public class JspFileParser extends AbstractFileParser {
             String taglibUri = taglibUriMatcher.group(1);
             parsingContext.getTaglibUris().add(taglibUri);
             if (!parsingContext.getTaglibPackages().containsKey(taglibUri)) {
-                getLogger().warn("JSP " + fileName + " has a reference to taglib " + taglibUri + " that is not in the project's dependencies !");
+                Set<String> unresolvedUrisForJsp = parsingContext.getUnresolvedTaglibUris().get(fileName);
+                if (unresolvedUrisForJsp == null) {
+                    unresolvedUrisForJsp = new TreeSet<String>();
+                }
+                parsingContext.getUnresolvedTaglibUris().put(fileName, unresolvedUrisForJsp);
             } else {
                 Set<String> taglibPackageSet = parsingContext.getTaglibPackages().get(taglibUri);
                 boolean externalTagLib = parsingContext.getExternalTaglibs().get(taglibUri);

@@ -174,6 +174,14 @@ public class DependenciesMojo extends AbstractMojo {
 
         parsingContext.postProcess();
 
+        if (parsingContext.getUnresolvedTaglibUris().size() > 0 ) {
+            for (Map.Entry<String,Set<String>> unresolvedUrisForJsp : parsingContext.getUnresolvedTaglibUris().entrySet()) {
+                for (String unresolvedUriForJsp : unresolvedUrisForJsp.getValue()) {
+                    getLogger().warn("JSP " + unresolvedUrisForJsp.getKey() + " has a reference to taglib " + unresolvedUriForJsp + " that is not in the project's dependencies !");
+                }
+            }
+        }
+
         StringBuilder generatedPackageBuffer = new StringBuilder(256);
         int i = 0;
         for (String packageImport : parsingContext.getPackageImports()) {
