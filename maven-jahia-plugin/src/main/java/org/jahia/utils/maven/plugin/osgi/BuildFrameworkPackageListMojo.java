@@ -10,6 +10,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.tika.io.IOUtils;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.eclipse.osgi.util.ManifestElement;
+import org.jahia.utils.osgi.PropertyFileUtils;
 import org.osgi.framework.BundleException;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;

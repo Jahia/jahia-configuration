@@ -10,8 +10,9 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
 import org.jahia.utils.maven.plugin.SLF4JLoggerToMojoLogBridge;
-import org.jahia.utils.maven.plugin.osgi.parsers.Parsers;
-import org.jahia.utils.maven.plugin.osgi.parsers.ParsingContext;
+import org.jahia.utils.osgi.PropertyFileUtils;
+import org.jahia.utils.osgi.parsers.Parsers;
+import org.jahia.utils.osgi.parsers.ParsingContext;
 import org.slf4j.Logger;
 
 import java.io.*;

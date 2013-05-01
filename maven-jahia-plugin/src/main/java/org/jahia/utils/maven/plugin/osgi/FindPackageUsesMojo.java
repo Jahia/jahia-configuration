@@ -7,6 +7,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.tika.io.IOUtils;
+import org.jahia.utils.osgi.ClassDependencyTracker;
 
 import java.io.File;
 import java.io.IOException;
