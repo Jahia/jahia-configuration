@@ -129,6 +129,7 @@ public class SiteService {
 		siteProp.setProperty("defaultLanguage", languages.get(0));
 		siteProp.setProperty("installedModules.1", "default");
 		siteProp.setProperty("installedModules.2", templateSet);
+		siteProp.setProperty("installedModules.3", "publication");
 		for (String language : languages) {
 			siteProp.setProperty("language." + language + ".activated", Boolean.TRUE.toString());
 			siteProp.setProperty("language." + language + ".mandatory", Boolean.FALSE.toString());
