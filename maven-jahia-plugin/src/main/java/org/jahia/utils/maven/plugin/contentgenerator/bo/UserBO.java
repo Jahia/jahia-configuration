@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.CollectionBO;
@@ -102,7 +103,7 @@ public class UserBO {
 		// userElement.setAttribute("password.history.1242739225417", null);
 		userElement.setAttribute("preferredLanguage", "en");
 
-		if (collections != null) {
+		if (CollectionUtils.isNotEmpty(collections)) {
 			Element collectionsElement = new Element("collections");
 			collectionsElement.setAttribute("primaryType", "docnt:collections", ContentGeneratorCst.NS_JCR);
 			collectionsElement.setAttribute("createdBy", name, ContentGeneratorCst.NS_JCR);
