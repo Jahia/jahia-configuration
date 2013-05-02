@@ -97,6 +97,9 @@ public class ParsingContext {
             Set<String> unresolvedUrisForJsp = unresolvedTaglibUris.get(resolvedUri.getKey());
             if (unresolvedUrisForJsp != null) {
                 unresolvedUrisForJsp.removeAll(resolvedUri.getValue());
+                if (unresolvedUrisForJsp.size() == 0) {
+                    unresolvedTaglibUris.remove(resolvedUri.getKey());
+                }
             }
         }
     }
