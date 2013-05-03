@@ -291,10 +291,10 @@ public class DeployMojo extends AbstractManagementMojo {
      */
     private void deployWarProject() throws Exception {
         File webappDir = getWarSarRarDeploymentDir(project.getArtifact());
-        getLog().info("Update " + project.getPackaging() +
-                " resources for " + targetServerType +
-                " v" + targetServerVersion +
-                " in directory " + webappDir);
+        getLog().info(
+                "Update " + project.getPackaging() + " resources for " + targetServerType
+                        + (StringUtils.isNotEmpty(targetServerVersion) ? " v" + targetServerVersion : "")
+                        + " in directory " + webappDir);
         if ("was".equals(targetServerType)) {
             File source = new File(output, project.getBuild().getFinalName()+".war");
             File target = new File(webappDir +"/" + project.getBuild().getFinalName()+".war");
