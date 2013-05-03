@@ -2,8 +2,8 @@ package org.jahia.utils.osgi;
 
 import asia.redact.bracket.properties.OutputAdapter;
 import asia.redact.bracket.properties.ValueModel;
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugin.logging.Log;
-import org.apache.tika.io.IOUtils;
 
 import java.io.File;
 import java.io.FileReader;
