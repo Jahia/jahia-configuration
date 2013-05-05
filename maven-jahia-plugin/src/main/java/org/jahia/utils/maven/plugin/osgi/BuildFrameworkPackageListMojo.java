@@ -11,7 +11,6 @@ import org.apache.tika.io.IOUtils;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.eclipse.osgi.util.ManifestElement;
 import org.jahia.utils.osgi.PropertyFileUtils;
-import org.osgi.framework.BundleException;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.collection.CollectRequest;
@@ -327,7 +326,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        } catch (BundleException e) {
+        } catch (Exception e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
     }
@@ -408,14 +407,14 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        } catch (BundleException e) {
+        } catch (Exception e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } finally {
             IOUtils.closeQuietly(fileInputStream);
         }
     }
 
-    private void scanExistingManifest(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException, BundleException {
+    private void scanExistingManifest(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException, Exception {
         FileInputStream in = null;
         try {
             if (inputManifestFile.exists()) {

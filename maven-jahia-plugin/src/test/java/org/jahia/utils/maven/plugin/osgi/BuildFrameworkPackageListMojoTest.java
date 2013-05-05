@@ -4,10 +4,8 @@ import junit.framework.Assert;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.poi.util.IOUtils;
-import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.osgi.util.ManifestElement;
 import org.junit.Test;
-import org.osgi.framework.BundleException;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -21,7 +19,7 @@ import java.util.Properties;
 public class BuildFrameworkPackageListMojoTest {
 
     @Test
-    public void testPackageListBuilding() throws IOException, MojoFailureException, MojoExecutionException, BundleException {
+    public void testPackageListBuilding() throws IOException, MojoFailureException, MojoExecutionException, Exception {
         BuildFrameworkPackageListMojo mojo = new BuildFrameworkPackageListMojo();
         String tmpDirLocation = System.getProperty("java.io.tmpdir");
         File tmpDirFile = new File(tmpDirLocation);

@@ -1,7 +1,6 @@
 package org.jahia.utils.osgi;
 
 import org.eclipse.osgi.util.ManifestElement;
-import org.osgi.framework.BundleException;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -72,7 +71,7 @@ public class BundleUtils {
                 }
                 headerValues.add(new HeaderValue(Arrays.asList(manifestElement.getValueComponents()), attributes, directives));
             }
-        } catch (BundleException e) {
+        } catch (Exception e) {
             throw new IOException("Error processing bundle headers", e);
         }
         return headerValues;
