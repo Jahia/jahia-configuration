@@ -14,30 +14,6 @@ import java.util.jar.Manifest;
  */
 public class BundleUtils {
 
-    public static class HeaderValue {
-        List<String> valueComponents;
-        Map<String,String> attributes;
-        Map<String,String> directives;
-
-        public HeaderValue(List<String> valueComponents, Map<String, String> attributes, Map<String, String> directives) {
-            this.valueComponents = valueComponents;
-            this.attributes = attributes;
-            this.directives = directives;
-        }
-
-        public List<String> getValueComponents() {
-            return valueComponents;
-        }
-
-        public Map<String, String> getAttributes() {
-            return attributes;
-        }
-
-        public Map<String, String> getDirectives() {
-            return directives;
-        }
-    }
-
     /**
      * Retrieves the headers values for a single OSGi JAR bundle manifest entry. This may contain multiple
      * components for a single entry, as well as attributes (such as version) or directives.
@@ -48,8 +24,8 @@ public class BundleUtils {
      * directives.
      * @throws IOException
      */
-    public static List<HeaderValue> getHeaderValues(String headerName, String headerValue) throws IOException {
-        List<HeaderValue> headerValues = new ArrayList<HeaderValue>();
+    public static List<ManifestValueClause> getHeaderClauses(String headerName, String headerValue) throws IOException {
+        List<ManifestValueClause> headerClauses = new ArrayList<ManifestValueClause>();
         try {
             ManifestElement[] manifestElements = ManifestElement.parseHeader(headerName, headerValue);
             for (ManifestElement manifestElement : manifestElements) {
@@ -69,12 +45,12 @@ public class BundleUtils {
                         directives.put(directiveKeyName, manifestElement.getDirective(directiveKeyName));
                     }
                 }
-                headerValues.add(new HeaderValue(Arrays.asList(manifestElement.getValueComponents()), attributes, directives));
+                headerClauses.add(new ManifestValueClause(Arrays.asList(manifestElement.getValueComponents()), attributes, directives));
             }
         } catch (Exception e) {
             throw new IOException("Error processing bundle headers", e);
         }
-        return headerValues;
+        return headerClauses;
     }
 
     /**
@@ -90,7 +66,7 @@ public class BundleUtils {
         Attributes mainAttributes = jarManifest.getMainAttributes();
         Map<String, String> sortedMainAttributes = getSortedAttributes(mainAttributes);
         for (Map.Entry<String,String> attributeEntry : sortedMainAttributes.entrySet()) {
-            List<BundleUtils.HeaderValue> headerValues = BundleUtils.getHeaderValues(attributeEntry.getKey(), attributeEntry.getValue());
+            List<ManifestValueClause> headerValues = BundleUtils.getHeaderClauses(attributeEntry.getKey(), attributeEntry.getValue());
             dumpHeaderValues(attributeEntry.getKey(), headerValues, out);
         }
 
@@ -99,7 +75,7 @@ public class BundleUtils {
             out.println("Entry: " + entryAttributes.getKey());
             Map<String, String> sortedEntryAttributes = getSortedAttributes(entryAttributes.getValue());
             for (Map.Entry<String,String> attributeEntry : sortedEntryAttributes.entrySet()) {
-                List<BundleUtils.HeaderValue> headerValues = BundleUtils.getHeaderValues(attributeEntry.getKey(), attributeEntry.getValue());
+                List<ManifestValueClause> headerValues = BundleUtils.getHeaderClauses(attributeEntry.getKey(), attributeEntry.getValue());
                 dumpHeaderValues(attributeEntry.getKey(), headerValues, out);
             }
         }
@@ -122,17 +98,17 @@ public class BundleUtils {
      * @param out
      * @return
      */
-    public static PrintWriter dumpHeaderValues(String headerName, List<HeaderValue> headerValues, PrintWriter out) {
+    public static PrintWriter dumpHeaderValues(String headerName, List<ManifestValueClause> headerValues, PrintWriter out) {
         out.print(headerName + ": ");
         int i=0;
-        for (HeaderValue headerValue : headerValues) {
+        for (ManifestValueClause headerValue : headerValues) {
             if (i > 0) {
                 out.print("    ");
             }
-            if (headerValue.getValueComponents().size() == 1) {
-                out.print(headerValue.getValueComponents().get(0));
+            if (headerValue.getPaths().size() == 1) {
+                out.print(headerValue.getPaths().get(0));
             } else {
-                out.print(headerValue.getValueComponents());
+                out.print(headerValue.getPaths());
             }
             for (Map.Entry<String,String> attributeEntry : headerValue.getAttributes().entrySet()) {
                 out.print("; ");

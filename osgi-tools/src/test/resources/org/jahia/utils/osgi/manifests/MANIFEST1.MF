@@ -1,0 +1,113 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1367825599281
+Build-Jdk: 1.6.0_45
+Built-By: loom
+Bundle-Category: jahia-module
+Bundle-Description: This is a custom module for running on a Jahia serve
+ r.
+Bundle-DocURL: http://www.jahia.com
+Bundle-ManifestVersion: 2
+Bundle-Name: Jahia Remote Publishing
+Bundle-SymbolicName: remotepublish
+Bundle-Vendor: Jahia Solutions Group SA
+Bundle-Version: 6.7.0.0-SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+Export-Package: org.jahia.modules.remotepublish;uses:="javax.persistence
+ ,javax.jcr,javax.jcr.observation,org.slf4j,org.apache.commons.lang,org.
+ jahia.services.content,org.jahia.utils,org.apache.tika.io,org.hibernate
+ .classic,org.hibernate,org.apache.commons.io,com.google.common.io,org.h
+ ibernate.criterion,org.jahia.bin,org.jahia.services.render,javax.servle
+ t.http,org.json,org.apache.jackrabbit.util,org.jahia.security.license,o
+ rg.jahia.services.notification,org.apache.commons.httpclient.auth,org.a
+ pache.commons.httpclient.methods.multipart,org.jahia.services.content.d
+ ecorator,org.apache.commons.httpclient,org.apache.commons.httpclient.me
+ thods,org.apache.commons.httpclient.params,org.jahia.services.content.r
+ ules,org.apache.commons.fileupload.disk,org.jahia.tools.files,org.jahia
+ .services.importexport,org.jahia.services.content.nodetypes,javax.jcr.n
+ odetype,org.jahia.services.usermanager";version="6.7.0.0-SNAPSHOT"
+Implementation-Title: Jahia Remote Publishing
+Implementation-URL: http://www.jahia.com
+Implementation-Vendor: Jahia Solutions Group SA
+Implementation-Version: 6.7.0.0-SNAPSHOT
+Import-Package: com.google.common.io;version="[0.9,1)",javax.jcr;version
+ ="[2.0,3)",javax.jcr.nodetype;version="[2.0,3)",javax.jcr.observation;v
+ ersion="[2.0,3)",javax.jcr.query;version="[2.0,3)",javax.persistence,ja
+ vax.servlet.http,javax.servlet.jsp.tagext,org.apache.camel.spring;versi
+ on="[2.4,3)",org.apache.commons.collections;version="[3.2,4)",org.apach
+ e.commons.fileupload.disk;version="[1.3,2)",org.apache.commons.httpclie
+ nt,org.apache.commons.httpclient.auth,org.apache.commons.httpclient.met
+ hods,org.apache.commons.httpclient.methods.multipart,org.apache.commons
+ .httpclient.params,org.apache.commons.id,org.apache.commons.io;version=
+ "[1.4,2)",org.apache.commons.lang;version="[2.6,3)",org.apache.commons.
+ lang.math;version="[2.6,3)",org.apache.jackrabbit.util;version="[2.4,3)
+ ",org.apache.jackrabbit.value;version="[2.2,3)",org.apache.lucene.docum
+ ent,org.apache.solr.client.solrj.response,org.apache.solr.schema,org.ap
+ ache.taglibs.unstandard;version="[6.7,7)",org.apache.tika.io;version="[
+ 1.0,2)",org.drools,org.hibernate,org.hibernate.cfg,org.hibernate.classi
+ c,org.hibernate.criterion,org.jahia.ajax.gwt.client.widget.contentengin
+ e,org.jahia.ajax.gwt.client.widget.edit.sidepanel,org.jahia.ajax.gwt.cl
+ ient.widget.subscription,org.jahia.ajax.gwt.client.widget.toolbar.actio
+ n,org.jahia.api,org.jahia.bin,org.jahia.bundles.extender.jahiamodules,o
+ rg.jahia.data.templates,org.jahia.data.viewhelper.principal,org.jahia.d
+ efaults.config.spring,org.jahia.exceptions,org.jahia.params.valves,org.
+ jahia.registries,org.jahia.security.license,org.jahia.services,org.jahi
+ a.services.channels,org.jahia.services.channels.filters,org.jahia.servi
+ ces.channels.providers,org.jahia.services.content,org.jahia.services.co
+ ntent.decorator,org.jahia.services.content.nodetypes,org.jahia.services
+ .content.nodetypes.initializers,org.jahia.services.content.nodetypes.re
+ nderer,org.jahia.services.content.rules,org.jahia.services.importexport
+ ,org.jahia.services.notification,org.jahia.services.query,org.jahia.ser
+ vices.render,org.jahia.services.scheduler,org.jahia.services.search,org
+ .jahia.services.sites,org.jahia.services.templates,org.jahia.services.t
+ ranslation,org.jahia.services.uicomponents.bean,org.jahia.services.uico
+ mponents.bean.contentmanager,org.jahia.services.uicomponents.bean.editm
+ ode,org.jahia.services.uicomponents.bean.toolbar,org.jahia.services.use
+ rmanager,org.jahia.services.workflow,org.jahia.services.workflow.jbpm,o
+ rg.jahia.services.workflow.jbpm.custom,org.jahia.taglibs;version="[6.7,
+ 7)",org.jahia.taglibs.facet;version="[6.7,7)",org.jahia.taglibs.functio
+ ns;version="[6.7,7)",org.jahia.taglibs.internal.date;version="[6.7,7)",
+ org.jahia.taglibs.jcr;version="[6.7,7)",org.jahia.taglibs.jcr.node;vers
+ ion="[6.7,7)",org.jahia.taglibs.jcr.query;version="[6.7,7)",org.jahia.t
+ aglibs.query;version="[6.7,7)",org.jahia.taglibs.search;version="[6.7,7
+ )",org.jahia.taglibs.template;version="[6.7,7)",org.jahia.taglibs.templ
+ ate.gwt;version="[6.7,7)",org.jahia.taglibs.template.include;version="[
+ 6.7,7)",org.jahia.taglibs.template.layoutmanager;version="[6.7,7)",org.
+ jahia.taglibs.template.pager;version="[6.7,7)",org.jahia.taglibs.uicomp
+ onents;version="[6.7,7)",org.jahia.taglibs.uicomponents.i18n;version="[
+ 6.7,7)",org.jahia.taglibs.uicomponents.image;version="[6.7,7)",org.jahi
+ a.taglibs.uicomponents.loginform;version="[6.7,7)",org.jahia.taglibs.ui
+ components.portlets;version="[6.7,7)",org.jahia.taglibs.uicomponents.us
+ er;version="[6.7,7)",org.jahia.taglibs.user;version="[6.7,7)",org.jahia
+ .taglibs.utility;version="[6.7,7)",org.jahia.taglibs.utility.constants;
+ version="[6.7,7)",org.jahia.taglibs.utility.i18n;version="[6.7,7)",org.
+ jahia.taglibs.utility.session;version="[6.7,7)",org.jahia.taglibs.utili
+ ty.siteproperties;version="[6.7,7)",org.jahia.taglibs.workflow;version=
+ "[6.7,7)",org.jahia.tools.files,org.jahia.utils,org.jbpm.api.activity,o
+ rg.joda.time;version="[1.6,2)",org.joda.time.base,org.joda.time.format;
+ version="[1.6,2)",org.json,org.osgi.framework;version="[1.6,2)",org.osg
+ i.service.http;version="[1.2,2)",org.osgi.util.tracker;version="[1.5,2)
+ ",org.quartz,org.slf4j;version="[1.6,2)",org.springframework.beans.fact
+ ory.config;version="[3.0,4)",org.springframework.beans.factory.xml;vers
+ ion="[3.0,4)",org.springframework.context.support;version="[3.0,4)",org
+ .springframework.orm.hibernate3.annotation;version="[3.0,4)",org.spring
+ framework.orm.hibernate3.support;version="[3.0,4)",org.springframework.
+ scheduling.quartz;version="[3.0,4)"
+Jahia-Depends: assets
+Jahia-Module-Type: system
+Jahia-Root-Folder: remotepublish
+Jahia-Source-Folders: /Users/loom/java/projects/jahia_dev/trunk/jahia_ee
+ /modules/remotepublish/war
+Jahia-Static-Resources: /css,/icons,/images,/img,/javascript
+Provide-Capability: com.jahia.services.content; nodetypes:List<String>="
+ jmix:remotelyPublished,jnt:remotePublication,jnt:remotePublications,jnt
+ :workflowRemotePublicationForm"
+Require-Capability: com.jahia.services.content; filter:="(nodetypes=jmix
+ :observable)",com.jahia.services.content; filter:="(nodetypes=jnt:permi
+ ssion)",com.jahia.services.content; filter:="(nodetypes=jnt:role)",com.
+ jahia.services.content; filter:="(nodetypes=jnt:roles)",com.jahia.servi
+ ces.content; filter:="(nodetypes=jnt:virtualsite)",com.jahia.services.c
+ ontent; filter:="(nodetypes=nt:base)"
+Specification-Title: Jahia Remote Publishing
+Specification-Vendor: Jahia Solutions Group SA
+Specification-Version: 6.7.0.0-SNAPSHOT
+Tool: Bnd-1.50.0
