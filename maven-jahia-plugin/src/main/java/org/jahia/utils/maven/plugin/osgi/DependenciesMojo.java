@@ -266,7 +266,7 @@ public class DependenciesMojo extends AbstractMojo {
                         propertiesOutputFile,
                         systemExtraCapabilitiesPropertyName,
                         extraCapabilitiesPropertyValue,
-                        getLog());
+                        new SLF4JLoggerToMojoLogBridge(getLog()));
             } catch (IOException e) {
                 getLog().warn("Error saving extra system capabilities to file " + propertiesOutputFile);
             }

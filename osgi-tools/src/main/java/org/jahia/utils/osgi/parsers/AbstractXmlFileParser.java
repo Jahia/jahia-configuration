@@ -1,7 +1,7 @@
 package org.jahia.utils.osgi.parsers;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.codehaus.plexus.util.FileUtils;
 import org.jahia.utils.osgi.PackageUtils;
 import org.jdom.Attribute;
 import org.jdom.Element;
@@ -28,7 +28,7 @@ public abstract class AbstractXmlFileParser extends AbstractFileParser {
             throws JDOMException;
 
     public boolean canParse(String fileName) {
-        String ext = FileUtils.getExtension(fileName).toLowerCase();
+        String ext = FilenameUtils.getExtension(fileName).toLowerCase();
         return "xml".equals(ext);
     }
 

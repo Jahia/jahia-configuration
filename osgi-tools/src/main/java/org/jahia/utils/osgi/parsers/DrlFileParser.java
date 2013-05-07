@@ -1,6 +1,6 @@
 package org.jahia.utils.osgi.parsers;
 
-import org.codehaus.plexus.util.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.jahia.utils.osgi.PackageUtils;
 
 import java.io.BufferedReader;
@@ -18,7 +18,7 @@ public class DrlFileParser extends AbstractFileParser {
     public static final Pattern RULE_IMPORT_PATTERN = Pattern.compile("^\\s*import\\s*([\\w.\\*]*)\\s*$");
 
     public boolean canParse(String fileName) {
-        String ext = FileUtils.getExtension(fileName).toLowerCase();
+        String ext = FilenameUtils.getExtension(fileName).toLowerCase();
         return "drl".equals(ext);
     }
 

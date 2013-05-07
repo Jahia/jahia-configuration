@@ -1,6 +1,6 @@
 package org.jahia.utils.osgi.parsers;
 
-import org.codehaus.plexus.util.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.jahia.utils.osgi.parsers.cnd.JahiaCndReader;
 import org.jahia.utils.osgi.parsers.cnd.NodeTypeRegistry;
 import org.jahia.utils.osgi.parsers.cnd.ParseException;
@@ -17,7 +17,7 @@ import java.io.InputStreamReader;
 public class CndFileParser extends AbstractFileParser {
 
     public boolean canParse(String fileName) {
-        String ext = FileUtils.getExtension(fileName).toLowerCase();
+        String ext = FilenameUtils.getExtension(fileName).toLowerCase();
         return "cnd".equals(ext);
     }
 

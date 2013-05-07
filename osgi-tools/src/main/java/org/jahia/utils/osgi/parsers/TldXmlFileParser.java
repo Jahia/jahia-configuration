@@ -1,7 +1,7 @@
 package org.jahia.utils.osgi.parsers;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.plexus.util.FileUtils;
 import org.jahia.utils.osgi.PackageUtils;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -18,7 +18,7 @@ public class TldXmlFileParser extends AbstractXmlFileParser {
 
     @Override
     public boolean canParse(String fileName) {
-        String ext = FileUtils.getExtension(fileName).toLowerCase();
+        String ext = FilenameUtils.getExtension(fileName).toLowerCase();
         return "tld".equals(ext);
     }
 

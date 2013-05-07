@@ -3,7 +3,7 @@ package org.jahia.utils.osgi;
 import asia.redact.bracket.properties.OutputAdapter;
 import asia.redact.bracket.properties.ValueModel;
 import org.apache.commons.io.IOUtils;
-import org.apache.maven.plugin.logging.Log;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.FileReader;
@@ -21,7 +21,7 @@ public class PropertyFileUtils {
                                    File propertiesOutputFile,
                                    String propertyFilePropertyName,
                                    String[] propertyValues,
-                                   Log logger) throws IOException {
+                                   Logger logger) throws IOException {
         if ((propertiesOutputFile != null) && (propertyValues.length > 0)) {
             asia.redact.bracket.properties.Properties frameworkProperties = null;
             if (propertiesInputFile != null && propertiesInputFile.exists()) {

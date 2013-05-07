@@ -1,8 +1,8 @@
 package org.jahia.utils.osgi.parsers;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.plexus.util.FileUtils;
 import org.jahia.utils.osgi.PackageUtils;
 
 import java.io.IOException;
@@ -21,7 +21,7 @@ public class JspFileParser extends AbstractFileParser {
     public static final Pattern JSP_TAGLIB_PATTERN = Pattern.compile("<%@.*taglib.*uri=\\\"(.*?)\\\".*%>");
 
     public boolean canParse(String fileName) {
-        String ext = FileUtils.getExtension(fileName).toLowerCase();
+        String ext = FilenameUtils.getExtension(fileName).toLowerCase();
         return "jsp".equals(ext) || "jspf".equals(ext);
     }
 

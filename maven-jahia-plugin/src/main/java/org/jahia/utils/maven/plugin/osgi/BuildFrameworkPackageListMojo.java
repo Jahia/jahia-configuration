@@ -10,6 +10,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.tika.io.IOUtils;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.eclipse.osgi.util.ManifestElement;
+import org.jahia.utils.maven.plugin.SLF4JLoggerToMojoLogBridge;
 import org.jahia.utils.osgi.PropertyFileUtils;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
@@ -321,7 +322,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                     propertiesOutputFile,
                     propertyFilePropertyName,
                     packageList.toArray(new String[packageList.size()]),
-                    getLog());
+                    new SLF4JLoggerToMojoLogBridge(getLog()));
         } catch (FileNotFoundException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (IOException e) {
