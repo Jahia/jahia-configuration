@@ -105,7 +105,6 @@
                 <configuration>
                     <instructions>
                         <Import-Package>
-                            com.sun.jdmk.comm;resolution:=optional,
                             javax.jms;resolution:=optional,
                             javax.mail.*;resolution:=optional,
                             javax.management;resolution:=optional,
