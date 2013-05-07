@@ -104,12 +104,19 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Import-Package>*,
-                            com.ibm.uvm.tools;resolution:=optional,
+                        <Import-Package>
                             com.sun.jdmk.comm;resolution:=optional,
-                            javax.jmdns;resolution:=optional,
+                            javax.jms;resolution:=optional,
+                            javax.mail.*;resolution:=optional,
+                            javax.management;resolution:=optional,
+                            javax.naming;resolution:=optional,
+                            com.sun.jdmk.comm;resolution:=optional,
+                            com.ibm.uvm.tools;resolution:=optional,
+                            javax.swing.*;resolution:=optional,
+                            *
                         </Import-Package>
-                        <Embed-Dependency>*; scope=compile; type=!pom; inline=true;artifactId=!jdom|bndlib</Embed-Dependency>
+                        <Embed-Dependency>*; scope=compile; type=!pom; inline=true;artifactId=!jdom|bndlib
+                        </Embed-Dependency>
                         <Embed-Transitive>true</Embed-Transitive>
                         <_removeheaders>
                             Include-Resource,
