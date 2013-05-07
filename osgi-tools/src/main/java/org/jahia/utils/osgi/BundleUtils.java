@@ -1,10 +1,10 @@
 package org.jahia.utils.osgi;
 
-import org.eclipse.osgi.util.ManifestElement;
-
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
@@ -25,32 +25,8 @@ public class BundleUtils {
      * @throws IOException
      */
     public static List<ManifestValueClause> getHeaderClauses(String headerName, String headerValue) throws IOException {
-        List<ManifestValueClause> headerClauses = new ArrayList<ManifestValueClause>();
-        try {
-            ManifestElement[] manifestElements = ManifestElement.parseHeader(headerName, headerValue);
-            for (ManifestElement manifestElement : manifestElements) {
-                Map<String,String> attributes = new HashMap<String,String>();
-                Enumeration<String> attributeKeyEnum = manifestElement.getKeys();
-                if (attributeKeyEnum != null) {
-                    while (attributeKeyEnum.hasMoreElements()) {
-                        String attributeKeyName = attributeKeyEnum.nextElement();
-                        attributes.put(attributeKeyName, manifestElement.getAttribute(attributeKeyName));
-                    }
-                }
-                Map<String,String> directives = new HashMap<String,String>();
-                Enumeration<String> directiveKeyEnum = manifestElement.getDirectiveKeys();
-                if (directiveKeyEnum != null) {
-                    while (directiveKeyEnum.hasMoreElements()) {
-                        String directiveKeyName = directiveKeyEnum.nextElement();
-                        directives.put(directiveKeyName, manifestElement.getDirective(directiveKeyName));
-                    }
-                }
-                headerClauses.add(new ManifestValueClause(Arrays.asList(manifestElement.getValueComponents()), attributes, directives));
-            }
-        } catch (Exception e) {
-            throw new IOException("Error processing bundle headers", e);
-        }
-        return headerClauses;
+        ManifestValueParser manifestValueParser = new ManifestValueParser(headerName, headerValue, true);
+        return manifestValueParser.getManifestValueClauses();
     }
 
     /**
