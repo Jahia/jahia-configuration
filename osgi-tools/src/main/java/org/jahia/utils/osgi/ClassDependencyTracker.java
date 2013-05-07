@@ -1,7 +1,9 @@
 package org.jahia.utils.osgi;
 
-import aQute.lib.osgi.Analyzer;
-import aQute.lib.osgi.Jar;
+import aQute.bnd.osgi.Analyzer;
+import aQute.bnd.osgi.Descriptors;
+import aQute.bnd.osgi.Jar;
+import aQute.bnd.osgi.Packages;
 
 import java.io.File;
 import java.io.IOException;
@@ -78,12 +80,12 @@ public class ClassDependencyTracker {
     }
 
     private static void dumpAnalyzerImports(File jarFile, Analyzer analyzer) {
-        Map<String, Map<String, String>> imports = analyzer.getImports();
+        Packages imports = analyzer.getImports();
         System.out.println("Imports for " + jarFile + ":");
         StringBuilder importBuffer = new StringBuilder();
-        Set<String> packageNames = new TreeSet<String>(imports.keySet());
-        for (String packageName : packageNames) {
-            importBuffer.append("- " + packageName);
+        Set<Descriptors.PackageRef> packageNames = new TreeSet<Descriptors.PackageRef>(imports.keySet());
+        for (Descriptors.PackageRef packageName : packageNames) {
+            importBuffer.append("- " + packageName.getFQN());
             for (Map.Entry<String, String> importEntryEntry : imports.get(packageName).entrySet()) {
                 importBuffer.append(";" + importEntryEntry.getKey() + "=\"" + importEntryEntry.getValue() + "\"");
             }
@@ -94,11 +96,14 @@ public class ClassDependencyTracker {
 
     public static Set<String> getUsedBy(Analyzer analyzer, String packageToFind) {
         Set<String> set = new TreeSet<String>();
-        for (Iterator<Map.Entry<String, Set<String>>> i = analyzer.getUses().entrySet().iterator(); i.hasNext(); ) {
-            Map.Entry<String, Set<String>> entry = i.next();
-            Set<String> used = entry.getValue();
-            if (used.contains(packageToFind))
-                set.add(entry.getKey());
+        for (Iterator<Map.Entry<Descriptors.PackageRef, List<Descriptors.PackageRef>>> i = analyzer.getUses().entrySet().iterator(); i.hasNext(); ) {
+            Map.Entry<Descriptors.PackageRef, List<Descriptors.PackageRef>> entry = i.next();
+            List<Descriptors.PackageRef> used = entry.getValue();
+            for (Descriptors.PackageRef packageRef : used) {
+                if (packageRef.getFQN().equals(packageToFind)) {
+                    set.add(entry.getKey().getFQN());
+                }
+            }
         }
         return set;
     }
