@@ -112,6 +112,7 @@
                             com.sun.jdmk.comm;resolution:=optional,
                             com.ibm.uvm.tools;resolution:=optional,
                             javax.swing.*;resolution:=optional,
+                            javax.jmdns;resolution:=optional,
                             *
                         </Import-Package>
                         <Embed-Dependency>*; scope=compile; type=!pom; inline=true;artifactId=!jdom|bndlib
