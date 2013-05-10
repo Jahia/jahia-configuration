@@ -258,17 +258,21 @@ public class PageService {
 		double nbKeywordsToGet = ((ContentGeneratorService.currentPageIndex + 1) * ratio) - nbOftenKeywordsAlreadyAssigned;
 		nbKeywordsToGet = Math.floor(nbKeywordsToGet);
 		
+
 		Set<String> keywords = new HashSet<String>();
-		int i = 1;
-		Random r = new Random();
-		while (i <= nbKeywordsToGet) {
-			int randomId = r.nextInt(nbKeywordsAvailable - 1);
-			boolean added = keywords.add(oftenUsedDescriptionWords.get(randomId));
-			if (added) {
-				i++;
+		if (nbKeywordsAvailable <= nbKeywordsToGet) {
+			keywords = new HashSet<String>(oftenUsedDescriptionWords);
+		} else {
+			int i = 1;
+			Random r = new Random();
+			while (i <= nbKeywordsToGet) {
+				int randomId = r.nextInt(nbKeywordsAvailable - 1);
+				boolean added = keywords.add(oftenUsedDescriptionWords.get(randomId));
+				if (added) {
+					i++;
+				}
 			}
 		}
-		
 		StringBuffer sb = new StringBuffer();
 		for (Iterator<String> iterator = keywords.iterator(); iterator.hasNext();) {
 			sb = sb.append(iterator.next() + " ");			
@@ -285,15 +289,18 @@ public class PageService {
 		double nbKeywordsToGet = ((ContentGeneratorService.currentPageIndex + 1) * ratio) - nbSeldomKeywordsAlreadyAssigned;
 		nbKeywordsToGet = Math.floor(nbKeywordsToGet);
 		
-		Set<String> keywords = new HashSet<String>();
-		int i = 1;
-		Random r = new Random();
-		while (i <= nbKeywordsToGet) {
-			int randomId = r.nextInt(nbKeywordsAvailable - 1);
-			boolean added = keywords.add(seldomUsedDescriptionWords.get(randomId));
-			if (added) {
-				i++;
-			}
+		Set<String> keywords = new HashSet<String>();if (nbKeywordsAvailable <= nbKeywordsToGet) {
+			keywords = new HashSet<String>(seldomUsedDescriptionWords);
+		} else {
+			int i = 1;
+			Random r = new Random();
+			while (i <= nbKeywordsToGet) {
+				int randomId = r.nextInt(nbKeywordsAvailable - 1);
+				boolean added = keywords.add(seldomUsedDescriptionWords.get(randomId));
+				if (added) {
+					i++;
+				}
+			}			
 		}
 		
 		StringBuffer sb = new StringBuffer();
