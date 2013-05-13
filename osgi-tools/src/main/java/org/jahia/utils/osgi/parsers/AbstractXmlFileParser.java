@@ -3,12 +3,12 @@ package org.jahia.utils.osgi.parsers;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.jahia.utils.osgi.PackageUtils;
-import org.jdom.Attribute;
-import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.Namespace;
-import org.jdom.input.SAXBuilder;
-import org.jdom.xpath.XPath;
+import org.jdom2.Attribute;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.Namespace;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.xpath.XPath;
 
 import java.io.*;
 import java.util.*;
@@ -45,7 +45,7 @@ public abstract class AbstractXmlFileParser extends AbstractFileParser {
             IOUtils.copy(inputStream, entryOutputStream);
             inputStreamCopy = new ByteArrayInputStream(entryOutputStream.toByteArray());
             InputStreamReader fileReader = new InputStreamReader(inputStreamCopy);
-            org.jdom.Document jdomDocument = saxBuilder.build(fileReader);
+            org.jdom2.Document jdomDocument = saxBuilder.build(fileReader);
             Element rootElement = jdomDocument.getRootElement();
             // getLog().debug("Parsed XML file" + fileName + " successfully.");
 

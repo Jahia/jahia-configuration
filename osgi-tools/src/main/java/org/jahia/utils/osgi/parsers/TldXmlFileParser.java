@@ -3,8 +3,8 @@ package org.jahia.utils.osgi.parsers;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jahia.utils.osgi.PackageUtils;
-import org.jdom.Element;
-import org.jdom.JDOMException;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
 
 import java.util.List;
 import java.util.Set;

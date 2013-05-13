@@ -1,7 +1,7 @@
 package org.jahia.utils.osgi.parsers;
 
-import org.jdom.Element;
-import org.jdom.JDOMException;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
 
 /**
  * Spring application context file parser

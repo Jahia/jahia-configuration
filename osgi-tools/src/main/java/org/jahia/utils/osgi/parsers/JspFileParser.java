@@ -19,6 +19,9 @@ public class JspFileParser extends AbstractFileParser {
 
     public static final Pattern JSP_PAGE_IMPORT_PATTERN = Pattern.compile("<%@.*page.*import=\\\"(.*?)\\\".*%>");
     public static final Pattern JSP_TAGLIB_PATTERN = Pattern.compile("<%@.*taglib.*uri=\\\"(.*?)\\\".*%>");
+    public static final Pattern IDEA_TYPE_HINT_PATTERN = Pattern.compile("<%\\s*--@elvariable.*type=\\\"(.*)\\\"\\s*--\\s*%>");
+    public static final Pattern JSP_USEBEAN_TAG_PATTERN = Pattern.compile("<jsp:useBean(.*)\\/>");
+    public static final Pattern TAG_ATTRIBUTES_PATTERN = Pattern.compile("((?:\\S:)?\\S*)\\s*=\\s*(?:\\\"|\\')([^\\\"\\']*)(?:\\\"|\\')");
 
     public boolean canParse(String fileName) {
         String ext = FilenameUtils.getExtension(fileName).toLowerCase();
@@ -28,6 +31,60 @@ public class JspFileParser extends AbstractFileParser {
     public boolean parse(String fileName, InputStream inputStream, ParsingContext parsingContext, boolean externalDependency) throws IOException {
         getLogger().debug("Processing JSP " + fileName + "...");
         String jspFileContent = IOUtils.toString(inputStream);
+
+        parsePageImport(parsingContext, jspFileContent);
+        parseIdeaTypeHint(parsingContext, jspFileContent);
+        parseJspUseBean(parsingContext, jspFileContent);
+        parseTaglib(fileName, parsingContext, jspFileContent);
+        return true;
+    }
+
+    private void parseJspUseBean(ParsingContext parsingContext, String jspFileContent) {
+        Matcher jspUseBeanTagMatcher = JSP_USEBEAN_TAG_PATTERN.matcher(jspFileContent);
+        while (jspUseBeanTagMatcher.find()) {
+            String useBeanAttributes = jspUseBeanTagMatcher.group(1);
+            Matcher tagAttributesMatcher = TAG_ATTRIBUTES_PATTERN.matcher(useBeanAttributes);
+            while (tagAttributesMatcher.find()) {
+                String attributeName = tagAttributesMatcher.group(1);
+                String attributeValue = tagAttributesMatcher.group(2);
+                if ("class".equals(attributeName) || "type".equals(attributeName)) {
+                    parsingContext.addPackageImport(PackageUtils.getPackageFromClass(attributeValue));
+                }
+            }
+        }
+    }
+
+    private void parseTaglib(String fileName, ParsingContext parsingContext, String jspFileContent) {
+        Matcher taglibUriMatcher = JSP_TAGLIB_PATTERN.matcher(jspFileContent);
+        while (taglibUriMatcher.find()) {
+            String taglibUri = taglibUriMatcher.group(1);
+            parsingContext.getTaglibUris().add(taglibUri);
+            if (!parsingContext.getTaglibPackages().containsKey(taglibUri)) {
+                Set<String> unresolvedUrisForJsp = parsingContext.getUnresolvedTaglibUris().get(fileName);
+                if (unresolvedUrisForJsp == null) {
+                    unresolvedUrisForJsp = new TreeSet<String>();
+                }
+                unresolvedUrisForJsp.add(taglibUri);
+                parsingContext.getUnresolvedTaglibUris().put(fileName, unresolvedUrisForJsp);
+            } else {
+                Set<String> taglibPackageSet = parsingContext.getTaglibPackages().get(taglibUri);
+                boolean externalTagLib = parsingContext.getExternalTaglibs().get(taglibUri);
+                if (externalTagLib) {
+                    parsingContext.addAllPackageImports(taglibPackageSet);
+                }
+            }
+        }
+    }
+
+    private void parseIdeaTypeHint(ParsingContext parsingContext, String jspFileContent) {
+        Matcher ideaTypeHintMatcher = IDEA_TYPE_HINT_PATTERN.matcher(jspFileContent);
+        while (ideaTypeHintMatcher.find()) {
+            String classImportString = ideaTypeHintMatcher.group(1);
+            parsingContext.addPackageImport(PackageUtils.getPackageFromClass(classImportString));
+        }
+    }
+
+    private void parsePageImport(ParsingContext parsingContext, String jspFileContent) {
         Matcher pageImportMatcher = JSP_PAGE_IMPORT_PATTERN.matcher(jspFileContent);
         while (pageImportMatcher.find()) {
             String classImportString = pageImportMatcher.group(1);
@@ -43,24 +100,5 @@ public class JspFileParser extends AbstractFileParser {
                 parsingContext.addPackageImport(PackageUtils.getPackageFromClass(classImportString));
             }
         }
-        Matcher taglibUriMatcher = JSP_TAGLIB_PATTERN.matcher(jspFileContent);
-        while (taglibUriMatcher.find()) {
-            String taglibUri = taglibUriMatcher.group(1);
-            parsingContext.getTaglibUris().add(taglibUri);
-            if (!parsingContext.getTaglibPackages().containsKey(taglibUri)) {
-                Set<String> unresolvedUrisForJsp = parsingContext.getUnresolvedTaglibUris().get(fileName);
-                if (unresolvedUrisForJsp == null) {
-                    unresolvedUrisForJsp = new TreeSet<String>();
-                }
-                parsingContext.getUnresolvedTaglibUris().put(fileName, unresolvedUrisForJsp);
-            } else {
-                Set<String> taglibPackageSet = parsingContext.getTaglibPackages().get(taglibUri);
-                boolean externalTagLib = parsingContext.getExternalTaglibs().get(taglibUri);
-                if (externalTagLib) {
-                    parsingContext.addAllPackageImports(taglibPackageSet);
-                }
-            }
-        }
-        return true;
     }
 }

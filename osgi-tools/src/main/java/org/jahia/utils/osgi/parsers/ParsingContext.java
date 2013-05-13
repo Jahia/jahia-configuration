@@ -79,16 +79,18 @@ public class ParsingContext {
             for (String singleUri : unresolvedTaglibUri.getValue()) {
                 if (taglibUris.contains(singleUri)) {
                     Set<String> taglibPackageSet = getTaglibPackages().get(singleUri);
-                    boolean externalTagLib = getExternalTaglibs().get(singleUri);
-                    if (externalTagLib) {
-                        addAllPackageImports(taglibPackageSet);
+                    if (taglibPackageSet != null) {
+                        boolean externalTagLib = getExternalTaglibs().get(singleUri);
+                        if (externalTagLib) {
+                            addAllPackageImports(taglibPackageSet);
+                        }
+                        Set<String> resolvedUrisForJsp = resolvedUris.get(unresolvedTaglibUri.getKey());
+                        if (resolvedUrisForJsp == null) {
+                            resolvedUrisForJsp = new TreeSet<String>();
+                        }
+                        resolvedUrisForJsp.add(singleUri);
+                        resolvedUris.put(unresolvedTaglibUri.getKey(), resolvedUrisForJsp);
                     }
-                    Set<String> resolvedUrisForJsp = resolvedUris.get(unresolvedTaglibUri.getKey());
-                    if (resolvedUrisForJsp == null) {
-                        resolvedUrisForJsp = new TreeSet<String>();
-                    }
-                    resolvedUrisForJsp.add(singleUri);
-                    resolvedUris.put(unresolvedTaglibUri.getKey(), resolvedUrisForJsp);
                 }
             }
         }
@@ -102,5 +104,20 @@ public class ParsingContext {
                 }
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("ParsingContext{\n");
+        sb.append("  packageImports=").append(packageImports).append("\n");
+        sb.append("  taglibUris=").append(taglibUris).append("\n");
+        sb.append("  unresolvedTaglibUris=").append(unresolvedTaglibUris).append("\n");
+        sb.append("  taglibPackages=").append(taglibPackages).append("\n");
+        sb.append("  externalTaglibs=").append(externalTaglibs).append("\n");
+        sb.append("  contentTypeDefinitions=").append(contentTypeDefinitions).append("\n");
+        sb.append("  contentTypeReferences=").append(contentTypeReferences).append("\n");
+        sb.append("  projectPackages=").append(projectPackages).append("\n");
+        sb.append('}');
+        return sb.toString();
     }
 }
