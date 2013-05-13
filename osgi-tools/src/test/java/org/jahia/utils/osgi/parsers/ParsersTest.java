@@ -28,15 +28,19 @@ public class ParsersTest {
         File jspFile = new File(tmpDirTestLocation, "test.jsp");
         File ruleFile = new File(tmpDirTestLocation, "rules.drl");
         File functionsTagLibFile = new File(tmpDirTestLocation, "functions.tld");
+        File jPDLWorkflowDefFile = new File(tmpDirTestLocation, "translation.jpdl.xml");
+
         copyClassLoaderResourceToFile("org/jahia/utils/osgi/parsers/cnd/definitions.cnd", cndDefinitionsFile);
         copyClassLoaderResourceToFile("org/jahia/utils/osgi/parsers/test.jsp", jspFile);
         copyClassLoaderResourceToFile("org/jahia/utils/osgi/parsers/rules.drl", ruleFile);
         copyClassLoaderResourceToFile("org/jahia/utils/osgi/parsers/functions.tld", functionsTagLibFile);
+        copyClassLoaderResourceToFile("org/jahia/utils/osgi/parsers/translation.jpdl.xml", jPDLWorkflowDefFile);
 
         parseFile(cndDefinitionsFile.getName(), new FileInputStream(cndDefinitionsFile), parsingContext, false, logger);
         parseFile(jspFile.getName(), new FileInputStream(jspFile), parsingContext, false, logger);
         parseFile(ruleFile.getName(), new FileInputStream(ruleFile), parsingContext, false, logger);
         parseFile(functionsTagLibFile.getName(), new FileInputStream(functionsTagLibFile), parsingContext, true, logger);
+        parseFile(jPDLWorkflowDefFile.getName(), new FileInputStream(jPDLWorkflowDefFile), parsingContext, true, logger);
 
         parsingContext.postProcess();
 
@@ -55,6 +59,9 @@ public class ParsersTest {
 
         // from the rules DRL file
         Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.services.content.rules"));
+
+        // from the jBPM jPDL Workflow definition file
+        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.services.workflow.jbpm"));
 
         // from the content definition file (definitions.cnd)
         Assert.assertTrue("Missing content type definition", parsingContext.getContentTypeDefinitions().contains("test:versionable"));
