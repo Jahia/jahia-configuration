@@ -97,14 +97,6 @@ public class PackageModuleImportsMojo extends AbstractMojo {
     protected MavenProject project;
 
     /**
-     * If set to true the goal will be executed only if the current project is a Jahia module project with 'bundle' or 'war' packaging. Otherwise the
-     * goal will be skipped.
-     * 
-     * @parameter default-value="true"
-     */
-    protected boolean requiresModuleProject;
-
-    /**
      * The directory to find files in (default is basedir)
      * 
      * @parameter default-value="${basedir}/src/main/import"
@@ -119,16 +111,6 @@ public class PackageModuleImportsMojo extends AbstractMojo {
     protected boolean verbose;
 
     public void execute() throws MojoExecutionException, MojoFailureException {
-        if (requiresModuleProject
-                && (!"war".equals(project.getPackaging()) && !"bundle".equals(project.getPackaging()) && !"jar".equals(project.getPackaging()) || (!project
-                        .getGroupId().equals("org.jahia.modules") && !project.getGroupId().endsWith(".jahia.modules")))) {
-            getLog().info(
-                    "Current project should have 'bundle'/'jar' packaging type"
-                            + " and be a Jahia module project to be able to execute this goal."
-                            + " Skipping package-imports task.");
-            return;
-        }
-
         if (src == null || !src.exists() || !src.isDirectory()) {
             getLog().info(
                     "Folder " + src + " does not exist."
