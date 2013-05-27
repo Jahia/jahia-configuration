@@ -80,10 +80,9 @@ public class Native2AsciiMojo extends AbstractMojo {
     protected String ext;
 
     /**
-     * The native encoding the files are in (default is the default encoding for
-     * the JVM)
+     * The native encoding the files are in (default is ISO-8859-1)
      * 
-     * @parameter
+     * @parameter default-value="ISO-8859-1"
      */
     protected String encoding;
 
