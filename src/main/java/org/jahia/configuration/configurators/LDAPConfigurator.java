@@ -104,8 +104,8 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
         Namespace ns = rootElement.getNamespace();
 
         // configure ldap file
-        configure("JahiaUserManagerLDAPProvider", userProps, rootElement);
-        configure("JahiaGroupManagerLDAPProvider", groupProps, rootElement);
+        configure("JahiaUserManagerProvider", userProps, rootElement);
+        configure("JahiaGroupManagerProvider", groupProps, rootElement);
 
         Format customFormat = Format.getPrettyFormat();
         customFormat.setLineSeparator(System.getProperty("line.separator"));
@@ -124,7 +124,7 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
                     "console"));
         }
         // let's generate the WAR file
-        File targetFile = new File(tempDirectory, "ldap-config.war");
+        File targetFile = new File(tempDirectory, "ldap-config.jar");
         archiver.setManifest(targetManifestFile);
         archiver.setDestFile(targetFile);
         String excludes = null;

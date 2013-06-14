@@ -1,16 +1,24 @@
 Manifest-Version: 1.0
-Archiver-Version: Plexus Archiver
-Created-By: Apache Maven
-Built-By: loom
-Build-Jdk: 1.6.0_24
-Implementation-Title: ldap-config
-Implementation-URL: http://www.jahia.org
-Implementation-Vendor: Jahia
-Implementation-Vendor-Id: jahia
-Implementation-Version: 1.0
-Specification-Title: ldap-config
-Specification-Vendor: Jahia
-Specification-Version: 1.0
-depends: Jahia LDAP connector
-package-name: ldap-config
-root-folder: ldap-config
+Build-Jdk: 1.6.0_41
+Built-By: Jahia Solutions Group SA
+Bundle-Category: jahia-module
+Bundle-Description: LDAP user/group provider for Jahia xCM
+Bundle-DocURL: http://www.jahia.com
+Bundle-ManifestVersion: 2
+Bundle-Name: LDAP user/group provider configuration
+Bundle-SymbolicName: ldap-config
+Bundle-Vendor: Jahia Solutions Group SA
+Bundle-Version: 2.0.0
+Created-By: Apache Maven Bundle Plugin
+Implementation-Title: LDAP user/group provider configuration
+Implementation-URL: http://www.jahia.com
+Implementation-Vendor: Jahia Solutions Group SA
+Implementation-Version: 2.0.0
+Import-Package: org.jahia.defaults.config.spring,
+ org.jahia.services.usermanager.ldap
+Jahia-Depends: ldap
+Jahia-Module-Type: system
+Jahia-Root-Folder: ldap-config
+Specification-Title: LDAP Configuration
+Specification-Vendor: Jahia Solutions Group SA
+Specification-Version: 2.0.0

@@ -22,10 +22,10 @@ public class LDAPConfiguratorTest extends AbstractXMLConfiguratorTestCase {
             ldapConfigurator.updateConfiguration(null, targetFolder.getPath());
     
             // @todo we should validate the generated WAR file here.
-            JarFile jarFile = new JarFile(new File(targetFolder, "ldap-config.war"));
+            JarFile jarFile = new JarFile(new File(targetFolder, "ldap-config.jar"));
             try {
                 Manifest manifest = jarFile.getManifest();
-                assertEquals("LDAP configuration WAR should depend on LDAP connector module", manifest.getMainAttributes().getValue("depends"), "Jahia LDAP connector");
+                assertEquals("LDAP configuration WAR should depend on LDAP connector module", manifest.getMainAttributes().getValue("Jahia-Depends"), "ldap");
             } finally {
                 jarFile.close();
             }
