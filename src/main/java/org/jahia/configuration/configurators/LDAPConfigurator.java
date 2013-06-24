@@ -36,6 +36,7 @@ package org.jahia.configuration.configurators;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
+import org.codehaus.plexus.util.PropertyUtils;
 import org.jdom.Attribute;
 import org.jdom.Comment;
 import org.jdom.Document;
@@ -48,13 +49,8 @@ import org.jdom.output.XMLOutputter;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
 /**
  * LDAP configurator that generate a module WAR configured to the ldap properties
@@ -62,7 +58,7 @@ import java.util.Map;
  * Date: 19.04.11
  * Time: 15:54
  */
-public class LDAPConfigurator extends AbstractXMLConfigurator {
+public class LDAPConfigurator extends AbstractConfigurator {
 
     public LDAPConfigurator(Map dbProps, JahiaConfigInterface jahiaConfigInterface) {
         super(dbProps, jahiaConfigInterface);
@@ -80,103 +76,42 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
             return;
         }
 
-        File destFile = null;
-        File tempDirectory = null;
-        File ldapConfigDirectory = null;
-        File targetManifestFile = null;
-        tempDirectory = FileUtils.getTempDirectory();
-        ldapConfigDirectory = new File(tempDirectory, "ldap-config");
-        ldapConfigDirectory.mkdir();
-        File metainfDir = new File(ldapConfigDirectory, "META-INF");
-        metainfDir.mkdir();
-        File springDir = new File(metainfDir, "spring");
-        springDir.mkdir();
-        destFile = new File(springDir, "applicationcontext-ldap-config.xml");
-        // copy MANIFEST file.
-        InputStream manifestStream = this.getClass().getClassLoader().getResourceAsStream("ldap/META-INF/MANIFEST.MF");
-        targetManifestFile = new File(metainfDir, "MANIFEST.MF");
-        FileUtils.copyInputStreamToFile(manifestStream, targetManifestFile);
-
-        SAXBuilder saxBuilder = new SAXBuilder();
-        InputStream skeletonContextStream = this.getClass().getClassLoader().getResourceAsStream("ldap/META-INF/spring/applicationcontext-ldap-config.xml");
-        Document jdomDocument = saxBuilder.build(skeletonContextStream);
-        Element rootElement = jdomDocument.getRootElement();
-        Namespace ns = rootElement.getNamespace();
-
-        // configure ldap file
-        configure("JahiaUserManagerProvider", userProps, rootElement);
-        configure("JahiaGroupManagerProvider", groupProps, rootElement);
-
-        Format customFormat = Format.getPrettyFormat();
-        customFormat.setLineSeparator(System.getProperty("line.separator"));
-        XMLOutputter xmlOutputter = new XMLOutputter(customFormat);
-        FileWriter fw = new FileWriter(destFile);
-        try {
-            xmlOutputter.output(jdomDocument, fw);
-        } finally {
-            IOUtils.closeQuietly(fw);
+        Properties ldapProperties = new SortedProperties();
+        InputStream skeletonStream = this.getClass().getClassLoader().getResourceAsStream("ldap/org.jahia.services.usermanager.ldap-config.cfg");
+        ldapProperties.load(skeletonStream);
+        for (String key : userProps.keySet()) {
+            ldapProperties.setProperty("user." + key, userProps.get(key));
         }
-
-        boolean verbose = true;
-        JarArchiver archiver = new JarArchiver();
-        if (verbose) {
-            archiver.enableLogging(new ConsoleLogger(Logger.LEVEL_DEBUG,
-                    "console"));
+        for (String key : groupProps.keySet()) {
+            ldapProperties.setProperty("group." + key, groupProps.get(key));
         }
-        // let's generate the WAR file
-        File targetFile = new File(tempDirectory, "ldap-config.jar");
-        archiver.setManifest(targetManifestFile);
-        archiver.setDestFile(targetFile);
-        String excludes = null;
-
-        archiver.addDirectory(ldapConfigDirectory, null,
-                excludes != null ? excludes.split(",") : null);
-        archiver.createArchive();
-
-        // copy the WAR file to the deployment directory
-        FileUtils.copyFileToDirectory(targetFile, new File(destFileName));
-
-        FileUtils.deleteDirectory(ldapConfigDirectory);
-        targetFile.delete();
+        File destFile = new File(destFileName);
+        if (!destFile.exists()) {
+            destFile.mkdir();
+        }
+        ldapProperties.store(new FileOutputStream(new File(destFile, "org.jahia.services.usermanager.ldap-config.cfg")), null);
     }
 
-    private void configure(String provider, Map<String, String> props,
-            Element root) throws JDOMException, IOException {
-        if (props != null && !props.isEmpty()) {
-            // setup user LDAP
-            Element map = getElement(root, "/xp:beans/xp:bean[@parent=\""
-                    + provider
-                    + "\"]/xp:property[@name=\"ldapProperties\"]/xp:map");
-            if (map != null) {
-                Namespace ns = root.getNamespace();
-                XMLOutputter xmlOutputter = new XMLOutputter(Format.getRawFormat());
-                StringWriter out = new StringWriter(64);
-                Map<String, String> ldapProps = new HashMap<String, String>(props);
-                for (Element element : getElements(map, "xp:entry")) {
-                    Attribute key = element.getAttribute("key");
-                    if (ldapProps.containsKey(key)) {
-                        element.setAttribute("value", ldapProps.get(key));
-                        ldapProps.remove(key);
-                    } else {
-                        // comment it out
-                        int pos = map.indexOf(element);
-                        map.removeContent(element);
-                        element.setNamespace(Namespace.NO_NAMESPACE);
-                        xmlOutputter.output(element, out);
-                        map.addContent(pos, new Comment(out.getBuffer().toString()));
-                        out.getBuffer().delete(0, out.getBuffer().length());
-                    }
-                }
-                
-                for (Map.Entry<String, String> prop : ldapProps.entrySet()) {
-                        map.addContent(new Element("entry", ns).setAttribute(
-                                "key", prop.getKey()).setAttribute("value",
-                                prop.getValue()));
-                }
-            }
-        } else {
-            removeElementIfExists(root, "/xp:beans/xp:bean[@parent=\""
-                    + provider + "\"]");
+    public class SortedProperties extends Properties {
+
+        public SortedProperties() {
+        }
+
+        public SortedProperties(Properties defaults) {
+            super(defaults);
+        }
+
+        private final TreeSet<Object> keys = new TreeSet<Object>();
+
+        public Set<Object> keySet() { return keys; }
+
+        public Enumeration<Object> keys() {
+            return Collections.<Object> enumeration(keys);
+        }
+
+        public Object put(Object key, Object value) {
+            keys.add(key);
+            return super.put(key, value);
         }
     }
 }
