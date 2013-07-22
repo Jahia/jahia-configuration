@@ -189,50 +189,72 @@ public abstract class AbstractXmlFileParser extends AbstractFileParser {
         return nodes;
     }
 
+    /**
+     * Use an array of XPath queries to extract class name, package or content type references from
+     * a JDOM document.
+     *
+     * @param fileName               the name of the file (mostly used for logging)
+     * @param root                   the root element to search the DOM
+     * @param classNameReferences    if true, indicates that the queries reference class names, if false
+     *                               we check the value of packageReferences parameter. If both are false
+     *                               we assume we are dealing with content node types
+     * @param packageReferences      if true, indicates that the queries reference package names, if false
+     *                               and classNameReferences is also false, we assume we are searching for
+     *                               content node types
+     * @param xPathQueries           the XPath queries to execute to extract the references
+     * @param defaultNamespacePrefix the default namespace prefix to use for the XPath queries
+     * @param parsingContext         the context in which we will store the references, depending on the type
+     *                               of references we are parsing.
+     * @throws JDOMException
+     */
     public void getRefsUsingXPathQueries(String fileName, Element root,
-                                          boolean packageReferences,
-                                          String[] xPathQueries, String defaultNamespacePrefix,
-                                          ParsingContext parsingContext) throws JDOMException {
+                                         boolean classNameReferences,
+                                         boolean packageReferences,
+                                         String[] xPathQueries, String defaultNamespacePrefix,
+                                         ParsingContext parsingContext) throws JDOMException {
         for (String xPathQuery : xPathQueries) {
             Set<String> missingPrefixes = getMissingQueryPrefixes(root, xPathQuery);
             if (missingPrefixes.size() > 0) {
                 getLogger().debug(fileName + ": xPath query " + xPathQuery + " cannot be executed on this file since it has prefixes not declared in the file: " + missingPrefixes);
                 continue;
             }
-            List<Object> classObjects = getNodes(root, xPathQuery, defaultNamespacePrefix);
-            for (Object classObject : classObjects) {
+            List<Object> referenceObjects = getNodes(root, xPathQuery, defaultNamespacePrefix);
+            for (Object referenceObject : referenceObjects) {
                 String referenceValue = null;
-                if (classObject instanceof Attribute) {
-                    referenceValue = ((Attribute) classObject).getValue();
-                } else if (classObject instanceof Element) {
-                    referenceValue = ((Element) classObject).getTextTrim();
+                if (referenceObject instanceof Attribute) {
+                    referenceValue = ((Attribute) referenceObject).getValue();
+                } else if (referenceObject instanceof Element) {
+                    referenceValue = ((Element) referenceObject).getTextTrim();
                 } else {
-                    getLogger().warn(fileName + ": xPath query" + xPathQuery + " return unknown XML node type " + classObject + "...");
+                    getLogger().warn(fileName + ": xPath query" + xPathQuery + " return unknown XML node type " + referenceObject + "...");
                 }
                 if (referenceValue != null) {
-                        if (packageReferences) {
-                            getLogger().debug(fileName + " Found class " + referenceValue + " package=" + PackageUtils.getPackageFromClass(referenceValue));
-                            parsingContext.addPackageImport(PackageUtils.getPackageFromClass(referenceValue));
-                        } else {
-                            if (referenceValue.contains(" ")) {
-                                getLogger().debug(fileName + "Found multi-valued reference: " + referenceValue);
-                                String[] referenceValueArray = referenceValue.split(" ");
-                                for (String reference : referenceValueArray) {
-                                    getLogger().debug(fileName + " Found content type " + referenceValue + " reference");
-                                    parsingContext.getContentTypeReferences().add(reference);
-                                }
-                            } else if (referenceValue.contains(",")) {
-                                getLogger().debug(fileName + "Found multi-valued reference: " + referenceValue);
-                                String[] referenceValueArray = referenceValue.split(",");
-                                for (String reference : referenceValueArray) {
-                                    getLogger().debug(fileName + " Found content type " + referenceValue + " reference");
-                                    parsingContext.getContentTypeReferences().add(reference);
-                                }
-                            } else {
+                    if (classNameReferences) {
+                        getLogger().debug(fileName + " Found class " + referenceValue + " package=" + PackageUtils.getPackageFromClass(referenceValue));
+                        parsingContext.addPackageImport(PackageUtils.getPackageFromClass(referenceValue));
+                    } else if (packageReferences) {
+                        getLogger().debug(fileName + " Found package=" + referenceValue);
+                        parsingContext.addPackageImport(referenceValue);
+                    } else {
+                        if (referenceValue.contains(" ")) {
+                            getLogger().debug(fileName + "Found multi-valued reference: " + referenceValue);
+                            String[] referenceValueArray = referenceValue.split(" ");
+                            for (String reference : referenceValueArray) {
                                 getLogger().debug(fileName + " Found content type " + referenceValue + " reference");
-                                parsingContext.getContentTypeReferences().add(referenceValue);
+                                parsingContext.getContentTypeReferences().add(reference);
                             }
+                        } else if (referenceValue.contains(",")) {
+                            getLogger().debug(fileName + "Found multi-valued reference: " + referenceValue);
+                            String[] referenceValueArray = referenceValue.split(",");
+                            for (String reference : referenceValueArray) {
+                                getLogger().debug(fileName + " Found content type " + referenceValue + " reference");
+                                parsingContext.getContentTypeReferences().add(reference);
+                            }
+                        } else {
+                            getLogger().debug(fileName + " Found content type " + referenceValue + " reference");
+                            parsingContext.getContentTypeReferences().add(referenceValue);
                         }
+                    }
                 }
             }
         }

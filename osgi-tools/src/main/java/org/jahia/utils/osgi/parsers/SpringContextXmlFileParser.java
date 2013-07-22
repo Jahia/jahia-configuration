@@ -8,7 +8,7 @@ import org.jdom2.JDOMException;
  */
 public class SpringContextXmlFileParser extends AbstractXmlFileParser {
 
-    private final static String[] SPRING_XPATH_QUERIES = {
+    private final static String[] SPRING_XPATH_CLASSNAME_QUERIES = {
             "//beans:bean/@class",
             "//aop:declare-parents/@implement-interface",
             "//aop:declare-parents/@default-impl",
@@ -37,6 +37,10 @@ public class SpringContextXmlFileParser extends AbstractXmlFileParser {
             "//context:component-scan/@base-package",
     };
 
+    private final static String[] SPRING_XPATH_PACKAGE_QUERIES = {
+            "//context:component-scan/@base-package",
+    };
+
     @Override
     public boolean canParse(String fileName, Element rootElement) {
         return hasNamespaceURI(rootElement, "http://www.springframework.org/schema/beans");
@@ -46,6 +50,7 @@ public class SpringContextXmlFileParser extends AbstractXmlFileParser {
     public void parse(String fileName, Element rootElement, ParsingContext parsingContext, boolean externalDependency) throws JDOMException {
         getLogger().debug("Processing Spring context file " + fileName + "...");
 
-        getRefsUsingXPathQueries(fileName, rootElement, true, SPRING_XPATH_QUERIES, "beans", parsingContext);
+        getRefsUsingXPathQueries(fileName, rootElement, true, false, SPRING_XPATH_CLASSNAME_QUERIES, "beans", parsingContext);
+        getRefsUsingXPathQueries(fileName, rootElement, false, true, SPRING_XPATH_PACKAGE_QUERIES, "beans", parsingContext);
     }
 }
