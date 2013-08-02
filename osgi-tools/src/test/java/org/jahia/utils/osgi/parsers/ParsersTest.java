@@ -73,9 +73,12 @@ public class ParsersTest {
     }
 
     private void parseFile(String fileName, InputStream inputStream, ParsingContext parsingContext, boolean externalDependency, Logger logger) throws IOException {
+        try {
         Parsers.getInstance().parse(0, fileName, inputStream, parsingContext, externalDependency, logger);
         Parsers.getInstance().parse(1, fileName, inputStream, parsingContext, externalDependency, logger);
-
+        } finally {
+            IOUtils.closeQuietly(inputStream);
+        }
     }
 
     private void copyClassLoaderResourceToFile(String resourcePath, File manifestFile) throws IOException {
