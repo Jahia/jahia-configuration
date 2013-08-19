@@ -33,24 +33,17 @@
 
 package org.jahia.configuration.configurators;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.codehaus.plexus.archiver.jar.JarArchiver;
-import org.codehaus.plexus.util.PropertyUtils;
-import org.jdom.Attribute;
-import org.jdom.Comment;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.Namespace;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.Format;
-import org.jdom.output.XMLOutputter;
-import org.codehaus.plexus.logging.Logger;
-import org.codehaus.plexus.logging.console.ConsoleLogger;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
 
-import java.io.*;
-import java.util.*;
+import org.apache.commons.io.IOUtils;
 
 /**
  * LDAP configurator that generate a module WAR configured to the ldap properties
@@ -78,7 +71,11 @@ public class LDAPConfigurator extends AbstractConfigurator {
 
         Properties ldapProperties = new SortedProperties();
         InputStream skeletonStream = this.getClass().getClassLoader().getResourceAsStream("ldap/org.jahia.services.usermanager.ldap-config.cfg");
-        ldapProperties.load(skeletonStream);
+        try {
+            ldapProperties.load(skeletonStream);
+        } finally {
+            IOUtils.closeQuietly(skeletonStream);
+        }
         for (String key : userProps.keySet()) {
             ldapProperties.setProperty("user." + key, userProps.get(key));
         }
@@ -89,10 +86,17 @@ public class LDAPConfigurator extends AbstractConfigurator {
         if (!destFile.exists()) {
             destFile.mkdir();
         }
-        ldapProperties.store(new FileOutputStream(new File(destFile, "org.jahia.services.usermanager.ldap-config.cfg")), null);
+        FileOutputStream out = new FileOutputStream(new File(destFile, "org.jahia.services.usermanager.ldap-config.cfg"));
+        try {
+            ldapProperties.store(out, null);
+        } finally {
+            IOUtils.closeQuietly(out);
+        }
     }
 
     public class SortedProperties extends Properties {
+
+        private static final long serialVersionUID = -6967227749388633813L;
 
         public SortedProperties() {
         }

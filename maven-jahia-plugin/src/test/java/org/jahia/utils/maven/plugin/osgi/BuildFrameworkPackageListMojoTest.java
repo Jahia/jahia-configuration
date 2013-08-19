@@ -52,14 +52,19 @@ public class BuildFrameworkPackageListMojoTest {
         manifestFile.delete();
         propertiesInputFile.delete();
         Properties properties = new Properties();
-        properties.load(new FileReader(propertiesOutputFile));
+        FileReader reader = new FileReader(propertiesOutputFile);
+        try {
+            properties.load(reader);
+        } finally {
+            IOUtils.closeQuietly(reader);
+        }
         String systemPackagePropValue = properties.getProperty(mojo.propertyFilePropertyName);
         Assert.assertTrue("Couldn't find system package list property value ", systemPackagePropValue != null);
         Assert.assertTrue("System package list should not end with comma", systemPackagePropValue.charAt(systemPackagePropValue.length() - 1) != ',');
         ManifestElement[] manifestElements = ManifestElement.parseHeader("Export-Package", systemPackagePropValue);
         for (ManifestElement manifestElement : manifestElements) {
             String[] packageNames = manifestElement.getValueComponents();
-            String version = manifestElement.getAttribute("version");
+            manifestElement.getAttribute("version");
             for (String packageName : packageNames) {
                 Assert.assertTrue("Package should have been excluded", !packageName.contains("groovy.grape"));
                 Assert.assertTrue("Package should have been excluded", !packageName.contains("javax.servlet.jsp"));
@@ -78,12 +83,12 @@ public class BuildFrameworkPackageListMojoTest {
     }
 
     private void copyClassLoaderResourceToFile(String resourcePath, File manifestFile) throws IOException {
-        FileOutputStream out = new FileOutputStream(manifestFile);
         InputStream in = this.getClass().getClassLoader().getResourceAsStream(resourcePath);
         if (in == null) {
             System.out.println("Couldn't find input class loader resource " + resourcePath);
             return;
         }
+        FileOutputStream out = new FileOutputStream(manifestFile);
         try {
             IOUtils.copy(in, out);
         } finally {
