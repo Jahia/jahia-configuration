@@ -11,7 +11,6 @@ jahia.database.schemascriptdir = sql/schema/oracle
 jahia.database.popuplationscriptdir = sql/population
 jahia.database.datasource = jdbc/jahia
 jahia.database.hibernate.dialect = org.hibernate.dialect.Oracle9Dialect
-jahia.nested_transaction_allowed = false
 jahia.quartz.jdbcDelegate = org.quartz.impl.jdbcjobstore.oracle.OracleDelegate
 jahia.quartz.serializable = false
 #jahia.jackrabbit.persistence = org.apache.jackrabbit.core.persistence.bundle.MyOraclePersistenceManager

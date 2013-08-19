@@ -96,7 +96,6 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
             }
         }
         properties.setProperty("hibernate.dialect", getDBProperty("jahia.database.hibernate.dialect"));
-        properties.setProperty("nested.transaction.allowed", getDBProperty("jahia.nested_transaction_allowed"));
         
         if (jahiaConfigInterface.getJahiaProperties() != null) {
             for (Map.Entry<String, String> entry : jahiaConfigInterface.getJahiaProperties().entrySet()) {
