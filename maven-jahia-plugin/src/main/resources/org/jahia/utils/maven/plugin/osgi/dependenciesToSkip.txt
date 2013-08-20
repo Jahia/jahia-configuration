@@ -20,6 +20,7 @@ com.googlecode.mp4parser:isoparser:jar:1.0-RC-1
 com.ibm.icu:icu4j:jar:4.0.1
 com.microsoft.sqlserver:sqljdbc4:jar
 com.oracle:ojdbc5:jar
+com.oracle:ojdbc6:jar
 com.oracle:orai18n:jar
 com.phloc:phloc-commons:jar:jdk5:3.6.0
 com.phloc:phloc-css:jar:jdk5:3.0.0
@@ -163,8 +164,8 @@ org.apache.solr:solr-commons-csv:jar:3.1.0
 org.apache.solr:solr-core:jar:3.1.0
 org.apache.solr:solr-noggit:jar:3.1.0
 org.apache.solr:solr-solrj:jar:3.1.0
-org.apache.tika:tika-core:jar:1.2
-org.apache.tika:tika-parsers:jar:1.2
+org.apache.tika:tika-core:jar
+org.apache.tika:tika-parsers:jar
 org.apache.velocity:velocity:jar:1.6.4
 org.apache.ws.commons.axiom:axiom-api:jar:1.2.2
 org.apache.ws.commons.axiom:axiom-impl:jar:1.2.2
