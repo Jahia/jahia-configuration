@@ -17,8 +17,8 @@ import java.util.regex.Pattern;
  */
 public class JspFileParser extends AbstractFileParser {
 
-    public static final Pattern JSP_PAGE_IMPORT_PATTERN = Pattern.compile("<%@.*page.*import=\\\"(.*?)\\\".*%>");
-    public static final Pattern JSP_TAGLIB_PATTERN = Pattern.compile("<%@.*taglib.*uri=\\\"(.*?)\\\".*%>");
+    public static final Pattern JSP_PAGE_IMPORT_PATTERN = Pattern.compile("<%@\\s*page[^%]*\\simport=\"([^%\"]*)\"[^%]*%>");
+    public static final Pattern JSP_TAGLIB_PATTERN = Pattern.compile("<%@\\s*taglib[^%]*\\suri=\"([^%\"]*)\"[^%]*%>");
     public static final Pattern IDEA_TYPE_HINT_PATTERN = Pattern.compile("<%\\s*--@elvariable.*type=\\\"(.*)\\\"\\s*--\\s*%>");
     public static final Pattern JSP_USEBEAN_TAG_PATTERN = Pattern.compile("<jsp:useBean(.*)\\/>");
     public static final Pattern TAG_ATTRIBUTES_PATTERN = Pattern.compile("((?:\\S:)?\\S*)\\s*=\\s*(?:\\\"|\\')([^\\\"\\']*)(?:\\\"|\\')");

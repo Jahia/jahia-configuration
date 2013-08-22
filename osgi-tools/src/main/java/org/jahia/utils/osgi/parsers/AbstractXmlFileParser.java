@@ -71,7 +71,6 @@ public abstract class AbstractXmlFileParser extends AbstractFileParser {
         if (element.getNamespace().getURI().equals(namespaceURI)) {
             return true;
         }
-        @SuppressWarnings("unchecked")
         List<Namespace> additionalNamespaces = (List<Namespace>) element.getAdditionalNamespaces();
         for (Namespace additionalNamespace : additionalNamespaces) {
             //getLog().debug("Additional namespace URI=" + additionalNamespace.getURI());
@@ -95,7 +94,6 @@ public abstract class AbstractXmlFileParser extends AbstractFileParser {
      * @return the first element that matches the XPath expression, or null if no element matches.
      * @throws JDOMException raised if there was a problem navigating the JDOM structure.
      */
-    @SuppressWarnings("unchecked")
     public Element getElement(Element scopeElement, String xPathExpression) throws JDOMException {
         XPath xPath = XPath.newInstance(xPathExpression);
         String namespaceURI = scopeElement.getDocument().getRootElement().getNamespaceURI();
@@ -108,9 +106,18 @@ public abstract class AbstractXmlFileParser extends AbstractFileParser {
         return (Element) xPath.selectSingleNode(scopeElement);
     }
 
-    @SuppressWarnings("unchecked")
     public List<Element> getElements(Element scopeElement, String xPathExpression) throws JDOMException {
         List<Element> elems = new LinkedList<Element>();
+        for (Object obj : selectNodes(scopeElement, xPathExpression)) {
+            if (obj instanceof Element) {
+                elems.add((Element) obj);
+            }
+        }
+
+        return elems;
+    }
+
+    public List<?> selectNodes(Element scopeElement, String xPathExpression) throws JDOMException {
         XPath xPath = XPath.newInstance(xPathExpression);
         String namespaceURI = scopeElement.getDocument().getRootElement().getNamespaceURI();
         if ((namespaceURI != null) && (!"".equals(namespaceURI))) {
@@ -119,13 +126,8 @@ public abstract class AbstractXmlFileParser extends AbstractFileParser {
         for (Namespace additionalNamespace : (List<Namespace>) scopeElement.getDocument().getRootElement().getAdditionalNamespaces()) {
             xPath.addNamespace(additionalNamespace);
         }
-        for (Object obj : xPath.selectNodes(scopeElement)) {
-            if (obj instanceof Element) {
-                elems.add((Element) obj);
-            }
-        }
 
-        return elems;
+        return xPath.selectNodes(scopeElement);
     }
 
     @SuppressWarnings("unchecked")

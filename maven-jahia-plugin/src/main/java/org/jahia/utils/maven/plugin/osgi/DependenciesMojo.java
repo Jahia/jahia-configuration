@@ -9,6 +9,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.jahia.utils.maven.plugin.SLF4JLoggerToMojoLogBridge;
 import org.jahia.utils.osgi.PropertyFileUtils;
 import org.jahia.utils.osgi.parsers.Parsers;
@@ -184,8 +185,17 @@ public class DependenciesMojo extends AbstractMojo {
 
         StringBuilder generatedPackageBuffer = new StringBuilder(256);
         int i = 0;
+        Map<String, String> importOverrides = getPackageImportOverrides();
+        if (importOverrides != null) {
+            getLog().info(
+                    "Considering provided Import-Package-Override: " + StringUtils.join(importOverrides.values(), ", "));
+        }
         for (String packageImport : parsingContext.getPackageImports()) {
-            generatedPackageBuffer.append(packageImport);
+            if (importOverrides != null && importOverrides.containsKey(packageImport)) {
+                generatedPackageBuffer.append(importOverrides.get(packageImport));
+            } else {
+                generatedPackageBuffer.append(packageImport);
+            }
             if (i < parsingContext.getPackageImports().size() - 1) {
                 generatedPackageBuffer.append(",\n");
             }
@@ -272,6 +282,27 @@ public class DependenciesMojo extends AbstractMojo {
             }
         }
         getLog().info("Took " + (System.currentTimeMillis() - startTime) + " ms for the dependencies analysis");
+    }
+
+    private Map<String, String> getPackageImportOverrides() {
+        Map<String, String> overrides = null;
+        String importPackageOverride = null;
+        try {
+            importPackageOverride = ((Xpp3Dom) project.getPlugin("org.apache.felix:maven-bundle-plugin")
+                    .getConfiguration()).getChild("instructions").getChild("Import-Package-Override").getValue();
+        } catch (Exception e) {
+            // no overrides
+        }
+        if (StringUtils.isNotEmpty(importPackageOverride)) {
+            overrides = new HashMap<String, String>();
+            for (String token : StringUtils.split(importPackageOverride, ",\n\r")) {
+                token = token.trim();
+                if (token.length() > 0) {
+                    overrides.put(token.contains(";") ? StringUtils.substringBefore(token, ";").trim() : token, token);
+                }
+            }
+        }
+        return overrides != null && !overrides.isEmpty() ? overrides : null;
     }
 
     private void readArtifactsToSkip(ParsingContext parsingContext) {
