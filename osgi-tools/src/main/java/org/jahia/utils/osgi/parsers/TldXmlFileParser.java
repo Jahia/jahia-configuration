@@ -29,6 +29,18 @@ public class TldXmlFileParser extends AbstractXmlFileParser {
                 Arrays.asList(new String[] { "org.springframework.web.servlet.tags" }));
     }
 
+    public static String getTaglibUri(Element tldRootElement) throws JDOMException {
+        boolean hasDefaultNamespace = !StringUtils.isEmpty(tldRootElement.getNamespaceURI());
+
+        Element uriElement = null;
+        if (hasDefaultNamespace) {
+            uriElement = getElement(tldRootElement, "/xp:taglib/xp:uri");
+        } else {
+            uriElement = getElement(tldRootElement, "/taglib/uri");
+        }
+        return uriElement != null ? uriElement.getTextTrim() : null;
+    }
+    
     @Override
     public boolean canParse(String fileName) {
         String ext = FilenameUtils.getExtension(fileName).toLowerCase();
@@ -49,29 +61,22 @@ public class TldXmlFileParser extends AbstractXmlFileParser {
             getLogger().debug("Using default namespace XPath queries");
         }
 
-        Element uriElement = null;
-        if (hasDefaultNamespace) {
-            uriElement = getElement(rootElement, "/xp:taglib/xp:uri");
-        } else {
-            uriElement = getElement(rootElement, "/taglib/uri");
-        }
-        if (uriElement == null) {
+        String uri = getTaglibUri(rootElement);
+        if (uri == null) {
             getLogger().warn("Couldn't find /taglib/uri tag in " + fileName + ", aborting TLD parsing !");
             return;
         }
-        String uri = uriElement.getTextTrim();
         getLogger().debug("Taglib URI=" + uri);
         Set<String> taglibPackageSet = parsingContext.getTaglibPackages().get(uri);
         if (taglibPackageSet == null) {
             taglibPackageSet = new TreeSet<String>();
         }
 
-        List<Element> tagClassElements = null;
-        if (hasDefaultNamespace) {
-            tagClassElements = getElements(rootElement, "//xp:tag/xp:tag-class");
-        } else {
-            tagClassElements = getElements(rootElement, "//tag/tag-class");
-        }
+        List<Element> tagClassElements = new LinkedList<Element>();
+        tagClassElements.addAll(getElements(rootElement, hasDefaultNamespace ? "//xp:tag/xp:tag-class" : "//tag/tag-class"));
+        tagClassElements.addAll(getElements(rootElement, hasDefaultNamespace ? "//xp:tag/xp:tei-class" : "//tag/tei-class"));
+        tagClassElements.addAll(getElements(rootElement, hasDefaultNamespace ? "//xp:tag/xp:tagclass" : "//tag/tagclass"));
+        tagClassElements.addAll(getElements(rootElement, hasDefaultNamespace ? "//xp:tag/xp:teiclass" : "//tag/teiclass"));
         for (Element tagClassElement : tagClassElements) {
             getLogger().debug(
                     fileName + " Found tag class " + tagClassElement.getTextTrim() + " package="

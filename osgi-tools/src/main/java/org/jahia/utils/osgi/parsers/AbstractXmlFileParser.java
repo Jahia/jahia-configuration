@@ -94,7 +94,7 @@ public abstract class AbstractXmlFileParser extends AbstractFileParser {
      * @return the first element that matches the XPath expression, or null if no element matches.
      * @throws JDOMException raised if there was a problem navigating the JDOM structure.
      */
-    public Element getElement(Element scopeElement, String xPathExpression) throws JDOMException {
+    public static Element getElement(Element scopeElement, String xPathExpression) throws JDOMException {
         XPath xPath = XPath.newInstance(xPathExpression);
         String namespaceURI = scopeElement.getDocument().getRootElement().getNamespaceURI();
         if ((namespaceURI != null) && (!"".equals(namespaceURI))) {
