@@ -21,7 +21,6 @@ import java.util.ArrayList;
  * To change this template use File | Settings | File Templates.
  * @goal test
  * @requiresDependencyResolution runtime
- * @aggregator false
  */
 public class TestMojo extends AbstractMojo {
 
@@ -42,6 +41,12 @@ public class TestMojo extends AbstractMojo {
      * @parameter expression="${xmlTest}"
      */
     protected String xmlTest;    
+    
+    /**
+     * Output directory for TestNG results
+     * @parameter expression="${testOutputDirectory}"
+     */
+    protected String testOutputDirectory;    
     
     /**
      * Server type
@@ -77,6 +82,7 @@ public class TestMojo extends AbstractMojo {
         try {
             List<String> targets = new ArrayList<String>();
             String url1 = testURL + "/test" + (StringUtils.isNotEmpty(test) ? "/" + test : "");
+            
             getLog().info("Get tests from : "+url1);
             URLConnection conn = null;
 
@@ -132,7 +138,18 @@ public class TestMojo extends AbstractMojo {
         try {
             URLConnection conn;
             InputStream is;
-            String testUrl = testURL + "/test/" + test + (isXmlSuite ? "?xmlTest=" + test : "");
+            StringBuffer sbParameters = new StringBuffer(); 
+            // dummy param to not have to test if each following parameter is the first one 
+            // and then if you have to use ? or &
+            sbParameters.append("?dummyParam=null");
+            if (isXmlSuite) {
+            	sbParameters.append("&xmlTest=" + test);
+            }
+            if (StringUtils.isNotEmpty(testOutputDirectory)) {
+            	sbParameters.append("&testOutputDirectory=" + testOutputDirectory);
+            }
+            
+            String testUrl = testURL + "/test/" + test + sbParameters.toString();
             getLog().info("Execute: "+testUrl);
             conn = new URL(testUrl).openConnection();
             is = conn.getInputStream();
