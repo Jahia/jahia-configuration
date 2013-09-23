@@ -39,11 +39,13 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
 	protected Integer numberOfUsersPerGroup;
 
     /**
+     * For each created page a random float will be compared to this value and if inferior an ACL node with a random group will be added. 
      * @parameter expression="${jahia.cg.groupsAclRatio}" default-value="0"
      */
     protected double groupAclRatio;
 
     /**
+     * For each created page a random float will be compared to this value and if inferior an ACL node with a random user will be added. 
      * @parameter expression="${jahia.cg.usersAclRatio}" default-value="0"
      */
     protected double usersAclRatio;
