@@ -115,6 +115,35 @@ public class UserBO {
 			userElement.addContent(collectionsElement);
 		}
 		
+		// add subfolders				
+		Element files = new Element("files");
+		files.setAttribute("primaryType", "jnt:folder", ContentGeneratorCst.NS_JCR);
+		
+		Element privateElement = new Element("private");
+		privateElement.setAttribute("primaryType", "jnt:folder", ContentGeneratorCst.NS_JCR); 
+		privateElement.setAttribute("mixinTypes", "jmix:accessControlled", ContentGeneratorCst.NS_JCR);
+		
+		Element imports = new Element("imports");
+		imports.setAttribute("primaryType", "jnt:importDropBox", ContentGeneratorCst.NS_JCR);
+		
+		Element profile = new Element("profile");
+		profile.setAttribute("primaryType", "jnt:folder", ContentGeneratorCst.NS_JCR);
+	
+		files.addContent(privateElement);
+		privateElement.addContent(imports);
+		files.addContent(profile);
+
+		Element contents = new Element("contents");
+		contents.setAttribute("primaryType", "jnt:contentFolder", ContentGeneratorCst.NS_JCR);
+		
+		Element portlets = new Element("portlets");
+		portlets.setAttribute("primaryType", "portletFolder", ContentGeneratorCst.NS_JCR);
+		
+		userElement.addContent(files);
+		userElement.addContent(contents);
+		userElement.addContent(portlets);
+		
+				
 		List<AceBO> aces = new ArrayList<AceBO>();
 		AceBO aceOwner = new AceBO(this.name, this.name, "u", "GRANT", "owner");
 		aces.add(aceOwner);
