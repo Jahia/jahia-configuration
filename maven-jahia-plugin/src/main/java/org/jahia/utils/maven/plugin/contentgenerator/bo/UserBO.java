@@ -123,6 +123,15 @@ public class UserBO {
 		privateElement.setAttribute("primaryType", "jnt:folder", ContentGeneratorCst.NS_JCR); 
 		privateElement.setAttribute("mixinTypes", "jmix:accessControlled", ContentGeneratorCst.NS_JCR);
 		
+		Element jAcl = new Element("acl", ContentGeneratorCst.NS_J);
+		jAcl.setAttribute("primaryType", "jnt:acl", ContentGeneratorCst.NS_JCR); 
+		
+		Element grant = new Element("GRANT_u_user");
+		grant.setAttribute("primaryType", "jnt:ace", ContentGeneratorCst.NS_JCR); 
+		
+		jAcl.addContent(grant);
+		privateElement.addContent(jAcl);
+		
 		Element imports = new Element("imports");
 		imports.setAttribute("primaryType", "jnt:importDropBox", ContentGeneratorCst.NS_JCR);
 		
@@ -137,8 +146,12 @@ public class UserBO {
 		contents.setAttribute("primaryType", "jnt:contentFolder", ContentGeneratorCst.NS_JCR);
 		
 		Element portlets = new Element("portlets");
-		portlets.setAttribute("primaryType", "portletFolder", ContentGeneratorCst.NS_JCR);
+		portlets.setAttribute("primaryType", "jnt:portletFolder", ContentGeneratorCst.NS_JCR);
 		
+		Element preferences = new Element("preferences");
+		preferences.setAttribute("primaryType", "jnt:preferences", ContentGeneratorCst.NS_JCR);
+		
+		userElement.addContent(preferences);
 		userElement.addContent(files);
 		userElement.addContent(contents);
 		userElement.addContent(portlets);
