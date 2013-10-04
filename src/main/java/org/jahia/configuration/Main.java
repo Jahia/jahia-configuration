@@ -40,10 +40,12 @@ public class Main {
                         }
                         logger.info("\n...module deployment done.");
                     } catch (IOException e) {
-                        logger.error("", e);
+                        logger.error("Error deploying module", e);
+                        System.exit(1);
                     }
                 } catch (Exception e) {
                     logger.error("Error during execution of a configurator. Cause: " + e.getMessage(), e);
+                    System.exit(1);
                 }
                 return;
             } else if (args[0].equals("--configure") || args[0].equals("-c")) {
@@ -52,6 +54,7 @@ public class Main {
                     new JahiaGlobalConfigurator(logger, JahiaGlobalConfigurator.getConfiguration(args.length > 1 ? new File(args[1]) : null, logger)).execute();
                 } catch (Exception e) {
                     logger.error("Error during execution of a configurator. Cause: " + e.getMessage(), e);
+                    System.exit(1);
                 }
                 logger.info("...finished job of Jahia global configurator.");
                 return;

@@ -39,15 +39,15 @@
  */
 package org.jahia.configuration.configurators;
 
-import java.io.FileWriter;
-import java.util.Map;
-
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.Namespace;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
+
+import java.io.FileWriter;
+import java.util.Map;
 
 /**
  * Repository root configurator for root user.
@@ -70,6 +70,7 @@ public class MailServerConfigurator extends AbstractXMLConfigurator {
         }
 
         SAXBuilder saxBuilder = new SAXBuilder();
+        saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         Document jdomDocument = saxBuilder.build(sourceConfigFile.getInputStream());
         Element el = getElement(jdomDocument.getRootElement(), "/content/settings/mail-server");
 
