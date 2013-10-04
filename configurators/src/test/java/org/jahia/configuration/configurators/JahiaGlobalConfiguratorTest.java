@@ -118,6 +118,7 @@ public class JahiaGlobalConfiguratorTest extends TestCase {
 
         // The following tests are NOT exhaustive
         SAXBuilder saxBuilder = new SAXBuilder();
+        saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         Document jdomDocument = saxBuilder.build(configuratorsFile.toString() + "/META-INF/application.xml");
         String prefix = "";
 

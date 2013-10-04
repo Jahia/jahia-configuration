@@ -53,6 +53,7 @@ public class MainArchiver {
 					.println("For example:\n\t-cm /tmp/build/jahia-directory /opt/deployments/jahia.war"
 							+ " tomcat\nWill move the files from jahia-directory into an archive jahia.war"
 							+ " filtering out resources for Apache Tomcat as a target server type.");
+            System.exit(1);
 			return;
 		}
 
@@ -89,6 +90,7 @@ public class MainArchiver {
 				FileUtils.deleteDirectory(source);
 			} catch (IOException e) {
 				e.printStackTrace();
+                System.exit(1);
 			}
 		}
 	}

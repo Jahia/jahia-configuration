@@ -30,6 +30,7 @@ public class RootUserConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         websphereOracleConfigurator.updateConfiguration(new VFSConfigFile(fsManager, rootXmlUrl.toExternalForm()), rootXmlFileParentPath + "root-modified.xml");
 
         SAXBuilder saxBuilder = new SAXBuilder();
+        saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         Document jdomDocument = saxBuilder.build(rootXmlFileParentPath + "root-modified.xml");
         String prefix = "";
 

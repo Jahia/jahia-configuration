@@ -98,6 +98,7 @@ public class LDAPConfigurator extends AbstractXMLConfigurator {
         FileUtils.copyInputStreamToFile(manifestStream, targetManifestFile);
 
         SAXBuilder saxBuilder = new SAXBuilder();
+        saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         InputStream skeletonContextStream = this.getClass().getClassLoader().getResourceAsStream("ldap/META-INF/spring/applicationcontext-ldap-config.xml");
         Document jdomDocument = saxBuilder.build(skeletonContextStream);
         Element rootElement = jdomDocument.getRootElement();

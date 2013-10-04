@@ -30,6 +30,7 @@ public class TomcatContextXmlConfiguratorTest extends AbstractXMLConfiguratorTes
 
         // The following tests are NOT exhaustive
         SAXBuilder saxBuilder = new SAXBuilder();
+        saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         Document jdomDocument = saxBuilder.build(contextXmlParentPath + "context-modified.xml");
         String prefix = "";
 
