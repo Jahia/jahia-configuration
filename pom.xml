@@ -12,9 +12,9 @@
     <url>http://www.jahia.org</url>
 
     <scm>
-        <connection>scm:svn:https://devtools.jahia.com/svn/maven-jahia-plugin/trunk/</connection>
-        <developerConnection>scm:svn:https://devtools.jahia.com/svn/maven-jahia-plugin/trunk/</developerConnection>
-        <url>https://devtools.jahia.com/svn/maven-jahia-plugin/trunk</url>
+        <connection>scm:svn:https://devtools.jahia.com/svn/maven-jahia-plugin/branches/JAHIA-6-6-X-X-BRANCH/</connection>
+        <developerConnection>scm:svn:https://devtools.jahia.com/svn/maven-jahia-plugin/branches/JAHIA-6-6-X-X-BRANCH/</developerConnection>
+        <url>https://devtools.jahia.com/svn/maven-jahia-plugin/branches/JAHIA-6-6-X-X-BRANCH</url>
     </scm>
     <developers>
         <developer>
