@@ -33,15 +33,15 @@
 
 package org.jahia.configuration.configurators;
 
-import java.io.FileWriter;
-import java.io.InputStreamReader;
-import java.util.Map;
-
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
+
+import java.io.FileWriter;
+import java.io.InputStreamReader;
+import java.util.Map;
 
 /**
  * JBoss DB datasource configurator.
@@ -59,6 +59,7 @@ public class JBossDatasourceConfigurator extends AbstractXMLConfigurator {
             throws Exception {
         try {
             SAXBuilder saxBuilder = new SAXBuilder();
+            saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
             InputStreamReader fileReader = new InputStreamReader(sourceConfigFile.getInputStream());
             org.jdom.Document jdomDocument = saxBuilder.build(fileReader);
             Element datasource = jdomDocument.getRootElement().getChild(

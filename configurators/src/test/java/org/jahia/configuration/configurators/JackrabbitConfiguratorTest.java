@@ -1,17 +1,15 @@
 package org.jahia.configuration.configurators;
 
-import java.net.URL;
-import java.io.File;
-
 import org.apache.commons.vfs.FileSystemManager;
 import org.apache.commons.vfs.VFS;
-import org.codehaus.plexus.util.FileUtils;
-import org.jahia.configuration.configurators.JackrabbitConfigurator;
 import org.jahia.configuration.logging.AbstractLogger;
 import org.jahia.configuration.logging.ConsoleLogger;
+import org.jdom.Document;
 import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
-import org.jdom.Document;
+
+import java.io.File;
+import java.net.URL;
 
 /**
  * Test unit for the Jackrabbit configurator
@@ -36,6 +34,7 @@ public class JackrabbitConfiguratorTest extends AbstractXMLConfiguratorTestCase 
 
         // The following tests are NOT exhaustive
         SAXBuilder saxBuilder = new SAXBuilder();
+        saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         Document jdomDocument = saxBuilder.build(repositoryFileParentPath + "repository-modified.xml");
         String prefix = "";
         String tagPre = ("".equals(prefix) ? "" : prefix + ":");
@@ -54,6 +53,7 @@ public class JackrabbitConfiguratorTest extends AbstractXMLConfiguratorTestCase 
 
         // The following tests are NOT exhaustive
         saxBuilder = new SAXBuilder();
+        saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         jdomDocument = saxBuilder.build(repositoryFileParentPath + "repository-modified2.xml");
         assertAllTextEquals(jdomDocument, "//param[@name=\"databaseType\"]/@value", prefix, mysqlDBProperties.getProperty("jahia.jackrabbit.schema"));
         assertNotNull(getNode(jdomDocument, "//Cluster/Journal", prefix));
@@ -63,6 +63,7 @@ public class JackrabbitConfiguratorTest extends AbstractXMLConfiguratorTestCase 
 
         new JackrabbitConfigurator(mysqlDBProperties, tomcatMySQLConfigBean, logger).updateConfiguration(new VFSConfigFile(fsManager, repositoryFileParentPath + "repository-modified2.xml"), repositoryFileParentPath + "repository-modified-store.xml");
         saxBuilder = new SAXBuilder();
+        saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         jdomDocument = saxBuilder.build(repositoryFileParentPath + "repository-modified-store.xml");
         assertTrue(XPath.selectNodes(jdomDocument, "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.db.DbDataStore\"]").isEmpty());
         assertNotNull(XPath.selectSingleNode(jdomDocument, "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.FileDataStore\"]"));
@@ -70,6 +71,7 @@ public class JackrabbitConfiguratorTest extends AbstractXMLConfiguratorTestCase 
         mysqlDBProperties.setProperty("storeFilesInDB", "true");
         new JackrabbitConfigurator(mysqlDBProperties, tomcatMySQLConfigBean, logger).updateConfiguration(new VFSConfigFile(fsManager, repositoryFileParentPath + "repository-modified-store.xml"), repositoryFileParentPath + "repository-modified-store-db.xml");
         saxBuilder = new SAXBuilder();
+        saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         jdomDocument = saxBuilder.build(repositoryFileParentPath + "repository-modified-store-db.xml");
         assertTrue(XPath.selectNodes(jdomDocument, "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.FileDataStore\"]").isEmpty());
         assertNotNull(XPath.selectSingleNode(jdomDocument, "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.db.DbDataStore\"]"));

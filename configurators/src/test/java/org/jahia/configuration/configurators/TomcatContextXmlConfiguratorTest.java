@@ -2,13 +2,11 @@ package org.jahia.configuration.configurators;
 
 import org.apache.commons.vfs.FileSystemManager;
 import org.apache.commons.vfs.VFS;
-import org.jahia.configuration.configurators.TomcatContextXmlConfigurator;
-import org.jdom.input.SAXBuilder;
 import org.jdom.Document;
+import org.jdom.input.SAXBuilder;
 
-import java.io.FileInputStream;
-import java.net.URL;
 import java.io.File;
+import java.net.URL;
 
 /**
  * Test unit for Tomcat's context deployment configurator.
@@ -30,6 +28,7 @@ public class TomcatContextXmlConfiguratorTest extends AbstractXMLConfiguratorTes
 
         // The following tests are NOT exhaustive
         SAXBuilder saxBuilder = new SAXBuilder();
+        saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         Document jdomDocument = saxBuilder.build(contextXmlParentPath + "context-modified.xml");
         String prefix = "";
 

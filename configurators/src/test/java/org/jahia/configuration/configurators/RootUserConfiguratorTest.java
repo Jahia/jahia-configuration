@@ -2,15 +2,13 @@ package org.jahia.configuration.configurators;
 
 import org.apache.commons.vfs.FileSystemManager;
 import org.apache.commons.vfs.VFS;
-import org.jahia.configuration.configurators.RootUserConfigurator;
-import org.jdom.input.SAXBuilder;
-import org.jdom.Document;
 import org.jdom.Attribute;
+import org.jdom.Document;
 import org.jdom.Element;
+import org.jdom.input.SAXBuilder;
 
-import java.io.FileInputStream;
-import java.net.URL;
 import java.io.File;
+import java.net.URL;
 
 /**
  * Test unit for the root user configurator
@@ -30,6 +28,7 @@ public class RootUserConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         websphereOracleConfigurator.updateConfiguration(new VFSConfigFile(fsManager, rootXmlUrl.toExternalForm()), rootXmlFileParentPath + "root-modified.xml");
 
         SAXBuilder saxBuilder = new SAXBuilder();
+        saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         Document jdomDocument = saxBuilder.build(rootXmlFileParentPath + "root-modified.xml");
         String prefix = "";
 
