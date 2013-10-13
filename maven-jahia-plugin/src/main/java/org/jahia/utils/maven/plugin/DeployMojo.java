@@ -197,9 +197,12 @@ public class DeployMojo extends AbstractManagementMojo {
         } else if (project.getPackaging().equals("pom")) {
             deployPomProject();
         } else if (project.getPackaging().equals("bundle")) {
+            boolean isJahiaTaglib = project.getArtifactId().equals("jahia-taglib");
+            if (isJahiaTaglib) {
+                deployJarProject();
+            }
             if (project.getGroupId().equals("org.jahia.bundles")
-                    && JAHIA_SYSTEM_BUNDLES.contains(project.getArtifactId())
-                    || project.getArtifactId().equals("jahia-taglib")) {
+                    && JAHIA_SYSTEM_BUNDLES.contains(project.getArtifactId()) || isJahiaTaglib) {
                 String fileName = project.getArtifactId() + "-" + project.getVersion() + "." + "jar";
                 File srcFile = new File(output, fileName);
                 File destDir = new File(getWebappDeploymentDir(), "WEB-INF/bundles");
