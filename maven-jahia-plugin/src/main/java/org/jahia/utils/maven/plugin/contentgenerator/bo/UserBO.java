@@ -125,11 +125,10 @@ public class UserBO {
 		
 		Element jAcl = new Element("acl", ContentGeneratorCst.NS_J);
 		jAcl.setAttribute("primaryType", "jnt:acl", ContentGeneratorCst.NS_JCR); 
+
+		AceBO grantUser = new AceBO("user", this.name, "u", "GRANT", "owner");
 		
-		Element grant = new Element("GRANT_u_user");
-		grant.setAttribute("primaryType", "jnt:ace", ContentGeneratorCst.NS_JCR); 
-		
-		jAcl.addContent(grant);
+		jAcl.addContent(grantUser.getElement());
 		privateElement.addContent(jAcl);
 		
 		Element imports = new Element("imports");
