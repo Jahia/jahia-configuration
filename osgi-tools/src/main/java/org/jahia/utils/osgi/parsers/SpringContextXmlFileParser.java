@@ -33,8 +33,7 @@ public class SpringContextXmlFileParser extends AbstractXmlFileParser {
             "//webflow:flow-builder/@class",
             "//webflow:attribute/@type",
             "//osgi:service/osgi:interfaces/beans:value",
-            "//osgi:reference/osgi:interfaces/beans:value",
-            "//context:component-scan/@base-package",
+            "//osgi:reference/osgi:interfaces/beans:value"
     };
 
     private final static String[] SPRING_XPATH_PACKAGE_QUERIES = {
