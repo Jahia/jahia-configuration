@@ -397,7 +397,7 @@ public class DeployMojo extends AbstractManagementMojo {
      */
     private void deployPomProject() {
         try {
-        	boolean sharedLibraries = project.getGroupId().equals("org.jahia.server") && project.getArtifactId().equals("shared-libraries");
+            boolean sharedLibraries = project.getGroupId().equals("org.jahia.server") && project.getArtifactId().equals("shared-libraries");
             DependencyNode rootNode = getRootDependencyNode();
             List<?> l = rootNode.getChildren();
             for (Iterator<?> iterator = l.iterator(); iterator.hasNext();) {
@@ -418,11 +418,11 @@ public class DeployMojo extends AbstractManagementMojo {
                             artifact.getArtifactId().equals("jahia-jboss-config")) {
                         deployWarRarSarDependency(dependencyNode);
                     } else if (artifact.getArtifactId().equals("shared-libraries")) {
-                    	deploySharedLibraries(dependencyNode);
+                        deploySharedLibraries(dependencyNode);
                     }
                 }
                 if (sharedLibraries) {
-                	deploySharedLibrary(artifact);
+                    deploySharedLibrary(artifact);
                 }
             }
             if ((project.getParent() != null) && ("prepackagedSites".equals(project.getParent().getArtifactId()))
@@ -455,14 +455,14 @@ public class DeployMojo extends AbstractManagementMojo {
             try {
                 if ((artifact.getGroupId().equals("org.jahia.server") &&
                         (artifact.getArtifactId().equals("jahia-war") ||
-                        		artifact.getArtifactId().equals("jahia-ee-war") ||
+                                artifact.getArtifactId().equals("jahia-ee-war") ||
                                 artifact.getArtifactId().equals("config"))) ||
                         artifact.getType().equals("rar") ||
                         artifact.getType().equals("sar") ||
                         artifact.getType().equals("jboss-sar")) {
                     deployWarRarSarDependency(node);
                 } else if (Artifact.SCOPE_COMPILE.equals(artifact.getScope())) {
-                	deploySharedLibrary(artifact);
+                    deploySharedLibrary(artifact);
                 }
             } catch (Exception e) {
                 getLog().error("Error while deploying EAR dependency", e);
@@ -471,23 +471,23 @@ public class DeployMojo extends AbstractManagementMojo {
         }
     }
 
-	@SuppressWarnings("unchecked")
-	private void deploySharedLibraries(DependencyNode dependencyNode)
-			throws IOException, ArtifactResolutionException,
-			ArtifactNotFoundException {
-		for (DependencyNode node : ((List<DependencyNode>)dependencyNode.getChildren())) {
-			Artifact artifact = node.getArtifact();
+    @SuppressWarnings("unchecked")
+    private void deploySharedLibraries(DependencyNode dependencyNode)
+            throws IOException, ArtifactResolutionException,
+            ArtifactNotFoundException {
+        for (DependencyNode node : ((List<DependencyNode>)dependencyNode.getChildren())) {
+            Artifact artifact = node.getArtifact();
 
-			artifactResolver.resolve(artifact,
-					project.getRemoteArtifactRepositories(), localRepository);
-			try {
-				deploySharedLibrary(artifact);
-			} catch (Exception e) {
-				getLog().error("Error while deploying EAR dependency", e);
-			}
+            artifactResolver.resolve(artifact,
+                    project.getRemoteArtifactRepositories(), localRepository);
+            try {
+                deploySharedLibrary(artifact);
+            } catch (Exception e) {
+                getLog().error("Error while deploying EAR dependency", e);
+            }
 
-		}
-	}
+        }
+    }
 
     private void deploySharedLibrary(Artifact artifact) throws IOException {
         getLog().info("Copy shared resource " + artifact.getFile().getName());
@@ -495,9 +495,9 @@ public class DeployMojo extends AbstractManagementMojo {
         sharedLibs.add(artifact.getFile());
      
         serverDeployer.deploySharedLibraries(targetServerDirectory, sharedLibs);
-	}
+    }
 
-	/**
+    /**
      * Deploy WAR / SAR / RAR artifact to application server
      * @param dependencyNode
      */
@@ -522,18 +522,18 @@ public class DeployMojo extends AbstractManagementMojo {
             int cnt = 0;
             while ((entry = z.getNextEntry()) != null) {
                 if (!entry.isDirectory()) {
-                	if (excludes != null) {
-                		boolean doExclude = false;
-                		for (String excludePattern : excludes) {
-							if (SelectorUtils.matchPath(excludePattern, entry.getName())) {
-								doExclude = true;
-								break;
-							}
-						}
-                		if (doExclude) {
-                			continue;
-                		}
-                	}
+                    if (excludes != null) {
+                        boolean doExclude = false;
+                        for (String excludePattern : excludes) {
+                            if (SelectorUtils.matchPath(excludePattern, entry.getName())) {
+                                doExclude = true;
+                                break;
+                            }
+                        }
+                        if (doExclude) {
+                            continue;
+                        }
+                    }
                     File target = new File(webappDir, entry
                             .getName());
                     if (entry.getTime() > target.lastModified()) {
