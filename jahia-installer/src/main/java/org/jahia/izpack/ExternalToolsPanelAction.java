@@ -42,6 +42,7 @@ package org.jahia.izpack;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.regex.Pattern;
 
 import com.izforge.izpack.installer.AutomatedInstallData;
 import com.izforge.izpack.installer.PanelAction;
@@ -57,6 +58,8 @@ public class ExternalToolsPanelAction implements PanelAction {
 
     private static final String OS_NAME = System.getProperty("os.name")
             .toLowerCase();
+    
+    private static final Pattern WINDOWS_OFFICE_PATTERN = Pattern.compile("(LibreOffice|OpenOffice(\\.org)?) [3-9].*");
 
     public void executeAction(AutomatedInstallData adata,
             AbstractUIHandler handler) {
@@ -108,8 +111,7 @@ public class ExternalToolsPanelAction implements PanelAction {
             return findToolHome(new String[] { "program/soffice.bin" },
                     new FilenameFilter() {
                         public boolean accept(File dir, String name) {
-                            return name
-                                    .matches("(LibreOffice|OpenOffice\\.org) [3-9].*");
+                            return WINDOWS_OFFICE_PATTERN.matcher(name).matches();
                         }
                     }, false, System.getenv("ProgramFiles(x86)"), System
                             .getenv("ProgramFiles"));
