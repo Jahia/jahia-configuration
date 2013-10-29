@@ -397,27 +397,31 @@ public class DeployMojo extends AbstractManagementMojo {
      */
     private void deployPomProject() {
         try {
-            boolean sharedLibraries = project.getGroupId().equals("org.jahia.server") && project.getArtifactId().equals("shared-libraries");
+            boolean sharedLibraries = project.getGroupId().equals("org.jahia.server")
+                    && (project.getArtifactId().equals("shared-libraries") || project.getArtifactId().startsWith(
+                            "jdbc-drivers"));
             DependencyNode rootNode = getRootDependencyNode();
             List<?> l = rootNode.getChildren();
             for (Iterator<?> iterator = l.iterator(); iterator.hasNext();) {
                 DependencyNode dependencyNode = (DependencyNode) iterator.next();
                 Artifact artifact = dependencyNode.getArtifact();
                 if (artifact.getGroupId().equals("org.jahia.server")) {
-                    if (artifact.getArtifactId().equals("jahia-ear") || artifact.getArtifactId().equals("jahia-ee-ear")) {
+                    String artifactId = artifact.getArtifactId();
+                    if (artifactId.equals("jahia-ear") || artifactId.equals("jahia-ee-ear")) {
                         deployEarDependency(dependencyNode);
-                    } else if (artifact.getArtifactId().equals("configwizard-ear")) {
+                    } else if (artifactId.equals("configwizard-ear")) {
                         deployEarDependency(dependencyNode);
-                    } else if (artifact.getArtifactId().equals("configwizard-webapp") ||
-                            artifact.getArtifactId().equals("jahia-war") ||
-                            artifact.getArtifactId().equals("jahia-ee-war") ||
-                            artifact.getArtifactId().equals("jahia-pack-war") ||
-                            artifact.getArtifactId().equals("jahia-dm-package") ||
-                            artifact.getArtifactId().equals("jahia-ee-dm-package") ||
-                            artifact.getArtifactId().equals("jahia-wise-package") ||
-                            artifact.getArtifactId().equals("jahia-jboss-config")) {
+                    } else if (artifactId.equals("configwizard-webapp") ||
+                            artifactId.equals("jahia-war") ||
+                            artifactId.equals("jahia-ee-war") ||
+                            artifactId.equals("jahia-pack-war") ||
+                            artifactId.equals("jahia-dm-package") ||
+                            artifactId.equals("jahia-ee-dm-package") ||
+                            artifactId.equals("jahia-wise-package") ||
+                            artifactId.equals("jahia-jboss-config")) {
                         deployWarRarSarDependency(dependencyNode);
-                    } else if (artifact.getArtifactId().equals("shared-libraries")) {
+                    } else if (artifactId.equals("shared-libraries")
+                            || artifactId.startsWith("jdbc-drivers")) {
                         deploySharedLibraries(dependencyNode);
                     }
                 }
