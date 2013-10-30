@@ -97,11 +97,11 @@
             <artifactId>postgresql</artifactId>
             <version>9.1-901.jdbc3</version>
         </dependency>
-        <!-- Microsoft SQL Server 2005 -->
+        <!-- Microsoft SQL Server -->
         <dependency>
-            <groupId>microsoft</groupId>
-            <artifactId>sqljdbc</artifactId>
-            <version>1.2-fixed</version>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>sqljdbc4</artifactId>
+            <version>4.0.2206.100</version>
         </dependency>
         <!-- Oracle Db Server -->
         <dependency>
