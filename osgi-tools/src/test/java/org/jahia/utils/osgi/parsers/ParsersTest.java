@@ -51,6 +51,11 @@ public class ParsersTest {
         // from the JSP parser
         // - @elvariable type hint
         Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.services.render.scripting"));
+        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.test1.generic.level1"));
+        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.test1.generic.level2"));
+        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.test1.generic.level3"));
+        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.utils"));
+        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.services.notification"));
         // - jsp:useBean tag
         Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.configuration.modules"));
         // - from taglib usages

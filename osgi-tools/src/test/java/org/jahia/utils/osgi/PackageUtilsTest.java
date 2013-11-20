@@ -28,5 +28,4 @@ public class PackageUtilsTest {
         Assert.assertTrue("Package name is not properly extracted", packagesName.contains("org.jahia.services.notification"));
         Assert.assertTrue("Package name is not properly extracted", packagesName.size() == 2);
     }
-
 }
