@@ -13,6 +13,8 @@ public class PackageUtils {
         // Split for generics
         String[] classNames = fqnClassName.split("<|>|,");
         for(String className : classNames){
+            // remove all blank space in class name
+            className = className.replaceAll("\\s+","");
             String[] classNameParts = className.split("\\.");
             if (classNameParts.length > 1 &&
                     classNameParts[classNameParts.length-2].length() > 0 &&

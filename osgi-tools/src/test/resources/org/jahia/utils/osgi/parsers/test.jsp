@@ -13,6 +13,7 @@
 <%--@elvariable id="workspace" type="java.lang.String"--%>
 <%--@elvariable id="renderContext" type="org.jahia.services.render.RenderContext"--%>
 <%--@elvariable id="currentResource" type="org.jahia.services.render.Resource"--%>
+<%--@elvariable id="bundleInfo" type="java.util.Map<java.lang.String, java.lang.String>"--%>
 <%--@elvariable id="url" type="org.jahia.services.render.URLGenerator"--%>
 <%--@elvariable id="subscriptions" type="org.jahia.utils.PaginatedList<org.jahia.services.notification.Subscription>"--%>
 <%--@elvariable id="genericTest" type="org.jahia.test1.generic.level1.RandomClass.RandomStaticGeneric<org.jahia.test1.generic.level2.RandomClass,org.jahia.test1.generic.level2.RandomGeneric<org.jahia.test1.generic.level3.RandomClass,org.jahia.test1.generic.level3.RandomClass>>"--%>

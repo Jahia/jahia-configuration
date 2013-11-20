@@ -56,6 +56,7 @@ public class ParsersTest {
         Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.test1.generic.level3"));
         Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.utils"));
         Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.services.notification"));
+        Assert.assertFalse("bad import package", parsingContext.getPackageImports().contains("java.lang"));
         // - jsp:useBean tag
         Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.configuration.modules"));
         // - from taglib usages
