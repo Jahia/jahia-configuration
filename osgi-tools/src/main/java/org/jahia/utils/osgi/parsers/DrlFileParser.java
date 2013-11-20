@@ -30,8 +30,8 @@ public class DrlFileParser extends AbstractFileParser {
             Matcher ruleImportMatcher = RULE_IMPORT_PATTERN.matcher(line);
             if (ruleImportMatcher.matches()) {
                 String ruleImport = ruleImportMatcher.group(1);
-                getLogger().debug(fileName + ": found rule import " + ruleImport + " package=" + PackageUtils.getPackageFromClass(ruleImport));
-                parsingContext.addPackageImport(PackageUtils.getPackageFromClass(ruleImport));
+                getLogger().debug(fileName + ": found rule import " + ruleImport + " package=" + PackageUtils.getPackagesFromClass(ruleImport).toString());
+                parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(ruleImport));
             }
         }
         return true;

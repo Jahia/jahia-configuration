@@ -22,8 +22,8 @@ public class JpdlXmlFileParser extends AbstractXmlFileParser {
         getLogger().debug("Processing workflow definition file (JBPM JPDL) " + fileName + "...");
         List<Attribute> classAttributes = getAttributes(rootElement, "//@class");
         for (Attribute classAttribute : classAttributes) {
-            getLogger().debug(fileName + " Found class " + classAttribute.getValue() + " package=" + PackageUtils.getPackageFromClass(classAttribute.getValue()));
-            parsingContext.addPackageImport(PackageUtils.getPackageFromClass(classAttribute.getValue()));
+            getLogger().debug(fileName + " Found class " + classAttribute.getValue() + " package=" + PackageUtils.getPackagesFromClass(classAttribute.getValue()).toString());
+            parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(classAttribute.getValue()));
         }
     }
 }

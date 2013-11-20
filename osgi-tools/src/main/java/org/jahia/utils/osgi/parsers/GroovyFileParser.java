@@ -30,8 +30,8 @@ public class GroovyFileParser extends AbstractFileParser {
             Matcher groovyImportMatcher = GROOVY_IMPORT_PATTERN.matcher(line);
             if (groovyImportMatcher.matches()) {
                 String groovyImport = groovyImportMatcher.group(1);
-                getLogger().debug(fileName + ": found Groovy import " + groovyImport + " package=" + PackageUtils.getPackageFromClass(groovyImport));
-                parsingContext.addPackageImport(PackageUtils.getPackageFromClass(groovyImport));
+                getLogger().debug(fileName + ": found Groovy import " + groovyImport + " package=" + PackageUtils.getPackagesFromClass(groovyImport).toString());
+                parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(groovyImport));
             }
         }
         return true;

@@ -7,13 +7,7 @@ import org.jdom2.Comment;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * A TLD (Java Tag Library definition) file parser
@@ -80,8 +74,8 @@ public class TldXmlFileParser extends AbstractXmlFileParser {
         for (Element tagClassElement : tagClassElements) {
             getLogger().debug(
                     fileName + " Found tag class " + tagClassElement.getTextTrim() + " package="
-                            + PackageUtils.getPackageFromClass(tagClassElement.getTextTrim()));
-            taglibPackageSet.add(PackageUtils.getPackageFromClass(tagClassElement.getTextTrim()));
+                            + PackageUtils.getPackagesFromClass(tagClassElement.getTextTrim()).toString());
+            taglibPackageSet.addAll(PackageUtils.getPackagesFromClass(tagClassElement.getTextTrim()));
         }
 
         // Parsing function class
@@ -94,8 +88,8 @@ public class TldXmlFileParser extends AbstractXmlFileParser {
         for (Element functionClassElement : functionClassElements) {
             getLogger().debug(
                     fileName + " Found function class " + functionClassElement.getTextTrim() + " package="
-                            + PackageUtils.getPackageFromClass(functionClassElement.getTextTrim()));
-            taglibPackageSet.add(PackageUtils.getPackageFromClass(functionClassElement.getTextTrim()));
+                            + PackageUtils.getPackagesFromClass(functionClassElement.getTextTrim()).toString());
+            taglibPackageSet.addAll(PackageUtils.getPackagesFromClass(functionClassElement.getTextTrim()));
         }
 
         // Parsing function signature
@@ -162,7 +156,7 @@ public class TldXmlFileParser extends AbstractXmlFileParser {
                 if (pkgs == null) {
                     pkgs = new LinkedList<String>();
                 }
-                pkgs.add(PackageUtils.getPackageFromClass(token));
+                pkgs.addAll(PackageUtils.getPackagesFromClass(token));
             }
         }
 

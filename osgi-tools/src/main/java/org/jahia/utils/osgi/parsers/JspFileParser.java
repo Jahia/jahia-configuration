@@ -48,7 +48,7 @@ public class JspFileParser extends AbstractFileParser {
                 String attributeName = tagAttributesMatcher.group(1);
                 String attributeValue = tagAttributesMatcher.group(2);
                 if ("class".equals(attributeName) || "type".equals(attributeName)) {
-                    parsingContext.addPackageImport(PackageUtils.getPackageFromClass(attributeValue));
+                    parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(attributeValue));
                 }
             }
         }
@@ -80,7 +80,7 @@ public class JspFileParser extends AbstractFileParser {
         Matcher ideaTypeHintMatcher = IDEA_TYPE_HINT_PATTERN.matcher(jspFileContent);
         while (ideaTypeHintMatcher.find()) {
             String classImportString = ideaTypeHintMatcher.group(1);
-            parsingContext.addPackageImport(PackageUtils.getPackageFromClass(classImportString));
+            parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(classImportString));
         }
     }
 
@@ -93,11 +93,11 @@ public class JspFileParser extends AbstractFileParser {
                 String[] classImports = StringUtils.split(classImportString, ",");
                 Set<String> jspPackageImports = new TreeSet<String>();
                 for (String classImport : classImports) {
-                    jspPackageImports.add(PackageUtils.getPackageFromClass(classImport.trim()));
+                    jspPackageImports.addAll(PackageUtils.getPackagesFromClass(classImport.trim()));
                 }
                 parsingContext.addAllPackageImports(jspPackageImports);
             } else {
-                parsingContext.addPackageImport(PackageUtils.getPackageFromClass(classImportString));
+                parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(classImportString));
             }
         }
     }

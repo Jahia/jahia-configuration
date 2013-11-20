@@ -232,8 +232,8 @@ public abstract class AbstractXmlFileParser extends AbstractFileParser {
                 }
                 if (referenceValue != null) {
                     if (classNameReferences) {
-                        getLogger().debug(fileName + " Found class " + referenceValue + " package=" + PackageUtils.getPackageFromClass(referenceValue));
-                        parsingContext.addPackageImport(PackageUtils.getPackageFromClass(referenceValue));
+                        getLogger().debug(fileName + " Found class " + referenceValue + " package=" + PackageUtils.getPackagesFromClass(referenceValue).toString());
+                        parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(referenceValue));
                     } else if (packageReferences) {
                         getLogger().debug(fileName + " Found package=" + referenceValue);
                         parsingContext.addPackageImport(referenceValue);
