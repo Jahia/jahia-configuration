@@ -33,6 +33,18 @@ public class TestMojo extends AbstractMojo {
      * @parameter expression="${test}"
      */
     protected String test;
+    
+    /**
+     * Server type
+     * @parameter expression="${xmlTest}"
+     */
+    protected String xmlTest;    
+    
+    /**
+     * Output directory for TestNG results
+     * @parameter expression="${testOutputDirectory}" 
+     */
+    protected String testOutputDirectory;
 
     /**
      * Startup waiting time (seconds)
@@ -55,10 +67,12 @@ public class TestMojo extends AbstractMojo {
 
 
     public void execute() throws MojoExecutionException, MojoFailureException {
-        if (StringUtils.isEmpty(test) || test.contains("*")) {
+        if (!StringUtils.isEmpty(xmlTest)) {
+            executeTest(xmlTest, true);     
+        } else if (StringUtils.isEmpty(test) || test.contains("*")) {
             executeAllTests();
         } else {
-            executeTest(test);
+            executeTest(test, false);
         }
     }
 
@@ -107,7 +121,7 @@ public class TestMojo extends AbstractMojo {
             
             getLog().info("Start executing all tests (" + targets.size() + ")...");
             for (String s : targets) {
-                executeTest(s);
+                executeTest(s, false);
             }
             getLog().info("...done in " + (System.currentTimeMillis() - timer) / 1000 + " s");
 
@@ -116,17 +130,36 @@ public class TestMojo extends AbstractMojo {
         }
     }
 
-    private void executeTest(String test) {
+    private void executeTest(String test, boolean isXmlSuite) {
         long timer = System.currentTimeMillis();
         try {
             URLConnection conn;
             InputStream is;
-            String testUrl = testURL + "/test/" + test;
+            
+            StringBuffer sbParameters = new StringBuffer(); 
+            // dummy param to not have to test if each following parameter is the first one 
+            // and then if you have to use ? or &
+            sbParameters.append("?dummyParam=null");
+            if (isXmlSuite) {
+            	sbParameters.append("&xmlTest=" + test);
+            }
+            if (StringUtils.isNotEmpty(testOutputDirectory)) {
+            	sbParameters.append("&testOutputDirectory=" + testOutputDirectory);
+            }
+            
+            String testUrl = testURL + "/test/" + test + sbParameters.toString();
             getLog().info("Execute: "+testUrl);
             conn = new URL(testUrl).openConnection();
             is = conn.getInputStream();
-            File out = project.getBasedir();
-            out = new File(out,"target/surefire-reports");
+            
+            File out;
+            if (testOutputDirectory == null) {
+                out = project.getBasedir();
+                out = new File(out,"target/surefire-reports");
+            } else {
+            	out = new File(testOutputDirectory);
+            }
+            
             if (!out.exists()) {
                 final boolean b = out.mkdirs();
                 if(!b)
