@@ -167,15 +167,6 @@ public class ConvertToOSGI extends AbstractManagementMojo {
             instructions.addElement("Jahia-Module-Type").setText(moduleTypeStr);
         }
 
-        Element rootFolder = manifestEntries.element("root-folder");
-        String rootFolderStr = null;
-        if (rootFolder != null) {
-            rootFolderStr = rootFolder.getText();
-        }
-        if (rootFolderStr != null && !rootFolderStr.equals("${project.artifactId}")) {
-            instructions.addElement("Jahia-Root-Folder").setText(rootFolderStr);
-        }
-
         for (String name : jahiaManifestAttributes.keySet()) {
             Element element = manifestEntries.element(name);
             if (element != null) {
