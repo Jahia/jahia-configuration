@@ -104,7 +104,7 @@ public class JarsToSkipListMojo extends AbstractMojo {
     /**
      * The file to output the list of JARs into.
      * 
-     * @parameter default-value="${project.build.directory}/generated-resources/jar-scanner.properties"
+     * @parameter default-value="${project.build.directory}/generated-resources/jar-scanner.conf"
      */
     protected File dest;
 
@@ -169,11 +169,8 @@ public class JarsToSkipListMojo extends AbstractMojo {
             }
         }
 
-        StringBuilder out = new StringBuilder(10 * 1024);
-        out.append("org.jahia.TldConfig.jarsToSkip=");
-        out.append(StringUtils.join(toSkip, ',')).append("\n");
         try {
-            FileUtils.writeStringToFile(dest, out.toString());
+            FileUtils.writeLines(dest, toSkip, "\n");
         } catch (IOException e) {
             throw new MojoExecutionException("Unable to write results to the destination file " + dest, e);
         }
