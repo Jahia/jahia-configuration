@@ -1,12 +1,12 @@
 package org.jahia.utils.maven.plugin.osgi;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.apache.tika.io.IOUtils;
 import org.jahia.utils.osgi.ClassDependencyTracker;
 
 import java.io.File;
