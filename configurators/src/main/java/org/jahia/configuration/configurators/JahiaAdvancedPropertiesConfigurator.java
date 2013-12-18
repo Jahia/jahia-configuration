@@ -124,7 +124,7 @@ public class JahiaAdvancedPropertiesConfigurator extends AbstractConfigurator {
             properties.setProperty("cluster.tcp.num_initial_members",String.valueOf(jahiaHosts.size()));
         }
         
-        // Jahia 6.7 settings
+        // Jahia 7 settings
         if (properties.getProperty("cluster.tcp.bindAddress") != null && StringUtils.isNotBlank(cfg.getClusterTCPBindAddress())) {
             properties.setProperty("cluster.tcp.bindAddress", cfg.getClusterTCPBindAddress());
         }
