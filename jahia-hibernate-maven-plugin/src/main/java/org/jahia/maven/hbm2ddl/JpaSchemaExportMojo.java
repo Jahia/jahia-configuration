@@ -40,7 +40,11 @@
 
 package org.jahia.maven.hbm2ddl;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
@@ -52,6 +56,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.IOUtil;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.NamingStrategy;
@@ -93,6 +98,13 @@ public class JpaSchemaExportMojo extends AbstractMojo {
      * @parameter default-value="${project.build.directory}/schema.sql"
      */
     private File outputFile;
+    
+    /**
+     * The alternative file name of the persistence.xml resource in case it is neede to override it.
+     * 
+     * @parameter
+     */
+    private String persistenceFileName;
 
     /**
      * The name of the persistence unit to export.
@@ -146,7 +158,29 @@ public class JpaSchemaExportMojo extends AbstractMojo {
             if (getLog().isDebugEnabled()) {
                 getLog().debug("Using following locations for class loader:\n" + locations);
             }
-            return new URLClassLoader(urls.toArray(new URL[] {}), getClass().getClassLoader());
+            URLClassLoader urlClassLoader = new URLClassLoader(urls.toArray(new URL[] {}), getClass().getClassLoader());
+            if (persistenceFileName == null) {
+                return urlClassLoader;
+            } else {
+                URL persistenceUrl = urlClassLoader.getResource("META-INF/" + persistenceFileName);
+                if (persistenceUrl != null) {
+                    File outputFile = new File(project.getBuild().getOutputDirectory(), "META-INF/persistence.xml");
+                    getLog().info("Copying " + persistenceFileName + " from " + persistenceUrl + " to " + outputFile);
+                    InputStream is = null;
+                    OutputStream os = null;
+                    try {
+                        outputFile.getParentFile().mkdirs();
+                        is = persistenceUrl.openStream();
+                        os = new BufferedOutputStream(new FileOutputStream(outputFile));
+                        IOUtil.copy(is, os);
+                    } finally {
+                        IOUtil.close(is);
+                        IOUtil.close(os);
+                    }
+                }
+                
+                return urlClassLoader;
+            }
         } catch (Exception e) {
             getLog().error("Unable to create class loader", e);
             throw new MojoExecutionException("Unable to create class loader", e);
