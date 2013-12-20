@@ -19,7 +19,7 @@ public class ApplicationXmlConfiguratorTest extends AbstractXMLConfiguratorTestC
         File applicationXmlFile = new File(applicationXmlUrl.getFile());
         String applicationXmlParentPath = applicationXmlFile.getParentFile().getPath() + File.separator;
 
-        ApplicationXmlConfigurator applicationXmlConfiguratorWebsphere = new ApplicationXmlConfigurator(oracleDBProperties, websphereOracleConfigBean);
+        ApplicationXmlConfigurator applicationXmlConfiguratorWebsphere = new ApplicationXmlConfigurator(websphereOracleConfigBean, null);
         applicationXmlConfiguratorWebsphere.updateConfiguration(new VFSConfigFile(fsManager, applicationXmlUrl.toExternalForm()), applicationXmlParentPath + "application-modified.xml");
 
         // The following tests are NOT exhaustive

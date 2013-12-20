@@ -16,6 +16,7 @@ import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.StringUtils;
 import org.jahia.configuration.deployers.ServerDeploymentFactory;
+import org.jahia.configuration.deployers.ServerDeploymentInterface;
 import org.jahia.configuration.logging.AbstractLogger;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -98,6 +99,7 @@ public class JahiaGlobalConfigurator {
     File jahiaConfigDir;
 
     AbstractLogger logger;
+    private ServerDeploymentInterface deployer;
 
     public JahiaGlobalConfigurator(AbstractLogger logger, JahiaConfigInterface jahiaConfig) {
         this.jahiaConfig = jahiaConfig;
@@ -121,13 +123,8 @@ public class JahiaGlobalConfigurator {
             !StringUtils.isBlank(jahiaConfig.getExternalizedConfigTargetPath())) {
             File tempDirectory = FileUtils.getTempDirectory();
             jahiaConfigDir = new File(tempDirectory, "jahia-config");
-            jahiaConfigDir.mkdir();
-            File jahiaConfigOrgDir = new File(jahiaConfigDir, "org");
-            jahiaConfigOrgDir.mkdir();
-            File jahiaConfigJahiaDir = new File(jahiaConfigOrgDir, "jahia");
-            jahiaConfigJahiaDir.mkdir();
-            File jahiaConfigConfigDir = new File(jahiaConfigJahiaDir, "config");
-            jahiaConfigConfigDir.mkdir();
+            File jahiaConfigConfigDir = new File(jahiaConfigDir, "org/jahia/config");
+            jahiaConfigConfigDir.mkdirs();
             externalizedConfigTempPath = jahiaConfigConfigDir.getPath();
         }
 
@@ -181,14 +178,14 @@ public class JahiaGlobalConfigurator {
             new MailServerConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,mailServerTemplate), webappPath + "/WEB-INF/etc/repository/root-mail-server.xml");
         }        
         if ("jboss".equalsIgnoreCase(jahiaConfigInterface.getTargetServerType())) {
-            File datasourcePath = new File(jahiaConfigInterface.getTargetServerDirectory(), ServerDeploymentFactory.getInstance().getImplementation(jahiaConfigInterface.getTargetServerType(), jahiaConfigInterface.getTargetServerVersion()).getDeploymentFilePath("jahia-jboss-config.sar/jahia-ds", "xml"));
+            File datasourcePath = new File(jahiaConfigInterface.getTargetServerDirectory(), "standalone/configuration/standalone.xml");
             if (datasourcePath.exists()) {
-                new JBossDatasourceConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,datasourcePath.getPath()), datasourcePath.getPath());
+                new JBossConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager, datasourcePath.getPath()), datasourcePath.getPath());
             }
-            datasourcePath = new File(sourceWebAppPath, "../jahia-jboss-config/jahia-ds.xml");
-            if (datasourcePath.exists()) {
-                new JBossDatasourceConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,datasourcePath.getPath()), datasourcePath.getPath());
-            }
+//            datasourcePath = new File(sourceWebAppPath, "../jahia-jboss-config/jahia-ds.xml");
+//            if (datasourcePath.exists()) {
+//                new JBossDatasourceConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,datasourcePath.getPath()), datasourcePath.getPath());
+//            }
         }
 
         String targetConfigPath = webappPath + "/WEB-INF/etc/config";
@@ -229,8 +226,20 @@ public class JahiaGlobalConfigurator {
         new LDAPConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,sourceWebAppPath), ldapTargetFile);
 
         String jeeApplicationLocation = jahiaConfigInterface.getJeeApplicationLocation();
-        if (!StringUtils.isEmpty(jeeApplicationLocation)) {
-            new ApplicationXmlConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,jeeApplicationLocation + "/META-INF/application.xml"), jeeApplicationLocation + "/META-INF/application.xml");
+        boolean jeeLocationSpecified = !StringUtils.isEmpty(jeeApplicationLocation);
+        if (jeeLocationSpecified || getDeployer().isEarDeployment()) {
+            if (!jeeLocationSpecified) {
+                jeeApplicationLocation = getDeployer().getTargetServerDirectory() + "/"
+                        + getDeployer().getDeploymentFilePath("jahia", "ear");
+            }
+            String jeeApplicationModuleList = jahiaConfigInterface.getJeeApplicationModuleList();
+            if (StringUtils.isEmpty(jeeApplicationModuleList)) {
+                jeeApplicationModuleList = "ROOT".equals(jahiaConfigInterface.getWebAppDirName()) ? "jahia-war:web:jahia.war:"
+                        : ("jahia-war:web:jahia.war:" + jahiaConfigInterface.getWebAppDirName());
+            }
+            new ApplicationXmlConfigurator(jahiaConfigInterface, jeeApplicationModuleList).updateConfiguration(
+                    new VFSConfigFile(fsManager, jeeApplicationLocation + "/META-INF/application.xml"),
+                    jeeApplicationLocation + "/META-INF/application.xml");
         }
     }
 
@@ -640,8 +649,18 @@ public class JahiaGlobalConfigurator {
      * Get the folder on the application server where the jahia webapp is unpacked
      */
     protected File getWebappDeploymentDir() throws Exception {
-        return new File(jahiaConfig.getTargetServerDirectory(), ServerDeploymentFactory.getInstance()
-                .getImplementation(jahiaConfig.getTargetServerType(), jahiaConfig.getTargetServerVersion()).getDeploymentDirPath(getWebappDeploymentDirName(), "war"));
+        return new File(jahiaConfig.getTargetServerDirectory(), getDeployer().getDeploymentDirPath(
+                StringUtils.defaultString(getDeployer().getWebappDeploymentDirNameOverride(), getWebappDeploymentDirName()),
+                "war"));
+    }
+
+    private ServerDeploymentInterface getDeployer() {
+        if (deployer == null) {
+            deployer = ServerDeploymentFactory.getInstance().getImplementation(jahiaConfig.getTargetServerType(),
+                    jahiaConfig.getTargetServerVersion());
+        }
+
+        return deployer;
     }
 
     /**
