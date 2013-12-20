@@ -40,8 +40,6 @@ import java.util.List;
 /**
  * Server deployer interface. 
  * @author Serge Huber
- * Date: 26 d�c. 2007
- * Time: 14:03:56
  */
 public interface ServerDeploymentInterface {
 
@@ -52,8 +50,20 @@ public interface ServerDeploymentInterface {
      */
     boolean validateInstallationDirectory(String targetServerDirectory);
 
-    boolean deploySharedLibraries(String targetServerDirectory,
-                                         List<File> pathToLibraries) throws IOException;
+    boolean deploySharedLibraries(String targetServerDirectory, File... pathToLibraries) throws IOException;
+
+    /**
+     * Performs the deployment of a JDBC driver JAR file.
+     * 
+     * @param targetServerDirectory
+     *            target server home
+     * @param driverJar
+     *            the driver JAR file to be deployed
+     * @return <code>true</code> in case of successful deployment; <code>false</code> otherwise
+     * @throws IOException
+     *             in case of an I/O error
+     */
+    boolean deployJdbcDriver(String targetServerDirectory, File driverJar) throws IOException;
 
     boolean undeploySharedLibraries(String targetServerDirectory,
                                            List<File> pathToLibraries) throws IOException;
@@ -83,4 +93,15 @@ public interface ServerDeploymentInterface {
      *         packaged WAR files, required for new portlet deployment.
      */
     boolean isAutoDeploySupported();
+    
+    String getWebappDeploymentDirNameOverride();
+    
+    String getName();
+    
+    /**
+     * Returns <code>true</code> if the application server uses EAR deployment instead of WAR.
+     * 
+     * @return <code>true</code> if the application server uses EAR deployment; otherwise returns <code>false</code>
+     */
+    boolean isEarDeployment();
 }

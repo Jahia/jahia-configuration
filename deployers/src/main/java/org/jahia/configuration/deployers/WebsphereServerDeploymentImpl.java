@@ -17,8 +17,8 @@ import java.util.Iterator;
  */
 public class WebsphereServerDeploymentImpl extends AbstractServerDeploymentImpl {
 
-    public WebsphereServerDeploymentImpl(String targetServerDirectory) {
-        super(targetServerDirectory);
+    public WebsphereServerDeploymentImpl(String name, String targetServerDirectory) {
+        super(name, targetServerDirectory);
     }
 
     public boolean validateInstallationDirectory(String targetServerDirectory) {
@@ -36,13 +36,11 @@ public class WebsphereServerDeploymentImpl extends AbstractServerDeploymentImpl 
     }
 
 
-    public boolean deploySharedLibraries(String targetServerDirectory, List<File> pathToLibraries) throws IOException {
-        Iterator<File> libraryPathIterator = pathToLibraries.iterator();
+    public boolean deploySharedLibraries(String targetServerDirectory, File... pathToLibraries) throws IOException {
         File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory());
         File targetJavaDirectory = new File(targetServerDirectory, getSharedJavaLibraryDirectory());
 
-        while (libraryPathIterator.hasNext()) {
-            File currentLibraryPath = libraryPathIterator.next();
+        for (File currentLibraryPath : pathToLibraries) {
             if (currentLibraryPath.getName().startsWith("portlet-api-")) {
                 FileUtils.copyFileToDirectory(currentLibraryPath, targetJavaDirectory);
             } else {

@@ -1,5 +1,6 @@
 package org.jahia.configuration.deployers;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -19,7 +20,10 @@ public abstract class AbstractServerDeploymentImpl implements ServerDeploymentIn
     
     private Properties deployersProperties;
 
-    public AbstractServerDeploymentImpl(String targetServerDirectory) {
+    private String name;
+
+    public AbstractServerDeploymentImpl(String name, String targetServerDirectory) {
+        this.name = name;
         this.targetServerDirectory = targetServerDirectory;
     }
 
@@ -50,6 +54,26 @@ public abstract class AbstractServerDeploymentImpl implements ServerDeploymentIn
     }
     
     public boolean isAutoDeploySupported() {
+        return false;
+    }
+    
+    @Override
+    public String getWebappDeploymentDirNameOverride() {
+        return null;
+    }
+    
+    @Override
+    public boolean deployJdbcDriver(String targetServerDirectory, File driverJar) throws IOException {
+        return deploySharedLibraries(targetServerDirectory, driverJar);
+    }
+    
+    @Override
+    public String getName() {
+        return name;
+    }
+    
+    @Override
+    public boolean isEarDeployment() {
         return false;
     }
 }

@@ -87,9 +87,12 @@ public abstract class AbstractXMLConfigurator extends AbstractConfigurator {
      * @throws JDOMException raised if there was a problem navigating the JDOM structure.
      */
     public Element getElement(Element scopeElement, String xPathExpression) throws JDOMException {
+        return getElement(scopeElement, xPathExpression, scopeElement.getDocument().getRootElement().getNamespaceURI());
+    }
+
+    public Element getElement(Element scopeElement, String xPathExpression, String namespaceURI) throws JDOMException {
         XPath xPath = XPath.newInstance(xPathExpression);
-        String namespaceURI = scopeElement.getDocument().getRootElement().getNamespaceURI();
-        if ((namespaceURI != null) && (!"".equals(namespaceURI))) {
+        if ((namespaceURI != null) && (namespaceURI.length() > 0)) {
             xPath.addNamespace("xp", namespaceURI);
         }
         return (Element) xPath.selectSingleNode(scopeElement);

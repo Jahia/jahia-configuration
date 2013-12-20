@@ -36,6 +36,8 @@ package org.jahia.configuration.deployers;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jahia.configuration.deployers.jboss.JBossServerDeploymentImpl;
+
 /**
  * Factory that sets up all the different server deployer implementations, and links them to supported versions of
  * the various application servers.
@@ -50,20 +52,21 @@ public class ServerDeploymentFactory {
     private static String targetServerDirectory;
 
     public ServerDeploymentFactory(String targetServerDirectory) {
-        addImplementation("tomcat", new TomcatServerDeploymentImpl(targetServerDirectory));
-		addImplementation("tomcat6", getImplementation("tomcat"));
-        addImplementation("tomcat7", getImplementation("tomcat"));
+        TomcatServerDeploymentImpl tomcatDeployer = new TomcatServerDeploymentImpl("Apache Tomcat 7.x", targetServerDirectory);
+        addImplementation("tomcat", tomcatDeployer);
+        addImplementation("tomcat7", tomcatDeployer);
         
-        addImplementation("jboss", new JBossServerDeploymentImpl(targetServerDirectory));
-        addImplementation("jboss4.2.x", getImplementation("jboss"));
-        addImplementation("jboss4.3.x", getImplementation("jboss"));
-//        addImplementation("jboss5.0.x", new JBoss50ServerDeploymentImpl(targetServerDirectory));
+        JBossServerDeploymentImpl jbossDeployer = new JBossServerDeploymentImpl("JBoss AS 7.x / EAP 6.x", targetServerDirectory);
+        addImplementation("jboss", jbossDeployer);
+        addImplementation("jbosseap", jbossDeployer);
+        addImplementation("jbosseap6", jbossDeployer);
+        addImplementation("jbosseap6.x", jbossDeployer);
         
-        addImplementation("was", new WebsphereServerDeploymentImpl(targetServerDirectory));
-        addImplementation("was7", getImplementation("was"));
-        
-        addImplementation("weblogic", new WeblogicServerDeploymentImpl(targetServerDirectory));
-        addImplementation("weblogic10", getImplementation("weblogic"));
+        addImplementation("was", new WebsphereServerDeploymentImpl("IBM WebSphere Application Server 8.5.x", targetServerDirectory));
+//        addImplementation("was7", getImplementation("was"));
+//        
+//        addImplementation("weblogic", new WeblogicServerDeploymentImpl(targetServerDirectory));
+//        addImplementation("weblogic10", getImplementation("weblogic"));
     }
 
     public static ServerDeploymentFactory getInstance() {

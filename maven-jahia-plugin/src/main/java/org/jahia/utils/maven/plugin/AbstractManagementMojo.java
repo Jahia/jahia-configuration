@@ -45,6 +45,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.commons.io.FileUtils;
 import org.jahia.configuration.deployers.ServerDeploymentFactory;
+import org.jahia.configuration.deployers.ServerDeploymentInterface;
 
 import java.io.File;
 import java.io.IOException;
@@ -119,6 +120,8 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
      * @readonly
      */
     protected ArtifactRepository localRepository;
+
+    private ServerDeploymentInterface deployer;
     
     public void execute() throws MojoExecutionException, MojoFailureException {
         ServerDeploymentFactory.setTargetServerDirectory(targetServerDirectory);
@@ -166,7 +169,6 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
         return updateFiles(sourceFolder, sourceFolder, destFolder, excluded);
     }
 
-    @SuppressWarnings("unchecked")
     protected int updateFiles(File sourceFolder, File originalSourceFolder, File destFolder, String excluded) throws IOException {
         long timer = System.currentTimeMillis();
         List<String> filesToUpdate = org.codehaus.plexus.util.FileUtils.getFileNames(sourceFolder, "**", excluded, false);
@@ -195,15 +197,22 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
 
 
     protected String getWebappDeploymentDirName() {
-        return webAppDirName != null ? webAppDirName : "jahia";
+        String dirName = getDeployer().getWebappDeploymentDirNameOverride();
+        return dirName != null ? dirName : (webAppDirName != null ? webAppDirName : "jahia");
     }
 
     /**
      * Get the folder on the application server where the jahia webapp is unpacked
      */
     protected File getWebappDeploymentDir() throws Exception {
-        return new File(targetServerDirectory, ServerDeploymentFactory.getInstance()
-                .getImplementation(targetServerType, targetServerVersion).getDeploymentDirPath(getWebappDeploymentDirName(), "war"));
+        return new File(targetServerDirectory, getDeployer().getDeploymentDirPath(getWebappDeploymentDirName(), "war"));
+    }
+
+    private ServerDeploymentInterface getDeployer() {
+        if (deployer == null) {
+            deployer = ServerDeploymentFactory.getInstance().getImplementation(targetServerType, targetServerVersion);
+        }
+        return deployer;
     }
 
     /**
@@ -212,9 +221,8 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
      */
     protected File getWarSarRarDeploymentDir(Artifact artifact) throws Exception {
         File dir;
-        if (artifact.getType().equals("rar") || artifact.getType().equals("sar") || artifact.getType().equals("jboss-sar") || artifact.getArtifactId().equals("config")) {
-            dir = new File(targetServerDirectory, ServerDeploymentFactory.getInstance()
-                    .getImplementation(targetServerType, targetServerVersion).getDeploymentDirPath(artifact.getArtifactId(), artifact.getType()));
+        if (artifact.getType().equals("rar") || artifact.getType().equals("sar") || artifact.getArtifactId().equals("config")) {
+            dir = new File(targetServerDirectory, getDeployer().getDeploymentDirPath(artifact.getArtifactId(), artifact.getType()));
         } else {
             dir = getWebappDeploymentDir();
         }

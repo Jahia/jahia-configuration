@@ -43,7 +43,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -154,7 +153,7 @@ public class DeployMojo extends AbstractManagementMojo {
         }
 
         if (! serverDeployer.validateInstallationDirectory(targetServerDirectory)) {
-            throw new MojoFailureException("Directory " + targetServerDirectory + " is not a valid installation directory for server " + targetServerType + " v" + targetServerVersion);
+            throw new MojoFailureException("Directory " + targetServerDirectory + " is not a valid installation directory for server " + serverDeployer.getName());
         }
     }
 
@@ -169,7 +168,6 @@ public class DeployMojo extends AbstractManagementMojo {
             if (project.getGroupId().equals("org.jahia.server") || project.getGroupId().equals("org.jahia.extensions")) {
                 deployWarProject();
             } else if (project.getGroupId().equals("org.jahia.modules")
-                    || project.getGroupId().equals("org.jahia.templates")
                     || (deployTests && project.getGroupId().equals("org.jahia.test"))
                     || project.getGroupId().endsWith(".jahia.modules")) {
                 deployModuleProject();
@@ -182,7 +180,7 @@ public class DeployMojo extends AbstractManagementMojo {
             } else {
                 getLog().warn("Unrecognized type of the WAR project. Skipping deployment");
             }
-        } else if (project.getPackaging().equals("sar") || project.getPackaging().equals("jboss-sar") || project.getPackaging().equals("rar")) {
+        } else if (project.getPackaging().equals("sar") || project.getPackaging().equals("rar")) {
             deploySarRarProject();
         } else if (project.getPackaging().equals("jar")) {
             if (project.getGroupId().equals("org.jahia.test") && !deployTests) {
@@ -283,9 +281,22 @@ public class DeployMojo extends AbstractManagementMojo {
      * @throws Exception
      */
     private void deployEarProject() throws Exception {
-        getLog().info("Deploying application server specific files for " + targetServerType + " v" + targetServerVersion + " in directory " + targetServerDirectory);
-        DependencyNode node = getRootDependencyNode();
-        deployEarDependency(node);
+        if (serverDeployer.isEarDeployment()) {
+            getLog().info(
+                    "Deploying application server specific files for " + serverDeployer.getName() + " in directory "
+                            + targetServerDirectory);
+            DependencyNode node = getRootDependencyNode();
+            deployEarDependency(node);
+
+            File targetEarFolder = new File(targetServerDirectory, serverDeployer.getDeploymentFilePath("jahia", "ear"));
+            getLog().info("Updating EAR resources in " + targetEarFolder);
+            int updateFileCount = updateFiles(new File(baseDir, "src/main/resources"), targetEarFolder);
+            getLog().info("Updated " + updateFileCount + " resources");
+            if ("jboss".equals(targetServerType)) {
+                // for JBoss create deployment marker file
+                FileUtils.touch(new File(targetEarFolder.getParentFile(), targetEarFolder.getName() + ".dodeploy"));
+            }
+        }
     }
 
     /**
@@ -295,8 +306,7 @@ public class DeployMojo extends AbstractManagementMojo {
     private void deployWarProject() throws Exception {
         File webappDir = getWarSarRarDeploymentDir(project.getArtifact());
         getLog().info(
-                "Update " + project.getPackaging() + " resources for " + targetServerType
-                        + (StringUtils.isNotEmpty(targetServerVersion) ? " v" + targetServerVersion : "")
+                "Update " + project.getPackaging() + " resources for " + serverDeployer.getName()
                         + " in directory " + webappDir);
         if ("was".equals(targetServerType)) {
             File source = new File(output, project.getBuild().getFinalName()+".war");
@@ -327,8 +337,7 @@ public class DeployMojo extends AbstractManagementMojo {
     private void deploySarRarProject() throws Exception {
         File webappDir = getWarSarRarDeploymentDir(project.getArtifact());
         getLog().info("Update " + project.getPackaging() +
-                " resources for " + targetServerType +
-                " v" + targetServerVersion +
+                " resources for " + serverDeployer.getName() +
                 " in directory " + webappDir);
 
         File source = new File(output, project.getBuild().getFinalName());
@@ -397,9 +406,9 @@ public class DeployMojo extends AbstractManagementMojo {
      */
     private void deployPomProject() {
         try {
-            boolean sharedLibraries = project.getGroupId().equals("org.jahia.server")
-                    && (project.getArtifactId().equals("shared-libraries") || project.getArtifactId().startsWith(
-                            "jdbc-drivers"));
+            boolean isJahiaServerGroup = project.getGroupId().equals("org.jahia.server");
+            boolean jdbcDrivers = isJahiaServerGroup && project.getArtifactId().startsWith("jdbc-drivers");
+            boolean sharedLibraries = isJahiaServerGroup && project.getArtifactId().equals("shared-libraries");
             DependencyNode rootNode = getRootDependencyNode();
             List<?> l = rootNode.getChildren();
             for (Iterator<?> iterator = l.iterator(); iterator.hasNext();) {
@@ -409,16 +418,12 @@ public class DeployMojo extends AbstractManagementMojo {
                     String artifactId = artifact.getArtifactId();
                     if (artifactId.equals("jahia-ear") || artifactId.equals("jahia-ee-ear")) {
                         deployEarDependency(dependencyNode);
-                    } else if (artifactId.equals("configwizard-ear")) {
-                        deployEarDependency(dependencyNode);
-                    } else if (artifactId.equals("configwizard-webapp") ||
-                            artifactId.equals("jahia-war") ||
+                    } else if (artifactId.equals("jahia-war") ||
                             artifactId.equals("jahia-ee-war") ||
                             artifactId.equals("jahia-pack-war") ||
                             artifactId.equals("jahia-dm-package") ||
                             artifactId.equals("jahia-ee-dm-package") ||
-                            artifactId.equals("jahia-wise-package") ||
-                            artifactId.equals("jahia-jboss-config")) {
+                            artifactId.equals("jahia-wise-package")) {
                         deployWarRarSarDependency(dependencyNode);
                     } else if (artifactId.equals("shared-libraries")
                             || artifactId.startsWith("jdbc-drivers")) {
@@ -427,6 +432,8 @@ public class DeployMojo extends AbstractManagementMojo {
                 }
                 if (sharedLibraries) {
                     deploySharedLibrary(artifact);
+                } else if (jdbcDrivers) {
+                    deployJdbcDriver(artifact);
                 }
             }
             if ((project.getParent() != null) && ("prepackagedSites".equals(project.getParent().getArtifactId()))
@@ -462,8 +469,7 @@ public class DeployMojo extends AbstractManagementMojo {
                                 artifact.getArtifactId().equals("jahia-ee-war") ||
                                 artifact.getArtifactId().equals("config"))) ||
                         artifact.getType().equals("rar") ||
-                        artifact.getType().equals("sar") ||
-                        artifact.getType().equals("jboss-sar")) {
+                        artifact.getType().equals("sar")) {
                     deployWarRarSarDependency(node);
                 } else if (Artifact.SCOPE_COMPILE.equals(artifact.getScope())) {
                     deploySharedLibrary(artifact);
@@ -475,17 +481,21 @@ public class DeployMojo extends AbstractManagementMojo {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void deploySharedLibraries(DependencyNode dependencyNode)
             throws IOException, ArtifactResolutionException,
             ArtifactNotFoundException {
+        boolean jdbcDrivers = dependencyNode.getArtifact().getArtifactId().equals("jdbc-drivers");
         for (DependencyNode node : ((List<DependencyNode>)dependencyNode.getChildren())) {
             Artifact artifact = node.getArtifact();
 
             artifactResolver.resolve(artifact,
                     project.getRemoteArtifactRepositories(), localRepository);
             try {
-                deploySharedLibrary(artifact);
+                if (jdbcDrivers) {
+                    deployJdbcDriver(artifact);
+                } else {
+                    deploySharedLibrary(artifact);
+                }
             } catch (Exception e) {
                 getLog().error("Error while deploying EAR dependency", e);
             }
@@ -495,10 +505,12 @@ public class DeployMojo extends AbstractManagementMojo {
 
     private void deploySharedLibrary(Artifact artifact) throws IOException {
         getLog().info("Copy shared resource " + artifact.getFile().getName());
-        List<File> sharedLibs = new LinkedList<File>();
-        sharedLibs.add(artifact.getFile());
-     
-        serverDeployer.deploySharedLibraries(targetServerDirectory, sharedLibs);
+        serverDeployer.deploySharedLibraries(targetServerDirectory, artifact.getFile());
+    }
+
+    private void deployJdbcDriver(Artifact artifact) throws IOException {
+        getLog().info("Deploying JDBC driver " + artifact.getFile().getName());
+        serverDeployer.deployJdbcDriver(targetServerDirectory, artifact.getFile());
     }
 
     /**
@@ -513,8 +525,7 @@ public class DeployMojo extends AbstractManagementMojo {
                 "Deploying artifact " + artifact.getGroupId() + ":" + artifact.getArtifactId() + ":"
                         + artifact.getVersion());
         getLog().info("Updating " + artifact.getType() +
-                " resources for " + targetServerType +
-                " v" + targetServerVersion +
+                " resources for " + serverDeployer.getName() +
                 " in directory " + webappDir);
         
         String[] excludes = serverDeployer.getWarExcludes() != null ? StringUtils.split(serverDeployer.getWarExcludes(), ",") : null;

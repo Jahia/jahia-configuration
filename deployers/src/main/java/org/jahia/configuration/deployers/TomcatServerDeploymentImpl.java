@@ -48,8 +48,8 @@ import java.util.List;
  */
 public class TomcatServerDeploymentImpl extends AbstractServerDeploymentImpl {
 
-    public TomcatServerDeploymentImpl(String targetServerDirectory) {
-        super(targetServerDirectory);
+    public TomcatServerDeploymentImpl(String name, String targetServerDirectory) {
+        super(name, targetServerDirectory);
     }
 
     protected String getEndorsedLibraryDirectory() {
@@ -67,12 +67,10 @@ public class TomcatServerDeploymentImpl extends AbstractServerDeploymentImpl {
     }
 
     public boolean deploySharedLibraries(String targetServerDirectory,
-                                         List<File> pathToLibraries) throws IOException {
-        Iterator<File> libraryPathIterator = pathToLibraries.iterator();
+                                         File... pathToLibraries) throws IOException {
         File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory());
         File targetEndorsedDirectory = new File(targetServerDirectory, getEndorsedLibraryDirectory());
-        while (libraryPathIterator.hasNext()) {
-            File currentLibraryPath = libraryPathIterator.next();
+        for (File currentLibraryPath : pathToLibraries) {
             if (currentLibraryPath.getName().contains("jaxb-api")) {
                 FileUtils.copyFileToDirectory(currentLibraryPath, targetEndorsedDirectory);   
             } else {

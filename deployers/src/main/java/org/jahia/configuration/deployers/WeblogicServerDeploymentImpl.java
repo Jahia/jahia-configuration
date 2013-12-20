@@ -15,8 +15,8 @@ import java.util.Iterator;
  */
 public class WeblogicServerDeploymentImpl extends AbstractServerDeploymentImpl {
 
-    public WeblogicServerDeploymentImpl(String targetServerDirectory) {
-        super(targetServerDirectory);
+    public WeblogicServerDeploymentImpl(String name, String targetServerDirectory) {
+        super(name, targetServerDirectory);
     }
 
     /**
@@ -33,11 +33,9 @@ public class WeblogicServerDeploymentImpl extends AbstractServerDeploymentImpl {
         return "lib";
     }
 
-    public boolean deploySharedLibraries(String targetServerDirectory, List<File> pathToLibraries) throws IOException {
-        Iterator<File> libraryPathIterator = pathToLibraries.iterator();
+    public boolean deploySharedLibraries(String targetServerDirectory, File... pathToLibraries) throws IOException {
         File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory());
-        while (libraryPathIterator.hasNext()) {
-            File currentLibraryPath = libraryPathIterator.next();
+        for (File currentLibraryPath : pathToLibraries) {
             FileUtils.copyFileToDirectory(currentLibraryPath, targetDirectory);
         }
         return true;
