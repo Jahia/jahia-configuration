@@ -33,12 +33,18 @@
 
 package org.jahia.configuration.configurators;
 
+import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.codehaus.plexus.util.StringUtils;
+import org.jahia.configuration.deployers.ServerDeploymentInterface;
+import org.jahia.configuration.logging.AbstractLogger;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.Namespace;
@@ -54,11 +60,19 @@ import org.jdom.output.XMLOutputter;
  */
 public class JBossConfigurator extends AbstractXMLConfigurator {
 
+    private static final String IDLE_TIMEOUT_MINUTES = "30";
+
+    private static final String BACKGROUND_VALIDATION_MILLIS = "600000";
+
+    private static final String MAX_POOL_SIZE = "200";
+
     private static final Namespace DS_NS = Namespace.getNamespace("urn:jboss:domain:datasources:1.1");
 
     private static final Map<String, String> EXCEPTION_SORTERS;
 
     private static final Namespace WEB_NS = Namespace.getNamespace("urn:jboss:domain:web:1.5");
+
+    private static final String MIN_POOL_SIZE = "10";
 
     static {
         EXCEPTION_SORTERS = new HashMap<String, String>(6);
@@ -67,7 +81,7 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         EXCEPTION_SORTERS.put("derby_embedded", "org.jboss.jca.adapters.jdbc.extensions.novendor.NullExceptionSorter");
         EXCEPTION_SORTERS.put("mssql", "org.jboss.jca.adapters.jdbc.extensions.mssql.MSSQLValidConnectionChecker");
         EXCEPTION_SORTERS.put("mysql", "org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLExceptionSorter");
-        EXCEPTION_SORTERS.put("oracle", " org.jboss.jca.adapters.jdbc.extensions.oracle.OracleExceptionSorter ");
+        EXCEPTION_SORTERS.put("oracle", "org.jboss.jca.adapters.jdbc.extensions.oracle.OracleExceptionSorter");
         EXCEPTION_SORTERS
                 .put("postgresql", "org.jboss.jca.adapters.jdbc.extensions.postgres.PostgreSQLExceptionSorter");
 
@@ -75,9 +89,13 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
 
     private String dbType;
 
-    public JBossConfigurator(Map<?, ?> dbProperties, JahiaConfigInterface jahiaConfigInterface) {
-        super(dbProperties, jahiaConfigInterface);
+    private ServerDeploymentInterface deployer;
+
+    public JBossConfigurator(Map<?, ?> dbProperties, JahiaConfigInterface jahiaConfigInterface,
+            ServerDeploymentInterface deployer, AbstractLogger logger) {
+        super(dbProperties, jahiaConfigInterface, logger);
         dbType = jahiaConfigInterface.getDatabaseType();
+        this.deployer = deployer;
     }
 
     private void configureDatasource(Element datasources) throws JDOMException {
@@ -91,8 +109,8 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         getChildCreate(ds, "connection-url").setText(getValue(dbProperties, "jahia.database.url"));
         getChildCreate(ds, "driver").setText("jahia." + dbType);
         Element pool = getChildCreate(ds, "pool");
-        getChildCreate(pool, "min-pool-size").setText("10");
-        getChildCreate(pool, "max-pool-size").setText("200");
+        getChildCreate(pool, "min-pool-size").setText(MIN_POOL_SIZE);
+        getChildCreate(pool, "max-pool-size").setText(MAX_POOL_SIZE);
 
         Element security = getChildCreate(ds, "security");
         getChildCreate(security, "user-name").setText(getValue(dbProperties, "jahia.database.user"));
@@ -103,10 +121,10 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
                 "org.jboss.jca.adapters.jdbc.extensions.novendor.JDBC4ValidConnectionChecker");
         getChildCreate(validation, "validate-on-match").setText("false");
         getChildCreate(validation, "background-validation").setText("true");
-        getChildCreate(validation, "background-validation-millis").setText("600000");
+        getChildCreate(validation, "background-validation-millis").setText(BACKGROUND_VALIDATION_MILLIS);
         getChildCreate(validation, "exception-sorter").setAttribute("class-name", EXCEPTION_SORTERS.get(dbType));
 
-        getChildCreate(getChildCreate(ds, "timeout"), "idle-timeout-minutes").setText("30");
+        getChildCreate(getChildCreate(ds, "timeout"), "idle-timeout-minutes").setText(IDLE_TIMEOUT_MINUTES);
     }
 
     private void configureDriver(Element datasources) throws JDOMException {
@@ -138,6 +156,14 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         return child;
     }
 
+    private Format getOutputFormat() {
+        Format customFormat = Format.getRawFormat();
+        customFormat.setTextMode(TextMode.TRIM);
+        customFormat.setIndent("    ");
+        customFormat.setLineSeparator(System.getProperty("line.separator"));
+        return customFormat;
+    }
+
     private Element getProfile(Element root, ConfigFile sourceConfigFile) {
         Element profile = root.getChild("profile", root.getNamespace());
         if (profile == null) {
@@ -147,15 +173,8 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         return profile;
     }
 
-    private Format getOutputFormat() {
-        Format customFormat = Format.getRawFormat();
-        customFormat.setTextMode(TextMode.TRIM);
-        customFormat.setIndent("    ");
-        customFormat.setLineSeparator(System.getProperty("line.separator"));
-        return customFormat;
-    }
-
     public void updateConfiguration(ConfigFile sourceConfigFile, String destFileName) throws Exception {
+        getLogger().info("Processing file " + sourceConfigFile.getURI());
         FileWriter out = null;
         try {
             SAXBuilder saxBuilder = new SAXBuilder();
@@ -176,6 +195,7 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
             }
 
             out = new FileWriter(destFileName);
+            getLogger().info("Writing output to " + destFileName);
             new XMLOutputter(getOutputFormat()).output(jdomDocument, out);
 
         } catch (JDOMException jdome) {
@@ -183,7 +203,83 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         } finally {
             IOUtils.closeQuietly(out);
         }
+    }
 
+    public void writeCLIConfiguration(File dest) throws Exception {
+        StringBuilder cli = new StringBuilder(512);
+
+        // connect
+        cli.append("connect\n");
+        cli.append("\n");
+
+        // add driver
+        cli.append("/subsystem=datasources/jdbc-driver=jahia.");
+        cli.append(dbType);
+        cli.append(":add(driver-module-name=org.jahia.jdbc.");
+        cli.append(dbType);
+        cli.append(", driver-name=jahia.");
+        cli.append(dbType);
+        cli.append(")\n");
+        cli.append("\n");
+
+        // add datasource configuration
+        cli.append("data-source add --name=jahiaDS --jndi-name=java:/jahiaDS --enabled=true --use-java-context=true \\\n");
+        cli.append("--driver-name=jahia.").append(dbType).append(" \\\n");
+        cli.append("--connection-url=").append(getDbPropForCLI("jahia.database.url")).append(" \\\n");
+        cli.append("--user-name=").append(getDbPropForCLI("jahia.database.user")).append(" \\\n");
+        cli.append("--password=").append(getDbPropForCLI("jahia.database.pass")).append(" \\\n");
+
+        cli.append("--min-pool-size=" + MIN_POOL_SIZE + " \\\n");
+        cli.append("--max-pool-size=" + MAX_POOL_SIZE + " \\\n");
+        cli.append("--validate-on-match=false \\\n");
+        cli.append("--background-validation=true \\\n");
+        cli.append("--background-validation-millis=" + BACKGROUND_VALIDATION_MILLIS + " \\\n");
+        cli.append("--valid-connection-checker-class-name=org.jboss.jca.adapters.jdbc.extensions.novendor.JDBC4ValidConnectionChecker \\\n");
+        cli.append("--exception-sorter-class-name=").append(EXCEPTION_SORTERS.get(dbType)).append(" \\\n");
+        cli.append("--idle-timeout-minutes=" + IDLE_TIMEOUT_MINUTES + "\n");
+        cli.append("\n");
+
+        if (jahiaConfigInterface.getWebAppDirName().equals("ROOT")) {
+            cli.append("/subsystem=web/virtual-server=default-host:write-attribute(name=enable-welcome-root,value=false)\n");
+            cli.append("\n");
+        }
+
+        cli.append("reload\n");
+
+        getLogger().info("Writing output to " + dest);
+        FileUtils.writeStringToFile(dest, cli.toString());
+    }
+
+    private String getDbPropForCLI(String prop) {
+        return StringUtils.replace(getValue(dbProperties, prop), "=", "\\=");
+    }
+
+    public void updateDriverModule() throws IOException {
+        if (deployer == null) {
+            getLogger().info("No deployer provided. Skipping driver module update.");
+            return;
+        }
+
+        getLogger().info("Updating driver module");
+        File targetDir = new File(jahiaConfigInterface.getTargetServerDirectory(), "modules/org/jahia/jdbc/" + dbType
+                + "/main");
+
+        if (!targetDir.isDirectory()) {
+            getLogger().info(
+                    "Target driver module directory " + targetDir + " cannot be found. Skipping driver module update.");
+            return;
+        }
+        File moduleXml = new File(targetDir, "module.xml");
+
+        if (moduleXml.isFile()) {
+            getLogger().info(moduleXml + " is already present. Skipping driver module update.");
+            return;
+        }
+
+        for (File driver : FileUtils.listFiles(targetDir, new String[] { "jar" }, false)) {
+            getLogger().info("Deploying JDBC driver " + driver);
+            deployer.deployJdbcDriver(jahiaConfigInterface.getTargetServerDirectory(), driver);
+        }
     }
 
 }

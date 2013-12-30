@@ -141,8 +141,6 @@ public interface JahiaConfigInterface {
      */
     String getFileDataStorePath();
 
-    String getTargetConfigurationDirectory();
-
     String getTargetServerDirectory();
 
     String getTargetServerType();
@@ -156,8 +154,6 @@ public interface JahiaConfigInterface {
      */
     Map<String, String> getUserLdapProviderProperties();
     String getWebAppDirName();
-
-    void setTargetConfigurationDirectory(String targetConfigurationDirectory);
 
     /**
      * If active, we will package the configuration as a JAR file and place it in the location specified in the
