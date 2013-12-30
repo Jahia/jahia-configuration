@@ -248,6 +248,14 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     protected String storeFilesInDB;
 
     /**
+     * The directory that will be used to store the configured Jahia in. Defaults to the
+     * ${jahia.deploy.targetServerDirectory} value.  
+     *
+     * @parameter expression="${jahia.deploy.targetServerDirectory}"
+     */
+    protected String targetConfigurationDirectory;
+
+    /**
      * @parameter expression="${jahia.configure.mailServer}" default-value=""
      */
     protected String mailServer;
@@ -505,6 +513,14 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public String getStoreFilesInDB() {
         return storeFilesInDB;
+    }
+
+    public String getTargetConfigurationDirectory() {
+        return targetConfigurationDirectory;
+    }
+
+    public void setTargetConfigurationDirectory(String targetConfigurationDirectory) {
+        this.targetConfigurationDirectory = targetConfigurationDirectory;
     }
 
     public String getJahiaRootEmail() {

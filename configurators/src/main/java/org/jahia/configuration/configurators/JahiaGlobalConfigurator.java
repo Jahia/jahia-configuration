@@ -112,6 +112,13 @@ public class JahiaGlobalConfigurator {
 
     public void execute() throws Exception {
         ServerDeploymentFactory.setTargetServerDirectory(jahiaConfig.getTargetServerDirectory());
+        if (jahiaConfig.getTargetConfigurationDirectory() == null) {
+            jahiaConfig.setTargetConfigurationDirectory(jahiaConfig.getTargetServerDirectory());
+        } else if (!jahiaConfig.getTargetConfigurationDirectory().equals(jahiaConfig.getTargetServerDirectory())) {
+            // Configuration directory and target server directory are not equal, we will use the configuration
+            // directory for the configurators.
+            ServerDeploymentFactory.setTargetServerDirectory(jahiaConfig.getTargetConfigurationDirectory());
+        }
         if (jahiaConfig.isExternalizedConfigActivated() &&
             !StringUtils.isBlank(jahiaConfig.getExternalizedConfigTargetPath())) {
             File tempDirectory = FileUtils.getTempDirectory();
@@ -171,7 +178,14 @@ public class JahiaGlobalConfigurator {
             new MailServerConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,mailServerTemplate), webappPath + "/WEB-INF/etc/repository/root-mail-server.xml");
         }        
         if ("jboss".equalsIgnoreCase(jahiaConfigInterface.getTargetServerType())) {
-            updateForJBoss(dbProps, jahiaConfigInterface, fsManager);
+            File datasourcePath = new File(jahiaConfigInterface.getTargetServerDirectory(), "standalone/configuration/standalone.xml");
+            if (datasourcePath.exists()) {
+                new JBossConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager, datasourcePath.getPath()), datasourcePath.getPath());
+            }
+//            datasourcePath = new File(sourceWebAppPath, "../jahia-jboss-config/jahia-ds.xml");
+//            if (datasourcePath.exists()) {
+//                new JBossDatasourceConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,datasourcePath.getPath()), datasourcePath.getPath());
+//            }
         }
 
         String targetConfigPath = webappPath + "/WEB-INF/etc/config";
@@ -229,33 +243,6 @@ public class JahiaGlobalConfigurator {
         }
     }
 
-    private void updateForJBoss(Properties dbProps, JahiaConfigInterface jahiaConfigInterface,
-            FileSystemManager fsManager) throws Exception, FileSystemException, IOException {
-        JBossConfigurator configurator = new JBossConfigurator(dbProps, jahiaConfigInterface, getDeployer(),
-                getLogger());
-        File datasourcePath = new File(jahiaConfigInterface.getTargetServerDirectory(),
-                "standalone/configuration/standalone.xml");
-        if (datasourcePath.exists()) {
-            configurator.updateConfiguration(new VFSConfigFile(fsManager, datasourcePath.getPath()),
-                    datasourcePath.getPath());
-        } else {
-            // check if there is a fragment file perhaps
-            File fragmentFile = new File(jahiaConfigInterface.getTargetServerDirectory(),
-                    "standalone/configuration/standalone.xml.fragment");
-            if (fragmentFile.exists()) {
-                configurator.updateConfiguration(new VFSConfigFile(fsManager, fragmentFile.getPath()),
-                        fragmentFile.getPath());
-            }
-
-            // check if we need to update the CLI configuration file
-            File cliFile = new File(jahiaConfigInterface.getTargetServerDirectory(), "bin/jahia-config.cli");
-            if (cliFile.exists()) {
-                configurator.writeCLIConfiguration(cliFile);
-            }
-        }
-        configurator.updateDriverModule();
-    }
-
     public FileObject findVFSFile(String parentPath, String fileMatchingPattern) {
         Pattern matchingPattern = Pattern.compile(fileMatchingPattern);
         try {
@@ -278,7 +265,7 @@ public class JahiaGlobalConfigurator {
 
         //now set the common properties to both a clustered environment and a standalone one
 
-        webappDir = getWebappDeploymentDir();
+        webappDir = getWebAppTargetConfigurationDir();
         String sourceWebappPath = webappDir.toString();
 
         if (jahiaConfig.getCluster_activated().equals("true")) {
@@ -662,14 +649,9 @@ public class JahiaGlobalConfigurator {
      * Get the folder on the application server where the jahia webapp is unpacked
      */
     protected File getWebappDeploymentDir() throws Exception {
-        String jeeApplicationLocation = jahiaConfig.getJeeApplicationLocation();
-        if (!StringUtils.isEmpty(jeeApplicationLocation)) {
-            return new File(jeeApplicationLocation, "jahia.war");
-        } else {
-            return new File(jahiaConfig.getTargetServerDirectory(), getDeployer().getDeploymentDirPath(
-                    StringUtils.defaultString(getDeployer().getWebappDeploymentDirNameOverride(),
-                            getWebappDeploymentDirName()), "war"));
-        }
+        return new File(jahiaConfig.getTargetServerDirectory(), getDeployer().getDeploymentDirPath(
+                StringUtils.defaultString(getDeployer().getWebappDeploymentDirNameOverride(), getWebappDeploymentDirName()),
+                "war"));
     }
 
     private ServerDeploymentInterface getDeployer() {
@@ -679,6 +661,22 @@ public class JahiaGlobalConfigurator {
         }
 
         return deployer;
+    }
+
+    /**
+     * We override this method so that we can have, in the same project, both a targetServerDirectory and a
+     * targetConfigurationDirectory that are not the same, so that we can configure in a directory, and then deploy
+     * to another directory.
+     * @return if the target server directory and configuration directory are the same, the targetServerDirectory value
+     * is returned, otherwise the targetConfigurationDirectory value is return.
+     * @throws Exception can be raised if there is a problem initializing the deployer classes.
+     */
+    public File getWebAppTargetConfigurationDir () throws Exception {
+        if (jahiaConfig.getTargetServerDirectory().equals(jahiaConfig.getTargetConfigurationDirectory())) {
+            return getWebappDeploymentDir();
+        } else {
+            return new File(jahiaConfig.getTargetConfigurationDirectory());
+        }
     }
 
     public static JahiaConfigInterface getConfiguration(File configFile, AbstractLogger logger) throws IOException, IllegalAccessException,
