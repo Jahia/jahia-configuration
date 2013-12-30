@@ -85,7 +85,6 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
         tomcatMySQLConfigBean = new JahiaConfigBean();
         tomcatMySQLConfigBean.setDatabaseType("mysql");
         tomcatMySQLConfigBean.setTargetServerType("tomcat");
-        tomcatMySQLConfigBean.setTargetServerVersion("6");
         tomcatMySQLConfigBean.setTargetConfigurationDirectory(configuratorsFile.toString());
         tomcatMySQLConfigBean.setSourceWebAppDir(configuratorsFile.toString());
         tomcatMySQLConfigBean.setCluster_activated("false");
