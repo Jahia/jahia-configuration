@@ -45,8 +45,6 @@ import java.net.URL;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.vfs.FileSystemManager;
 import org.apache.commons.vfs.VFS;
-import org.jahia.configuration.logging.AbstractLogger;
-import org.jahia.configuration.logging.ConsoleLogger;
 
 /**
  * Unit test for the database configuration in JBoss.
@@ -58,13 +56,12 @@ public class JBossConfiguratorTest extends AbstractXMLConfiguratorTestCase {
     @Override
     public void testUpdateConfiguration() throws Exception {
         FileSystemManager fsManager = VFS.getManager();
-        AbstractLogger logger = new ConsoleLogger(ConsoleLogger.LEVEL_INFO);
 
         URL cfgFileUrl = this.getClass().getClassLoader().getResource("configurators/jboss/standalone.xml");
         File sourceCfgFile = new File(cfgFileUrl.getFile());
 
         JBossConfigurator configurator = new JBossConfigurator(oracleDBProperties,
-                websphereOracleConfigBean, null, logger);
+                websphereOracleConfigBean);
         String destFileName = sourceCfgFile.getParent() + "/standalone-modified.xml";
         configurator.updateConfiguration(new VFSConfigFile(fsManager, cfgFileUrl.toExternalForm()), destFileName);
 
@@ -81,7 +78,7 @@ public class JBossConfiguratorTest extends AbstractXMLConfiguratorTestCase {
 
         assertTrue(FileUtils.contentEquals(new File(destFileName), new File(unchangedDestFileName)));
 
-        configurator = new JBossConfigurator(mysqlDBProperties, tomcatMySQLConfigBean, null, logger);
+        configurator = new JBossConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);
         String updatedDestFileName = sourceCfgFile.getParent() + "/standalone-modified-updated.xml";
         configurator.updateConfiguration(new VFSConfigFile(fsManager, unchangedDestFileName), updatedDestFileName);
 
