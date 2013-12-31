@@ -165,10 +165,13 @@ public class TestMojo extends AbstractMojo {
                 if(!b)
                     getLog().error("could not create directory "+out.getAbsolutePath());
             }
-            FileOutputStream os = new FileOutputStream(new File(out, "TEST-"+ test + ".xml"));
-            IOUtils.copy(is, os);
-            is.close();
-            os.close();
+            
+            if (!isXmlSuite) {
+            	FileOutputStream os = new FileOutputStream(new File(out, "TEST-"+ test + ".xml"));
+                IOUtils.copy(is, os);
+                is.close();
+                os.close();
+            }
         } catch (IOException e) {
             getLog().error(e);
         } finally {
