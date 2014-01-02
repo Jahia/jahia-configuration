@@ -662,7 +662,7 @@ public class JahiaGlobalConfigurator {
      * Get the folder on the application server where the jahia webapp is unpacked
      */
     protected File getWebappDeploymentDir() throws Exception {
-        if (jahiaConfig.getTargetConfigurationDirectory() != null) {
+        if (StringUtils.isNotEmpty(jahiaConfig.getTargetConfigurationDirectory())) {
             return new File(jahiaConfig.getTargetConfigurationDirectory());
         }
         String jeeApplicationLocation = jahiaConfig.getJeeApplicationLocation();
