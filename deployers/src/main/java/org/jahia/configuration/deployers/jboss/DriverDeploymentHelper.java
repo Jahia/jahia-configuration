@@ -71,11 +71,13 @@ final class DriverDeploymentHelper {
         String driverKey = getDriverKey(driverJar.getName());
         String driverType = getDriverType(driverKey, driverJar.getName());
         File targetDir = new File(targetServerDirectory, "/modules/org/jahia/jdbc/" + driverType + "/main");
+        boolean inPlace = targetDir.equals(driverJar.getParentFile());
         boolean oracleSecondJar = "orai18n".equals(driverKey);
         if (targetDir.isDirectory()) {
             // special case for the second JAR of the Oracle driver
             // (a bit vague test, but let's assume that the orai18n is declared after ojdbc6 in the pom.xml)
-            if (!oracleSecondJar) {
+            // second test is for the case driver JAR is already in-place (used only in configurators to configure module.xml)
+            if (!oracleSecondJar && !inPlace) {
                 FileUtils.cleanDirectory(targetDir);
             }
         } else {
@@ -84,7 +86,9 @@ final class DriverDeploymentHelper {
             }
         }
 
-        FileUtils.copyFileToDirectory(driverJar, targetDir);
+        if (!inPlace) {
+            FileUtils.copyFileToDirectory(driverJar, targetDir);
+        }
 
         File moduleXml = new File(targetDir, "module.xml");
         String existingContent = oracleSecondJar ? FileUtils.readFileToString(moduleXml, FILE_CONTENT_ENCODING) : null;

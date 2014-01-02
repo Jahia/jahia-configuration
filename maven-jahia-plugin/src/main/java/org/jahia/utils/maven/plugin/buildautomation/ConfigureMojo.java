@@ -61,12 +61,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     protected String externalConfigPath;
 
     /**
-     * @parameter expression="${basedir}/src/main/webapp"
-     * The source directory for the webapp resource when the configureBeforePackaging setting is activated.
-     */
-    protected String sourceWebAppDir;
-
-    /**
      * properties file path
      *
      * @parameter default-value="$context/WEB-INF/etc/"
@@ -505,10 +499,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public List<String> getSiteImportLocation() {
         return siteImportLocation;
-    }
-
-    public String getSourceWebAppDir() {
-        return sourceWebAppDir;
     }
 
     public String getStoreFilesInDB() {

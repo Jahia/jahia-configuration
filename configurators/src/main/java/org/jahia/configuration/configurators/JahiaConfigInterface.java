@@ -123,8 +123,6 @@ public interface JahiaConfigInterface {
     
     List<String> getSiteImportLocation();
     
-    String getSourceWebAppDir();
-    
     /**
      * Returns <code>true</code> if Jackrabbit should store binary data in the DB, otherwise this data is store in a file system
      * (corresponding Jackrabbit property: externalBlobs).

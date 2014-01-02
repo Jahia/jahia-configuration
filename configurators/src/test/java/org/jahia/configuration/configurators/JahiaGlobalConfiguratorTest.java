@@ -41,7 +41,6 @@ public class JahiaGlobalConfiguratorTest extends TestCase {
         websphereDerbyConfigBean.setTargetServerType("was");
         websphereDerbyConfigBean.setTargetServerVersion("6.1.0.25");
         websphereDerbyConfigBean.setTargetConfigurationDirectory(configuratorsFile.toString());
-        websphereDerbyConfigBean.setSourceWebAppDir(configuratorsFile.toString());
         websphereDerbyConfigBean.setCluster_activated("true");
         websphereDerbyConfigBean.setCluster_node_serverId("jahiaServer1");
         websphereDerbyConfigBean.setProcessingServer("true");
@@ -77,7 +76,6 @@ public class JahiaGlobalConfiguratorTest extends TestCase {
         websphereDerbyConfigBean.setTargetServerType("was");
         websphereDerbyConfigBean.setTargetServerVersion("6.1.0.25");
         websphereDerbyConfigBean.setTargetConfigurationDirectory(configuratorsFile.toString());
-        websphereDerbyConfigBean.setSourceWebAppDir(configuratorsFile.toString());
         websphereDerbyConfigBean.setCluster_activated("true");
         websphereDerbyConfigBean.setCluster_node_serverId("jahiaServer1");
         websphereDerbyConfigBean.setProcessingServer("true");

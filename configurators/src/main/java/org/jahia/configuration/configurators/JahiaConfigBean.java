@@ -81,8 +81,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String jahiaRootLastname = "";
     private String jahiaRootEmail = "";
     private String webAppDirName = "ROOT";
-    private String sourceWebAppDir = "";
-    
     private String mailServer = "";
     private String mailFrom = "";
     private String mailAdministrator = "";
@@ -354,20 +352,12 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         return webAppDirName;
     }
 
-    public String getSourceWebAppDir() {
-        return sourceWebAppDir;
-    }
-
     public void setExternalConfigPath(String externalConfigPath) {
         this.externalConfigPath = externalConfigPath;
     }
 
     public void setJahiaRootPassword(String jahiaRootPassword) {
         this.jahiaRootPassword = jahiaRootPassword;
-    }
-
-    public void setSourceWebAppDir(String sourceWebAppDir) {
-        this.sourceWebAppDir = sourceWebAppDir;
     }
 
     public void setWebAppDirName(String webAppDirName) {
