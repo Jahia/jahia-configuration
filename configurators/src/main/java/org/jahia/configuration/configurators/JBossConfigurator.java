@@ -60,19 +60,19 @@ import org.jdom.output.XMLOutputter;
  */
 public class JBossConfigurator extends AbstractXMLConfigurator {
 
-    private static final String IDLE_TIMEOUT_MINUTES = "30";
-
     private static final String BACKGROUND_VALIDATION_MILLIS = "600000";
-
-    private static final String MAX_POOL_SIZE = "200";
 
     private static final Namespace DS_NS = Namespace.getNamespace("urn:jboss:domain:datasources:1.1");
 
     private static final Map<String, String> EXCEPTION_SORTERS;
 
-    private static final Namespace WEB_NS = Namespace.getNamespace("urn:jboss:domain:web:1.5");
+    private static final String IDLE_TIMEOUT_MINUTES = "30";
+
+    private static final String MAX_POOL_SIZE = "200";
 
     private static final String MIN_POOL_SIZE = "10";
+
+    private static final Namespace WEB_NS = Namespace.getNamespace("urn:jboss:domain:web:1.5");
 
     static {
         EXCEPTION_SORTERS = new HashMap<String, String>(6);
@@ -156,6 +156,10 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         return child;
     }
 
+    private String getDbPropForCLI(String prop) {
+        return StringUtils.replace(getValue(dbProperties, prop), "=", "\\=");
+    }
+
     private Format getOutputFormat() {
         Format customFormat = Format.getRawFormat();
         customFormat.setTextMode(TextMode.TRIM);
@@ -171,6 +175,22 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         }
 
         return profile;
+    }
+
+    private boolean isRootContext() {
+        String moduleList = jahiaConfigInterface.getJeeApplicationModuleList();
+        if (moduleList == null || moduleList.length() == 0) {
+            return true;
+        }
+        boolean isRoot = false;
+        for (String moduleConfig : moduleList.split(",")) {
+            if (moduleConfig.contains("jahia.war")) {
+                String[] moduleParams = moduleConfig.split(":");
+                isRoot = moduleParams.length < 4 || StringUtils.isEmpty(moduleParams[3]);
+                break;
+            }
+        }
+        return isRoot;
     }
 
     public void updateConfiguration(ConfigFile sourceConfigFile, String destFileName) throws Exception {
@@ -202,6 +222,34 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
             throw new Exception("Error while updating configuration file " + sourceConfigFile, jdome);
         } finally {
             IOUtils.closeQuietly(out);
+        }
+    }
+
+    public void updateDriverModule() throws IOException {
+        if (deployer == null) {
+            getLogger().info("No deployer provided. Skipping driver module update.");
+            return;
+        }
+
+        getLogger().info("Updating driver module");
+        File targetDir = new File(jahiaConfigInterface.getTargetServerDirectory(), "modules/org/jahia/jdbc/" + dbType
+                + "/main");
+
+        if (!targetDir.isDirectory()) {
+            getLogger().info(
+                    "Target driver module directory " + targetDir + " cannot be found. Skipping driver module update.");
+            return;
+        }
+        File moduleXml = new File(targetDir, "module.xml");
+
+        if (moduleXml.isFile()) {
+            getLogger().info(moduleXml + " is already present. Skipping driver module update.");
+            return;
+        }
+
+        for (File driver : FileUtils.listFiles(targetDir, new String[] { "jar" }, false)) {
+            getLogger().info("Deploying JDBC driver " + driver);
+            deployer.deployJdbcDriver(jahiaConfigInterface.getTargetServerDirectory(), driver);
         }
     }
 
@@ -239,7 +287,7 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         cli.append("--idle-timeout-minutes=" + IDLE_TIMEOUT_MINUTES + "\n");
         cli.append("\n");
 
-        if (jahiaConfigInterface.getWebAppDirName().equals("ROOT")) {
+        if (isRootContext()) {
             cli.append("/subsystem=web/virtual-server=default-host:write-attribute(name=enable-welcome-root,value=false)\n");
             cli.append("\n");
         }
@@ -248,38 +296,6 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
 
         getLogger().info("Writing output to " + dest);
         FileUtils.writeStringToFile(dest, cli.toString());
-    }
-
-    private String getDbPropForCLI(String prop) {
-        return StringUtils.replace(getValue(dbProperties, prop), "=", "\\=");
-    }
-
-    public void updateDriverModule() throws IOException {
-        if (deployer == null) {
-            getLogger().info("No deployer provided. Skipping driver module update.");
-            return;
-        }
-
-        getLogger().info("Updating driver module");
-        File targetDir = new File(jahiaConfigInterface.getTargetServerDirectory(), "modules/org/jahia/jdbc/" + dbType
-                + "/main");
-
-        if (!targetDir.isDirectory()) {
-            getLogger().info(
-                    "Target driver module directory " + targetDir + " cannot be found. Skipping driver module update.");
-            return;
-        }
-        File moduleXml = new File(targetDir, "module.xml");
-
-        if (moduleXml.isFile()) {
-            getLogger().info(moduleXml + " is already present. Skipping driver module update.");
-            return;
-        }
-
-        for (File driver : FileUtils.listFiles(targetDir, new String[] { "jar" }, false)) {
-            getLogger().info("Deploying JDBC driver " + driver);
-            deployer.deployJdbcDriver(jahiaConfigInterface.getTargetServerDirectory(), driver);
-        }
     }
 
 }
