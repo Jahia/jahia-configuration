@@ -242,10 +242,9 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     protected String storeFilesInDB;
 
     /**
-     * The directory that will be used to store the configured Jahia in. Defaults to the
-     * ${jahia.deploy.targetServerDirectory} value.  
-     *
-     * @parameter expression="${jahia.deploy.targetServerDirectory}"
+     * The directory that will be used to store the configured Jahia in if the target server directory has to be overidden.
+     * 
+     * @parameter expression="${jahia.deploy.targetConfigurationDirectory}"
      */
     protected String targetConfigurationDirectory;
 
