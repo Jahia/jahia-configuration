@@ -478,6 +478,7 @@ public class JahiaGlobalConfigurator {
         }
 
         FileUtils.deleteQuietly(new File(webappDir + "/WEB-INF/var/definitions.properties"));
+        FileUtils.deleteQuietly(new File(webappDir + "/WEB-INF/var/definitions"));
 
         getLogger().info("Finished deleting content of the data and cache related folders");
     }
