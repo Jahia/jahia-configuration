@@ -91,8 +91,7 @@ public class UserBO {
 		userElement.setAttribute("lastName", this.name + " lastname", ContentGeneratorCst.NS_J);
 		userElement.setAttribute("organization", "Organization", ContentGeneratorCst.NS_J);
 		userElement.setAttribute("password", this.password, ContentGeneratorCst.NS_J); // W6ph5Mm5Pz8GgiULbPgzG37mj9g
-		// TODO : picture
-		userElement.setAttribute("picture", this.jcrPath + "/files/profile/publisher.png", ContentGeneratorCst.NS_J); //
+		//userElement.setAttribute("picture", this.jcrPath + "/files/profile/publisher.png", ContentGeneratorCst.NS_J); //
 
 		userElement.setAttribute("published", Boolean.TRUE.toString(), ContentGeneratorCst.NS_J);
 		userElement.setAttribute("firstName", this.name + " firstname", ContentGeneratorCst.NS_J);
