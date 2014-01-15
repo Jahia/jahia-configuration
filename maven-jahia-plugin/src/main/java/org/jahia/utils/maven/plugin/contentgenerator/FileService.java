@@ -104,10 +104,10 @@ public class FileService {
 			oldFile = iterator.next();
 
 			// creates a new directory for each file, with the same name
-			// File newDirForFile = new File(destDir + sep + getFileNameWithoutExtension(fileName));
-			// newDirForFile.mkdir();
+			File newDirForFile = new File(destDir + sep + oldFile.getName());
+			newDirForFile.mkdir();
 
-			FileUtils.copyFileToDirectory(oldFile, destDir);
+			FileUtils.copyFileToDirectory(oldFile, newDirForFile);
 			newFile = new File(destDir, oldFile.getName());
 			newFiles.add(newFile);
 		}
