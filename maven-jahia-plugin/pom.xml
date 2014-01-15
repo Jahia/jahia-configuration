@@ -193,7 +193,7 @@
         <dependency>
             <groupId>org.jahia.commons</groupId>
             <artifactId>jahia-commons</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.4</version>
         </dependency>
 
 	</dependencies>

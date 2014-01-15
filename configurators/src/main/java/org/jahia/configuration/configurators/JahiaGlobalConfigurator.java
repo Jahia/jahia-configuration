@@ -578,54 +578,54 @@ public class JahiaGlobalConfigurator {
 
         List<String> sqlStatements;
 
-        DatabaseScripts scripts = new DatabaseScripts();
-
 // get script runtime...
         try {
-            sqlStatements = scripts.getSchemaSQL(dbScript);
+            sqlStatements = DatabaseScripts.getSchemaSQL(dbScript);
         } catch (Exception e) {
             throw e;
         }
-// drop each tables (if present) and (re-)create it after...
-        for (String line : sqlStatements) {
-            final String lowerCaseLine = line.toLowerCase();
-            final int tableNamePos = lowerCaseLine.indexOf("create table");
-            if (tableNamePos != -1) {
-                final String tableName = line.substring("create table".length() +
-                        tableNamePos,
-                        line.indexOf("(")).trim();
-//getLog().info("Creating table [" + tableName + "] ...");
-                try {
-                    db.query("DROP TABLE " + tableName);
-                } catch (Throwable t) {
-                    // ignore because if this fails it's ok
-                    getLogger().debug("Drop failed on " + tableName + " because of " + t + " but that's acceptable...");
-                }
-            }
-            try {
-                db.query(line);
-            } catch (Exception e) {
-                // first let's check if it is a DROP TABLE query, if it is,
-                // we will just fail silently.
-
-                String upperCaseLine = line.toUpperCase().trim();
-                String errorMsg = "Error while trying to execute query: " + line + ". Cause: " + e.getMessage();
-                if (upperCaseLine.startsWith("DROP ") || upperCaseLine.contains(" DROP ") || upperCaseLine.contains("\nDROP ") || upperCaseLine.contains(" DROP\n") || upperCaseLine.contains("\nDROP\n")) {
-                    getLogger().debug(errorMsg, e);
-                } else if (upperCaseLine.startsWith("ALTER TABLE") || upperCaseLine.startsWith("CREATE INDEX")){
-                    if (getLogger().isDebugEnabled()) {
-                        getLogger().warn(errorMsg, e);
-                    } else {
-                        getLogger().warn(errorMsg);
-                    }
-                } else {
-                    getLogger().error(errorMsg, e);
-                    throw e;
-                }
-            }
-        }
+        
+        org.jahia.commons.DatabaseScripts.executeStatements(sqlStatements, db.getConnection());
+        
+//// drop each tables (if present) and (re-)create it after...
+//        for (String line : sqlStatements) {
+//            final String lowerCaseLine = line.toLowerCase();
+//            final int tableNamePos = lowerCaseLine.indexOf("create table");
+//            if (tableNamePos != -1) {
+//                final String tableName = line.substring("create table".length() +
+//                        tableNamePos,
+//                        line.indexOf("(")).trim();
+////getLog().info("Creating table [" + tableName + "] ...");
+//                try {
+//                    db.query("DROP TABLE " + tableName);
+//                } catch (Throwable t) {
+//                    // ignore because if this fails it's ok
+//                    getLogger().debug("Drop failed on " + tableName + " because of " + t + " but that's acceptable...");
+//                }
+//            }
+//            try {
+//                db.query(line);
+//            } catch (Exception e) {
+//                // first let's check if it is a DROP TABLE query, if it is,
+//                // we will just fail silently.
+//
+//                String upperCaseLine = line.toUpperCase().trim();
+//                String errorMsg = "Error while trying to execute query: " + line + ". Cause: " + e.getMessage();
+//                if (upperCaseLine.startsWith("DROP ") || upperCaseLine.contains(" DROP ") || upperCaseLine.contains("\nDROP ") || upperCaseLine.contains(" DROP\n") || upperCaseLine.contains("\nDROP\n")) {
+//                    getLogger().debug(errorMsg, e);
+//                } else if (upperCaseLine.startsWith("ALTER TABLE") || upperCaseLine.startsWith("CREATE INDEX")){
+//                    if (getLogger().isDebugEnabled()) {
+//                        getLogger().warn(errorMsg, e);
+//                    } else {
+//                        getLogger().warn(errorMsg);
+//                    }
+//                } else {
+//                    getLogger().error(errorMsg, e);
+//                    throw e;
+//                }
+//            }
+//        }
     }
-// end createDBTables()
 
 
     public static String encryptPassword(String password) {
