@@ -130,6 +130,11 @@
             <version>20070829</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.jahia.commons</groupId>
+            <artifactId>jahia-commons</artifactId>
+            <version>1.0.4</version>
+        </dependency>
     </dependencies>
     
     <build>

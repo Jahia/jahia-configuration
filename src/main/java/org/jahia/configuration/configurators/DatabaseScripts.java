@@ -41,12 +41,10 @@
 
 package org.jahia.configuration.configurators;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
-
 import java.util.*;
 import java.io.FilenameFilter;
 
@@ -63,17 +61,17 @@ import java.io.FilenameFilter;
  * @author Alexandre Kraft
  * @version 1.0
  */
-public class DatabaseScripts {
+public final class DatabaseScripts {
 
 
     /**
      * Default constructor.
      * @author  Alexandre Kraft
      */
-    public DatabaseScripts()
+    private DatabaseScripts()
     {
-        // do nothing :o)
-    } // end constructor
+        super();
+    }
 
 
     /**
@@ -85,7 +83,7 @@ public class DatabaseScripts {
      * @return Iterator an Iterator of String objects containing the
      * schema creation SQL statements.
      */
-    public List<String> getSchemaSQL( File fileObject )
+    public static List<String> getSchemaSQL( File fileObject )
         throws IOException {
         FileInputStream scriptInputStream = new FileInputStream(fileObject.getPath());
         Properties      scriptProperties  = new Properties();
@@ -93,30 +91,6 @@ public class DatabaseScripts {
 
 
         String scriptLocation = scriptProperties.getProperty("jahia.database.schemascriptdir");
-        File parentFile = fileObject.getParentFile();
-        File schemaDir = new File(parentFile, scriptLocation);
-
-        List<String> result = getSQLStatementsInDir(schemaDir, ".sql");
-
-        return result;
-    }
-
-    /**
-     * Retrieves SQL statement for schema creation, by way of the database
-     * dependent configuration file.
-     * @param fileObject File the database configuration file
-     * @throws java.io.IOException thrown if there was an error opening or parsing
-     * the files
-     * @return Iterator an Iterator of String objects containing the
-     * schema creation SQL statements.
-     */
-    public List<String> getPopulationSQL( File fileObject)
-        throws IOException {
-        FileInputStream scriptInputStream = new FileInputStream(fileObject.getPath());
-        Properties      scriptProperties  = new Properties();
-        scriptProperties.load( scriptInputStream );
-
-        String scriptLocation = scriptProperties.getProperty("jahia.database.popuplationscriptdir");
         File parentFile = fileObject.getParentFile();
         File schemaDir = new File(parentFile, scriptLocation);
 
@@ -134,7 +108,7 @@ public class DatabaseScripts {
      * @throws java.io.IOException
      * @return ArrayList
      */
-    public List<String> getSQLStatementsInDir (File sqlDir, final String extension)
+    public static List<String> getSQLStatementsInDir (File sqlDir, final String extension)
         throws IOException {
         List<String> result = new ArrayList<String>();
         File[] schemaFiles = sqlDir.listFiles(new FilenameFilter() {
@@ -180,93 +154,10 @@ public class DatabaseScripts {
      * @param   fileObject   File object of the database script file.
      * @return  Iterator containing all lines of the database script.
      */
-    public List<String> getScriptFileStatements( File fileObject )
+    private static List<String> getScriptFileStatements( File fileObject )
     throws IOException
     {
-        List<String> scriptsRuntimeList  = new ArrayList<String>();
-
-        BufferedReader  buffered     = new BufferedReader( new FileReader(fileObject.getPath()) );
-        String          buffer       = "";
-
-        StringBuffer curSQLStatement = new StringBuffer();
-        while((buffer = buffered.readLine()) != null)
-        {
-            if (buffer != null && buffer.trim().equals("/")) {
-                // '/' indicates the end of the PL/SQL script for Oracle -> skip it here
-                continue;
-            }
-            
-            // let's check for comments.
-            int commentPos = buffer.indexOf("#");
-            if ((commentPos != -1) && (!isInQuotes(buffer, commentPos))) {
-                buffer = buffer.substring(0, commentPos);
-            }
-            commentPos = buffer.indexOf("//");
-            if ((commentPos != -1) && (!isInQuotes(buffer, commentPos))) {
-                buffer = buffer.substring(0, commentPos);
-            }
-            commentPos = buffer.indexOf("/*");
-            if ((commentPos != -1) && (!isInQuotes(buffer, commentPos))) {
-                buffer = buffer.substring(0, commentPos);
-            }
-            commentPos = buffer.indexOf("REM ");
-            if ((commentPos != -1) && (!isInQuotes(buffer, commentPos))) {
-                buffer = buffer.substring(0, commentPos);
-            }
-            commentPos = buffer.indexOf("--");
-            if ((commentPos != -1) && (!isInQuotes(buffer, commentPos))) {
-                buffer = buffer.substring(0, commentPos);
-            }
-
-            // is the line after comment removal ?
-            if (buffer.trim().length() == 0) {
-                continue;
-            }
-
-            buffer = buffer.trim();
-
-            if (buffer.endsWith(";")) {
-                // found seperator char in the script file, finish constructing
-                curSQLStatement.append(buffer.substring(0, buffer.endsWith("end;") ? buffer.length() : buffer.length()-1));
-                String sqlStatement = curSQLStatement.toString().trim();
-                if (!"".equals(sqlStatement)) {
-                    // System.out.println("Found statement [" + sqlStatement + "]");
-                    scriptsRuntimeList.add(sqlStatement);
-                }
-                curSQLStatement = new StringBuffer();
-            } else {
-                curSQLStatement.append(buffer);
-                curSQLStatement.append('\n');
-            }
-
-        }
-        String sqlStatement = curSQLStatement.toString().trim();
-        if (!"".equals(sqlStatement)) {
-            scriptsRuntimeList.add(sqlStatement);
-        }
-        buffered.close();
-
-        return scriptsRuntimeList;
-    } // getDatabaseScriptsRuntime
-
-    private boolean isInQuotes(String sqlStatement, int pos) {
-        if (pos < 0) {
-            return false;
-        }
-        String beforeStr = sqlStatement.substring(0, pos);
-        int quoteCount = 0;
-        int curPos = 0;
-        int quotePos = beforeStr.indexOf("'");
-        while (quotePos != -1) {
-            quoteCount++;
-            curPos = quotePos +1;
-            quotePos = beforeStr.indexOf("'", curPos);
-        }
-        if (quoteCount % 2 == 0) {
-            return false;
-        } else {
-            return true;
-        }
+        return org.jahia.commons.DatabaseScripts.getScriptStatements(new FileReader(fileObject));
     }
 
-} // end DatabaseScripts
+}
