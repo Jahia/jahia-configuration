@@ -104,7 +104,6 @@ public class UserGroupService {
         siteAdminGroup.setAttribute("member", "/sites/" + siteKey + "/groups/site-administrators",
                 ContentGeneratorCst.NS_J);
         siteAdminGroup.setAttribute("primaryType", "jnt:member", ContentGeneratorCst.NS_JCR);
-        siteAdminGroup.setAttribute("hidden", "false", ContentGeneratorCst.NS_J);
         jmembersSitePrivileged.setContent(siteAdminGroup);
 
         for (Iterator<GroupBO> iterator = groups.iterator(); iterator.hasNext(); ) {
