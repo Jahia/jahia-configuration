@@ -81,6 +81,8 @@ public class ConvertToOSGI extends AbstractManagementMojo {
     }
 
     private void moveWithMerge(File src, File dst) throws IOException {
+        // @todo this doesn't handle SVN directories properly
+
         File[] files = src.listFiles(new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return !name.startsWith(".");
