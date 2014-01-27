@@ -87,7 +87,7 @@ public class TestMojo extends AbstractMojo {
             List<String> targets = new ArrayList<String>();
             String url1 = testURL + "/test" + (StringUtils.isNotEmpty(test) ? "/" + test : "");
             if (skipCoreTests) {
-                url1 += "&skipCoreTests=true";
+                url1 += "?skipCoreTests=true";
             }
             getLog().info("Get tests from : "+url1);
             URLConnection conn = null;
