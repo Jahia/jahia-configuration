@@ -29,6 +29,7 @@
         <module>configurators</module>
         <module>archivers</module>
         <module>osgi-tools</module>
+        <module>migrators</module>
         <module>maven-jahia-plugin</module>
         <module>jahia-installer</module>
         <module>jahia-hibernate-maven-plugin</module>
