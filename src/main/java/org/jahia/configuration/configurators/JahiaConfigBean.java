@@ -80,6 +80,7 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String jahiaRootFirstname = "";
     private String jahiaRootLastname = "";
     private String jahiaRootEmail = "";
+    private String jahiaRootPreferredLang = "en";
     private String webAppDirName = "ROOT";
     private String mailServer = "";
     private String mailFrom = "";
@@ -611,6 +612,15 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public void setClusterTCPBindPort(String clusterTCPBindPort) {
         this.clusterTCPBindPort = clusterTCPBindPort;
+    }
+
+    @Override
+    public String getJahiaRootPreferredLang() {
+        return jahiaRootPreferredLang;
+    }
+
+    public void setJahiaRootPreferredLang(String jahiaRootPreferredLang) {
+        this.jahiaRootPreferredLang = jahiaRootPreferredLang;
     }
 
 }

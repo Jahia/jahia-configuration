@@ -95,6 +95,9 @@ public class RootUserConfigurator extends AbstractXMLConfigurator {
             if (cfg.getJahiaRootEmail() != null && cfg.getJahiaRootEmail().length() > 0) {
                 rootNameElement.setAttribute("email", cfg.getJahiaRootEmail(), jahiaNamespace);
             }
+            if (cfg.getJahiaRootPreferredLang() != null && cfg.getJahiaRootPreferredLang().length() > 0) {
+                rootNameElement.setAttribute("preferredLanguage", cfg.getJahiaRootPreferredLang());
+            }
         }
 
         Format customFormat = Format.getPrettyFormat();

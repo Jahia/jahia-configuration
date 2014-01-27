@@ -79,6 +79,8 @@ public interface JahiaConfigInterface {
 
     String getJahiaRootPassword();
 
+    String getJahiaRootPreferredLang();
+    
     String getJahiaRootUsername();
 
     String getJahiaModulesDiskPath();

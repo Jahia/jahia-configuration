@@ -42,6 +42,8 @@ public class RootUserConfiguratorTest extends AbstractXMLConfiguratorTestCase {
                 + websphereOracleConfigBean.getJahiaRootUsername() + "/@j:lastName", prefix)).getValue());
         assertEquals(websphereOracleConfigBean.getJahiaRootEmail(), ((Attribute) getNode(jdomDocument, "/content/users/"
                 + websphereOracleConfigBean.getJahiaRootUsername() + "/@j:email", prefix)).getValue());
+        assertEquals("de", ((Attribute) getNode(jdomDocument, "/content/users/"
+                + websphereOracleConfigBean.getJahiaRootUsername() + "/@preferredLanguage", prefix)).getValue());
 
         RootUserConfigurator tomcatMySQLConfigurator = new RootUserConfigurator(mysqlDBProperties, tomcatMySQLConfigBean, "1234root");
         tomcatMySQLConfigurator.updateConfiguration(new VFSConfigFile(fsManager, rootXmlFileParentPath + "root-test.xml"), rootXmlFileParentPath + "root-modified2.xml");
