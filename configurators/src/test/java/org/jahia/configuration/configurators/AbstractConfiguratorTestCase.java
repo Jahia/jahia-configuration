@@ -58,6 +58,7 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
         websphereOracleConfigBean.setJahiaRootFirstname("Jahia");
         websphereOracleConfigBean.setJahiaRootLastname("Root");
         websphereOracleConfigBean.setJahiaRootEmail("root@jahia.org");
+        websphereOracleConfigBean.setJahiaRootPreferredLang("de");
         
         websphereOracleConfigBean.getJahiaProperties().put("jahia.dm.viewer.enabled", "true");
         websphereOracleConfigBean.getJahiaProperties().put("jahia.dm.viewer.pdf2swf", "c:\\Program Files (x86)\\SWFTools\\pdf2swf.exe");

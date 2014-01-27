@@ -111,6 +111,10 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      */
     protected String jahiaRootPassword;
     /**
+     * @parameter expression="${jahia.configure.jahiaRootPreferredLang}" default-value="en"
+     */
+    protected String jahiaRootPreferredLang;
+    /**
      * @parameter expression="${jahia.configure.jahiaRootFirstname}" default-value=""
      */
     protected String jahiaRootFirstname;
@@ -634,6 +638,11 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         if (jahiaProperties != null) {
             this.jahiaProperties = JahiaGlobalConfigurator.fromJSON(jahiaProperties);
         }
+    }
+
+    @Override
+    public String getJahiaRootPreferredLang() {
+        return jahiaRootPreferredLang;
     }
 
 }
