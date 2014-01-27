@@ -35,6 +35,12 @@ public class TestMojo extends AbstractMojo {
     protected String test;
     
     /**
+     * Test to execute
+     * @parameter expression="${skipCoreTests}"
+     */
+    protected boolean skipCoreTests;
+    
+    /**
      * Server type
      * @parameter expression="${xmlTest}"
      */
@@ -80,6 +86,9 @@ public class TestMojo extends AbstractMojo {
         try {
             List<String> targets = new ArrayList<String>();
             String url1 = testURL + "/test" + (StringUtils.isNotEmpty(test) ? "/" + test : "");
+            if (skipCoreTests) {
+                url1 += "&skipCoreTests=true";
+            }
             getLog().info("Get tests from : "+url1);
             URLConnection conn = null;
 
@@ -145,6 +154,9 @@ public class TestMojo extends AbstractMojo {
             }
             if (StringUtils.isNotEmpty(testOutputDirectory)) {
             	sbParameters.append("&testOutputDirectory=" + testOutputDirectory);
+            }
+            if (skipCoreTests) {
+                sbParameters.append("&skipCoreTests=true");
             }
             
             String testUrl = testURL + "/test/" + test + sbParameters.toString();
