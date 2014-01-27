@@ -55,6 +55,20 @@ import com.izforge.izpack.util.Debug;
  */
 public class DbConnectionValidator implements DataValidator {
 
+    private static String formatMessage(String msg) {
+        if (msg == null || msg.length() <= 80) {
+            return msg;
+        }
+        
+        String[] lines = msg.split("\\. ");
+        StringBuilder b = new StringBuilder(msg.length());
+        for (String line : lines) {
+            b.append(line).append(".\n");
+        }
+        
+        return b.toString();
+    }
+
     private static String getVar(AutomatedInstallData adata, String name,
             String defValue) {
         String var = adata.getVariable(name);
@@ -104,8 +118,7 @@ public class DbConnectionValidator implements DataValidator {
             Debug.trace("Validation did not pass, error: " + e.getMessage());
             String key = "dbSettings.connection.error";
             errorMsg = getMessage(adata, key);
-            errorMsg = errorMsg + "\n" + e.getClass().getName() + ": "
-                    + e.getMessage();
+            errorMsg = errorMsg + "\n" + e.getClass().getName() + ":\n" + formatMessage(e.getMessage());
         }
         
         if (errorMsg != null) {
