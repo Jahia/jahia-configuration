@@ -12,7 +12,7 @@ public class Main {
     public static void main(String[] args) {
         AbstractLogger logger = new ConsoleLogger(ConsoleLogger.LEVEL_INFO);
         logger.info("\nJahia 7.0 Configuration Tool");
-        logger.info("Copyright 2002-2013 - Jahia Solutions Group SA http://www.jahia.com - All Rights Reserved\n");
+        logger.info("Copyright 2002-2014 - Jahia Solutions Group SA http://www.jahia.com - All Rights Reserved\n");
         if (args.length > 0) {
             if ((args[0].equals("--deploy-module") || args[0].equals("-dm")) && args.length > 2) {
                 try {
