@@ -219,5 +219,12 @@ public interface JahiaConfigInterface {
      * structure should they exist already.
      */
     String getJeeApplicationModuleList();
+    
+    /**
+     * Provides a path to an existing license file to be used. If not provided a trial license will be used.
+     * 
+     * @return a path to an existing license file to be used. If not provided a trial license will be used
+     */
+    String getLicenseFile();
 
 }

@@ -329,7 +329,9 @@ public class JahiaGlobalConfigurator {
             targetConfigPath = externalizedConfigTempPath;
         }
         try {
-            copyLicense(sourceWebappPath + "/WEB-INF/etc/config/licenses/license-free.xml", targetConfigPath + "/license.xml");
+            String existingLicense = jahiaConfig.getLicenseFile();
+            copyLicense(existingLicense != null && existingLicense.length() > 0 ? existingLicense : sourceWebappPath
+                    + "/WEB-INF/etc/config/licenses/license-free.xml", targetConfigPath + "/license.xml");
             if (jahiaConfig.getOverwritedb().equals("true")) {
                 getLogger().info("Creating database tables...");
                 if (!databaseScript.exists()) {

@@ -384,6 +384,13 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      */
     protected Map<String, String> jahiaProperties;
 
+    /**
+     * Path to an existing license file to be used by Jahia instead of a default trial one.
+     *
+     * @parameter expression="${jahia.configure.licenseFile}"
+     */
+    private String licenseFile;
+
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
             new JahiaGlobalConfigurator(new MojoLogger(getLog()), this).execute();
@@ -643,6 +650,11 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     @Override
     public String getJahiaRootPreferredLang() {
         return jahiaRootPreferredLang;
+    }
+
+    @Override
+    public String getLicenseFile() {
+        return licenseFile;
     }
 
 }
