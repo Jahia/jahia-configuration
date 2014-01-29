@@ -111,6 +111,7 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     private String jeeApplicationLocation = null;
     private String jeeApplicationModuleList = null;
+    private String licenseFile;
     
     public void setFileDataStorePath(String fileDataStorePath) {
         this.fileDataStorePath = fileDataStorePath;
@@ -621,6 +622,15 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public void setJahiaRootPreferredLang(String jahiaRootPreferredLang) {
         this.jahiaRootPreferredLang = jahiaRootPreferredLang;
+    }
+
+    @Override
+    public String getLicenseFile() {
+        return licenseFile;
+    }
+
+    public void setLicenseFile(String licenseFile) {
+        this.licenseFile = licenseFile;
     }
 
 }
