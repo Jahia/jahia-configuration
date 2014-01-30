@@ -7,10 +7,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.jahia.utils.osgi.BundleUtils;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.JarInputStream;
@@ -20,6 +17,7 @@ import java.util.jar.JarInputStream;
  * parameter.
  *
  * @goal osgi-inspect
+ * @requiresProject false
  */
 public class OsgiInspectorMojo extends AbstractMojo {
 
@@ -31,7 +29,6 @@ public class OsgiInspectorMojo extends AbstractMojo {
     /**
      * @parameter expression="${project}"
      * @readonly
-     * @required
      */
     protected MavenProject project;
 
@@ -47,6 +44,11 @@ public class OsgiInspectorMojo extends AbstractMojo {
         }
         for (String jarBundle : jarBundles) {
             JarInputStream jarInputStream = null;
+            File jarFile = new File(jarBundle);
+            if (!jarFile.exists()) {
+                getLog().error(jarFile + " does not exist, skipping !");
+                continue;
+            }
             try {
                 jarInputStream = new JarInputStream(new FileInputStream(jarBundle));
                 StringWriter stringWriter = new StringWriter();
