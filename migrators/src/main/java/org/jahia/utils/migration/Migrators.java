@@ -1,5 +1,9 @@
 package org.jahia.utils.migration;
 
+import org.jahia.commons.Version;
+import org.jahia.utils.migration.model.Migration;
+import org.jahia.utils.migration.model.MigrationOperation;
+import org.jahia.utils.migration.model.MigrationResource;
 import org.jahia.utils.migration.model.Migrations;
 
 import javax.xml.bind.JAXBContext;
@@ -8,6 +12,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.regex.Matcher;
 
 /**
  * Main singleton for migrators access
@@ -30,17 +35,33 @@ public class Migrators {
         return instance;
     }
 
-    public <T> T unmarshal(Class<T> docClass, InputStream inputStream) throws JAXBException {
+    private <T> T unmarshal(Class<T> docClass, InputStream inputStream) throws JAXBException {
         JAXBContext jc = JAXBContext.newInstance(docClass);
         Unmarshaller u = jc.createUnmarshaller();
         T doc = (T) u.unmarshal(inputStream);
         return doc;
     }
 
-    public void marshal(Class docClass, Object jaxbElement, OutputStream outputStream) throws JAXBException {
+    private void marshal(Class docClass, Object jaxbElement, OutputStream outputStream) throws JAXBException {
         JAXBContext jc = JAXBContext.newInstance(docClass);
         Marshaller marshaller = jc.createMarshaller();
         marshaller.marshal(jaxbElement, outputStream);
+    }
+
+    public void migrate(InputStream inputStream, OutputStream outputStream, String filePath, Version fromVersion, Version toVersion, boolean performModification) {
+        for (Migration migration : migrationsConfig.getMigrations()) {
+            if (migration.getFromVersion().equals(fromVersion) &&
+                    migration.getToVersion().equals(toVersion)) {
+                for (MigrationResource migrationResource : migration.getMigrationResources()) {
+                    Matcher resourcePatternMatcher = migrationResource.getCompiledPattern().matcher(filePath);
+                    if (resourcePatternMatcher.matches()) {
+                        for (MigrationOperation migrationOperation : migrationResource.getOperations()) {
+                            migrationOperation.execute(inputStream, outputStream, filePath, performModification);
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }

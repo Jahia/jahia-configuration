@@ -2,10 +2,10 @@
     <migration from="6.6" to="7.0">
         <resources>
             <resource pattern="**/*.cnd">
-                <replace pattern="richtext[ckeditor\.customConfig='.*']" with="richtext" messageKey="migration.removeCustomCKEditorConfig"/>
+                <replace pattern="richtext\[ckeditor\.customConfig='.*'\]" with="richtext" warningMessageKey="migration.warning.removeCustomCKEditorConfig" performMessageKey="migration.perform.removeCustomCKEditorConfig"/>
             </resource>
             <resource pattern="**/*.groovy">
-                <replace pattern="currentNode\.resolveSite\.home" with="renderContext.site.home" messageKey="migration.changeSiteHomePageResolution"/>
+                <replace pattern="currentNode\.resolveSite\.home" with="renderContext.site.home" messageKey="migration.warning.changeSiteHomePageResolution" performMessageKey="migration.perform.changeSiteHomePageResolution"/>
             </resource>
         </resources>
     </migration>
