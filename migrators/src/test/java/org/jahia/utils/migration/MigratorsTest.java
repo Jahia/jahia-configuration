@@ -1,6 +1,7 @@
 package org.jahia.utils.migration;
 
 import org.jahia.commons.Version;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -17,8 +18,14 @@ public class MigratorsTest {
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         migrateFile("projects/jahia66/definitions.cnd", migrators, byteArrayOutputStream);
+        byte[] byteArray = byteArrayOutputStream.toByteArray();
+        String fileContents = new String(byteArray);
+        Assert.assertTrue("New definitions.cnd file shouldn't contain custom CKEditor configuration", !fileContents.contains("richtext[ckeditor.customConfig='"));
         byteArrayOutputStream.reset();
         migrateFile("projects/jahia66/navbar.menu.groovy", migrators, byteArrayOutputStream);
+        byteArray = byteArrayOutputStream.toByteArray();
+        fileContents = new String(byteArray);
+        Assert.assertTrue("New groovy file shouldn't contain old resolveSite call", !fileContents.contains("currentNode.resolveSite.home"));
     }
 
     private void migrateFile(String filePath, Migrators migrators, ByteArrayOutputStream byteArrayOutputStream) {
