@@ -5,24 +5,25 @@ import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.apache.tika.io.IOUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
+import org.jahia.commons.Version;
 import org.jahia.utils.maven.plugin.AbstractManagementMojo;
+import org.jahia.utils.migration.Migrators;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Jahia server deployment mojo.
+ * Jahia utility goal to help with the migration of Jahia modules to OSGi packaging.
  *
  * @goal convert-to-osgi
  * @requiresDependencyResolution runtime
@@ -39,6 +40,12 @@ public class ConvertToOSGI extends AbstractManagementMojo {
         jahiaManifestAttributes.put("deploy-on-site", "Jahia-Deploy-On-Site");
     }
 
+    /**
+     * @parameter expression="${jahia.osgi.conversion.performMigration}"
+     *
+     */
+    private boolean performMigration = false;
+
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         if (!checkProjectParent(project, "org.jahia.modules", "jahia-modules")) {
@@ -52,15 +59,35 @@ public class ConvertToOSGI extends AbstractManagementMojo {
                 File oldWorkflowDir = new File(resources, "org/jahia/services/workflow");
                 File newWorkflowDirParent = new File(resources, "org/jahia/modules/custom");
                 if (oldWorkflowDir.exists()) {
+                    getLog().info("Moving " + oldWorkflowDir + " to " + newWorkflowDirParent + "...");
                     FileUtils.moveDirectoryToDirectory(oldWorkflowDir, newWorkflowDirParent, true);
                 }
             }
             if (webapp.exists()) {
+                getLog().info("Removing " + new File(webapp, "WEB-INF/web.xml") + " no longer needed...");
                 FileUtils.deleteQuietly(new File(webapp, "WEB-INF/web.xml"));
+                getLog().info("Moving contents of directory " + webapp + " into directory " + resources + "...");
                 moveWithMerge(webapp, resources);
             }
 
+            getLog().info("Performing Maven project modifications...");
             parsePom();
+
+            if (performMigration) {
+                getLog().info("Performing needed migration modifications");
+            } else {
+                getLog().info("Checking for migration issues...");
+            }
+            List<String> messages = checkForMigrationIssues(baseDir, performMigration);
+            if (messages.size() > 0) {
+                getLog().info("=====================================================================================================================");
+                getLog().info("Transformation messages:");
+                getLog().info("---------------------------------------------------------------------------------------------------------------------");
+                for (String message : messages) {
+                    getLog().info(message);
+                }
+                getLog().info("---------------------------------------------------------------------------------------------------------------------");
+            }
         } catch (DocumentException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (IOException e) {
@@ -176,5 +203,48 @@ public class ConvertToOSGI extends AbstractManagementMojo {
                 instructions.add(element.detach());
             }
         }
+    }
+
+    public List<String> checkForMigrationIssues(File currentFile, boolean performMigration) throws FileNotFoundException {
+        List<String> messages = new ArrayList<String>();
+        if (currentFile.isFile()) {
+            FileInputStream fileInputStream = new FileInputStream(currentFile);
+            ByteArrayOutputStream byteArrayOutputStream = null;
+            if (performMigration) {
+                // we use byte arrays as we will be writing to the same file as the input file
+                byteArrayOutputStream = new ByteArrayOutputStream();
+            }
+            messages.addAll(Migrators.getInstance().migrate(fileInputStream, byteArrayOutputStream, currentFile.getPath(), new Version("6.6"), new Version("7.0"), performMigration));
+            IOUtils.closeQuietly(fileInputStream);
+            if (performMigration && messages.size() > 0 && byteArrayOutputStream.size() > 0) {
+                getLog().info("Renaming existing file " + currentFile + " to " + currentFile.getName() + ".backup");
+                if (!currentFile.renameTo(new File(currentFile.getPath() + ".backup"))) {
+                    getLog().error("Error renaming " + currentFile + "!");
+                }
+                byte[] byteArray = byteArrayOutputStream.toByteArray();
+                getLog().info("Writing modified file " + currentFile + "...");
+                ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray);
+                FileOutputStream fileOutputStream = new FileOutputStream(currentFile);
+                long bytesCopied = 0;
+                try {
+                    bytesCopied = IOUtils.copyLarge(byteArrayInputStream, fileOutputStream);
+                    fileOutputStream.flush();
+                } catch (IOException e) {
+                    getLog().error("Error writing to file " + currentFile, e);
+                }
+                getLog().info("Wrote " + bytesCopied + " bytes to file " + currentFile);
+                IOUtils.closeQuietly(fileOutputStream);
+            }
+            return messages;
+        }
+        if (!currentFile.isDirectory()) {
+            getLog().warn("Found non-file or directory at " + currentFile + ",ignoring...");
+            return messages;
+        }
+        File[] currentChildren = currentFile.listFiles();
+        for (File currentChild : currentChildren) {
+            messages.addAll(checkForMigrationIssues(currentChild, performMigration));
+        }
+        return messages;
     }
 }

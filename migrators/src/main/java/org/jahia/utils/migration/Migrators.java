@@ -12,6 +12,8 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 
 /**
@@ -48,7 +50,8 @@ public class Migrators {
         marshaller.marshal(jaxbElement, outputStream);
     }
 
-    public void migrate(InputStream inputStream, OutputStream outputStream, String filePath, Version fromVersion, Version toVersion, boolean performModification) {
+    public List<String> migrate(InputStream inputStream, OutputStream outputStream, String filePath, Version fromVersion, Version toVersion, boolean performModification) {
+        List<String> messages = new ArrayList<String>();
         for (Migration migration : migrationsConfig.getMigrations()) {
             if (migration.getFromVersion().equals(fromVersion) &&
                     migration.getToVersion().equals(toVersion)) {
@@ -56,12 +59,13 @@ public class Migrators {
                     Matcher resourcePatternMatcher = migrationResource.getCompiledPattern().matcher(filePath);
                     if (resourcePatternMatcher.matches()) {
                         for (MigrationOperation migrationOperation : migrationResource.getOperations()) {
-                            migrationOperation.execute(inputStream, outputStream, filePath, performModification);
+                            messages.addAll(migrationOperation.execute(inputStream, outputStream, filePath, performModification));
                         }
                     }
                 }
             }
         }
+        return messages;
     }
 
 }

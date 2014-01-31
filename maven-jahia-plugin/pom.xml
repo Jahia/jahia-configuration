@@ -196,6 +196,12 @@
             <version>1.0.4</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.jahia.configuration</groupId>
+            <artifactId>migrators</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
 	</dependencies>
 
 	<build>
