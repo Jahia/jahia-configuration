@@ -158,16 +158,23 @@ public class ConvertToOSGI extends AbstractManagementMojo {
 
         // Generate plugin instructions
         Element plugins = (Element) pomDocument.selectSingleNode("/project/*[local-name()='build']/*[local-name()='plugins']");
-        Element previousPluginConfig = (Element) plugins.selectSingleNode("//*[local-name()='artifactId'][text()='maven-war-plugin']").getParent().detach();
-        Element manifestEntries = previousPluginConfig.element("configuration").element("archive").element("manifestEntries");
+        if (plugins != null) {
+            Element mavenWarPluginArtifactId = (Element) plugins.selectSingleNode("//*[local-name()='artifactId'][text()='maven-war-plugin']");
+            if (mavenWarPluginArtifactId != null) {
+                Element previousPluginConfig = (Element) mavenWarPluginArtifactId.getParent().detach();
+                Element manifestEntries = previousPluginConfig.element("configuration").element("archive").element("manifestEntries");
 
-        Element pluginTemplate = (Element) bundleModuleDocument.selectSingleNode("/project/*[local-name()='build']/*[local-name()='plugins']/*[local-name()='plugin']");
-        Element instructionsTemplate = (Element) pluginTemplate.element("configuration").element("instructions").detach();
-        Element instructions = pluginTemplate.element("configuration").addElement("instructions");
+                Element pluginTemplate = (Element) bundleModuleDocument.selectSingleNode("/project/*[local-name()='build']/*[local-name()='plugins']/*[local-name()='plugin']");
+                if (pluginTemplate != null) {
+                    Element instructionsTemplate = (Element) pluginTemplate.element("configuration").element("instructions").detach();
+                    Element instructions = pluginTemplate.element("configuration").addElement("instructions");
 
-        generateBundlePlugin(manifestEntries, instructions, instructionsTemplate);
-        if (!instructions.elements().isEmpty()) {
-            plugins.add(pluginTemplate.detach());
+                    generateBundlePlugin(manifestEntries, instructions, instructionsTemplate);
+                    if (!instructions.elements().isEmpty()) {
+                        plugins.add(pluginTemplate.detach());
+                    }
+                }
+            }
         }
 
         // Export pom
