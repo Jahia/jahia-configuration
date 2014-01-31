@@ -16,10 +16,59 @@
         <dependency>
             <groupId>org.jahia.commons</groupId>
             <artifactId>jahia-commons</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.4</version>
         </dependency>
-
+        <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+          <version>4.11</version>
+          <scope>test</scope>
+        </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>schemagen</id>
+            <activation>
+              <file>
+                <missing>src/main/resources/OSGI-INF/migrators/migrators.xsd</missing>
+              </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>jaxb2-maven-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <id>schemagen</id>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>schemagen</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <transformSchemas>
+                                <transformSchema>
+                                    <uri>http://www.jahia.com/migration/migrators</uri>
+                                    <toPrefix>migrators</toPrefix>
+                                    <toFile>${basedir}/src/main/resources/OSGI-INF/migrators/migrators.xsd</toFile>
+                                </transformSchema>
+                            </transformSchemas>
+                            <includes>
+                                <include>org/jahia/utils/migration/model/**/*.java</include>
+                            </includes>
+                            <excludes>
+                                <include>org/jahia/utils/migration/model/**/*Service.java</include>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>
