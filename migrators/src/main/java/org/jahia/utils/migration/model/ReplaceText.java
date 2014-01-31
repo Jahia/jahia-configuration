@@ -78,11 +78,20 @@ public class ReplaceText extends MigrationOperation {
     }
 
     private void displayMessage(String messageKey, String filePath, int lineCount, String line, String newLine) {
+        String alternateMessage = "Replacing in " + filePath + " at line " + lineCount + "\n  Current line=" + line + "\n  New line=" + newLine;
+        if (messageKey == null) {
+            System.out.println("Null messageKey passed.\n" + alternateMessage);
+            return;
+        }
         if (resourceBundle != null) {
-            String message = resourceBundle.getString(messageKey);
-            if (message != null) {
+            if (resourceBundle.containsKey(messageKey)) {
+                String message = resourceBundle.getString(messageKey);
                 System.out.println(MessageFormat.format(message, filePath, lineCount, line, newLine));
+            } else {
+                System.out.println("Couldn't find resource key " + messageKey + " in resource bundle : messages\n" + alternateMessage);
             }
+        } else {
+            System.out.println("Couldn't find resource bundle : messages\n" + alternateMessage);
         }
     }
 }
