@@ -46,6 +46,27 @@ public class ReplaceText extends MigrationOperation {
         this.performMessageKey = performMessageKey;
     }
 
+    public boolean willMigrate(InputStream inputStream, String filePath) {
+        InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+        String line = null;
+        int lineCount = 0;
+        try {
+            while ((line = bufferedReader.readLine()) != null) {
+                lineCount++;
+                Matcher lineMatcher = compiledPattern.matcher(line);
+                if (lineMatcher.find()) {
+                    return true;
+                } else {
+                }
+            }
+        } catch (IOException ioe) {
+            System.out.println("Error in file " + filePath + " at line " + lineCount + ":" + line);
+            ioe.printStackTrace();
+        }
+        return false;
+    }
+
     public List<String> execute(InputStream inputStream, OutputStream outputStream, String filePath, boolean performModification) {
         List<String> messages = new ArrayList<String>();
         InputStreamReader inputStreamReader = new InputStreamReader(inputStream);

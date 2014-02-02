@@ -43,12 +43,17 @@ public class MigratorsTest {
         displayMessages(messages);
         Assert.assertTrue("Two warning should have been issued the the content definition file", messages.size() == 2);
 
+        messages = migrateFile("projects/jahia66/untouched.txt", migrators, null, false);
+        Assert.assertTrue("File should not be touched by migrators", messages.size() == 0);
     }
 
     private List<String> migrateFile(String filePath, Migrators migrators, ByteArrayOutputStream byteArrayOutputStream, boolean performModifications) {
         List<String> messages = new ArrayList<String>();
         InputStream definitionInputStream = this.getClass().getClassLoader().getResourceAsStream(filePath);
-        messages.addAll(migrators.migrate(definitionInputStream, byteArrayOutputStream, filePath, new Version("6.6"), new Version("7.0"), performModifications));
+        if (migrators.willMigrate(definitionInputStream, filePath, new Version("6.6"), new Version ("7.0"))) {
+            definitionInputStream = this.getClass().getClassLoader().getResourceAsStream(filePath);
+            messages.addAll(migrators.migrate(definitionInputStream, byteArrayOutputStream, filePath, new Version("6.6"), new Version("7.0"), performModifications));
+        }
         return messages;
     }
 

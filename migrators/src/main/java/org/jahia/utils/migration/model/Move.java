@@ -13,6 +13,12 @@ import java.util.List;
 @XmlRootElement(name="move")
 @XmlType
 public class Move extends MigrationOperation {
+
+    @Override
+    public boolean willMigrate(InputStream inputStream, String filePath) {
+        return false;
+    }
+
     @Override
     public List<String> execute(InputStream inputStream, OutputStream outputStream, String filePath, boolean performModification) {
         return new ArrayList<String>();

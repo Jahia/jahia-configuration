@@ -50,6 +50,25 @@ public class Migrators {
         marshaller.marshal(jaxbElement, outputStream);
     }
 
+    public boolean willMigrate(InputStream inputStream, String filePath, Version fromVersion, Version toVersion) {
+        for (Migration migration : migrationsConfig.getMigrations()) {
+            if (migration.getFromVersion().equals(fromVersion) &&
+                    migration.getToVersion().equals(toVersion)) {
+                for (MigrationResource migrationResource : migration.getMigrationResources()) {
+                    Matcher resourcePatternMatcher = migrationResource.getCompiledPattern().matcher(filePath);
+                    if (resourcePatternMatcher.matches()) {
+                        for (MigrationOperation migrationOperation : migrationResource.getOperations()) {
+                            if (migrationOperation.willMigrate(inputStream, filePath)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     public List<String> migrate(InputStream inputStream, OutputStream outputStream, String filePath, Version fromVersion, Version toVersion, boolean performModification) {
         List<String> messages = new ArrayList<String>();
         for (Migration migration : migrationsConfig.getMigrations()) {
