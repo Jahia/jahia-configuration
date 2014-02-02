@@ -90,7 +90,7 @@
                             org.jahia.utils.migration,
                             org.jahia.utils.migration.model
                         </Export-Package>
-                        <Embed-Dependency>*; scope=compile; type=!pom; inline=true;artifactId=!jdom|bndlib|slf4j-api|log4j
+                        <Embed-Dependency>*; scope=compile; type=!pom; inline=true;artifactId=!jdom|bndlib|slf4j-api|log4j|jahia-commons
                         </Embed-Dependency>
                         <Embed-Transitive>true</Embed-Transitive>
                         <_removeheaders>
