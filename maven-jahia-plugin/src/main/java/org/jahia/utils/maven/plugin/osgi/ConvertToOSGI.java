@@ -143,8 +143,13 @@ public class ConvertToOSGI extends AbstractManagementMojo {
         Element packaging = root.element("packaging");
         if (packaging == null) {
             root.addElement("packaging");
+        } else {
+            if (packaging.getTextTrim().toLowerCase().equals("war")) {
+                packaging.setText("bundle");
+            } else {
+                getLog().info("Non WAR packaging found : " + packaging.getTextTrim() + ", not modifying it to bundle, but you might want to double-check this.");
+            }
         }
-        packaging.setText("bundle");
 
         // Copy template dependencies
         Element dependencies = root.element("dependencies");
