@@ -9,7 +9,7 @@
             </resource>
             <resource pattern="**/*.drl">
                 <replace pattern="org\.drools\.spi\.KnowledgeHelper" with="org.drools.core.spi.KnowledgeHelper" warningMessageKey="migration.warning.knowledgeHelperApiChange" performMessageKey="migration.perform.knowledgeHelperApiChange"/>
-                <replace pattern="\#" with="\/\/" warningMessageKey="migration.warning.ruleCommentChange" performMessageKey="migration.perform.ruleCommentChange"/>
+                <replace pattern="\#" with="//" warningMessageKey="migration.warning.ruleCommentChange" performMessageKey="migration.perform.ruleCommentChange"/>
             </resource>
             <resource pattern="**/*.dsl">
                 <replace pattern="org\.drools\.spi\.KnowledgeHelper" with="org.drools.core.spi.KnowledgeHelper" warningMessageKey="migration.warning.knowledgeHelperApiChange" performMessageKey="migration.perform.knowledgeHelperApiChange"/>

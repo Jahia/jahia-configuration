@@ -1,5 +1,6 @@
 package org.jahia.utils.migration;
 
+import org.apache.commons.io.IOUtils;
 import org.jahia.commons.Version;
 import org.jahia.utils.migration.model.Migration;
 import org.jahia.utils.migration.model.MigrationOperation;
@@ -10,8 +11,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -77,8 +77,25 @@ public class Migrators {
                 for (MigrationResource migrationResource : migration.getMigrationResources()) {
                     Matcher resourcePatternMatcher = migrationResource.getCompiledPattern().matcher(filePath);
                     if (resourcePatternMatcher.matches()) {
+                        // we use byte array input and output stream to be able to iterate over the contents multiple times, feeding in the result of the last iteration into the next.
+                        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                        try {
+                            IOUtils.copyLarge(inputStream, byteArrayOutputStream);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        byte[] inputByteArray = byteArrayOutputStream.toByteArray();
+                        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(inputByteArray);
+                        byteArrayOutputStream.reset();
                         for (MigrationOperation migrationOperation : migrationResource.getOperations()) {
-                            messages.addAll(migrationOperation.execute(inputStream, outputStream, filePath, performModification));
+                            messages.addAll(migrationOperation.execute(byteArrayInputStream, byteArrayOutputStream, filePath, performModification));
+                            byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+                            byteArrayOutputStream.reset();
+                        }
+                        try {
+                            IOUtils.copyLarge(byteArrayInputStream, outputStream);
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
                     }
                 }

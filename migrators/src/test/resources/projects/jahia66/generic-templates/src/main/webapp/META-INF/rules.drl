@@ -3,6 +3,7 @@ package com.jahia.modules.generic.rules
 # list any import classes here.
 import org.jahia.services.content.rules.*
 import org.jahia.services.content.JCRContentUtils
+import org.drools.spi.KnowledgeHelper
 import org.slf4j.Logger
 
 expander rules.dsl

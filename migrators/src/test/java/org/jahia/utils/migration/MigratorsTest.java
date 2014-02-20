@@ -54,8 +54,17 @@ public class MigratorsTest {
         displayMessages(messages);
         byteArray = byteArrayOutputStream.toByteArray();
         fileContents = new String(byteArray);
+        Assert.assertTrue("New rule file should have been modified", fileContents.length() != 0);
         Assert.assertTrue("New rule file should not contain any hash characters", !fileContents.contains("#"));
+        Assert.assertTrue("New rule file should double slash comments", fileContents.contains("//"));
         Assert.assertTrue("New rule file should not contain reference to class org.drools.spi.KnowledgeHelper", !fileContents.contains("org.drools.spi.KnowledgeHelper"));
+
+        byteArrayOutputStream.reset();
+        messages = migrateFile(projectRoot + "/src/main/java/org/jahia/modules/generic/rules/GenericRulesService.java", migrators, byteArrayOutputStream, true);
+        displayMessages(messages);
+        byteArray = byteArrayOutputStream.toByteArray();
+        fileContents = new String(byteArray);
+        Assert.assertTrue("New Java file should not contain reference to class org.drools.spi.KnowledgeHelper", !fileContents.contains("org.drools.spi.KnowledgeHelper"));
 
     }
 
