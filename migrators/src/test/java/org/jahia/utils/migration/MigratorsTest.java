@@ -20,31 +20,43 @@ public class MigratorsTest {
         List<String> messages = new ArrayList<String>();
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        messages = migrateFile("projects/jahia66/definitions.cnd", migrators, byteArrayOutputStream, true);
+
+        final String projectRoot = "projects/jahia66/generic-templates";
+
+        messages = migrateFile(projectRoot + "/src/main/webapp/META-INF/definitions.cnd", migrators, byteArrayOutputStream, true);
         displayMessages(messages);
         byte[] byteArray = byteArrayOutputStream.toByteArray();
         String fileContents = new String(byteArray);
         Assert.assertTrue("New definitions.cnd file shouldn't contain custom CKEditor configuration", !fileContents.contains("richtext[ckeditor.customConfig='"));
         byteArrayOutputStream.reset();
-        messages = migrateFile("projects/jahia66/navbar.menu.groovy", migrators, byteArrayOutputStream, true);
+        messages = migrateFile(projectRoot + "/src/main/webapp/genericnt_navbar/html/navbar.menu.groovy", migrators, byteArrayOutputStream, true);
         displayMessages(messages);
         byteArray = byteArrayOutputStream.toByteArray();
         fileContents = new String(byteArray);
         Assert.assertTrue("New groovy file shouldn't contain old resolveSite call", !fileContents.contains("currentNode.resolveSite.home"));
 
         byteArrayOutputStream.reset();
-        messages = migrateFile("projects/jahia66/navbar.menu.groovy", migrators, byteArrayOutputStream, false);
+        messages = migrateFile(projectRoot + "/src/main/webapp/genericnt_navbar/html/navbar.menu.groovy", migrators, byteArrayOutputStream, false);
         displayMessages(messages);
         byteArray = byteArrayOutputStream.toByteArray();
         fileContents = new String(byteArray);
         Assert.assertTrue("New groovy file should contain old resolveSite call", fileContents.length() == 0);
 
-        messages = migrateFile("projects/jahia66/definitions.cnd", migrators, null, false);
+        messages = migrateFile(projectRoot + "/src/main/webapp/META-INF/definitions.cnd", migrators, null, false);
         displayMessages(messages);
         Assert.assertTrue("Two warning should have been issued the the content definition file", messages.size() == 2);
 
-        messages = migrateFile("projects/jahia66/untouched.txt", migrators, null, false);
+        messages = migrateFile(projectRoot + "/untouched.txt", migrators, null, false);
         Assert.assertTrue("File should not be touched by migrators", messages.size() == 0);
+
+        byteArrayOutputStream.reset();
+        messages = migrateFile(projectRoot + "/src/main/webapp/META-INF/rules.drl", migrators, byteArrayOutputStream, true);
+        displayMessages(messages);
+        byteArray = byteArrayOutputStream.toByteArray();
+        fileContents = new String(byteArray);
+        Assert.assertTrue("New rule file should not contain any hash characters", !fileContents.contains("#"));
+        Assert.assertTrue("New rule file should not contain reference to class org.drools.spi.KnowledgeHelper", !fileContents.contains("org.drools.spi.KnowledgeHelper"));
+
     }
 
     private List<String> migrateFile(String filePath, Migrators migrators, ByteArrayOutputStream byteArrayOutputStream, boolean performModifications) {

@@ -1,4 +1,4 @@
-package projects.jahia66
+package projects.jahia66.src.main.webapp.genericnt_navbar.html
 
 import org.apache.taglibs.standard.functions.Functions
 import org.jahia.services.content.JCRContentUtils
