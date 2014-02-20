@@ -7,6 +7,16 @@
             <resource pattern="**/*.groovy">
                 <replace pattern="currentNode\.resolveSite\.home" with="renderContext.site.home" warningMessageKey="migration.warning.changeSiteHomePageResolution" performMessageKey="migration.perform.changeSiteHomePageResolution"/>
             </resource>
+            <resource pattern="**/*.drl">
+                <replace pattern="org\.drools\.spi\.KnowledgeHelper" with="org.drools.core.spi.KnowledgeHelper" warningMessageKey="migration.warning.knowledgeHelperApiChange" performMessageKey="migration.perform.knowledgeHelperApiChange"/>
+                <replace pattern="\#" with="\/\/" warningMessageKey="migration.warning.ruleCommentChange" performMessageKey="migration.perform.ruleCommentChange"/>
+            </resource>
+            <resource pattern="**/*.dsl">
+                <replace pattern="org\.drools\.spi\.KnowledgeHelper" with="org.drools.core.spi.KnowledgeHelper" warningMessageKey="migration.warning.knowledgeHelperApiChange" performMessageKey="migration.perform.knowledgeHelperApiChange"/>
+            </resource>
+            <resource pattern="**/*.java">
+                <replace pattern="org\.drools\.spi\.KnowledgeHelper" with="org.drools.core.spi.KnowledgeHelper" warningMessageKey="migration.warning.knowledgeHelperApiChange" performMessageKey="migration.perform.knowledgeHelperApiChange"/>
+            </resource>
         </resources>
     </migration>
 </migrations>
