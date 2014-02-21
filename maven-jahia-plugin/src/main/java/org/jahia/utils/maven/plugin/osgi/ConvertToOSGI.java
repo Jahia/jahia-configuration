@@ -87,6 +87,16 @@ public class ConvertToOSGI extends AbstractManagementMojo {
                     getLog().info(message);
                 }
                 getLog().info("---------------------------------------------------------------------------------------------------------------------");
+                if (!performMigration) {
+                    getLog().info("None of the source code files were modified. If you would like to have the goal convert the files, please");
+                    getLog().info("relaunch the convert-to-osgi goal using the following parameter : ");
+                    getLog().info("   mvn jahia:convert-to-osgi -Djahia.osgi.conversion.performMigration=true");
+                    getLog().info("---------------------------------------------------------------------------------------------------------------------");
+                } else {
+                    getLog().info("Source files were modified. Please review all code changes to make sure everything is ok as detection may have ");
+                    getLog().info("matched false statements (100% automatic conversion is not guaranteed by this tool.");
+                    getLog().info("---------------------------------------------------------------------------------------------------------------------");
+                }
             }
         } catch (DocumentException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
