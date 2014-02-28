@@ -123,7 +123,8 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
 
     /**
      * Because of bug http://jira.codehaus.org/browse/MNG-5440 we set the default value at runtime using the following
-     * constant
+     * constant. Note that if any of these packages are exported by default by Felix already, they won't be excluded since
+     * we only deal with "extra" packages, not the "base" exported packages.
      */
     private static final String PACKAGE_EXCLUDE_DEFAULT_VALUE = "org.jahia.taglibs*,org.apache.taglibs.standard*,javax.servlet.jsp*,org.codehaus.groovy.ast*,javax.el*,de.odysseus.el*";
 
@@ -648,21 +649,17 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                                              String newVersion,
                                              String specificationVersion,
                                              String packageName) throws IOException {
-        String cleanedUpNewVersion = null;
-        if (newVersion != null) {
-            cleanedUpNewVersion = cleanupVersion(newVersion);
-        }
-        Map<String, VersionLocation> versionLocations = null;
-        if (packageVersionCounts.containsKey(packageName)) {
-            versionLocations = packageVersionCounts.get(packageName);
-        } else {
+        // first check if we've already processed this package
+        Map<String, VersionLocation> versionLocations = packageVersionCounts.get(packageName);
+        if (versionLocations == null) {
             versionLocations = new HashMap<String, VersionLocation>();
         }
+
         VersionLocation existingVersionLocation = versionLocations.get(originLocation);
         if (existingVersionLocation != null) {
             existingVersionLocation.incrementCounter();
         } else {
-            existingVersionLocation = new VersionLocation(originLocation, cleanedUpNewVersion, specificationVersion);
+            existingVersionLocation = new VersionLocation(originLocation, cleanupVersion(newVersion), specificationVersion);
             existingVersionLocation.incrementCounter();
         }
         versionLocations.put(originLocation, existingVersionLocation);
@@ -820,44 +817,48 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
  */
 
     static public String cleanupVersion(String version) {
-        StringBuffer result = new StringBuffer();
-        Matcher m = FUZZY_VERSION.matcher(version);
-        if (m.matches()) {
-            String major = m.group(1);
-            String minor = m.group(3);
-            String micro = m.group(5);
-            String qualifier = m.group(7);
+        if (version != null) {
+            StringBuffer result = new StringBuffer();
+            Matcher m = FUZZY_VERSION.matcher(version);
+            if (m.matches()) {
+                String major = m.group(1);
+                String minor = m.group(3);
+                String micro = m.group(5);
+                String qualifier = m.group(7);
 
-            if (major != null) {
-                result.append(major);
-                if (minor != null) {
-                    result.append(".");
-                    result.append(minor);
-                    if (micro != null) {
+                if (major != null) {
+                    result.append(major);
+                    if (minor != null) {
                         result.append(".");
-                        result.append(micro);
-                        if (qualifier != null) {
+                        result.append(minor);
+                        if (micro != null) {
                             result.append(".");
+                            result.append(micro);
+                            if (qualifier != null) {
+                                result.append(".");
+                                cleanupModifier(result, qualifier);
+                            }
+                        } else if (qualifier != null) {
+                            result.append(".0.");
                             cleanupModifier(result, qualifier);
+                        } else {
+                            result.append(".0");
                         }
                     } else if (qualifier != null) {
-                        result.append(".0.");
+                        result.append(".0.0.");
                         cleanupModifier(result, qualifier);
                     } else {
-                        result.append(".0");
+                        result.append(".0.0");
                     }
-                } else if (qualifier != null) {
-                    result.append(".0.0.");
-                    cleanupModifier(result, qualifier);
-                } else {
-                    result.append(".0.0");
                 }
+            } else {
+                result.append("0.0.0.");
+                cleanupModifier(result, version);
             }
-        } else {
-            result.append("0.0.0.");
-            cleanupModifier(result, version);
+            return result.toString();
         }
-        return result.toString();
+
+        return null;
     }
 
     static void cleanupModifier(StringBuffer result, String modifier) {
