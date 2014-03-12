@@ -69,6 +69,7 @@ public class TldXmlFileParser extends AbstractXmlFileParser {
         List<Element> tagClassElements = new LinkedList<Element>();
         tagClassElements.addAll(getElements(rootElement, hasDefaultNamespace ? "//xp:tag/xp:tag-class" : "//tag/tag-class"));
         tagClassElements.addAll(getElements(rootElement, hasDefaultNamespace ? "//xp:tag/xp:tei-class" : "//tag/tei-class"));
+        tagClassElements.addAll(getElements(rootElement, hasDefaultNamespace ? "//xp:tag/xp:attribute/xp:type" : "//tag/attribute/type"));
         tagClassElements.addAll(getElements(rootElement, hasDefaultNamespace ? "//xp:tag/xp:tagclass" : "//tag/tagclass"));
         tagClassElements.addAll(getElements(rootElement, hasDefaultNamespace ? "//xp:tag/xp:teiclass" : "//tag/teiclass"));
         for (Element tagClassElement : tagClassElements) {
