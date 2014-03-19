@@ -110,11 +110,12 @@ public class DependenciesMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        ParsingContext parsingContext = new ParsingContext();
-        if (project.getGroupId().equals("org.jahia.modules") && project.getArtifactId().equals("jahia-modules")) {
+        if (project.getGroupId().equals("org.jahia.modules") && project.getArtifactId().equals("jahia-modules")
+                || !"jar".equals(project.getPackaging()) && !"bundle".equals(project.getPackaging())) {
             return;
         }
         long startTime = System.currentTimeMillis();
+        ParsingContext parsingContext = new ParsingContext();
 
         if (existingImports != null) {
             parsingContext.addAllPackageImports(Arrays.asList(StringUtils.split(existingImports, ", \n\r")));
