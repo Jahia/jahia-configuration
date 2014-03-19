@@ -111,7 +111,7 @@ public class DependenciesMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (project.getGroupId().equals("org.jahia.modules") && project.getArtifactId().equals("jahia-modules")
-                || !"jar".equals(project.getPackaging()) && !"bundle".equals(project.getPackaging())) {
+                || !"jar".equals(project.getPackaging()) && !"bundle".equals(project.getPackaging()) && !"war".equals(project.getPackaging())) {
             return;
         }
         long startTime = System.currentTimeMillis();
