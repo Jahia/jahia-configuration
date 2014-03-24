@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.jahia.configuration</groupId>
 		<artifactId>jahia-configuration-root</artifactId>
-		<version>4.0</version>
+		<version>4.1-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.jahia.server</groupId>
@@ -18,9 +18,9 @@
 	</properties>
 
 	<scm>
-		<connection>scm:svn:https://devtools.jahia.com/svn/maven-jahia-plugin/tags/4.0/maven-jahia-plugin</connection>
-		<developerConnection>scm:svn:https://devtools.jahia.com/svn/maven-jahia-plugin/tags/4.0/maven-jahia-plugin</developerConnection>
-		<url>https://devtools.jahia.com/svn/maven-jahia-plugin/tags/4.0/maven-jahia-plugin</url>
+		<connection>scm:svn:https://devtools.jahia.com/svn/maven-jahia-plugin/trunk/maven-jahia-plugin</connection>
+		<developerConnection>scm:svn:https://devtools.jahia.com/svn/maven-jahia-plugin/trunk/maven-jahia-plugin</developerConnection>
+		<url>https://devtools.jahia.com/svn/maven-jahia-plugin/trunk/maven-jahia-plugin</url>
 	</scm>
 	
 	<description>Jahia Maven plugin</description>
@@ -51,12 +51,12 @@
 		<dependency>
 			<groupId>org.jahia.configuration</groupId>
 			<artifactId>deployers</artifactId>
-			<version>4.0</version>
+			<version>4.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jahia.configuration</groupId>
 			<artifactId>configurators</artifactId>
-			<version>4.0</version>
+			<version>4.1-SNAPSHOT</version>
 		</dependency>
         <dependency>
             <groupId>org.jahia.configuration</groupId>
