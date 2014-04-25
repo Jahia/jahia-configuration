@@ -484,7 +484,7 @@ public class DeployMojo extends AbstractManagementMojo {
     private void deploySharedLibraries(DependencyNode dependencyNode)
             throws IOException, ArtifactResolutionException,
             ArtifactNotFoundException {
-        boolean jdbcDrivers = dependencyNode.getArtifact().getArtifactId().equals("jdbc-drivers");
+        boolean jdbcDrivers = dependencyNode.getArtifact().getArtifactId().startsWith("jdbc-drivers");
         for (DependencyNode node : ((List<DependencyNode>)dependencyNode.getChildren())) {
             Artifact artifact = node.getArtifact();
 
