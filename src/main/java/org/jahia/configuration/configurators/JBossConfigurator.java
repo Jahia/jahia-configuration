@@ -273,14 +273,14 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         // add datasource configuration
         cli.append("data-source add --name=jahiaDS --jndi-name=java:/jahiaDS --enabled=true --use-java-context=true \\\n");
         cli.append("--driver-name=jahia.").append(dbType).append(" \\\n");
-        cli.append("--connection-url=").append(getDbPropForCLI("jahia.database.url")).append(" \\\n");
+        cli.append("--connection-url=\"").append(getDbPropForCLI("jahia.database.url")).append("\" \\\n");
         String v = getDbPropForCLI("jahia.database.user");
         if (v != null && v.length() > 0) {
-            cli.append("--user-name=").append(v).append(" \\\n");
+            cli.append("--user-name=\"").append(v).append("\" \\\n");
         }
         v = getDbPropForCLI("jahia.database.pass");
         if (v != null && v.length() > 0) {
-            cli.append("--password=").append(v).append(" \\\n");
+            cli.append("--password=\"").append(v).append("\" \\\n");
         }
 
         cli.append("--min-pool-size=" + MIN_POOL_SIZE + " \\\n");
