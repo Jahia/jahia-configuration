@@ -227,9 +227,7 @@ public class PageBO {
 			// begin content list
 			Element listNode = new Element("listA");
 			listNode.setAttribute("primaryType", "jnt:contentList", ContentGeneratorCst.NS_JCR);
-			if (this.pageTemplate.equals(ContentGeneratorCst.PAGE_TPL_QAQUERY)) {
-	
-			} else if (this.pageTemplate.equals(ContentGeneratorCst.PAGE_TPL_QALIST)) {
+			if (this.pageTemplate.equals(ContentGeneratorCst.PAGE_TPL_QALIST)) {
 				List<String> languages = new ArrayList<String>();
 				for (Map.Entry<String, ArticleBO> entry : articles.entrySet()) {
 					languages.add(entry.getKey());
@@ -238,7 +236,7 @@ public class PageBO {
 				for (int i = 1; i <= ContentGeneratorCst.NB_NEWS_IN_QALIST; i++) {
 					listNode.addContent(new NewsBO(this.uniqueName + "-" + "news" + i , languages).getElement());
 				}
-			} else {
+			} else if (this.pageTemplate.equals(ContentGeneratorCst.PAGE_TPL_DEFAULT)) {
 				// Big text (content)
 				for (int i = 1; i <= numberBigText.intValue(); i++) {
 					Element bigTextNode = new Element("bigText_" + i);
