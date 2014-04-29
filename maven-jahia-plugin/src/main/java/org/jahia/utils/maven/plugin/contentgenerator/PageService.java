@@ -74,25 +74,26 @@ public class PageService {
         outService.initOutputFile(export.getOutputFile());
 		outService.appendStringToFile(export.getOutputFile(), export.toString());
 		
-		List<PageBO> listeTopPage = new ArrayList<PageBO>();
+		List<PageBO> listeTopPages = new ArrayList<PageBO>();
 		for (int i = 1; i <= export.getNbPagesTopLevel().intValue(); i++) {
             for (String language : export.getSiteLanguages()) {
                 articlesMap.put(language, articleService.getArticle(articles));
             }
             
 			pageTopLevel = createNewPage(export, null, articlesMap, export.getNbSubLevels() + 1,
-					createSubPages(export, articles, export.getNbSubLevels() + 1, export.getMaxArticleIndex()));
+					createSubPages(export, articles, export.getNbSubLevels(), export.getMaxArticleIndex()));
 			
 			outService.appendPageToFile(export.getOutputFile(), pageTopLevel);
 
             // path
-            logger.info("Pages path are being written to the map file");
-            listeTopPage.add(pageTopLevel);
-
-            List<String> pagesPath = getPagesPath(listeTopPage, "/sites/" + export.getSiteKey() + "/" + rootPageName);
-            outService.appendPathToFile(export.getMapFile(), pagesPath);
+            listeTopPages.add(pageTopLevel);
 		}
-		PageBO rootPage = createNewPage(export, rootPageName, articlesMap, export.getNbSubLevels() + 1, listeTopPage);
+		
+        logger.info("Pages path are being written to the map file");
+        List<String> pagesPath = getPagesPath(listeTopPages, "/sites/" + export.getSiteKey() + "/" + rootPageName);
+        outService.appendPathToFile(export.getMapFile(), pagesPath);
+        
+		PageBO rootPage = createNewPage(export, rootPageName, articlesMap, export.getNbSubLevels() + 1, listeTopPages);
 		outService.appendStringToFile(export.getOutputFile(), rootPage.getJcrXml());
 		
 		Document pagesDocument = new Document(rootPage.getElement());
@@ -224,7 +225,6 @@ public class PageService {
         String oftenKeywords = getOftenKeywords(export.getTotalPages());
         String seldomKeywords = getSeldomKeywords(export.getTotalPages());        
         String description = oftenKeywords + " " + seldomKeywords;
-        logger.debug("description=" + description);
         
         PageBO page = new PageBO(pageName, articlesMap, level, subPages,
 				export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory, idTag,  visibilityOnPage, export.getVisibilityStartDate(), export.getVisibilityEndDate(), description, template);
@@ -253,7 +253,6 @@ public class PageService {
 		for (Iterator<PageBO> iterator = pages.iterator(); iterator.hasNext();) {
 			PageBO page = iterator.next();
 			String newPath = path + ContentGeneratorCst.PAGE_PATH_SEPARATOR + page.getUniqueName();
-			logger.debug("new path: " + newPath);
 			siteMap.add(newPath);
 			if (page.getSubPages() != null) {
 				siteMap.addAll(getPagesPath(page.getSubPages(), newPath));
