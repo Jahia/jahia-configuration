@@ -18,6 +18,7 @@ public final class ContentGeneratorCst {
 	public static final String VALUE_RANDOM = "random";
 	
 	public static final String PAGE_PATH_SEPARATOR = "/"; 
+	
 	/**
 	 * Default value
 	 */
@@ -44,6 +45,8 @@ public final class ContentGeneratorCst {
 	public static final String SITE_PROPERTIES_FILENAME = "site.properties";
 	public static final String EXPORT_PROPERTIES_FILENAME = "export.properties";
 	
+	public static final Integer NB_NEWS_IN_QALIST = 100;
+	
 	/**
 	 * Namespaces
 	 */	
@@ -56,6 +59,7 @@ public final class ContentGeneratorCst {
 	public static Namespace NS_TEST = Namespace.getNamespace("test", "http://www.apache.org/jackrabbit/test"); 
 	public static Namespace NS_SV = Namespace.getNamespace("sv", "http://www.jcp.org/jcr/sv/1.0"); 
 	public static Namespace NS_MIX = Namespace.getNamespace("mix", "http://www.jcp.org/jcr/mix/1.0");
+	public static Namespace NS_REP = Namespace.getNamespace("rep", "internal");
 	
 	public static Namespace NS_DOCNT = Namespace.getNamespace("docnt", "http://www.jahia.org/jahia/docspace/nt/1.0"); 
 	
@@ -74,6 +78,13 @@ public final class ContentGeneratorCst {
 	public static final String TMP_DIR_WISE_FILES = "wise_files";
 	
 	public static final String TMP_DIR_TOP_FOLDERS = "top_folders";
+	
+	/**
+	 * Templates
+	 */
+	public static final String PAGE_TPL_DEFAULT = "events";
+	public static final String PAGE_TPL_QALIST = "qa-list";
+	public static final String PAGE_TPL_QAQUERY = "qa-query";
 	
 	// jcr jnt jmix j
 	private ContentGeneratorCst() {

@@ -108,6 +108,18 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
 	 * @required
 	 */
 	protected Integer nbPagesPerLevel;
+	
+	/**
+	 * Percentage of pages using the Jahia QA page template "qa-list" (tpl-web-blue, branch qa)
+	 * @parameter expression="${jahia.cg.percentagePagesWithTplList}" default-value="0"
+	 */
+	protected Integer percentagePagesWithTplList;
+	
+	/**
+	 * Percentage of pages using the Jahia QA page template "qa-query" (tpl-web-blue, branch qa)
+	 * @parameter expression="${jahia.cg.percentagePagesWithTplQuery}" default-value="0"
+	 */
+	protected Integer percentagePagesWithTplQuery;
     
 	private ExportBO initExport() throws MojoExecutionException {
 		ContentGeneratorService contentGeneratorService = ContentGeneratorService.getInstance();
@@ -129,6 +141,8 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
         export.setUsersAclRatio(usersAclRatio);
         export.setNumberOfSites(numberOfSites);
         export.setPagesHaveVanity(pagesHaveVanity);
+        export.setPercentagePagesWithTplList(percentagePagesWithTplList);
+        export.setPercentagePagesWithTplQuery(percentagePagesWithTplQuery);
         
         String[] aLanguages = StringUtils.split(siteLanguages, ",");
         export.setSiteLanguages(Arrays.asList(aLanguages));
@@ -143,6 +157,12 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
         Integer totalPages = contentGeneratorService.getTotalNumberOfPagesNeeded(nbPagesOnTopLevel, nbSubLevels,
 				nbPagesPerLevel);
 		export.setTotalPages(totalPages);
+		
+		if (percentagePagesWithTplList > 0) {
+			export.setNbPagesWithTplList(new Integer(totalPages / percentagePagesWithTplList));
+		} else {
+			export.setNbPagesWithTplList(0);
+		}
 		return export;
 	}
 	

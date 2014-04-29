@@ -17,6 +17,7 @@ import org.jahia.utils.maven.plugin.contentgenerator.bo.ArticleBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.PageBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
+import org.jdom.Document;
 
 public class PageService {
 	private Log logger = new SystemStreamLog();
@@ -56,6 +57,7 @@ public class PageService {
 	 *             Error while writing generated XML to the output file
 	 */
 	public void createTopPages(ExportBO export, List<ArticleBO> articles) throws IOException {
+		OutputService os = new OutputService();
 		ArticleService articleService = ArticleService.getInstance();
 
 		logger.info("Creating top pages");
@@ -68,33 +70,33 @@ public class PageService {
 
 		String rootPageName = export.getRootPageName();
 
-		PageBO rootPage = createNewPage(export, rootPageName, articlesMap, export.getNbSubLevels() + 1, null);
-
 		OutputService outService = new OutputService();
         outService.initOutputFile(export.getOutputFile());
 		outService.appendStringToFile(export.getOutputFile(), export.toString());
-		outService.appendStringToFile(export.getOutputFile(), rootPage.getHeader());
-
+		
+		List<PageBO> listeTopPage = new ArrayList<PageBO>();
 		for (int i = 1; i <= export.getNbPagesTopLevel().intValue(); i++) {
             for (String language : export.getSiteLanguages()) {
-                articlesMap.put(language,articleService.getArticle(articles));
+                articlesMap.put(language, articleService.getArticle(articles));
             }
+            
 			pageTopLevel = createNewPage(export, null, articlesMap, export.getNbSubLevels() + 1,
-					createSubPages(export, articles, export.getNbSubLevels(), export.getMaxArticleIndex()));
+					createSubPages(export, articles, export.getNbSubLevels() + 1, export.getMaxArticleIndex()));
+			
 			outService.appendPageToFile(export.getOutputFile(), pageTopLevel);
 
             // path
             logger.info("Pages path are being written to the map file");
-            List<PageBO> listeTopPage = new ArrayList<PageBO>();
             listeTopPage.add(pageTopLevel);
 
-            List<String> pagesPath = getPagesPath(listeTopPage, "/sites/" + export.getSiteKey() + "/" + rootPage.getUniqueName());
+            List<String> pagesPath = getPagesPath(listeTopPage, "/sites/" + export.getSiteKey() + "/" + rootPageName);
             outService.appendPathToFile(export.getMapFile(), pagesPath);
-
-            logger.debug("XML code of top level page #" + i + " written in output file");
-			logger.info("Top page #" + i + " with subpages created and written to file");
 		}
-		outService.appendStringToFile(export.getOutputFile(), rootPage.getFooter());
+		PageBO rootPage = createNewPage(export, rootPageName, articlesMap, export.getNbSubLevels() + 1, listeTopPage);
+		outService.appendStringToFile(export.getOutputFile(), rootPage.getJcrXml());
+		
+		Document pagesDocument = new Document(rootPage.getElement());
+		os.writeJdomDocumentToFile(pagesDocument, export.getOutputFile());
 	}
 
 	/**
@@ -154,7 +156,8 @@ public class PageService {
 	 */
 	public PageBO createNewPage(ExportBO export, String pageName, Map<String, ArticleBO> articlesMap, int level,
                                 List<PageBO> subPages) {
-
+		ContentGeneratorService.currentPageIndex = ContentGeneratorService.currentPageIndex + 1;
+		
 		boolean addFile = false;
 		if (ContentGeneratorCst.VALUE_ALL.equals(export.getAddFilesToPage())) {
 			addFile = true;
@@ -173,8 +176,14 @@ public class PageService {
 				+ " - Articles " + articlesMap + " - file attached "
 				+ fileName);
 
+
+        String template = ContentGeneratorCst.PAGE_TPL_DEFAULT;
+        if (ContentGeneratorService.currentPageIndex <= export.getNbPagesWithTplList()) {
+        	template = ContentGeneratorCst.PAGE_TPL_QALIST;
+        }
+        
 		if (pageName == null) {
-			pageName = ContentGeneratorCst.PAGE_NAME_PREFIX + ContentGeneratorService.currentPageIndex;
+			pageName = template + ContentGeneratorService.currentPageIndex;
 		}
 
         HashMap<String, List<String>> acls = new HashMap<String, List<String>>();
@@ -213,10 +222,8 @@ public class PageService {
         logger.debug("description=" + description);
         
         PageBO page = new PageBO(pageName, articlesMap, level, subPages,
-				export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory, idTag,  visibilityOnPage, export.getVisibilityStartDate(), export.getVisibilityEndDate(), description);
+				export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory, idTag,  visibilityOnPage, export.getVisibilityStartDate(), export.getVisibilityEndDate(), description, template);
         
-        
-		ContentGeneratorService.currentPageIndex = ContentGeneratorService.currentPageIndex + 1;
 		return page;
 	}
 

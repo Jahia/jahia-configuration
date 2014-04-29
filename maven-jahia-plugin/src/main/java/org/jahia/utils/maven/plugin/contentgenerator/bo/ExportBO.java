@@ -107,6 +107,36 @@ public class ExportBO {
 	protected Date startCreationDateRange;
 	
 	protected Date endCreationDateRange;
+	
+	protected Integer percentagePagesWithTplQuery;
+	
+	protected Integer percentagePagesWithTplList;
+	
+	private Integer nbPagesWithTplList;
+	
+	public Integer getPercentagePagesWithTplQuery() {
+		return percentagePagesWithTplQuery;
+	}
+
+	public void setPercentagePagesWithTplQuery(Integer percentagePagesWithTplQuery) {
+		this.percentagePagesWithTplQuery = percentagePagesWithTplQuery;
+	}
+
+	public Integer getPercentagePagesWithTplList() {
+		return percentagePagesWithTplList;
+	}
+
+	public void setPercentagePagesWithTplList(Integer percentagePagesWithTplList) {
+		this.percentagePagesWithTplList = percentagePagesWithTplList;
+	}
+
+	public Integer getNbPagesWithTplList() {
+		return nbPagesWithTplList;
+	}
+	
+	public void setNbPagesWithTplList(Integer nbPagesWithTplList) {
+		this.nbPagesWithTplList = nbPagesWithTplList;
+	}
 
 	public File getOutputFile() {
 		return outputFile;
