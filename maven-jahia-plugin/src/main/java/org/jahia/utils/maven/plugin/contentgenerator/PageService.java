@@ -176,10 +176,15 @@ public class PageService {
 				+ " - Articles " + articlesMap + " - file attached "
 				+ fileName);
 
-
+		// choose template
         String template = ContentGeneratorCst.PAGE_TPL_DEFAULT;
-        if (ContentGeneratorService.currentPageIndex <= export.getNbPagesWithTplList()) {
+        Integer indexPagesWithList = export.getNbPagesWithTplList();
+        Integer indexPagesWithQuery = export.getNbPagesWithTplList() + export.getNbPagesWithTplQuery();
+        if (ContentGeneratorService.currentPageIndex <= indexPagesWithList) {
         	template = ContentGeneratorCst.PAGE_TPL_QALIST;
+        }
+        if (ContentGeneratorService.currentPageIndex > indexPagesWithList && ContentGeneratorService.currentPageIndex <= indexPagesWithQuery) {
+        	template = ContentGeneratorCst.PAGE_TPL_QAQUERY;
         }
         
 		if (pageName == null) {

@@ -163,6 +163,12 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
 		} else {
 			export.setNbPagesWithTplList(0);
 		}
+		
+		if (percentagePagesWithTplQuery > 0) {
+			export.setNbPagesWithTplQuery(new Integer(totalPages / percentagePagesWithTplQuery));
+		} else {
+			export.setNbPagesWithTplQuery(0);
+		}
 		return export;
 	}
 	

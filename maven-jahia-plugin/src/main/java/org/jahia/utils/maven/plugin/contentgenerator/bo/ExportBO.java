@@ -114,6 +114,8 @@ public class ExportBO {
 	
 	private Integer nbPagesWithTplList;
 	
+	private Integer nbPagesWithTplQuery;
+	
 	public Integer getPercentagePagesWithTplQuery() {
 		return percentagePagesWithTplQuery;
 	}
@@ -136,6 +138,14 @@ public class ExportBO {
 	
 	public void setNbPagesWithTplList(Integer nbPagesWithTplList) {
 		this.nbPagesWithTplList = nbPagesWithTplList;
+	}
+
+	public Integer getNbPagesWithTplQuery() {
+		return nbPagesWithTplQuery;
+	}
+
+	public void setNbPagesWithTplQuery(Integer nbPagesWithTplQuery) {
+		this.nbPagesWithTplQuery = nbPagesWithTplQuery;
 	}
 
 	public File getOutputFile() {
