@@ -290,10 +290,10 @@ public class PageBO {
 				Element vanityNode = new Element("vanityUrlMapping");
 				vanityNode.setAttribute("primaryType", "jnt:vanityUrls", ContentGeneratorCst.NS_JCR); 
 				
-				Element vanitySubNode = new Element("_x0025_2F" + this.getUniqueName());
+				Element vanitySubNode = new Element(this.getUniqueName());
 				vanitySubNode.setAttribute("active", "true", ContentGeneratorCst.NS_J);
 				vanitySubNode.setAttribute("default", "true", ContentGeneratorCst.NS_J);
-				vanitySubNode.setAttribute("url", this.getUniqueName(), ContentGeneratorCst.NS_J);
+				vanitySubNode.setAttribute("url", "/" + this.getUniqueName(), ContentGeneratorCst.NS_J);
 				vanitySubNode.setAttribute("language", "en", ContentGeneratorCst.NS_JCR);
 				vanitySubNode.setAttribute("primaryType", "jnt:vanityUrl", ContentGeneratorCst.NS_JCR); 
 				
