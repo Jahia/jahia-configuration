@@ -5,7 +5,7 @@
                 <replace pattern="richtext\[ckeditor\.customConfig='.*'\]" with="richtext" warningMessageKey="migration.warning.removeCustomCKEditorConfig" performMessageKey="migration.perform.removeCustomCKEditorConfig"/>
             </resource>
             <resource pattern="**/*.groovy">
-                <replace pattern="currentNode\.resolveSite\.home" with="renderContext.site.home" warningMessageKey="migration.warning.changeSiteHomePageResolution" performMessageKey="migration.perform.changeSiteHomePageResolution"/>
+                <replace pattern="currentNode\.resolveSite" with="renderContext.site" warningMessageKey="migration.warning.changeSiteHomePageResolution" performMessageKey="migration.perform.changeSiteHomePageResolution"/>
             </resource>
             <resource pattern="**/*.drl">
                 <replace pattern="org\.drools\.spi\.KnowledgeHelper" with="org.drools.core.spi.KnowledgeHelper" warningMessageKey="migration.warning.knowledgeHelperApiChange" performMessageKey="migration.perform.knowledgeHelperApiChange"/>
