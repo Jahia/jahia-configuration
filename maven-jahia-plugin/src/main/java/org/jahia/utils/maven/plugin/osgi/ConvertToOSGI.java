@@ -2,10 +2,22 @@ package org.jahia.utils.maven.plugin.osgi;
 
 
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.scm.ScmException;
+import org.apache.maven.scm.ScmFileSet;
+import org.apache.maven.scm.manager.BasicScmManager;
+import org.apache.maven.scm.manager.NoSuchScmProviderException;
+import org.apache.maven.scm.manager.ScmManager;
+import org.apache.maven.scm.provider.git.gitexe.GitExeScmProvider;
+import org.apache.maven.scm.provider.svn.svnexe.SvnExeScmProvider;
+import org.apache.maven.scm.repository.ScmRepository;
+import org.apache.maven.scm.repository.ScmRepositoryException;
 import org.apache.tika.io.IOUtils;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -17,10 +29,7 @@ import org.jahia.utils.maven.plugin.AbstractManagementMojo;
 import org.jahia.utils.migration.Migrators;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Jahia utility goal to help with the migration of Jahia modules to OSGi packaging.
@@ -48,10 +57,32 @@ public class ConvertToOSGI extends AbstractManagementMojo {
 
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
-        if (!checkProjectParent(project, "org.jahia.modules", "jahia-modules")) {
-            throw new MojoExecutionException("Project must inherit from org.jahia.modules:jahia-modules");
-        }
 
+        ScmManager scmManager = new BasicScmManager();
+        scmManager.setScmProvider("svn", new SvnExeScmProvider());
+        scmManager.setScmProvider("git", new GitExeScmProvider());
+        File pomXmlFile = new File(baseDir, "pom.xml");
+        String scmURL = null;
+        Reader reader = null;
+        ScmRepository scmRepository = null;
+        try {
+            reader = new FileReader(pomXmlFile);
+            Model model = new MavenXpp3Reader().read(reader);
+            scmURL = model.getScm().getConnection();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            IOUtils.closeQuietly(reader);
+        }
+        try {
+            scmRepository = scmManager.makeScmRepository(scmURL);
+        } catch (ScmRepositoryException e) {
+            e.printStackTrace();
+        } catch (NoSuchScmProviderException e) {
+            e.printStackTrace();
+        }
         File webapp = new File(baseDir, "src/main/webapp");
         File resources = new File(baseDir, "src/main/resources");
         try {
@@ -59,19 +90,29 @@ public class ConvertToOSGI extends AbstractManagementMojo {
                 File oldWorkflowDir = new File(resources, "org/jahia/services/workflow");
                 File newWorkflowDirParent = new File(resources, "org/jahia/modules/custom");
                 if (oldWorkflowDir.exists()) {
+                    ScmFileSet filesToRemove = new ScmFileSet(oldWorkflowDir,null,null);
                     getLog().info("Moving " + oldWorkflowDir + " to " + newWorkflowDirParent + "...");
                     FileUtils.moveDirectoryToDirectory(oldWorkflowDir, newWorkflowDirParent, true);
+                    scmManager.remove(scmRepository, filesToRemove, "remove workflow dir");
+                    scmManager.add(scmRepository, new ScmFileSet(newWorkflowDirParent,null,null));
                 }
             }
             if (webapp.exists()) {
+                List<File> filesToRemove = listFilesAndDirectories(webapp);
                 getLog().info("Removing " + new File(webapp, "WEB-INF/web.xml") + " no longer needed...");
-                FileUtils.deleteQuietly(new File(webapp, "WEB-INF/web.xml"));
+                File webXml = new File(webapp, "WEB-INF/web.xml");
+                FileUtils.deleteQuietly(webXml);
                 getLog().info("Moving contents of directory " + webapp + " into directory " + resources + "...");
                 moveWithMerge(webapp, resources);
+                scmManager.add(scmRepository, new ScmFileSet(new File(""), resources));
+                List<File> filesToAdd = listFilesAndDirectories(resources);
+                scmManager.add(scmRepository, new ScmFileSet(resources,filesToAdd), "add resources files");
+                scmManager.remove(scmRepository, new ScmFileSet(webapp,filesToRemove), "remove webapps files");
             }
 
             getLog().info("Performing Maven project modifications...");
             parsePom();
+            scmManager.add(scmRepository, new ScmFileSet( new File( "" ), pomXmlFile ));
 
             if (performMigration) {
                 getLog().info("Performing needed migration modifications");
@@ -102,7 +143,20 @@ public class ConvertToOSGI extends AbstractManagementMojo {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (ScmException e) {
+            e.printStackTrace();
         }
+    }
+
+    private List<File> listFilesAndDirectories(File rootFolder) {
+        List<File> files = new ArrayList<File>();
+        for (File f : rootFolder.listFiles()) {
+            files.add(f);
+            if (f.isDirectory()) {
+                files.addAll(listFilesAndDirectories(f));
+            }
+        }
+        return files;
     }
 
     private boolean checkProjectParent(MavenProject p, String groupId, String artifactId) {
@@ -119,7 +173,6 @@ public class ConvertToOSGI extends AbstractManagementMojo {
 
     private void moveWithMerge(File src, File dst) throws IOException {
         // @todo this doesn't handle SVN directories properly
-
         File[] files = src.listFiles(new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return !name.startsWith(".");
