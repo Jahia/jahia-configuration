@@ -91,7 +91,7 @@ public class JBossConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         assertTrue(content.contains("<driver name=\"jahia.mysql\" module=\"org.jahia.jdbc.mysql\" />"));
         assertTrue(content.contains("<connection-url>jdbc:mysql"));
         assertFalse(content.contains("<connection-url>jdbc:oracle"));
-
+        assertTrue(content.contains("<connector name=\"http\" protocol=\"org.apache.coyote.http11.Http11NioProtocol\" scheme=\"http\" socket-binding=\"http\" />"));
     }
 
 }
