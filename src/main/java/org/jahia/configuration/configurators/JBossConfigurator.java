@@ -45,6 +45,7 @@ import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.jahia.configuration.deployers.ServerDeploymentInterface;
 import org.jahia.configuration.logging.AbstractLogger;
+import org.jdom.Attribute;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.Namespace;
@@ -96,6 +97,19 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         super(dbProperties, jahiaConfigInterface, logger);
         dbType = jahiaConfigInterface.getDatabaseType();
         this.deployer = deployer;
+    }
+
+    private void configureConnector(Element profile) {
+        Element web = profile.getChild("subsystem", WEB_NS);
+        if (web != null) {
+            for (Object child : web.getChildren("connector", WEB_NS)) {
+                Element connector = (Element) child;
+                Attribute name = connector.getAttribute("name");
+                if (name != null && "http".equals(name.getValue())) {
+                    connector.setAttribute("protocol", "org.apache.coyote.http11.Http11NioProtocol");
+                }
+            }
+        }
     }
 
     private void configureDatasource(Element datasources) throws JDOMException {
@@ -213,6 +227,8 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
             if (jahiaConfigInterface.getWebAppDirName().equals("ROOT")) {
                 disableDefaultWelcomeWebApp(profile);
             }
+            
+            configureConnector(profile);
 
             out = new FileWriter(destFileName);
             getLogger().info("Writing output to " + destFileName);
@@ -297,6 +313,9 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
             cli.append("/subsystem=web/virtual-server=default-host:write-attribute(name=enable-welcome-root,value=false)\n");
             cli.append("\n");
         }
+        
+        // enable HTTP NIO connector
+        cli.append("/subsystem=web/connector=http:write-attribute(name=protocol,value=org.apache.coyote.http11.Http11NioProtocol)\n\n");
 
         cli.append("reload\n");
 
