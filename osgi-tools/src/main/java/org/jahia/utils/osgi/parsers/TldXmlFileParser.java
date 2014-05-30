@@ -123,6 +123,9 @@ public class TldXmlFileParser extends AbstractXmlFileParser {
         // Parse tag files
         for (Element tagFilePathElement : getElements(rootElement, hasDefaultNamespace ? "//xp:tag-file/xp:path" : "//tag-file/path")) {
             String tagFilePath = tagFilePathElement.getTextTrim();
+            if (tagFilePath.startsWith("/")) {
+                tagFilePath = tagFilePath.substring(1);
+            }
             getLogger().debug("Adding tag file to be parsed later in the process: " + tagFilePath);
             parsingContext.addAdditionalFileToParse(tagFilePath);
         }

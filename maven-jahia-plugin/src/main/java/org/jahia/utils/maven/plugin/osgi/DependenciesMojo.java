@@ -6,6 +6,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import java.io.*;
 import java.util.*;
 import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,7 +45,7 @@ import java.util.regex.Pattern;
 public class DependenciesMojo extends AbstractMojo {
 
     private static final Set<String> SUPPORTED_FILE_EXTENSIONS_TO_SCAN = new HashSet<String>(Arrays.asList("jsp",
-            "jspf", "cnd", "drl", "xml", "groovy"));
+            "jspf", "tag", "tagf", "cnd", "drl", "xml", "groovy"));
     
     private static final Set<String> DEPENDENCIES_SCAN_PACKAGING = new HashSet<String>(Arrays.asList("jar", "war"));
 
@@ -107,6 +109,12 @@ public class DependenciesMojo extends AbstractMojo {
     private List<Pattern> artifactExclusionPatterns = new ArrayList<Pattern>();
     private Set<String> artifactsToSkip = new TreeSet<String>();
     private Logger logger = new SLF4JLoggerToMojoLogBridge(getLog());
+
+    @Override
+    public void setLog(Log log) {
+        super.setLog(log);
+        logger = new SLF4JLoggerToMojoLogBridge(log);
+    }
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -477,13 +485,13 @@ public class DependenciesMojo extends AbstractMojo {
                 ByteArrayOutputStream entryOutputStream = new ByteArrayOutputStream();
                 IOUtils.copy(jarInputStream, entryOutputStream);
                 if ("tld".equals(ext)) {
-                    getLog().info("\tscanning entry: " + jarEntry.getName());
+                    getLog().debug("\tscanning entry: " + jarEntry.getName());
                     Parsers.getInstance().parse(0, jarEntry.getName(), new ByteArrayInputStream(entryOutputStream.toByteArray()), parsingContext,
                             externalDependency, getLogger());
                     scanned++;
                 }
                 if (!externalDependency && SUPPORTED_FILE_EXTENSIONS_TO_SCAN.contains(ext)) {
-                    getLog().info("\tscanning entry: " + jarEntry.getName());
+                    getLog().debug("\tscanning entry: " + jarEntry.getName());
                     if (processNonTldFile(jarEntry.getName(), new ByteArrayInputStream(entryOutputStream.toByteArray()), parsingContext)) {
                         scanned++;
                     }
@@ -491,6 +499,26 @@ public class DependenciesMojo extends AbstractMojo {
             }
         } finally {
             jarInputStream.close();
+        }
+
+        if (parsingContext.getAdditionalFilesToParse().size() > 0) {
+            getLog().debug("Processing additional files to parse...");
+            JarFile jar = new JarFile(jarFile);
+            for (String fileToParse : parsingContext.getAdditionalFilesToParse()) {
+                JarEntry jarEntry = jar.getJarEntry(fileToParse);
+                if (jarEntry != null) {
+                    InputStream jarEntryInputStream = jar.getInputStream(jarEntry);
+                    ByteArrayOutputStream entryOutputStream = new ByteArrayOutputStream();
+                    IOUtils.copy(jarEntryInputStream, entryOutputStream);
+                    if (processNonTldFile(jarEntry.getName(), new ByteArrayInputStream(entryOutputStream.toByteArray()), parsingContext)) {
+                        scanned++;
+                    }
+                    IOUtils.closeQuietly(jarEntryInputStream);
+                } else {
+                    getLog().warn("Couldn't find additional file to parse " + fileToParse + " in JAR " + jarFile);
+                }
+            }
+            parsingContext.getAdditionalFilesToParse().clear();
         }
         
         return scanned;
