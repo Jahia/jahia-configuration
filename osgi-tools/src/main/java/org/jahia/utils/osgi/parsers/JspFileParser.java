@@ -25,7 +25,7 @@ public class JspFileParser extends AbstractFileParser {
 
     public boolean canParse(String fileName) {
         String ext = FilenameUtils.getExtension(fileName).toLowerCase();
-        return "jsp".equals(ext) || "jspf".equals(ext);
+        return "jsp".equals(ext) || "jspf".equals(ext) || "tag".equals(ext) || "tagf".equals(ext);
     }
 
     public boolean parse(String fileName, InputStream inputStream, ParsingContext parsingContext, boolean externalDependency) throws IOException {

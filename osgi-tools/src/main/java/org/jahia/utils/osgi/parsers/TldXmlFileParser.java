@@ -11,7 +11,8 @@ import java.util.*;
 
 /**
  * A TLD (Java Tag Library definition) file parser
- *
+ * @todo This parser doesn't support tag files for the moment, but we really should as we are missing
+ * dependencies because of this.
  */
 public class TldXmlFileParser extends AbstractXmlFileParser {
     
@@ -117,6 +118,13 @@ public class TldXmlFileParser extends AbstractXmlFileParser {
                     taglibPackageSet.addAll(pkgs);
                 }
             }
+        }
+
+        // Parse tag files
+        for (Element tagFilePathElement : getElements(rootElement, hasDefaultNamespace ? "//xp:tag-file/xp:path" : "//tag-file/path")) {
+            String tagFilePath = tagFilePathElement.getTextTrim();
+            getLogger().debug("Adding tag file to be parsed later in the process: " + tagFilePath);
+            parsingContext.addAdditionalFileToParse(tagFilePath);
         }
         
         Set<String> effectivePackages = new TreeSet<String>(taglibPackageSet);

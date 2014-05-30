@@ -17,6 +17,7 @@ public class ParsingContext {
     private Set<String> contentTypeDefinitions = new TreeSet<String>();
     private Set<String> contentTypeReferences = new TreeSet<String>();
     private Set<String> projectPackages = new TreeSet<String>();
+    private Set<String> additionalFilesToParse = new TreeSet<String>();
 
     public void addPackageImport(String packageName) {
         if (StringUtils.isEmpty(packageName)) {
@@ -65,6 +66,14 @@ public class ParsingContext {
 
     public Map<String,Set<String>> getUnresolvedTaglibUris() {
         return unresolvedTaglibUris;
+    }
+
+    public void addAdditionalFileToParse(String filePath) {
+        additionalFilesToParse.add(filePath);
+    }
+
+    public Set<String> getAdditionalFilesToParse() {
+        return additionalFilesToParse;
     }
 
     public void postProcess() {
