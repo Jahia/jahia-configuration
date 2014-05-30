@@ -24,7 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * A maven goal to scan the project  for package dependencies, useful for building OSGi Import-Package
+ * A maven goal to scan the project for package dependencies, useful for building OSGi Import-Package
  * Manifest header.
  * <p/>
  * This goal is currently capable of scanning:
