@@ -126,6 +126,24 @@ public class JahiaGlobalConfigurator {
         getLogger().info ("Configuring for server " + jahiaConfig.getTargetServerType() + (StringUtils.isNotEmpty(jahiaConfig.getTargetServerVersion()) ? (" version " + jahiaConfig.getTargetServerVersion()) : "") + " with database type " + jahiaConfig.getDatabaseType());
 
         setProperties();
+        
+        if (jahiaConfig.isExternalizedDataActivated()
+                && StringUtils.isNotBlank(jahiaConfig.getExternalizedDataTargetPath())) {
+            moveVarFolder();
+        }
+    }
+
+    private void moveVarFolder() throws IOException {
+        // move WEB-INF/var folder
+        File srcDir = new File(webappDir, "WEB-INF/var");
+        File destDir = new File(jahiaConfig.getExternalizedDataTargetPath().trim());
+        getLogger().info("Externalizing var folder from " + srcDir + " to " + destDir);
+        if (destDir.exists()) {
+            FileUtils.copyDirectory(srcDir, destDir);
+            FileUtils.deleteDirectory(srcDir);
+        } else {
+            FileUtils.moveDirectory(srcDir, destDir);
+        }
     }
 
     private void deployOnCluster() {
@@ -379,31 +397,37 @@ public class JahiaGlobalConfigurator {
             }
 
             if ((jahiaConfigDir != null) && (externalizedConfigTempPath != null)) {
-                boolean verbose = true;
-                JarArchiver archiver = new JarArchiver();
-                if (verbose) {
-                    archiver.enableLogging(new org.codehaus.plexus.logging.console.ConsoleLogger(Logger.LEVEL_DEBUG,
-                            "console"));
-                }
-
-                String jarFileName = "jahia-config.jar";
-                if (!StringUtils.isBlank(jahiaConfig.getExternalizedConfigFinalName())) {
-                    jarFileName = jahiaConfig.getExternalizedConfigFinalName();
-                    if (!StringUtils.isBlank(jahiaConfig.getExternalizedConfigClassifier())) {
-                        jarFileName += "-" + jahiaConfig.getExternalizedConfigClassifier();
+                if (jahiaConfig.isExternalizedConfigExploded()) {
+                    // we copy configuration to folder without archiving it
+                    FileUtils.copyDirectoryToDirectory(new File(jahiaConfigDir, "org"),
+                            new File(jahiaConfig.getExternalizedConfigTargetPath()));
+                } else {
+                    boolean verbose = true;
+                    JarArchiver archiver = new JarArchiver();
+                    if (verbose) {
+                        archiver.enableLogging(new org.codehaus.plexus.logging.console.ConsoleLogger(Logger.LEVEL_DEBUG,
+                                "console"));
                     }
-                    jarFileName += ".jar";
+    
+                    String jarFileName = "jahia-config.jar";
+                    if (!StringUtils.isBlank(jahiaConfig.getExternalizedConfigFinalName())) {
+                        jarFileName = jahiaConfig.getExternalizedConfigFinalName();
+                        if (!StringUtils.isBlank(jahiaConfig.getExternalizedConfigClassifier())) {
+                            jarFileName += "-" + jahiaConfig.getExternalizedConfigClassifier();
+                        }
+                        jarFileName += ".jar";
+                    }
+    
+                    // let's generate the WAR file
+                    File targetFile = new File(jahiaConfig.getExternalizedConfigTargetPath(), jarFileName);
+                    // archiver.setManifest(targetManifestFile);
+                    archiver.setDestFile(targetFile);
+                    String excludes = null;
+    
+                    archiver.addDirectory(jahiaConfigDir, null,
+                            excludes != null ? excludes.split(",") : null);
+                    archiver.createArchive();
                 }
-
-                // let's generate the WAR file
-                File targetFile = new File(jahiaConfig.getExternalizedConfigTargetPath(), jarFileName);
-                // archiver.setManifest(targetManifestFile);
-                archiver.setDestFile(targetFile);
-                String excludes = null;
-
-                archiver.addDirectory(jahiaConfigDir, null,
-                        excludes != null ? excludes.split(",") : null);
-                archiver.createArchive();
 
                 FileUtils.deleteDirectory(jahiaConfigDir);
 

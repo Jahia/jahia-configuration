@@ -310,6 +310,29 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      * @parameter expression="${jahia.configure.externalizedActivated}" default-value="false"
      */
     protected boolean externalizedConfigActivated;
+    
+    /**
+     * If active, the externalized configuration is deployed exploded.
+     * 
+     * @parameter expression="${jahia.configure.externalizedExploded}" default-value="false"
+     */
+    protected boolean externalizedConfigExploded;
+
+    /**
+     * ACtivates the feature for externalizing the location of WEB-INF/var folder.
+     * 
+     * @parameter expression="${jahia.configure.externalizedDataActivated}"
+     */
+    protected boolean externalizedDataActivated;
+    
+    /**
+     * The location where Jahia will move the WEB-INF/var folder to. If this path is set, the corresponding entries in jahia.properties
+     * (jahiaVarDiskPath, jahiaModulesDiskPath, jahiaImportsDiskPath, modulesSourcesDiskPath, jahia.jackrabbit.home etc.) will be adjusted
+     * to point to that location.
+     * 
+     * @parameter expression="${jahia.configure.externalizedDataTargetPath}"
+     */
+    protected String externalizedDataTargetPath;
 
     /**
      * The location at which the externalized configuration JAR will be generated.
@@ -655,6 +678,21 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     @Override
     public String getLicenseFile() {
         return licenseFile;
+    }
+
+    @Override
+    public boolean isExternalizedConfigExploded() {
+        return externalizedConfigExploded;
+    }
+
+    @Override
+    public String getExternalizedDataTargetPath() {
+        return externalizedDataTargetPath;
+    }
+
+    @Override
+    public boolean isExternalizedDataActivated() {
+        return externalizedDataActivated;
     }
 
 }

@@ -167,6 +167,12 @@ public interface JahiaConfigInterface {
     boolean isExternalizedConfigActivated();
 
     /**
+     * If active, the externalized configuration is deployed exploded.
+     * @return <code>true</code> if the externalized configuration is deployed into a folder (nor an archive)
+     */
+    boolean isExternalizedConfigExploded();
+    
+    /**
      * The location at which to store Jahia's externalized configuration. Setting this value will enable the
      * externalization generation.
      * @return
@@ -185,6 +191,23 @@ public interface JahiaConfigInterface {
      * @return
      */
     String getExternalizedConfigFinalName();
+
+    /**
+     * Activates the feature of moving the WEB-INF/var out of the Web application folder. See also {@link #getExternalizedDataTargetPath()}.
+     * 
+     * @return <code>true</code> if the WEB-INF/var folder should be moved out of the Web application folder to the specified external
+     *         location
+     */
+    boolean isExternalizedDataActivated();
+
+    /**
+     * The location where Jahia will move the WEB-INF/var folder to. If value is set and {@link #isExternalizedDataActivated()} returns
+     * true, the corresponding entries in jahia.properties (jahiaVarDiskPath, jahiaModulesDiskPath, jahiaImportsDiskPath,
+     * modulesSourcesDiskPath, jahia.jackrabbit.home etc.) will be adjusted to point to that location.
+     * 
+     * @return location where Jahia will move the WEB-INF/var folder to
+     */
+    String getExternalizedDataTargetPath();
 
     /**
      * Returns the location of an exploded EAR with the JEE application structure. If null, this means we are not using
