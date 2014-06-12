@@ -102,15 +102,18 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private Map<String, String> groupLdapProviderProperties = new HashMap<String, String>();
     private Map<String, String> userLdapProviderProperties = new HashMap<String, String>();
 
-    private boolean externalizedConfigActivated = false;
-    private String externalizedConfigTargetPath = null;
-    private String externalizedConfigClassifier = null;
+    private boolean externalizedConfigActivated;
+    private boolean externalizedConfigExploded;
+    private String externalizedConfigTargetPath;
+    private String externalizedConfigClassifier;
     private String externalizedConfigFinalName = "jahia-config";
+    private boolean externalizedDataActivated;
+    private String externalizedDataTargetPath;
     private Map<String, String> jahiaAdvancedProperties = new HashMap<String, String>();
     private Map<String, String> jahiaProperties = new HashMap<String, String>();
 
-    private String jeeApplicationLocation = null;
-    private String jeeApplicationModuleList = null;
+    private String jeeApplicationLocation;
+    private String jeeApplicationModuleList;
     private String licenseFile;
     
     public void setFileDataStorePath(String fileDataStorePath) {
@@ -631,6 +634,32 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public void setLicenseFile(String licenseFile) {
         this.licenseFile = licenseFile;
+    }
+
+    public boolean isExternalizedConfigExploded() {
+        return externalizedConfigExploded;
+    }
+
+    public void setExternalizedConfigExploded(boolean externalizedConfigExploded) {
+        this.externalizedConfigExploded = externalizedConfigExploded;
+    }
+
+    @Override
+    public String getExternalizedDataTargetPath() {
+        return externalizedDataTargetPath;
+    }
+
+    @Override
+    public boolean isExternalizedDataActivated() {
+        return externalizedDataActivated;
+    }
+
+    public void setExternalizedDataActivated(boolean externalizedDataActivated) {
+        this.externalizedDataActivated = externalizedDataActivated;
+    }
+
+    public void setExternalizedDataTargetPath(String externalizedDataTargetPath) {
+        this.externalizedDataTargetPath = externalizedDataTargetPath;
     }
 
 }

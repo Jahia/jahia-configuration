@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.codehaus.plexus.util.PropertyUtils;
+import org.codehaus.plexus.util.StringUtils;
 
 /**
  * Property configuration for the jahia.properties file.
@@ -102,10 +103,37 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
                 properties.setProperty(entry.getKey(), entry.getValue());
             }
         }
+        
+        if (jahiaConfigInterface.isExternalizedDataActivated()
+                && StringUtils.isNotBlank(jahiaConfigInterface.getExternalizedDataTargetPath())) {
+            externalizeVarFolderSettings();
+        }
 
         configureScheduler();
         
         properties.storeProperties(sourceJahiaPath.getInputStream(), targetJahiaPath);
+    }
+
+    private void externalizeVarFolderSettings() {
+        String varPath = StringUtils.replace(jahiaConfigInterface.getExternalizedDataTargetPath().trim(), "\\\\", "/");
+        varPath = StringUtils.replace(varPath, '\\', '/');
+        if (!varPath.endsWith("/")) {
+            varPath = varPath + '/';
+        }
+
+        properties.setProperty("jahiaVarDiskPath", varPath);
+        properties.setProperty("tmpContentDiskPath", varPath + "content/tmp/");
+        properties.setProperty("modulesSourcesDiskPath", varPath + "sources/");
+        properties.setProperty("jahia.jackrabbit.home", "file://" + varPath + "repository");
+
+        if (jahiaConfigInterface.getJahiaModulesDiskPath().startsWith("$context/WEB-INF/var/")) {
+            properties.setProperty("jahiaModulesDiskPath", varPath
+                    + jahiaConfigInterface.getJahiaModulesDiskPath().substring("$context/WEB-INF/var/".length()));
+        }
+        if (jahiaConfigInterface.getJahiaImportsDiskPath().startsWith("$context/WEB-INF/var/")) {
+            properties.setProperty("jahiaImportsDiskPath", varPath
+                    + jahiaConfigInterface.getJahiaImportsDiskPath().substring("$context/WEB-INF/var/".length()));
+        }
     }
 
     private void configureScheduler() {
