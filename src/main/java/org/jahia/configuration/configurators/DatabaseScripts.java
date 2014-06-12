@@ -48,6 +48,8 @@ import java.io.IOException;
 import java.util.*;
 import java.io.FilenameFilter;
 
+import org.apache.commons.io.IOUtils;
+
 
 /**
  * desc:  This class is used by the installation and the administration
@@ -85,9 +87,13 @@ public final class DatabaseScripts {
      */
     public static List<String> getSchemaSQL( File fileObject )
         throws IOException {
-        FileInputStream scriptInputStream = new FileInputStream(fileObject.getPath());
         Properties      scriptProperties  = new Properties();
-        scriptProperties.load( scriptInputStream );
+        FileInputStream scriptInputStream = new FileInputStream(fileObject.getPath());
+        try {
+            scriptProperties.load( scriptInputStream );
+        } finally {
+            IOUtils.closeQuietly(scriptInputStream);
+        }
 
 
         String scriptLocation = scriptProperties.getProperty("jahia.database.schemascriptdir");
