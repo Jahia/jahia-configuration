@@ -125,7 +125,11 @@ public class JahiaGlobalConfigurator {
 
         getLogger().info ("Configuring for server " + jahiaConfig.getTargetServerType() + (StringUtils.isNotEmpty(jahiaConfig.getTargetServerVersion()) ? (" version " + jahiaConfig.getTargetServerVersion()) : "") + " with database type " + jahiaConfig.getDatabaseType());
 
-        setProperties();
+        try {
+            setProperties();
+        } finally {
+            VFSConfigFile.closeAllOpened();
+        }
         
         if (jahiaConfig.isExternalizedDataActivated()
                 && StringUtils.isNotBlank(jahiaConfig.getExternalizedDataTargetPath())) {
