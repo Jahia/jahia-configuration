@@ -355,7 +355,10 @@ public class JahiaGlobalConfigurator {
             copyLicense(existingLicense != null && existingLicense.length() > 0 ? existingLicense : sourceWebappPath
                     + "/WEB-INF/etc/config/licenses/license-free.xml", targetConfigPath + "/license.xml");
             if (jahiaConfig.getOverwritedb().equals("true")) {
-                getLogger().info("Creating database tables...");
+                getLogger().info("Creating database tables for " + jahiaConfig.getDatabaseType() + "...");
+                getLogger().info("driver: " + dbProps.getProperty("jahia.database.driver"));
+                getLogger().info("url: " + jahiaConfig.getDatabaseUrl());
+                getLogger().info("user: " + jahiaConfig.getDatabaseUsername());
                 if (!databaseScript.exists()) {
                     getLogger().info("cannot find script in " + databaseScript.getPath());
                     throw new Exception("Cannot find script for database " + jahiaConfig.getDatabaseType());
