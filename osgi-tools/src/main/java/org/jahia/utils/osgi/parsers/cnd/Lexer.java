@@ -175,6 +175,7 @@ public class Lexer {
     public static final String[] COLOR = {"color", "Color", "COLOR"};
     public static final String[] CHECKBOX = {"checkbox", "Checkbox", "CHECKBOX"};
     public static final String[] CRON = {"cron", "Cron", "CRON"};
+    public static final String[] TAG = {"tag", "Tag", "TAG"};
 
     public static final String[] UNDEFINED = new String[]{"undefined", "Undefined", "UNDEFINED", "*"};
 
