@@ -76,5 +76,16 @@ public class WebsphereServerDeploymentImpl extends AbstractServerDeploymentImpl 
     @Override
     public String getWarExcludes() {
         return (String) getDeployersProperties().get("websphere");
-    }    
+    }
+    
+    @Override
+    public boolean isEarDeployment() {
+        return true;
+    }
+
+    @Override
+    public String getWebappDeploymentDirNameOverride() {
+        return "jahia.war";
+    }
+
 }
