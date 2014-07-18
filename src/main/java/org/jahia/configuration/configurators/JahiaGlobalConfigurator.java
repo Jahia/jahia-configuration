@@ -285,7 +285,7 @@ public class JahiaGlobalConfigurator {
             // check if we need to update the CLI configuration file
             File cliFile = new File(jahiaConfigInterface.getTargetServerDirectory(), "bin/jahia-config.cli");
             if (cliFile.exists()) {
-                configurator.writeCLIConfiguration(cliFile, "");
+                configurator.writeCLIConfiguration(cliFile, null);
                 configurator.writeCLIConfiguration(new File(jahiaConfigInterface.getTargetServerDirectory(), "bin/jahia-config-domain.cli"), "/profile=default");
             }
         }
