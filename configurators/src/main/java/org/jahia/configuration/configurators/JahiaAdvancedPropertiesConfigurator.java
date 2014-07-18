@@ -96,35 +96,6 @@ public class JahiaAdvancedPropertiesConfigurator extends AbstractConfigurator {
         properties.setProperty("cluster.activated", cfg.getCluster_activated());
         properties.setProperty("cluster.node.serverId", getServerId(cfg.getCluster_node_serverId()));
         
-        // Jahia 6.5/6.6 settings
-        if (properties.getProperty("cluster.tcp.start.ip_address") != null) {
-            properties.setProperty("cluster.tcp.start.ip_address", cfg.getClusterStartIpAddress());
-        }
-        if (properties.getProperty("cluster.tcp.ehcache.jahia.port") != null) {
-            properties.setProperty("cluster.tcp.ehcache.jahia.port", cfg.getClusterTCPEHCacheJahiaPort());    
-        }
-        List<String> jahiaHosts = Collections.emptyList();
-        if (properties.getProperty("cluster.tcp.ehcache.jahia.nodes.ip_address") != null) {
-            jahiaHosts = getInitialHosts(cfg.getClusterTCPEHCacheJahiaHosts(), cfg.getClusterNodes(), cfg.getClusterTCPEHCacheJahiaPort());
-            properties.setProperty("cluster.tcp.ehcache.jahia.nodes.ip_address", StringUtils.join(jahiaHosts.iterator(), ","));
-        }
-        if (properties.getProperty("cluster.tcp.ehcache.hibernate.port") != null) {
-            properties.setProperty("cluster.tcp.ehcache.hibernate.port", cfg.getClusterTCPEHCacheHibernatePort());
-        }
-        if (properties.getProperty("cluster.tcp.ehcache.hibernate.nodes.ip_address") != null) {
-            List<String> hibernateHosts = getInitialHosts(cfg.getClusterTCPEHCacheHibernateHosts(), cfg.getClusterNodes(), cfg.getClusterTCPEHCacheHibernatePort());
-            if (hibernateHosts.size() != jahiaHosts.size()) {
-                logger.error("ERROR: number of initial hosts for Hibernate and Jahia"
-                        + " caches do not match. There is an issue in the provided configuration!");
-            }
-            properties.setProperty("cluster.tcp.ehcache.hibernate.nodes.ip_address", StringUtils.join(hibernateHosts.iterator(), ","));
-        }
-        
-        if (properties.getProperty("cluster.tcp.num_initial_members") != null) {
-            properties.setProperty("cluster.tcp.num_initial_members",String.valueOf(jahiaHosts.size()));
-        }
-        
-        // Jahia 7 settings
         if (properties.getProperty("cluster.tcp.bindAddress") != null && StringUtils.isNotBlank(cfg.getClusterTCPBindAddress())) {
             properties.setProperty("cluster.tcp.bindAddress", cfg.getClusterTCPBindAddress());
         }

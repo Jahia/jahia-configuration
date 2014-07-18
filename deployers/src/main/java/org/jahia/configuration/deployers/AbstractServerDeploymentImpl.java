@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -16,25 +17,46 @@ import org.apache.commons.io.IOUtils;
  */
 public abstract class AbstractServerDeploymentImpl implements ServerDeploymentInterface {
 
-    private String targetServerDirectory;
+    private File configDir;
+    
+    private File dataDir;
     
     private Properties deployersProperties;
+    
+    private String id;
 
     private String name;
 
-    public AbstractServerDeploymentImpl(String name, String targetServerDirectory) {
+	private File targetServerDirectory;
+
+    public AbstractServerDeploymentImpl(String id, String name, File targetServerDirectory) {
+    	this.id = id;
         this.name = name;
         this.targetServerDirectory = targetServerDirectory;
     }
 
-    public String getTargetServerDirectory() {
-        return targetServerDirectory;
+    @Override
+    public boolean deployJdbcDriver(File driverJar) throws IOException {
+        return deploySharedLibraries(driverJar);
     }
 
-    public String getWarExcludes() {
-        return null;
+    @Override
+    public boolean deploySharedLibraries(File... pathToLibraries) throws IOException {
+        File targetDirectory = getSharedLibraryDirectory();
+        for (File currentLibraryPath : pathToLibraries) {
+			FileUtils.copyFileToDirectory(currentLibraryPath, targetDirectory);
+        }
+        return true;
     }
 
+    public File getConfigDir() {
+		return configDir;
+	}
+
+    public File getDataDir() {
+		return dataDir;
+	}
+    
     protected Properties getDeployersProperties() {
         if (deployersProperties == null) {
             deployersProperties = new Properties();
@@ -53,27 +75,60 @@ public abstract class AbstractServerDeploymentImpl implements ServerDeploymentIn
         return deployersProperties;
     }
     
-    public boolean isAutoDeploySupported() {
-        return false;
-    }
-    
-    @Override
-    public String getWebappDeploymentDirNameOverride() {
-        return null;
-    }
-    
-    @Override
-    public boolean deployJdbcDriver(String targetServerDirectory, File driverJar) throws IOException {
-        return deploySharedLibraries(targetServerDirectory, driverJar);
-    }
+    public String getId() {
+		return id;
+	}
     
     @Override
     public String getName() {
         return name;
     }
     
+    protected abstract File getSharedLibraryDirectory();
+    
     @Override
+    public File getTargetServerDirectory() {
+        return targetServerDirectory;
+    }
+
+	public String getWarExcludes() {
+        return (String) getDeployersProperties().get("warExcludes." + getId());
+    }
+
+	@Override
+    public String getWebappDeploymentDirNameOverride() {
+        return null;
+    }
+
+	public void init() {
+		// do nothing
+	}
+
+	@Override
+    public boolean isAutoDeploySupported() {
+        return true;
+    }
+
+	@Override
     public boolean isEarDeployment() {
         return false;
+    }
+
+    public void setConfigDir(File configDir) {
+		this.configDir = configDir;
+	}
+
+    public void setDataDir(File dataDir) {
+		this.dataDir = dataDir;
+	}
+
+    @Override
+    public boolean undeploySharedLibraries(File... pathToLibraries) throws IOException {
+        File targetDirectory = getSharedLibraryDirectory();
+        for (File currentLibraryPath : pathToLibraries) {
+            File targetFile = new File(targetDirectory, currentLibraryPath.getName());
+            targetFile.delete();
+        }
+        return true;
     }
 }

@@ -1,11 +1,6 @@
 package org.jahia.configuration.deployers;
 
-import org.apache.commons.io.FileUtils;
-
 import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Iterator;
 
 /**
  * Websphere server deployer implementation.
@@ -17,67 +12,34 @@ import java.util.Iterator;
  */
 public class WebsphereServerDeploymentImpl extends AbstractServerDeploymentImpl {
 
-    public WebsphereServerDeploymentImpl(String name, String targetServerDirectory) {
-        super(name, targetServerDirectory);
+    public WebsphereServerDeploymentImpl(String id, String name, File targetServerDirectory) {
+        super(id, name, targetServerDirectory);
     }
 
-    public boolean validateInstallationDirectory(String targetServerDirectory) {
-        //File serverLibDir = new File(targetServerDirectory, "/AppServer/lib/ext");
-        //return serverLibDir.isDirectory();
+    public boolean validateInstallationDirectory() {
         return true;
-    }
-
-    private String getSharedLibraryDirectory() {
-        return "/AppServer/lib/ext";
-    }
-
-    private String getSharedJavaLibraryDirectory() {
-        return "/AppServer/java/jre/lib/ext";
-    }
-
-
-    public boolean deploySharedLibraries(String targetServerDirectory, File... pathToLibraries) throws IOException {
-        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory());
-        File targetJavaDirectory = new File(targetServerDirectory, getSharedJavaLibraryDirectory());
-
-        for (File currentLibraryPath : pathToLibraries) {
-            if (currentLibraryPath.getName().startsWith("portlet-api-")) {
-                FileUtils.copyFileToDirectory(currentLibraryPath, targetJavaDirectory);
-            } else {
-                FileUtils.copyFileToDirectory(currentLibraryPath, targetDirectory);
-            }
-        }
-        return true;
-    }
-
-    public boolean undeploySharedLibraries(String targetServerDirectory, List<File> pathToLibraries) throws IOException {
-        Iterator<File> libraryPathIterator = pathToLibraries.iterator();
-        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory());
-        while (libraryPathIterator.hasNext()) {
-            File currentLibraryPath = libraryPathIterator.next();
-            File targetFile = new File(targetDirectory, currentLibraryPath.getName());
-            targetFile.delete();
-        }
-        return true;
-    }
-
-    public String getDeploymentBaseDir() {
-        return "";  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    public String getDeploymentDirPath(String name, String type) {
-        return getDeploymentBaseDir() + "/" + name;
-    }
-
-    public String getDeploymentFilePath(String name, String type) {
-        return getDeploymentBaseDir() + "/" + name;
     }
 
     @Override
-    public String getWarExcludes() {
-        return (String) getDeployersProperties().get("websphere");
+    protected File getSharedLibraryDirectory() {
+        return new File("/AppServer/lib/ext");
     }
-    
+
+    @Override
+    public File getDeploymentBaseDir() {
+        return getTargetServerDirectory();
+    }
+
+    @Override
+    public File getDeploymentDirPath(String name, String type) {
+        return new File(getDeploymentBaseDir(), name);
+    }
+
+    @Override
+    public File getDeploymentFilePath(String name, String type) {
+        return new File(getDeploymentBaseDir(), name);
+    }
+
     @Override
     public boolean isEarDeployment() {
         return true;

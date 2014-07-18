@@ -18,17 +18,17 @@ public class Main {
                 try {
                     String target = args[args.length-1];
     
-                    File output = new File(target, "WEB-INF/var/modules");
+                    File output = new File(target, "modules");
     
                     if (!output.exists()) {
-                        logger.error("Target does not seem to be a valid jahia root folder.");
+                        logger.error("Target does not seem to be a valid Digital Factory data folder.");
                         System.exit(-1);
                     }
     
                     ModuleDeployer deployer = new ModuleDeployer(output, logger);
     
                     try {
-                        logger.info("Deploying modules to Jahia Web application at " + target + "\n");
+                        logger.info("Deploying modules to Digital Factory application at " + target + "\n");
                         for (int i = 1; i < args.length - 1; i++) {
                             String arg = args[i];
                             File f = new File(arg);
@@ -71,13 +71,13 @@ public class Main {
         logger.info("\t\t\t"+"Expects a path to a properties file with configuration");
         logger.info("\t\t\t"+"settings as a parameter.");
 
-        logger.info(" -dm,--deploy-module"+"\t"+"Deploys provided module to a specified Jahia server.");
-        logger.info("\t\t\t"+"Expects one or more paths to module WAR or JAR (OSGi bundle) files followed");
-        logger.info("\t\t\t"+"by a path to the Jahia Web application folder.");
+        logger.info(" -dm,--deploy-module"+"\t"+"Deploys provided module to a specified Digital Factory server.");
+        logger.info("\t\t\t"+"Expects one or more paths to module JAR (OSGi bundle) files followed");
+        logger.info("\t\t\t"+"by a path to the Digital Factory data folder.");
 
         logger.info("\nExamples:");
         logger.info(" java -jar configurators-x.yy-standalone.jar --configure /opt/jahia/install.properties");
-        logger.info(" java -jar configurators-x.yy-standalone.jar --deploy-module blog-2.0.jar forum-2.0.jar /opt/jahia-7.0/tomcat/webapps/ROOT");
+        logger.info(" java -jar configurators-x.yy-standalone.jar --deploy-module blog-2.0.jar forum-2.0.jar /opt/jahia-7.0/tomcat/digital-factory-data");
     }
 
 }

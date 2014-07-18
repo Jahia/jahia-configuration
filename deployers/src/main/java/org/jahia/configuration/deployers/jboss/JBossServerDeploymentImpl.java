@@ -42,9 +42,7 @@ package org.jahia.configuration.deployers.jboss;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
-import org.apache.commons.io.FileUtils;
 import org.jahia.configuration.deployers.AbstractServerDeploymentImpl;
 
 /**
@@ -59,53 +57,37 @@ public class JBossServerDeploymentImpl extends AbstractServerDeploymentImpl {
 
     private static final String JAHIA_WAR_DIR_NAME = "jahia.war";
 
-    public JBossServerDeploymentImpl(String name, String targetServerDirectory) {
-        super(name, targetServerDirectory);
+    public JBossServerDeploymentImpl(String id, String name, File targetServerDirectory) {
+        super(id, name, targetServerDirectory);
     }
 
     @Override
-    public boolean deployJdbcDriver(String targetServerDirectory, File driverJar) throws IOException {
-        return DriverDeploymentHelper.deploy(targetServerDirectory, driverJar);
+    public boolean deployJdbcDriver(File driverJar) throws IOException {
+        return DriverDeploymentHelper.deploy(getTargetServerDirectory(), driverJar);
     }
 
     @Override
-    public boolean deploySharedLibraries(String targetServerDirectory, File... pathToLibraries) throws IOException {
-        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory());
-        for (File currentLibraryPath : pathToLibraries) {
-            FileUtils.copyFileToDirectory(currentLibraryPath, targetDirectory);
-        }
-        return true;
+    public File getDeploymentBaseDir() {
+        return new File(getTargetServerDirectory(), "standalone/deployments");
     }
 
     @Override
-    public String getDeploymentBaseDir() {
-        return "standalone/deployments";
-    }
-
-    @Override
-    public String getDeploymentDirPath(String name, String type) {
+    public File getDeploymentDirPath(String name, String type) {
         String ext = "." + type;
         return getDeploymentFilePath(name.endsWith(ext) ? name.substring(0, name.length() - ext.length()) : name, type);
     }
 
     @Override
-    public String getDeploymentFilePath(String name, String type) {
-        StringBuilder path = new StringBuilder(64);
-        path.append(getDeploymentBaseDir());
-        if ("war".equals(type)) {
-            path.append("/" + JAHIA_EAR_DIR_NAME);
-        }
-        path.append("/").append(name).append(".").append(type);
-        return path.toString();
-    }
-
-    protected String getSharedLibraryDirectory() {
-        return "standalone/deployments/jahia.ear/lib";
-    }
+	public File getDeploymentFilePath(String name, String type) {
+		return new File(
+				getDeploymentBaseDir(),
+				"war".equals(type) ? (JAHIA_EAR_DIR_NAME + "/" + name + "." + type)
+						: (name + "." + type));
+	}
 
     @Override
-    public String getWarExcludes() {
-        return (String) getDeployersProperties().get("jboss");
+    protected File getSharedLibraryDirectory() {
+        return new File(getTargetServerDirectory(), "standalone/deployments/" + JAHIA_EAR_DIR_NAME +"/lib");
     }
 
     @Override
@@ -114,27 +96,12 @@ public class JBossServerDeploymentImpl extends AbstractServerDeploymentImpl {
     }
 
     @Override
-    public boolean isAutoDeploySupported() {
-        return true;
-    }
-
-    @Override
     public boolean isEarDeployment() {
         return true;
     }
 
     @Override
-    public boolean undeploySharedLibraries(String targetServerDirectory, List<File> pathToLibraries) throws IOException {
-        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory());
-        for (File currentLibraryPath : pathToLibraries) {
-            File targetFile = new File(targetDirectory, currentLibraryPath.getName());
-            targetFile.delete();
-        }
-        return true;
-    }
-
-    @Override
-    public boolean validateInstallationDirectory(String targetServerDirectory) {
-        return new File(targetServerDirectory, "jboss-modules.jar").exists();
+    public boolean validateInstallationDirectory() {
+        return new File(getTargetServerDirectory(), "jboss-modules.jar").exists();
     }
 }

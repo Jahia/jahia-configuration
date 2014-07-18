@@ -45,11 +45,6 @@ public class JahiaGlobalConfiguratorTest extends TestCase {
         websphereDerbyConfigBean.setCluster_node_serverId("jahiaServer1");
         websphereDerbyConfigBean.setProcessingServer("true");
         websphereDerbyConfigBean.setLdapActivated("true");
-        List<String> clusterNodes = new ArrayList<String>();
-        clusterNodes.add("2.3.4.5");
-        clusterNodes.add("3.4.5.6");
-        clusterNodes.add("4.5.6.7");
-        websphereDerbyConfigBean.setClusterNodes(clusterNodes);
         websphereDerbyConfigBean.setExternalizedConfigActivated(true);
         websphereDerbyConfigBean.setExternalizedConfigTargetPath(configuratorsFile.getPath());
         websphereDerbyConfigBean.setExternalizedConfigClassifier("jahiaServer1");
@@ -80,11 +75,6 @@ public class JahiaGlobalConfiguratorTest extends TestCase {
         websphereDerbyConfigBean.setCluster_node_serverId("jahiaServer1");
         websphereDerbyConfigBean.setProcessingServer("true");
         websphereDerbyConfigBean.setLdapActivated("true");
-        List<String> clusterNodes = new ArrayList<String>();
-        clusterNodes.add("2.3.4.5");
-        clusterNodes.add("3.4.5.6");
-        clusterNodes.add("4.5.6.7");
-        websphereDerbyConfigBean.setClusterNodes(clusterNodes);
         websphereDerbyConfigBean.setExternalizedConfigActivated(true);
         websphereDerbyConfigBean.setExternalizedConfigTargetPath(configuratorsFile.getPath());
         websphereDerbyConfigBean.setExternalizedConfigClassifier("jahiaServer1");

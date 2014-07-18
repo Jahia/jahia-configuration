@@ -33,76 +33,55 @@
 
 package org.jahia.configuration.deployers;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.File;
 
 import org.jahia.configuration.deployers.jboss.JBossServerDeploymentImpl;
 
 /**
- * Factory that sets up all the different server deployer implementations, and links them to supported versions of
- * the various application servers.
+ * Factory for obtaining server deployment implementation, based on the server
+ * type.
+ * 
  * @author Serge Huber
  */
-public class ServerDeploymentFactory {
+public final class ServerDeploymentFactory {
 
-    private static ServerDeploymentFactory instance;
+	public static ServerDeploymentInterface getImplementation(
+			String serverType, File targetServerDir, File configDir,
+			File dataDir) {
+		if (serverType == null || serverType.length() == 0) {
+			throw new IllegalArgumentException("Server type is not provided");
+		}
+		serverType = serverType.trim().toLowerCase();
 
-    private Map<String, ServerDeploymentInterface> implementations = new HashMap<String, ServerDeploymentInterface>();
+		AbstractServerDeploymentImpl deployer = null;
 
-    private static String targetServerDirectory;
+		if (serverType.startsWith("tomcat")) {
+			deployer = new TomcatServerDeploymentImpl("tomcat",
+					"Apache Tomcat 7.x", targetServerDir);
+		} else if (serverType.startsWith("jboss")) {
+			deployer = new JBossServerDeploymentImpl("jboss",
+					"Red Hat JBoss AS 7.x / EAP 6.x", targetServerDir);
+		} else if (serverType.startsWith("was")
+				|| serverType.startsWith("websphere")) {
+			deployer = new WebsphereServerDeploymentImpl("websphere",
+					"IBM WebSphere Application Server 8.5.5.x", targetServerDir);
+		} else {
+			throw new IllegalArgumentException("Unsupported server type: "
+					+ serverType);
+		}
 
-    public ServerDeploymentFactory(String targetServerDirectory) {
-        TomcatServerDeploymentImpl tomcatDeployer = new TomcatServerDeploymentImpl("Apache Tomcat 7.x", targetServerDirectory);
-        addImplementation("tomcat", tomcatDeployer);
-        addImplementation("tomcat7", tomcatDeployer);
-        
-        JBossServerDeploymentImpl jbossDeployer = new JBossServerDeploymentImpl("JBoss AS 7.x / EAP 6.x", targetServerDirectory);
-        addImplementation("jboss", jbossDeployer);
-        addImplementation("jbosseap", jbossDeployer);
-        addImplementation("jbosseap6", jbossDeployer);
-        addImplementation("jbosseap6.x", jbossDeployer);
-        
-        addImplementation("was", new WebsphereServerDeploymentImpl("IBM WebSphere Application Server 8.5.x", targetServerDirectory));
-//        addImplementation("was7", getImplementation("was"));
-//        
-//        addImplementation("weblogic", new WeblogicServerDeploymentImpl(targetServerDirectory));
-//        addImplementation("weblogic10", getImplementation("weblogic"));
-    }
+		deployer.setConfigDir(configDir);
+		deployer.setDataDir(dataDir);
+		
+		deployer.init();
 
-    public static ServerDeploymentFactory getInstance() {
-        if (instance != null) {
-            return instance;
-        }
-        if (targetServerDirectory == null) {
-            throw new RuntimeException("Factory not initialized properly, you must set the targetServerDirectory variable before calling getInstance !");
-        }
-        instance = new ServerDeploymentFactory(targetServerDirectory);
-        return instance;
-    }
-
-    public static void setTargetServerDirectory(String targetServerDirectory) {
-        ServerDeploymentFactory.targetServerDirectory = targetServerDirectory;
-    }
-
-    public ServerDeploymentFactory() {}
-
-    public void addImplementation(String implementationKey, ServerDeploymentInterface implementation) {
-        implementations.put(implementationKey, implementation);
-    }
-
-    public void removeImplementation(String implementationKey) {
-        implementations.remove(implementationKey);
-    }
-
-	protected ServerDeploymentInterface getImplementation(String serverType) {
-		return getImplementation(serverType, null);
+		return deployer;
 	}
 	
-	public ServerDeploymentInterface getImplementation(String serverType,
-			String serverVersion) {
-		return serverVersion != null && serverVersion.length() > 0 ? implementations
-				.get(serverType + serverVersion) : implementations
-				.get(serverType);
+	public static ServerDeploymentInterface getImplementation(
+			String serverType, String serverVersion, File targetServerDir, File configDir,
+			File dataDir) {
+		return getImplementation(serverVersion != null ? serverType + serverVersion : serverType, targetServerDir, configDir, dataDir);
 	}
 
 }

@@ -67,7 +67,7 @@ final class DriverDeploymentHelper {
         DBMS_TYPES.put("sqljdbc4", "mssql");
     }
 
-    public static boolean deploy(String targetServerDirectory, File driverJar) throws IOException {
+    public static boolean deploy(File targetServerDirectory, File driverJar) throws IOException {
         String driverKey = getDriverKey(driverJar.getName());
         String driverType = getDriverType(driverKey, driverJar.getName());
         File targetDir = new File(targetServerDirectory, "/modules/org/jahia/jdbc/" + driverType + "/main");

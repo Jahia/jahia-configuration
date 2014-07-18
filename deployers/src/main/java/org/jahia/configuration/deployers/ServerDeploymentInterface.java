@@ -35,7 +35,6 @@ package org.jahia.configuration.deployers;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Server deployer interface. 
@@ -44,37 +43,27 @@ import java.util.List;
 public interface ServerDeploymentInterface {
 
     /**
-     * Returns true if the specified directory indeed contains a valid installation of the application server
-     * @param targetServerDirectory
-     * @return
-     */
-    boolean validateInstallationDirectory(String targetServerDirectory);
-
-    boolean deploySharedLibraries(String targetServerDirectory, File... pathToLibraries) throws IOException;
-
-    /**
      * Performs the deployment of a JDBC driver JAR file.
      * 
-     * @param targetServerDirectory
-     *            target server home
      * @param driverJar
      *            the driver JAR file to be deployed
      * @return <code>true</code> in case of successful deployment; <code>false</code> otherwise
      * @throws IOException
      *             in case of an I/O error
      */
-    boolean deployJdbcDriver(String targetServerDirectory, File driverJar) throws IOException;
+    boolean deployJdbcDriver(File driverJar) throws IOException;
 
-    boolean undeploySharedLibraries(String targetServerDirectory,
-                                           List<File> pathToLibraries) throws IOException;
+    boolean deploySharedLibraries(File... pathToLibraries) throws IOException;
+
+    File getDeploymentBaseDir();
+
+    File getDeploymentDirPath(String name, String type);
     
-    String getDeploymentBaseDir();
+    File getDeploymentFilePath(String name, String type);
 
-    String getDeploymentDirPath(String name, String type);
+    String getName();
 
-    String getDeploymentFilePath(String name, String type);
-
-    String getTargetServerDirectory();
+    File getTargetServerDirectory();
 
     /**
      * Returns the excludes pattern for the Jahia WAR artifact, comma separated.
@@ -84,6 +73,8 @@ public interface ServerDeploymentInterface {
      *         can return null to indicate that nothing should be excluded
      */
     String getWarExcludes();
+
+    String getWebappDeploymentDirNameOverride();
     
     /**
      * Returns <code>true</code> if the server supports auto deployment of
@@ -94,14 +85,18 @@ public interface ServerDeploymentInterface {
      */
     boolean isAutoDeploySupported();
     
-    String getWebappDeploymentDirNameOverride();
-    
-    String getName();
-    
     /**
      * Returns <code>true</code> if the application server uses EAR deployment instead of WAR.
      * 
      * @return <code>true</code> if the application server uses EAR deployment; otherwise returns <code>false</code>
      */
     boolean isEarDeployment();
+    
+    boolean undeploySharedLibraries(File... pathToLibraries) throws IOException;
+    
+    /**
+     * Returns <code>true</code> if the server target directory indeed contains a valid installation of the application server
+     * @return <code>true</code> if the server target directory indeed contains a valid installation of the application server
+     */
+    boolean validateInstallationDirectory();
 }

@@ -36,7 +36,6 @@ package org.jahia.configuration.configurators;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -47,22 +46,15 @@ import java.util.Map;
  */
 public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private File outputDirectory;
-    private String jahiaEtcDiskPath = "$context/WEB-INF/etc/";
-    private String jahiaVarDiskPath = "$context/WEB-INF/var/";
-    private String jahiaModulesDiskPath = "$context/WEB-INF/var/modules/";
-    private String jahiaWebAppsDeployerBaseURL = "http\\://localhost\\:8080/manager";
+    private String jahiaVarDiskPath = "${jahiaWebAppRoot}/WEB-INF/var/";
+    private String jahiaModulesDiskPath = "${jahia.data.dir}/modules/";
+    private String jahiaWebAppsDeployerBaseURL = "http://127.0.0.1:8080/manager/html/";
     private String cluster_activated = "false";
     private String cluster_node_serverId;
-    private String clusterStartIpAddress = "192.168.1.100";
     private String processingServer = "true";
-    private String jahiaImportsDiskPath = "$context/WEB-INF/var/imports/";
-    private List<String> clusterNodes = new ArrayList<String>();
+    private String jahiaImportsDiskPath = "${jahia.data.dir}/imports/";
     private String clusterTCPBindAddress = null;
     private String clusterTCPBindPort = "7870";
-    private String clusterTCPEHCacheHibernatePort = "7860";
-    private String clusterTCPEHCacheJahiaPort = "7870";
-    private List<String> clusterTCPEHCacheHibernateHosts = new ArrayList<String>();
-    private List<String> clusterTCPEHCacheJahiaHosts = new ArrayList<String>();
     private String db_script = "hypersonic.script";
     private String operatingMode = "development";
     private String targetServerType = "tomcat";
@@ -95,8 +87,8 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String storeFilesInDB = "false";
     private String fileDataStorePath = "";
     private String targetConfigurationDirectory = "";
-    private String jahiaToolManagerPassword = "jahia";
-    private String jahiaToolManagerUsername = "password";
+    private String jahiaToolManagerPassword = "password";
+    private String jahiaToolManagerUsername = "jahia";
 
     private String ldapActivated = "false";
     private Map<String, String> groupLdapProviderProperties = new HashMap<String, String>();
@@ -107,8 +99,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String externalizedConfigTargetPath;
     private String externalizedConfigClassifier;
     private String externalizedConfigFinalName = "jahia-config";
-    private boolean externalizedDataActivated;
-    private String externalizedDataTargetPath;
     private Map<String, String> jahiaAdvancedProperties = new HashMap<String, String>();
     private Map<String, String> jahiaProperties = new HashMap<String, String>();
 
@@ -138,14 +128,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public void setDb_script(String db_script) {
         this.db_script = db_script;
-    }
-
-    public String getJahiaEtcDiskPath() {
-        return jahiaEtcDiskPath;
-    }
-
-    public void setJahiaEtcDiskPath(String jahiaEtcDiskPath) {
-        this.jahiaEtcDiskPath = jahiaEtcDiskPath;
     }
 
     public String getJahiaVarDiskPath() {
@@ -201,52 +183,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public void setJahiaImportsDiskPath(String jahiaImportsDiskPath) {
         this.jahiaImportsDiskPath = jahiaImportsDiskPath;
-    }
-
-    public List<String> getClusterNodes() {
-        return clusterNodes;
-    }
-
-    public void setClusterNodes(List<String> clusterNodes) {
-        if (clusterNodes != null) {
-            this.clusterNodes = clusterNodes;
-        }
-    }
-
-    public String getClusterTCPEHCacheHibernatePort() {
-        return clusterTCPEHCacheHibernatePort;
-    }
-
-    public void setClusterTCPEHCacheHibernatePort(String clusterTCPEHCacheHibernatePort) {
-        this.clusterTCPEHCacheHibernatePort = clusterTCPEHCacheHibernatePort;
-    }
-
-    public String getClusterTCPEHCacheJahiaPort() {
-        return clusterTCPEHCacheJahiaPort;
-    }
-
-    public void setClusterTCPEHCacheJahiaPort(String clusterTCPEHCacheJahiaPort) {
-        this.clusterTCPEHCacheJahiaPort = clusterTCPEHCacheJahiaPort;
-    }
-
-    public List<String> getClusterTCPEHCacheHibernateHosts() {
-        return clusterTCPEHCacheHibernateHosts;
-    }
-
-    public void setClusterTCPEHCacheHibernateHosts(List<String> clusterTCPEHCacheHibernateHosts) {
-        if (clusterTCPEHCacheHibernateHosts != null) {
-            this.clusterTCPEHCacheHibernateHosts = clusterTCPEHCacheHibernateHosts;
-        }
-    }
-
-    public List<String> getClusterTCPEHCacheJahiaHosts() {
-        return clusterTCPEHCacheJahiaHosts;
-    }
-
-    public void setClusterTCPEHCacheJahiaHosts(List<String> clusterTCPEHCacheJahiaHosts) {
-        if (clusterTCPEHCacheJahiaHosts != null) {
-            this.clusterTCPEHCacheJahiaHosts = clusterTCPEHCacheJahiaHosts;
-        }
     }
 
     public void setOperatingMode(String operatingMode) {
@@ -481,17 +417,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.mailParanoia = mailParanoia;
     }
 
-    public String getClusterStartIpAddress() {
-        return clusterStartIpAddress;
-    }
-
-    /**
-     * @param clusterStartIpAddress the clusterStartIpAddress to set
-     */
-    public void setClusterStartIpAddress(String clusterStartIpAddress) {
-        this.clusterStartIpAddress = clusterStartIpAddress;
-    }
-
     public String getJahiaToolManagerUsername() {
         return jahiaToolManagerUsername;
     }
@@ -642,24 +567,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public void setExternalizedConfigExploded(boolean externalizedConfigExploded) {
         this.externalizedConfigExploded = externalizedConfigExploded;
-    }
-
-    @Override
-    public String getExternalizedDataTargetPath() {
-        return externalizedDataTargetPath;
-    }
-
-    @Override
-    public boolean isExternalizedDataActivated() {
-        return externalizedDataActivated;
-    }
-
-    public void setExternalizedDataActivated(boolean externalizedDataActivated) {
-        this.externalizedDataActivated = externalizedDataActivated;
-    }
-
-    public void setExternalizedDataTargetPath(String externalizedDataTargetPath) {
-        this.externalizedDataTargetPath = externalizedDataTargetPath;
     }
 
 }

@@ -89,6 +89,38 @@ public class JahiaGlobalConfigurator {
         return valueList;
     }
     
+	public static File resolveDataDir(String dataDirPath,
+			String targetWebappDirPath) {
+		File dataDir = null;
+		if (dataDirPath.indexOf('$') != -1) {
+			Map<String, String> sysProps = new HashMap<String, String>();
+			String webappPath = targetWebappDirPath;
+			sysProps.put("jahiaWebAppRoot", webappPath);
+			if (dataDirPath.contains("$context")) {
+				sysProps.put("context", webappPath);
+			}
+			for (Map.Entry<Object, Object> el : System.getProperties()
+					.entrySet()) {
+				sysProps.put(String.valueOf(el.getKey()),
+						String.valueOf(el.getValue()));
+			}
+			dataDirPath = StringUtils.interpolate(dataDirPath, sysProps);
+		}
+		try {
+			dataDir = new File(dataDirPath).getCanonicalFile();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		if (!dataDir.exists()) {
+			if (!dataDir.mkdirs()) {
+				throw new RuntimeException(
+						"Unable to create target data directory: " + dataDir);
+			}
+		}
+
+		return dataDir;
+	}
+
     JahiaConfigInterface jahiaConfig;
     DatabaseConnection db;
     File webappDir;
@@ -100,6 +132,7 @@ public class JahiaGlobalConfigurator {
 
     AbstractLogger logger;
     private ServerDeploymentInterface deployer;
+	private File dataDir;
 
     public JahiaGlobalConfigurator(AbstractLogger logger, JahiaConfigInterface jahiaConfig) {
         this.jahiaConfig = jahiaConfig;
@@ -111,7 +144,6 @@ public class JahiaGlobalConfigurator {
     }
 
     public void execute() throws Exception {
-        ServerDeploymentFactory.setTargetServerDirectory(jahiaConfig.getTargetServerDirectory());
         if (jahiaConfig.isExternalizedConfigActivated() &&
             !StringUtils.isBlank(jahiaConfig.getExternalizedConfigTargetPath())) {
             File tempDirectory = FileUtils.getTempDirectory();
@@ -129,24 +161,6 @@ public class JahiaGlobalConfigurator {
             setProperties();
         } finally {
             VFSConfigFile.closeAllOpened();
-        }
-        
-        if (jahiaConfig.isExternalizedDataActivated()
-                && StringUtils.isNotBlank(jahiaConfig.getExternalizedDataTargetPath())) {
-            moveVarFolder();
-        }
-    }
-
-    private void moveVarFolder() throws IOException {
-        // move WEB-INF/var folder
-        File srcDir = new File(webappDir, "WEB-INF/var");
-        File destDir = new File(jahiaConfig.getExternalizedDataTargetPath().trim());
-        getLogger().info("Externalizing var folder from " + srcDir + " to " + destDir);
-        if (destDir.exists()) {
-            FileUtils.copyDirectory(srcDir, destDir);
-            FileUtils.deleteDirectory(srcDir);
-        } else {
-            FileUtils.moveDirectory(srcDir, destDir);
         }
     }
 
@@ -230,15 +244,14 @@ public class JahiaGlobalConfigurator {
             // in the case we cannot access the file, it means we should not do the advanced configuration, which is expected for Jahia "core".
         }
 
-        String ldapTargetFile = webappPath + "/WEB-INF/var/modules";
+        String ldapTargetFile = new File(getDataDir(), "modules").getAbsolutePath();
         new LDAPConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,sourceWebAppPath), ldapTargetFile);
 
         String jeeApplicationLocation = jahiaConfigInterface.getJeeApplicationLocation();
         boolean jeeLocationSpecified = !StringUtils.isEmpty(jeeApplicationLocation);
         if (jeeLocationSpecified || getDeployer().isEarDeployment()) {
             if (!jeeLocationSpecified) {
-                jeeApplicationLocation = getDeployer().getTargetServerDirectory() + "/"
-                        + getDeployer().getDeploymentFilePath("jahia", "ear");
+                jeeApplicationLocation = getDeployer().getDeploymentFilePath("jahia", "ear").getAbsolutePath();
             }
             String jeeApplicationModuleList = jahiaConfigInterface.getJeeApplicationModuleList();
             if (StringUtils.isEmpty(jeeApplicationModuleList)) {
@@ -272,7 +285,8 @@ public class JahiaGlobalConfigurator {
             // check if we need to update the CLI configuration file
             File cliFile = new File(jahiaConfigInterface.getTargetServerDirectory(), "bin/jahia-config.cli");
             if (cliFile.exists()) {
-                configurator.writeCLIConfiguration(cliFile);
+                configurator.writeCLIConfiguration(cliFile, "");
+                configurator.writeCLIConfiguration(new File(jahiaConfigInterface.getTargetServerDirectory(), "bin/jahia-config-domain.cli"), "/profile=default");
             }
         }
         configurator.updateDriverModule();
@@ -317,14 +331,15 @@ public class JahiaGlobalConfigurator {
                 dbUrl = StringUtils.replace(dbUrl, "$context",
                         StringUtils.replace(sourceWebappPath, "\\", "/"));
             } else {
-                System.setProperty("derby.system.home", StringUtils.replace(sourceWebappPath, "\\", "/")
-                        + "/WEB-INF/var/dbdata");
+				System.setProperty("derby.system.home", StringUtils.replace(
+						new File(getDataDir(), "dbdata").getAbsolutePath(),
+						"\\", "/"));
             }
         }
 
         dbProps = new Properties();
         //database script always ends with a .script
-        databaseScript = new File(sourceWebappPath + "/WEB-INF/var/db/" + jahiaConfig.getDatabaseType() + ".script");
+        databaseScript = new File(getDataDir(), "db/" + jahiaConfig.getDatabaseType() + ".script");
         FileInputStream is = null;
         try {
             is = new FileInputStream(databaseScript);
@@ -397,8 +412,9 @@ public class JahiaGlobalConfigurator {
                 deleteTomcatFiles();
             }
             if (jahiaConfig.getSiteImportLocation() != null) {
-                getLogger().info("Copying site Export to the " + webappDir + "/WEB-INF/var/imports");
-                importSites();
+                File importsFolder = new File(getDataDir(), "imports");
+				getLogger().info("Copying site Export to the " + importsFolder);
+                copyImports(importsFolder.getAbsolutePath());
             } else {
                 getLogger().info("No site import found, no import needed.");
             }
@@ -445,10 +461,10 @@ public class JahiaGlobalConfigurator {
         }
     }
 
-    private void importSites() {
+    private void copyImports(String importsFolder) {
         for (int i = 0; i < jahiaConfig.getSiteImportLocation().size(); i++) {
             try {
-                copy(jahiaConfig.getSiteImportLocation().get(i), webappDir + "/WEB-INF/var/imports");
+                copy(jahiaConfig.getSiteImportLocation().get(i), importsFolder);
             } catch (IOException e) {
                 getLogger().error("error in copying siteImport file " + e);
             }
@@ -460,6 +476,18 @@ public class JahiaGlobalConfigurator {
         if (toDelete.exists()) {
             try {
                 FileUtils.cleanDirectory(toDelete);
+            } catch (IOException e) {
+                getLogger().error(
+                        "Error deleting content of the folder '" + toDelete
+                                + "'. Cause: " + e.getMessage(), e);
+            }
+        }
+    }
+
+    private void deleteDirectory(File toDelete) {
+        if (toDelete.exists()) {
+            try {
+                FileUtils.deleteDirectory(toDelete);
             } catch (IOException e) {
                 getLogger().error(
                         "Error deleting content of the folder '" + toDelete
@@ -480,7 +508,7 @@ public class JahiaGlobalConfigurator {
     private void deleteRepositoryAndIndexes() {
 
         try {
-            File[] files = new File(webappDir + "/WEB-INF/var/repository")
+            File[] files = new File(getDataDir(), "repository")
                     .listFiles(new FilenameFilter() {
                         public boolean accept(File dir, String name) {
                             return name == null || !(name.startsWith("indexing_configuration") && name.endsWith(".xml"));
@@ -497,22 +525,11 @@ public class JahiaGlobalConfigurator {
                             + e.getMessage(), e);
         }
 
-        cleanDirectory(new File(webappDir + "/WEB-INF/var/compiledRules"));
-
-        cleanDirectory(new File(webappDir + "/WEB-INF/var/bundles-deployed"));
-
-        File[] templateDirs = new File(webappDir + "/modules")
-                .listFiles((FilenameFilter) DirectoryFileFilter.DIRECTORY);
-        if (templateDirs != null) {
-            for (File templateDir : templateDirs) {
-                cleanDirectory(templateDir);
-                templateDir.delete();
-            }
-        }
-
-        FileUtils.deleteQuietly(new File(webappDir + "/WEB-INF/var/definitions.properties"));
-        FileUtils.deleteQuietly(new File(webappDir + "/WEB-INF/var/definitions"));
-
+        deleteDirectory(new File(getDataDir(), "bundles-deployed"));
+        deleteDirectory(new File(getDataDir(), "compiledRules"));
+        deleteDirectory(new File(getDataDir(), "content"));
+        deleteDirectory(new File(getDataDir(), "generated-resources"));
+        
         getLogger().info("Finished deleting content of the data and cache related folders");
     }
 
@@ -695,7 +712,7 @@ public class JahiaGlobalConfigurator {
     /**
      * Get the folder on the application server where the jahia webapp is unpacked
      */
-    protected File getWebappDeploymentDir() throws Exception {
+    protected File getWebappDeploymentDir() {
         if (StringUtils.isNotEmpty(jahiaConfig.getTargetConfigurationDirectory())) {
             return new File(jahiaConfig.getTargetConfigurationDirectory());
         }
@@ -703,16 +720,20 @@ public class JahiaGlobalConfigurator {
         if (!StringUtils.isEmpty(jeeApplicationLocation)) {
             return new File(jeeApplicationLocation, "jahia.war");
         } else {
-            return new File(jahiaConfig.getTargetServerDirectory(), getDeployer().getDeploymentDirPath(
-                    StringUtils.defaultString(getDeployer().getWebappDeploymentDirNameOverride(),
-                            getWebappDeploymentDirName()), "war"));
+			return getDeployer().getDeploymentDirPath(
+					StringUtils.defaultString(getDeployer()
+							.getWebappDeploymentDirNameOverride(),
+							getWebappDeploymentDirName()), "war");
         }
     }
 
     private ServerDeploymentInterface getDeployer() {
         if (deployer == null) {
-            deployer = ServerDeploymentFactory.getInstance().getImplementation(jahiaConfig.getTargetServerType(),
-                    jahiaConfig.getTargetServerVersion());
+			deployer = ServerDeploymentFactory.getImplementation(
+					jahiaConfig.getTargetServerType(),
+					jahiaConfig.getTargetServerVersion(),
+					new File(jahiaConfig.getTargetServerDirectory()), null,
+					null);
         }
 
         return deployer;
@@ -744,4 +765,14 @@ public class JahiaGlobalConfigurator {
         }
         return config;
     }
+    
+	private File getDataDir() {
+		if (dataDir == null) {
+			dataDir = resolveDataDir(jahiaConfig.getJahiaVarDiskPath(),
+					getWebappDeploymentDir().getAbsolutePath());
+			getLogger().info("Data directory resolved to folder: " + dataDir);
+		}
+
+		return dataDir;
+	}
 }

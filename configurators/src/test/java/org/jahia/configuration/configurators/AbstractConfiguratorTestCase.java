@@ -41,17 +41,10 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
         websphereOracleConfigBean.setTargetServerType("was");
         websphereOracleConfigBean.setTargetServerVersion("6.1.0.25");
         websphereOracleConfigBean.setCluster_activated("true");
-        websphereOracleConfigBean.setClusterStartIpAddress("1.2.3.4");
+        websphereOracleConfigBean.setClusterTCPBindAddress("1.2.3.4");
         websphereOracleConfigBean.setCluster_node_serverId("jahiaServer1");
         websphereOracleConfigBean.setProcessingServer("true");
-        websphereOracleConfigBean
-                .setClusterTCPEHCacheHibernateHosts(JahiaGlobalConfigurator
-                        .fromString("1.2.3.4[7860] 2.3.4.5[8860] 3.4.5.6[9860] 4.5.6.7[10860]"));
-        websphereOracleConfigBean
-                .setClusterTCPEHCacheJahiaHosts(JahiaGlobalConfigurator
-                        .fromString("1.2.3.4[7870] 2.3.4.5[8870] 3.4.5.6[9870] 4.5.6.7[10870]"));
-        websphereOracleConfigBean.setClusterTCPEHCacheHibernatePort("7860");
-        websphereOracleConfigBean.setClusterTCPEHCacheJahiaPort("7870");
+        websphereOracleConfigBean.setClusterTCPBindPort("7870");
 
         websphereOracleConfigBean.setJahiaRootUsername("superUser");
         websphereOracleConfigBean.setJahiaRootPassword("password");

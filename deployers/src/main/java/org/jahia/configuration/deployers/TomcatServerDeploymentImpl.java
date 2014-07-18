@@ -33,12 +33,7 @@
 
 package org.jahia.configuration.deployers;
 
-import org.apache.commons.io.FileUtils;
-
 import java.io.File;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Tomcat 6.0 server deployer implementation.
@@ -48,76 +43,35 @@ import java.util.List;
  */
 public class TomcatServerDeploymentImpl extends AbstractServerDeploymentImpl {
 
-    public TomcatServerDeploymentImpl(String name, String targetServerDirectory) {
-        super(name, targetServerDirectory);
+    public TomcatServerDeploymentImpl(String id, String name, File targetServerDirectory) {
+        super(id, name, targetServerDirectory);
     }
 
-    protected String getEndorsedLibraryDirectory() {
-        return "endorsed";
+    @Override
+    protected File getSharedLibraryDirectory() {
+        return new File(getTargetServerDirectory(), "lib");
     }
 
-    protected String getSharedLibraryDirectory() {
-        return "lib";
-    }
-
-    public boolean validateInstallationDirectory(String targetServerDirectory) {
-        File serverConfig = new File(targetServerDirectory, "conf/server.xml");
-        File catalinaProps = new File(targetServerDirectory, "conf/catalina.properties");
+    @Override
+    public boolean validateInstallationDirectory() {
+        File serverConfig = new File(getTargetServerDirectory(), "conf/server.xml");
+        File catalinaProps = new File(getTargetServerDirectory(), "conf/catalina.properties");
         return serverConfig.exists() && catalinaProps.exists();
     }
 
-    public boolean deploySharedLibraries(String targetServerDirectory,
-                                         File... pathToLibraries) throws IOException {
-        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory());
-        File targetEndorsedDirectory = new File(targetServerDirectory, getEndorsedLibraryDirectory());
-        for (File currentLibraryPath : pathToLibraries) {
-            if (currentLibraryPath.getName().contains("jaxb-api")) {
-                FileUtils.copyFileToDirectory(currentLibraryPath, targetEndorsedDirectory);   
-            } else {
-                FileUtils.copyFileToDirectory(currentLibraryPath, targetDirectory);
-            }
-        }
-        return true;
-    }
-
-    public boolean undeploySharedLibraries(String targetServerDirectory,
-                                           List<File> pathToLibraries) throws IOException {
-        Iterator<File> libraryPathIterator = pathToLibraries.iterator();
-        File targetDirectory = new File(targetServerDirectory, getSharedLibraryDirectory());
-        File targetEndorsedDirectory = new File(targetServerDirectory, getEndorsedLibraryDirectory());
-        while (libraryPathIterator.hasNext()) {
-            File currentLibraryPath = libraryPathIterator.next();
-            if (currentLibraryPath.getName().contains("jaxb-api")) {
-                File targetFile = new File(targetEndorsedDirectory, currentLibraryPath.getName());
-                targetFile.delete();
-            } else {
-                File targetFile = new File(targetDirectory, currentLibraryPath.getName());
-                targetFile.delete();
-            }
-        }
-        return true;
-    }
-    
-    public String getDeploymentBaseDir() {
-        return "webapps";
-    }
-
-    public String getDeploymentDirPath(String name, String type) {
-        return getDeploymentBaseDir() + "/" + name;
-    }
-
-    public String getDeploymentFilePath(String name, String type) {
-        return getDeploymentBaseDir() + "/" + name + "." + type;
+    @Override
+    public File getDeploymentBaseDir() {
+        return new File(getTargetServerDirectory(), "webapps");
     }
 
     @Override
-    public boolean isAutoDeploySupported() {
-        return true;
+    public File getDeploymentDirPath(String name, String type) {
+        return new File(getDeploymentBaseDir(), name);
     }
 
     @Override
-    public String getWarExcludes() {
-        return (String) getDeployersProperties().get("tomcat");
+    public File getDeploymentFilePath(String name, String type) {
+        return new File(getDeploymentBaseDir(), name + "." + type);
     }
 
 }

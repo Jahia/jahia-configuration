@@ -61,33 +61,15 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     protected String externalConfigPath;
 
     /**
-     * properties file path
-     *
-     * @parameter default-value="$context/WEB-INF/etc/"
-     */
-    protected String jahiaEtcDiskPath;
-    /**
-     * properties file path
-     *
-     * @parameter default-value="$context/WEB-INF/var/"
-     */
-    protected String jahiaVarDiskPath;
-    /**
-     * @parameter default-value="$context/WEB-INF/var/modules/"
+     * @parameter default-value="${jahia.data.dir}/modules/"
      */
     protected String jahiaModulesDiskPath;
     /**
      * properties file path
      *
-     * @parameter default-value="http\\://localhost\\:8080/manager"
+     * @parameter default-value="http://127.0.0.1:8080/manager/html/"
      */
     protected String jahiaWebAppsDeployerBaseURL;
-    /**
-     * properties file path
-     *
-     * @parameter expression="${jahia.configure.webAppsDeployerService}" default-value="org.jahia.services.webapps_deployer.JahiaTomcatWebAppsDeployerBaseService"
-     */
-    protected String Jahia_WebApps_Deployer_Service;
     /**
      * properties file path
      *
@@ -135,28 +117,9 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * properties file path
      *
-     * @parameter default-value="$context/WEB-INF/var/imports/"
+     * @parameter default-value="${jahia.data.dir}/imports/"
      */
     protected String jahiaImportsDiskPath;
-
-    /**
-     * List of nodes in the cluster.
-     *
-     * @parameter expression="${jahia.configure.clusterNodes}" default-value="192.168.1.100 192.168.1.200"
-     */
-    protected String clusterNodes;
-    
-    /**
-     * @parameter expression="${jahia.configure.cluster.tcp.start.ip_address}" default-value="192.168.1.100"
-     */
-    protected String clusterStartIpAddress;
-
-    /**
-     * TCP binding port for the EHCache Hibernate channel for this node
-     *
-     * @parameter expression="${jahia.configure.clusterTCPEHCacheHibernatePort}" default-value="7860"
-     */
-    protected String clusterTCPEHCacheHibernatePort;
 
     /**
      * The TCP bind address to start server socket on
@@ -172,27 +135,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      */
     protected String clusterTCPBindPort;
     
-    /**
-     * TCP binding port for the EHCache Jahia channel for this node
-     *
-     * @parameter expression="${jahia.configure.clusterTCPEHCacheJahiaPort}" default-value="7870"
-     */
-    protected String clusterTCPEHCacheJahiaPort;
-
-    /**
-     * List of EHCache Hibernate channel hosts to connect to (number of values must be equal to cluster nodes count)
-     *
-     * @parameter expression="${jahia.configure.clusterTCPEHCacheHibernateHosts}" default-value=""
-     */
-    protected String clusterTCPEHCacheHibernateHosts;
-
-    /**
-     * List of EHCache Jahia channel hosts to connect to (number of values must be equal to cluster nodes count)
-     *
-     * @parameter expression="${jahia.configure.clusterTCPEHCacheJahiaHosts}" default-value=""
-     */
-    protected String clusterTCPEHCacheJahiaHosts;
-
     /**
      * Database type used
      *
@@ -222,16 +164,12 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     protected String databasePassword;
 
     /**
-     * List of nodes in the cluster.
-     *
      * @parameter
      */
     protected List<String> siteImportLocation;
 
     /**
-     * List of nodes in the cluster.
-     *
-     * @parameter expression="${jahia.configure.overwritedb}"  default-value="true"
+     * @parameter expression="${jahia.configure.overwritedb}" default-value="true"
      * <p/>
      * This property is here for instance when we are in a clustered mode we don not want the database scripts to be
      * executed for every node
@@ -246,7 +184,7 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     protected String storeFilesInDB;
 
     /**
-     * The directory that will be used to store the configured Jahia in if the target server directory has to be overidden.
+     * The directory that will be used to store the configured Jahia in if the target server directory has to be overridden.
      * 
      * @parameter expression="${jahia.deploy.targetConfigurationDirectory}"
      */
@@ -317,22 +255,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      * @parameter expression="${jahia.configure.externalizedExploded}" default-value="false"
      */
     protected boolean externalizedConfigExploded;
-
-    /**
-     * ACtivates the feature for externalizing the location of WEB-INF/var folder.
-     * 
-     * @parameter expression="${jahia.configure.externalizedDataActivated}"
-     */
-    protected boolean externalizedDataActivated;
-    
-    /**
-     * The location where Jahia will move the WEB-INF/var folder to. If this path is set, the corresponding entries in jahia.properties
-     * (jahiaVarDiskPath, jahiaModulesDiskPath, jahiaImportsDiskPath, modulesSourcesDiskPath, jahia.jackrabbit.home etc.) will be adjusted
-     * to point to that location.
-     * 
-     * @parameter expression="${jahia.configure.externalizedDataTargetPath}"
-     */
-    protected String externalizedDataTargetPath;
 
     /**
      * The location at which the externalized configuration JAR will be generated.
@@ -422,10 +344,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         }
     }
 
-    public void setJahia_WebApps_Deployer_Service(String jahia_WebApps_Deployer_Service) {
-        Jahia_WebApps_Deployer_Service = jahia_WebApps_Deployer_Service;
-    }
-
     public String getCluster_activated() {
         return cluster_activated;
     }
@@ -434,32 +352,12 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return cluster_node_serverId;
     }
 
-    public List<String> getClusterNodes() {
-        return JahiaGlobalConfigurator.fromString(clusterNodes);
-    }
-
-    public String getClusterTCPEHCacheHibernatePort() {
-        return clusterTCPEHCacheHibernatePort;
-    }
-
-    public String getClusterTCPEHCacheJahiaPort() {
-        return clusterTCPEHCacheJahiaPort;
-    }
-
     public String getClusterTCPBindAddress() {
         return clusterTCPBindAddress;
     }
 
     public String getClusterTCPBindPort() {
         return clusterTCPBindPort;
-    }
-
-    public List<String> getClusterTCPEHCacheHibernateHosts() {
-        return JahiaGlobalConfigurator.fromString(clusterTCPEHCacheHibernateHosts);
-    }
-
-    public List<String> getClusterTCPEHCacheJahiaHosts() {
-        return JahiaGlobalConfigurator.fromString(clusterTCPEHCacheJahiaHosts);
     }
 
     public String getDatabasePassword() {
@@ -498,10 +396,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return webAppDirName;
     }
 
-    public String getJahiaEtcDiskPath() {
-        return jahiaEtcDiskPath;
-    }
-
     public String getJahiaImportsDiskPath() {
         return jahiaImportsDiskPath;
     }
@@ -512,10 +406,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public String getJahiaRootPassword() {
         return jahiaRootPassword;
-    }
-
-    public String getJahiaVarDiskPath() {
-        return jahiaVarDiskPath;
     }
 
     public String getDb_script() {
@@ -576,10 +466,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public String getMailServer() {
         return mailServer;
-    }
-
-    public String getClusterStartIpAddress() {
-        return clusterStartIpAddress;
     }
 
     public String getJahiaModulesDiskPath() {
@@ -683,16 +569,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     @Override
     public boolean isExternalizedConfigExploded() {
         return externalizedConfigExploded;
-    }
-
-    @Override
-    public String getExternalizedDataTargetPath() {
-        return externalizedDataTargetPath;
-    }
-
-    @Override
-    public boolean isExternalizedDataActivated() {
-        return externalizedDataActivated;
     }
 
 }

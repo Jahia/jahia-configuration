@@ -44,6 +44,8 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.commons.io.FileUtils;
+import org.codehaus.plexus.util.StringUtils;
+import org.jahia.configuration.configurators.JahiaGlobalConfigurator;
 import org.jahia.configuration.deployers.ServerDeploymentFactory;
 import org.jahia.configuration.deployers.ServerDeploymentInterface;
 
@@ -94,6 +96,13 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
     protected File output;
 
     /**
+     * @parameter expression="${jahia.deploy.dataDir}"
+     */
+    private String jahiaVarDiskPath;
+    
+    private File dataDir;
+    
+    /**
      * @component
      * @required
      * @readonly
@@ -122,10 +131,10 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
     protected ArtifactRepository localRepository;
 
     private ServerDeploymentInterface deployer;
+
+	private File webappDeploymentDir;
     
     public void execute() throws MojoExecutionException, MojoFailureException {
-        ServerDeploymentFactory.setTargetServerDirectory(targetServerDirectory);
-
         doValidate();
         doExecute();
     }
@@ -204,29 +213,48 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
     /**
      * Get the folder on the application server where the jahia webapp is unpacked
      */
-    protected File getWebappDeploymentDir() throws Exception {
-        return new File(targetServerDirectory, getDeployer().getDeploymentDirPath(getWebappDeploymentDirName(), "war"));
+    protected File getWebappDeploymentDir() {
+		if (webappDeploymentDir == null) {
+			webappDeploymentDir = getDeployer().getDeploymentDirPath(
+					getWebappDeploymentDirName(), "war");
+		}
+		return webappDeploymentDir;
     }
 
-    private ServerDeploymentInterface getDeployer() {
+    protected ServerDeploymentInterface getDeployer() {
         if (deployer == null) {
-            deployer = ServerDeploymentFactory.getInstance().getImplementation(targetServerType, targetServerVersion);
+			deployer = ServerDeploymentFactory.getImplementation(
+					targetServerType, targetServerVersion, new File(
+							targetServerDirectory), null, null);
         }
         return deployer;
     }
-
-    /**
-     * Get the folder on the application server where the given artifact is unpacked ( war, rar or sar )
-     * @param artifact
-     */
-    protected File getWarSarRarDeploymentDir(Artifact artifact) throws Exception {
-        File dir;
-        if (artifact.getType().equals("rar") || artifact.getType().equals("sar") || artifact.getArtifactId().equals("config")) {
-            dir = new File(targetServerDirectory, getDeployer().getDeploymentDirPath(artifact.getArtifactId(), artifact.getType()));
-        } else {
-            dir = getWebappDeploymentDir();
-        }
-        return dir;
-    }
     
+	protected File getDataDir() {
+		if (dataDir == null) {
+			dataDir = JahiaGlobalConfigurator.resolveDataDir(
+					getJahiaVarDiskPath(), getWebappDeploymentDir()
+							.getAbsolutePath());
+			getLog().info("Data directory path resolved to: " + dataDir);
+		}
+
+		return dataDir;
+	}
+
+	public String getJahiaVarDiskPath() {
+		if (jahiaVarDiskPath == null) {
+			jahiaVarDiskPath = "${jahiaWebAppRoot}/WEB-INF/var/";
+			if (targetServerType != null) {
+				if (targetServerType.startsWith("jboss")) {
+					jahiaVarDiskPath = "${jahiaWebAppRoot}/../../../data/digital-factory-data/";
+				} else if (targetServerType.startsWith("tomcat")) {
+					jahiaVarDiskPath = "${jahiaWebAppRoot}/../../digital-factory-data/";
+				}
+			}
+			getLog().info(
+					"Data directory path is set to \"" + jahiaVarDiskPath
+							+ "\".");
+		}
+		return jahiaVarDiskPath;
+	}
 }

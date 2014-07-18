@@ -80,7 +80,7 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
         File target;
         if(deployToServer) {
             try {
-                    target = new File(getWebappDeploymentDir(), "WEB-INF/var/modules");
+                    target = new File(getDataDir(), "modules");
                     if (!target.exists()) {
                         target.mkdirs();
                     }
@@ -88,7 +88,7 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
                 throw new MojoExecutionException("Cannot deploy module", e);
             }
         } else {
-                target = new File(output, "jahia/WEB-INF/var/modules");
+                target = new File(output, "digital-factory-data/modules");
                 if (!target.exists()) {
                     target.mkdirs();
                 }
@@ -107,8 +107,8 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
             }
             if (dependencyFile.getGroupId().equals("org.jahia.prepackagedsites")) {
                 try {
-                    File deployDir = deployToServer ? getWebappDeploymentDir() : new File(output, "jahia");
-                    FileUtils.copyFile(file, new File(deployDir,"/WEB-INF/var/prepackagedSites/"+dependencyFile.getArtifactId()+".zip"));
+                    File deployDir = deployToServer ? getDataDir() : new File(output, "digital-factory-data");
+                    FileUtils.copyFile(file, new File(deployDir,"prepackagedSites/"+dependencyFile.getArtifactId()+".zip"));
                     getLog().info("Copy prepackaged site " + file.getName());
                     dependenciesToRemove.add(dependencyFile);
                 } catch (IOException e) {

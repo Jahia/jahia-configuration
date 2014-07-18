@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.codehaus.plexus.util.PropertyUtils;
-import org.codehaus.plexus.util.StringUtils;
 
 /**
  * Property configuration for the jahia.properties file.
@@ -76,7 +75,6 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         properties.setProperty("server", jahiaConfigInterface.getTargetServerType());
         properties.setProperty("serverVersion", jahiaConfigInterface.getTargetServerVersion());
         properties.setProperty("serverHome", jahiaConfigInterface.getTargetServerDirectory() != null ? jahiaConfigInterface.getTargetServerDirectory().replace("\\\\", "/").replace("\\", "/") : null);
-        properties.setProperty("jahiaEtcDiskPath", jahiaConfigInterface.getJahiaEtcDiskPath());
         properties.setProperty("jahiaVarDiskPath", jahiaConfigInterface.getJahiaVarDiskPath());
         properties.setProperty("jahiaModulesDiskPath", jahiaConfigInterface.getJahiaModulesDiskPath());
         properties.setProperty("jahiaWebAppsDeployerBaseURL", jahiaConfigInterface.getJahiaWebAppsDeployerBaseURL());
@@ -84,18 +82,6 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         properties.setProperty("db_script", jahiaConfigInterface.getDb_script());
         properties.setProperty("operatingMode", jahiaConfigInterface.getOperatingMode());
 
-        if (jahiaConfigInterface.getMailServer() != null && jahiaConfigInterface.getMailServer().length() > 0) {
-            if (properties.getProperty("mail_service_activated") != null) {
-                // Jahia <= 6.6.0.1
-                properties.setProperty("mail_service_activated", "true");
-                properties.setProperty("mail_server", jahiaConfigInterface.getMailServer());
-                properties.setProperty("mail_administrator", jahiaConfigInterface.getMailAdministrator());            
-                properties.setProperty("mail_from", jahiaConfigInterface.getMailFrom());            
-                properties.setProperty("mail_paranoia", jahiaConfigInterface.getMailParanoia());
-            } else {
-                // Jahia >= 6.6.1.0 -> dedicated MailServerConfigurator will be used
-            }
-        }
         properties.setProperty("hibernate.dialect", getDBProperty("jahia.database.hibernate.dialect"));
         
         if (jahiaConfigInterface.getJahiaProperties() != null) {
@@ -104,36 +90,9 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
             }
         }
         
-        if (jahiaConfigInterface.isExternalizedDataActivated()
-                && StringUtils.isNotBlank(jahiaConfigInterface.getExternalizedDataTargetPath())) {
-            externalizeVarFolderSettings();
-        }
-
         configureScheduler();
         
         properties.storeProperties(sourceJahiaPath.getInputStream(), targetJahiaPath);
-    }
-
-    private void externalizeVarFolderSettings() {
-        String varPath = StringUtils.replace(jahiaConfigInterface.getExternalizedDataTargetPath().trim(), "\\\\", "/");
-        varPath = StringUtils.replace(varPath, '\\', '/');
-        if (!varPath.endsWith("/")) {
-            varPath = varPath + '/';
-        }
-
-        properties.setProperty("jahiaVarDiskPath", varPath);
-        properties.setProperty("tmpContentDiskPath", varPath + "content/tmp/");
-        properties.setProperty("modulesSourcesDiskPath", varPath + "sources/");
-        properties.setProperty("jahia.jackrabbit.home", "file://" + varPath + "repository");
-
-        if (jahiaConfigInterface.getJahiaModulesDiskPath().startsWith("$context/WEB-INF/var/")) {
-            properties.setProperty("jahiaModulesDiskPath", varPath
-                    + jahiaConfigInterface.getJahiaModulesDiskPath().substring("$context/WEB-INF/var/".length()));
-        }
-        if (jahiaConfigInterface.getJahiaImportsDiskPath().startsWith("$context/WEB-INF/var/")) {
-            properties.setProperty("jahiaImportsDiskPath", varPath
-                    + jahiaConfigInterface.getJahiaImportsDiskPath().substring("$context/WEB-INF/var/".length()));
-        }
     }
 
     private void configureScheduler() {
