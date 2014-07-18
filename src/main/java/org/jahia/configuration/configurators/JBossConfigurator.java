@@ -265,11 +265,11 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
 
         for (File driver : FileUtils.listFiles(targetDir, new String[] { "jar" }, false)) {
             getLogger().info("Deploying JDBC driver " + driver);
-            deployer.deployJdbcDriver(jahiaConfigInterface.getTargetServerDirectory(), driver);
+            deployer.deployJdbcDriver(driver);
         }
     }
 
-    public void writeCLIConfiguration(File dest) throws Exception {
+    public void writeCLIConfiguration(File dest, String profile) throws Exception {
         StringBuilder cli = new StringBuilder(512);
 
         // connect
@@ -277,6 +277,7 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         cli.append("\n");
 
         // add driver
+        cli.append(profile);
         cli.append("/subsystem=datasources/jdbc-driver=jahia.");
         cli.append(dbType);
         cli.append(":add(driver-module-name=org.jahia.jdbc.");
@@ -310,11 +311,13 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         cli.append("\n");
 
         if (isRootContext()) {
+            cli.append(profile);
             cli.append("/subsystem=web/virtual-server=default-host:write-attribute(name=enable-welcome-root,value=false)\n");
             cli.append("\n");
         }
         
         // enable HTTP NIO connector
+        cli.append(profile);
         cli.append("/subsystem=web/connector=http:write-attribute(name=protocol,value=org.apache.coyote.http11.Http11NioProtocol)\n\n");
 
         cli.append("reload\n");

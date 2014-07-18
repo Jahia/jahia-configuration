@@ -67,15 +67,16 @@ public class ModuleDeployer {
             if (war.getJarEntry("META-INF/db") != null) {
                 war.close();
                 ZipUnArchiver unarch = new ZipUnArchiver(warFile);
-                File tmp = new File(targetDir, String.valueOf(System.currentTimeMillis()));
+                File tmp = new File(FileUtils.getTempDirectory(), String.valueOf(System.currentTimeMillis()));
                 tmp.mkdirs();
+                File destDir = new File(targetDir, "db/sql/schema");
                 try {
                     unarch.extract("META-INF/db", tmp);
-                    FileUtils.copyDirectory(new File(tmp, "META-INF/db"), new File(targetDir, "WEB-INF/var/db/sql/schema"));
+					FileUtils.copyDirectory(new File(tmp, "META-INF/db"), destDir);
                 } finally {
                     FileUtils.deleteQuietly(tmp);
                 }
-                logger.info("Copied database scripts from " + warFile.getName() + " to WEB-INF/var/db/sql/schema");
+                logger.info("Copied database scripts from " + warFile.getName() + " to " + destDir);
             }
         } catch (Exception e) {
             logger.error("Error copying database scripts for module " + warFile, e);
@@ -93,7 +94,7 @@ public class ModuleDeployer {
     public void deployModule(File file) throws IOException {
         FileUtils.copyFileToDirectory(file, output);
         logger.info("Copied " + file + " to " + output);
-        File targetDir = new File(output, "../../..");
+        File targetDir = new File(output, "../");
         copyDbScripts(file, targetDir);
     }
 }

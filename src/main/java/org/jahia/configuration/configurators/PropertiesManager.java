@@ -65,7 +65,7 @@ import org.codehaus.plexus.util.StringUtils;
  */
 public class PropertiesManager {
     private Properties properties = new Properties();
-    private Set modifiedProperties = new HashSet<String>();
+    private Set<String> modifiedProperties = new HashSet<String>();
     private boolean loadedFromInputStream = false;
     private Set<String> removedPropertyNames = new HashSet<String>();
     private boolean unmodifiedCommentingActivated = false;
@@ -131,8 +131,11 @@ public class PropertiesManager {
      */
     public void setProperty(String propertyName,
                             String propvalue) {
-        properties.setProperty(propertyName, propvalue);
-        modifiedProperties.add(propertyName);
+        String oldValue = (String) properties.setProperty(propertyName, propvalue);
+        if (!StringUtils.equals(oldValue, propvalue)) {
+        	// set "modified" flag only if the value was effectively changed
+        	modifiedProperties.add(propertyName);
+        }
     } // end setProperty
 
 
