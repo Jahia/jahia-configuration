@@ -49,10 +49,6 @@ public class JahiaPropertiesConfiguratorTest extends AbstractConfiguratorTestCas
         } finally {
             IOUtils.closeQuietly(inStream);
         }
-        //assertEquals("was", websphereOracleProperties.getProperty("server"));
-        assertEquals("4", websphereOracleProperties.getProperty("cluster.tcp.num_initial_members"));
-        assertEquals("1.2.3.4[7860],2.3.4.5[8860],3.4.5.6[9860],4.5.6.7[10860]", websphereOracleProperties.getProperty("cluster.tcp.ehcache.hibernate.nodes.ip_address"));
-        assertEquals("1.2.3.4[7870],2.3.4.5[8870],3.4.5.6[9870],4.5.6.7[10870]", websphereOracleProperties.getProperty("cluster.tcp.ehcache.jahia.nodes.ip_address"));
         
         // test for the additional properties
         assertEquals("true", websphereOracleProperties.getProperty("jahia.dm.viewer.enabled"));
