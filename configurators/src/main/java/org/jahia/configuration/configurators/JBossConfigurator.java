@@ -270,6 +270,7 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
     }
 
     public void writeCLIConfiguration(File dest, String profile) throws Exception {
+    	String profilePath = profile != null ? "/profile=" + profile : "";
         StringBuilder cli = new StringBuilder(512);
 
         // connect
@@ -277,7 +278,7 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         cli.append("\n");
 
         // add driver
-        cli.append(profile);
+        cli.append(profilePath);
         cli.append("/subsystem=datasources/jdbc-driver=jahia.");
         cli.append(dbType);
         cli.append(":add(driver-module-name=org.jahia.jdbc.");
@@ -288,7 +289,11 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         cli.append("\n");
 
         // add datasource configuration
-        cli.append("data-source add --name=jahiaDS --jndi-name=java:/jahiaDS --enabled=true --use-java-context=true \\\n");
+        cli.append("data-source add");
+        if (profile != null) {
+        	cli.append(" --profile=").append(profile);
+        }
+        cli.append(" --name=jahiaDS --jndi-name=java:/jahiaDS --enabled=true --use-java-context=true \\\n");
         cli.append("--driver-name=jahia.").append(dbType).append(" \\\n");
         cli.append("--connection-url=\"").append(getDbPropForCLI("jahia.database.url")).append("\" \\\n");
         String v = getDbPropForCLI("jahia.database.user");
@@ -311,16 +316,18 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         cli.append("\n");
 
         if (isRootContext()) {
-            cli.append(profile);
+            cli.append(profilePath);
             cli.append("/subsystem=web/virtual-server=default-host:write-attribute(name=enable-welcome-root,value=false)\n");
             cli.append("\n");
         }
         
         // enable HTTP NIO connector
-        cli.append(profile);
+        cli.append(profilePath);
         cli.append("/subsystem=web/connector=http:write-attribute(name=protocol,value=org.apache.coyote.http11.Http11NioProtocol)\n\n");
 
-        cli.append("reload\n");
+        if (profile == null) {
+        	cli.append("reload\n");
+        }
 
         getLogger().info("Writing output to " + dest);
         FileUtils.writeStringToFile(dest, cli.toString());
