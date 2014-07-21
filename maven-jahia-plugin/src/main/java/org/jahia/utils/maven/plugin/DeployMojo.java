@@ -160,7 +160,7 @@ public class DeployMojo extends AbstractManagementMojo {
     /**
      * The project's remote repositories to use for the resolution of plugins and their dependencies.
      *
-     * @parameter default-value="${project.remotePluginRepositories}"
+     * @parameter default-value="${project.remoteProjectRepositories}"
      * @readonly
      */
     private List<RemoteRepository> remoteRepos;
@@ -374,6 +374,20 @@ public class DeployMojo extends AbstractManagementMojo {
         getLog().info("...done");
     }
 
+    private void deployModuleAsDependency(Artifact module) throws Exception {
+    	File target = new File(getDataDir(), "modules");
+    	getLog().info(
+				"Deploying module "
+						+ module.getArtifactId() + " into " + target + "...");
+		try {
+			File file = resolveArtifactFile(module);
+			new ModuleDeployer(target, new MojoLogger(getLog())).deployModule(file);
+		} catch (Exception e) {
+			getLog().error(e);
+		}
+        getLog().info("...done");
+    }
+    
     private void deployPrepackagedSiteProject() throws Exception {
         if (project.getAttachedArtifacts().size() > 0) {
             Artifact artifact = (Artifact) project.getAttachedArtifacts().get(project.getAttachedArtifacts().size()-1);
@@ -389,6 +403,22 @@ public class DeployMojo extends AbstractManagementMojo {
             }
         }
     }
+
+	private void deployPrepackagedSiteAsDependency(Artifact artifact)
+			throws Exception {
+		File target = new File(getDataDir(), "prepackagedSites");
+		getLog().info(
+				"Deploying prepackaged site " + artifact.getArtifactId() + " into "
+						+ target + "...");
+		try {
+			File file = resolveArtifactFile(artifact);
+			FileUtils.copyFile(file, new File(target, artifact.getArtifactId()
+					+ ".zip"));
+		} catch (Exception e) {
+			getLog().error(e);
+		}
+		getLog().info("...done");
+	}
 
     /**
      * Copy JAR file to jahia webapp, tries to hotswap classes
@@ -438,8 +468,18 @@ public class DeployMojo extends AbstractManagementMojo {
 						} else if (artifactId.equals("shared-libraries")
 	                            || artifactId.startsWith("jdbc-drivers")) {
 	                        deploySharedLibraries(dependencyNode);
+	                    } else if (JAHIA_PACKAGE_PROJECTS.contains(artifactId)) {
+	                    	deployPackageFromDepenendency(artifact);
 	                    }
-	                }
+					} else if (artifact.getGroupId()
+							.equals("org.jahia.modules")
+							|| (deployTests && artifact.getGroupId().equals(
+									"org.jahia.test"))
+							|| artifact.getGroupId().endsWith(".jahia.modules")) {
+						deployModuleAsDependency(artifact);
+					} else if (artifact.getGroupId().equals("org.jahia.prepackagedsites")) {
+		                deployPrepackagedSiteAsDependency(artifact);
+		            }
 	                if (sharedLibraries) {
 	                    deploySharedLibrary(artifact);
 	                } else if (jdbcDrivers) {
@@ -481,9 +521,58 @@ public class DeployMojo extends AbstractManagementMojo {
 				file = result.getArtifact().getFile();
 			}
 			getLog().info("...resolved to: " + file);
-			
+
+			deployPackageFile(file);
+		} catch (Exception e) {
+			getLog().error(e);
+		}
+	}
+
+	private void deployPackageFromDepenendency(Artifact dependency) {
+		getLog().info(
+				"Deploying Digital Factory data package "
+						+ dependency.getArtifactId() + "...");
+		try {
+			File file = resolveArtifactFile(dependency);
+
+			deployPackageFile(file);
+		} catch (Exception e) {
+			getLog().error(e);
+		}
+	}
+
+	private File resolveArtifactFile(Artifact artifact)
+			throws org.sonatype.aether.resolution.ArtifactResolutionException {
+		File file = null;
+		getLog().info("Resolving artifact file...");
+
+		ArtifactRequest request = new ArtifactRequest();
+		request.setArtifact(new org.sonatype.aether.util.artifact.DefaultArtifact(
+				artifact.getGroupId()
+						+ ":"
+						+ artifact.getArtifactId()
+						+ ":"
+						+ artifact.getType()
+						+ ":"
+						+ (StringUtils.isNotEmpty(artifact.getClassifier()) ? (artifact
+								.getClassifier() + ":") : "")
+						+ artifact.getVersion()));
+		request.setRepositories(remoteRepos);
+		getLog().info("Resolving " + request.getArtifact() + "...");
+		ArtifactResult result = repoSystem
+				.resolveArtifact(repoSession, request);
+		file = result.getArtifact().getFile();
+		getLog().info("...resolved to: " + file);
+		return file;
+	}
+
+	private void deployPackageFile(File packageFile) {
+		getLog().info(
+				"Deploying Digital Factory data package file "
+						+ packageFile + "...");
+		try {
 			getLog().info("Extracting content to data directory " + getDataDir() + "...");
-			ZipUnArchiver unarch = new ZipUnArchiver(file);
+			ZipUnArchiver unarch = new ZipUnArchiver(packageFile);
 			unarch.enableLogging(getLog().isDebugEnabled() ? new ConsoleLogger(
 					Logger.LEVEL_DEBUG, "console") : new ConsoleLogger());
 			unarch.setDestDirectory(getDataDir());
