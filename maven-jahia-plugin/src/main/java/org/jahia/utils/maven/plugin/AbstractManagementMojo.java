@@ -96,9 +96,9 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
     protected File output;
 
     /**
-     * @parameter expression="${jahia.deploy.dataDir}"
+     * @parameter alias="dataDir" expression="${jahia.deploy.dataDir}"
      */
-    private String jahiaVarDiskPath;
+    protected String jahiaVarDiskPath;
     
     private File dataDir;
     
