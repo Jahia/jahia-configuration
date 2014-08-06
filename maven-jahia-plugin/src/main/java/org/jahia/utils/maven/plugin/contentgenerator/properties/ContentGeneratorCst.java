@@ -61,7 +61,9 @@ public final class ContentGeneratorCst {
 	public static Namespace NS_MIX = Namespace.getNamespace("mix", "http://www.jcp.org/jcr/mix/1.0");
 	public static Namespace NS_REP = Namespace.getNamespace("rep", "internal");
 	
-	public static Namespace NS_DOCNT = Namespace.getNamespace("docnt", "http://www.jahia.org/jahia/docspace/nt/1.0"); 
+	public static Namespace NS_DOCNT = Namespace.getNamespace("docnt", "http://www.jahia.org/jahia/docspace/nt/1.0");
+	
+	public static Namespace NS_CMIS = Namespace.getNamespace("cmis", "http://docs.oasis-open.org/ns/cmis/ws/200908/"); 
 	
 	
 	/**
@@ -85,9 +87,20 @@ public final class ContentGeneratorCst {
 	public static final String PAGE_TPL_DEFAULT = "events";
 	public static final String PAGE_TPL_QALIST = "qa-list";
 	public static final String PAGE_TPL_QAQUERY = "qa-query";
+	public static final String PAGE_TPL_QAEXTERNAL = "qa-external";
+	
+	/**
+	 * Mounts
+	 */
+	public static final String MOUNT_POINT_CMIS = "cmis";
+	public static final String MOUNT_POINT_VFS = "vfs";
+	public static final String MOUNT_POINT_NAME = "cmisMountPoint";
+	public static final String CMIS_PICTURES_DIR = "pictures";
+	public static final String CMIS_TEXT_DIR = "text";
 	
 	// jcr jnt jmix j
 	private ContentGeneratorCst() {
 
 	}
 }
+

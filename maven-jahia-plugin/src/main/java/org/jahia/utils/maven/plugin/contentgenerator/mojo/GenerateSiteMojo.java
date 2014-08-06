@@ -120,6 +120,49 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
 	 * @parameter expression="${jahia.cg.percentagePagesWithTplQuery}" default-value="0"
 	 */
 	protected Integer percentagePagesWithTplQuery;
+		
+	/**
+	 * Percentage of pages including a file from CMIS
+	 * @parameter expression="${jahia.cg.percentagePagesWithCmisFile}" default-value="0"
+	 */
+	protected Integer percentagePagesWithCmisFile;
+	
+	/**
+	 * Connection URL to the CMIS server
+	 * @parameter expression="${jahia.cg.cmis.url}"
+	 */
+	protected String cmisUrl;
+	
+	/**
+	 * Connection user to the CMIS server
+	 * @parameter expression="${jahia.cg.cmis.user}"
+	 */
+	protected String cmisUser;
+	
+	/**
+	 * Connection password to the CMIS server
+	 * @parameter expression="${jahia.cg.cmis.password}"
+	 */
+	protected String cmisPassword;
+	
+	/**
+	 * CMIS Repository ID on the CMIS server
+	 * @parameter expression="${jahia.cg.cmis.repository.id}"
+	 */
+	protected String cmisRepositoryId;
+	
+	/**
+	 * Site name on the CMIS server
+	 * @parameter expression="${jahia.cg.cmis.siteName}"
+	 */
+	protected String cmisSiteName;
+	
+	/**
+	 * Number of files available on the server
+	 * @description Currently with use this pattern sample.<id>.txt. id goes from 0 to number of files-1
+	 * @parameter expression="${jahia.cg.cmis.nb.available.files}"
+	 */
+	protected Integer cmisNbAvailableFiles;
     
 	private ExportBO initExport() throws MojoExecutionException {
 		ContentGeneratorService contentGeneratorService = ContentGeneratorService.getInstance();
@@ -143,6 +186,13 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
         export.setPagesHaveVanity(pagesHaveVanity);
         export.setPercentagePagesWithTplList(percentagePagesWithTplList);
         export.setPercentagePagesWithTplQuery(percentagePagesWithTplQuery);
+        export.setPercentagePagesWithCmisFile(percentagePagesWithCmisFile);
+        export.setCmisUrl(cmisUrl);
+        export.setCmisUser(cmisUser);
+        export.setCmisPassword(cmisPassword);
+        export.setCmisRepositoryId(cmisRepositoryId);
+        export.setCmisSiteName(cmisSiteName);
+        export.setCmisNbAvailableFiles(cmisNbAvailableFiles);
         
         String[] aLanguages = StringUtils.split(siteLanguages, ",");
         export.setSiteLanguages(Arrays.asList(aLanguages));
@@ -169,6 +219,13 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
 		} else {
 			export.setNbPagesWithTplQuery(0);
 		}
+		
+		if (percentagePagesWithCmisFile > 0) {
+			export.setNbPagesWithCmisFile(new Integer(totalPages / percentagePagesWithCmisFile));
+		} else {
+			export.setNbPagesWithCmisFile(0);
+		}
+		
 		return export;
 	}
 	

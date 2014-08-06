@@ -28,6 +28,8 @@ public class PageBO {
 	private String visibilityEndDate;
 	private String description;
 	private String pageTemplate;
+	private String cmisSite;
+	private List externalFilePaths;
 
 	public void setIdCategory(Integer idCategory) {
 		this.idCategory = idCategory;
@@ -134,7 +136,7 @@ public class PageBO {
 	}
 
 	public PageBO(final String pUniqueName, Map<String, ArticleBO> articles, final int pLevel, final List<PageBO> pSubPages, Boolean pHasVanity,
-			String pSiteKey, String pFileName, Integer pNumberBigText, Map<String, List<String>> acls, Integer idCategory, Integer idTag, Boolean visibilityEnabled, String visibilityStartDate, String visibilityEndDate, String description, String pageTemplate) {
+			String pSiteKey, String pFileName, Integer pNumberBigText, Map<String, List<String>> acls, Integer idCategory, Integer idTag, Boolean visibilityEnabled, String visibilityStartDate, String visibilityEndDate, String description, String pageTemplate, String cmisSite, List externalFilePaths) {
 		this.articles = articles;
 		this.level = pLevel;
 		this.subPages = pSubPages;
@@ -151,6 +153,8 @@ public class PageBO {
         this.visibilityEndDate = visibilityEndDate;
         this.description = description;
         this.pageTemplate = pageTemplate;
+        this.cmisSite = cmisSite;
+        this.externalFilePaths = externalFilePaths;
 	}
 
 	public Element getElement() {
@@ -255,32 +259,49 @@ public class PageBO {
 				}
 			}
 			
-			if (this.getFileName() != null) {
-				Element randomFileNode = new Element("rand-file");
-				randomFileNode.setAttribute("primaryType", "jnt:fileReference", ContentGeneratorCst.NS_JCR);
-				
-				Element fileTranslationNode = new Element("translation_en", ContentGeneratorCst.NS_J);
-				fileTranslationNode.setAttribute("language", "en", ContentGeneratorCst.NS_JCR);
-				fileTranslationNode.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
-				fileTranslationNode.setAttribute("title", "My file", ContentGeneratorCst.NS_JCR);
-				
-				randomFileNode.addContent(fileTranslationNode);
-				
-				Element publicationNode = new Element("publication");
-				publicationNode.setAttribute("primaryType", "jnt:publication", ContentGeneratorCst.NS_JCR);
-				
-				Element publicationTranslationNode = new Element("translation_en", ContentGeneratorCst.NS_J);
-				publicationTranslationNode.setAttribute("author", "Jahia Content Generator");
-				publicationTranslationNode.setAttribute("body", "&lt;p&gt;  Random publication&lt;/p&gt;");
-				publicationTranslationNode.setAttribute("title", "Random publication", ContentGeneratorCst.NS_JCR);
-				publicationTranslationNode.setAttribute("file", "/sites/" + this.getSiteKey() + "/files/contributed/" + org.apache.jackrabbit.util.ISO9075.encode(this.getFileName()));
-				publicationTranslationNode.setAttribute("language", "en", ContentGeneratorCst.NS_JCR);
-				publicationTranslationNode.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
-				publicationTranslationNode.setAttribute("source", "Jahia");
-				
-				publicationNode.addContent(publicationTranslationNode);
-				
-				listNode.addContent(publicationNode);
+			// based on the page name because we use the event template
+			if (StringUtils.startsWith(this.uniqueName, ContentGeneratorCst.PAGE_TPL_QAEXTERNAL)) {
+				int i = 0;
+				for (Iterator iterator = externalFilePaths.iterator(); iterator.hasNext();) {
+					String externalFilePath = (String) iterator.next();
+
+					Element externalFileReference = new Element("external-file-reference-" + i);
+					externalFileReference.setAttribute("node", "/mounts/" + ContentGeneratorCst.MOUNT_POINT_NAME + "/Sites/" + this.cmisSite + externalFilePath, ContentGeneratorCst.NS_J);
+					externalFileReference.setAttribute("primaryType", "jnt:fileReference", ContentGeneratorCst.NS_JCR);
+					listNode.addContent(externalFileReference);
+					i++;
+				}
+			} 
+			
+			// add file only if an external one wasn't added before
+			if (! StringUtils.startsWith(this.uniqueName, ContentGeneratorCst.PAGE_TPL_QAEXTERNAL)) {
+				if (this.getFileName() != null) {
+					Element randomFileNode = new Element("rand-file");
+					randomFileNode.setAttribute("primaryType", "jnt:fileReference", ContentGeneratorCst.NS_JCR);
+					
+					Element fileTranslationNode = new Element("translation_en", ContentGeneratorCst.NS_J);
+					fileTranslationNode.setAttribute("language", "en", ContentGeneratorCst.NS_JCR);
+					fileTranslationNode.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
+					fileTranslationNode.setAttribute("title", "My file", ContentGeneratorCst.NS_JCR);
+					
+					randomFileNode.addContent(fileTranslationNode);
+					
+					Element publicationNode = new Element("publication");
+					publicationNode.setAttribute("primaryType", "jnt:publication", ContentGeneratorCst.NS_JCR);
+					
+					Element publicationTranslationNode = new Element("translation_en", ContentGeneratorCst.NS_J);
+					publicationTranslationNode.setAttribute("author", "Jahia Content Generator");
+					publicationTranslationNode.setAttribute("body", "&lt;p&gt;  Random publication&lt;/p&gt;");
+					publicationTranslationNode.setAttribute("title", "Random publication", ContentGeneratorCst.NS_JCR);
+					publicationTranslationNode.setAttribute("file", "/sites/" + this.getSiteKey() + "/files/contributed/" + org.apache.jackrabbit.util.ISO9075.encode(this.getFileName()));
+					publicationTranslationNode.setAttribute("language", "en", ContentGeneratorCst.NS_JCR);
+					publicationTranslationNode.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
+					publicationTranslationNode.setAttribute("source", "Jahia");
+					
+					publicationNode.addContent(publicationTranslationNode);
+					
+					listNode.addContent(publicationNode);
+				}
 			}
 	
 			// end content list

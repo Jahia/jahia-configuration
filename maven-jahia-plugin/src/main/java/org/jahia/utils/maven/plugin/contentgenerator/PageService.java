@@ -33,6 +33,8 @@ public class PageService {
 	
 	private static Integer nbSeldomKeywordsAlreadyAssigned;
 	
+	private Map cmisFilePaths;
+	
     public PageService() {
 		sep = System.getProperty("file.separator");
 		oftenUsedDescriptionWords = Arrays.asList(ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS.split("\\s*,\\s*"));
@@ -40,6 +42,8 @@ public class PageService {
 		
 		nbOftenKeywordsAlreadyAssigned = 0;
 		nbSeldomKeywordsAlreadyAssigned = 0;
+		
+		initCmisFilePath();
 	}
 
 	/**
@@ -177,15 +181,23 @@ public class PageService {
 				+ " - Articles " + articlesMap + " - file attached "
 				+ fileName);
 
-		// choose template
+		// choose template (query, list, external)
         String template = ContentGeneratorCst.PAGE_TPL_DEFAULT;
         Integer indexPagesWithList = export.getNbPagesWithTplList();
         Integer indexPagesWithQuery = export.getNbPagesWithTplList() + export.getNbPagesWithTplQuery();
+        Integer indexPagesWithCmisFile = export.getNbPagesWithTplList() + export.getNbPagesWithTplQuery() + export.getNbPagesWithCmisFile();
         if (ContentGeneratorService.currentPageIndex <= indexPagesWithList) {
         	template = ContentGeneratorCst.PAGE_TPL_QALIST;
         }
         if (ContentGeneratorService.currentPageIndex > indexPagesWithList && ContentGeneratorService.currentPageIndex <= indexPagesWithQuery) {
         	template = ContentGeneratorCst.PAGE_TPL_QAQUERY;
+        }
+        
+        List externalFilePaths = new ArrayList();
+        if (ContentGeneratorService.currentPageIndex > indexPagesWithQuery && ContentGeneratorService.currentPageIndex <= indexPagesWithCmisFile) {
+        	pageName = ContentGeneratorCst.PAGE_TPL_QAEXTERNAL + ContentGeneratorService.currentPageIndex;
+        	externalFilePaths.add(getRandomCmisFilePath(ContentGeneratorCst.CMIS_PICTURES_DIR));
+        	externalFilePaths.add(getRandomCmisFilePath(ContentGeneratorCst.CMIS_TEXT_DIR));
         }
         
 		if (pageName == null) {
@@ -227,7 +239,7 @@ public class PageService {
         String description = oftenKeywords + " " + seldomKeywords;
         
         PageBO page = new PageBO(pageName, articlesMap, level, subPages,
-				export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory, idTag,  visibilityOnPage, export.getVisibilityStartDate(), export.getVisibilityEndDate(), description, template);
+				export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory, idTag,  visibilityOnPage, export.getVisibilityStartDate(), export.getVisibilityEndDate(), description, template, export.getCmisSiteName(), externalFilePaths);
         
 		return page;
 	}
@@ -321,6 +333,65 @@ public class PageService {
 
 		PageService.nbSeldomKeywordsAlreadyAssigned += (int) nbKeywordsToGet;
 		return sb.toString();
+	}
+	
+	private String getRandomCmisFilePath(String type) {
+		String randomFilePath;
+		List pathsList = (ArrayList) cmisFilePaths.get(type);
+		int randomPathIndex = random.nextInt(pathsList.size() - 1);
+		CmisDirectoryPath pathObject = (CmisDirectoryPath) pathsList.get(randomPathIndex);
+		
+		int randomFileId = random.nextInt(pathObject.getNbFiles() - 1);
+		String randomFileName = randomFileId + pathObject.getFileSuffix();
+		randomFilePath = pathObject.getDirectoryPath() + "/" + randomFileName;
+		return randomFilePath;
+	}
+	
+	private void initCmisFilePath() {		
+		List textPaths = new ArrayList();
+		List picturesPaths = new ArrayList();
+		int nbFiles = 100;
+		for (int i = 0; i < 10; i++) {
+			textPaths = new ArrayList();
+			textPaths.add(new CmisDirectoryPath("/" + ContentGeneratorCst.CMIS_TEXT_DIR + "/directory-" + nbFiles + "-" + i, ".sample.txt", nbFiles));
+			picturesPaths.add(new CmisDirectoryPath("/" + ContentGeneratorCst.CMIS_PICTURES_DIR + "/directory-" + nbFiles + "-" + i, ".sample.png", nbFiles));
+		}
+
+		nbFiles = 500;
+		textPaths.add(new CmisDirectoryPath("/" + ContentGeneratorCst.CMIS_TEXT_DIR + "/directory-" + nbFiles + "-0", ".sample.txt", nbFiles));
+		picturesPaths.add(new CmisDirectoryPath("/" + ContentGeneratorCst.CMIS_PICTURES_DIR + "/directory-" + nbFiles + "-0", ".sample.png", nbFiles));
+
+		nbFiles = 1000;
+		textPaths.add(new CmisDirectoryPath("/" + ContentGeneratorCst.CMIS_TEXT_DIR + "/directory-" + nbFiles + "-0", ".sample.txt", nbFiles));
+		picturesPaths.add(new CmisDirectoryPath("/" + ContentGeneratorCst.CMIS_PICTURES_DIR + "/directory-" + nbFiles + "-0", ".sample.png", nbFiles));
+		
+		cmisFilePaths = new HashMap();
+		cmisFilePaths.put(ContentGeneratorCst.CMIS_PICTURES_DIR, textPaths);
+		cmisFilePaths.put(ContentGeneratorCst.CMIS_TEXT_DIR, picturesPaths);
+	}
+	
+	private class CmisDirectoryPath {
+		private String directoryPath;
+		private String fileSuffix;
+		private int nbFiles;
+		
+		private CmisDirectoryPath(String directoryPath, String fileSuffix, int nbFiles) {
+			this.directoryPath = directoryPath;
+			this.fileSuffix = fileSuffix;
+			this.nbFiles = nbFiles;
+		}
+		
+		public String getDirectoryPath() {
+			return directoryPath;
+		}
+
+		public String getFileSuffix() {
+			return fileSuffix;
+		}
+
+		public int getNbFiles() {
+			return nbFiles;
+		}
 	}
 
 }

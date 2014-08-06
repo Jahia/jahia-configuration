@@ -115,9 +115,90 @@ public class ExportBO {
 	private Integer nbPagesWithTplList;
 	
 	private Integer nbPagesWithTplQuery;
+
+	private String cmisUrl;
 	
+	private String cmisUser;
+	
+	private String cmisPassword;
+	
+	private String cmisRepositoryId;
+	
+	private String cmisSiteName;
+	
+	private Integer cmisNbAvailableFiles;
+	
+	private Integer percentagePagesWithCmisFile;
+	
+	private Integer nbPagesWithCmisFile;
+	
+	
+	public String getCmisUrl() {
+		return cmisUrl;
+	}
+
+	public void setCmisUrl(String cmisUrl) {
+		this.cmisUrl = cmisUrl;
+	}
+
+	public String getCmisUser() {
+		return cmisUser;
+	}
+
+	public void setCmisUser(String cmisUser) {
+		this.cmisUser = cmisUser;
+	}
+
+	public String getCmisPassword() {
+		return cmisPassword;
+	}
+
+	public void setCmisPassword(String cmisPassword) {
+		this.cmisPassword = cmisPassword;
+	}
+
+	public String getCmisRepositoryId() {
+		return cmisRepositoryId;
+	}
+
+	public void setCmisRepositoryId(String cmisRepositoryId) {
+		this.cmisRepositoryId = cmisRepositoryId;
+	}
+	
+	public String getCmisSiteName() {
+		return cmisSiteName;
+	}
+
+	public void setCmisSiteName(String cmisSiteName) {
+		this.cmisSiteName = cmisSiteName;
+	}
+
+	public Integer getCmisNbAvailableFiles() {
+		return cmisNbAvailableFiles;
+	}
+
+	public void setCmisNbAvailableFiles(Integer cmisNbAvailableFiles) {
+		this.cmisNbAvailableFiles = cmisNbAvailableFiles;
+	}
+
+	public Integer getPercentagePagesWithCmisFile() {
+		return percentagePagesWithCmisFile;
+	}
+
+	public void setPercentagePagesWithCmisFile(Integer percentagePagesWithCmisFile) {
+		this.percentagePagesWithCmisFile = percentagePagesWithCmisFile;
+	}
+
 	public Integer getPercentagePagesWithTplQuery() {
 		return percentagePagesWithTplQuery;
+	}
+
+	public Integer getNbPagesWithCmisFile() {
+		return nbPagesWithCmisFile;
+	}
+
+	public void setNbPagesWithCmisFile(Integer nbPagesWithCmisFile) {
+		this.nbPagesWithCmisFile = nbPagesWithCmisFile;
 	}
 
 	public void setPercentagePagesWithTplQuery(Integer percentagePagesWithTplQuery) {

@@ -25,12 +25,16 @@ public class SiteService {
 		sep = System.getProperty("file.separator");
 	}
 
-	public File createAndPopulateRepositoryFile(File tempOutputDir, SiteBO site, File pagesFile, File filesFile, File groupsFile, File tagsFile)
+	public File createAndPopulateRepositoryFile(File tempOutputDir, SiteBO site, File pagesFile, File filesFile, File groupsFile, File tagsFile, File mountsFile)
 			throws IOException {
 		File repositoryFile = new File(tempOutputDir, "repository.xml");
 
 		FileOutputStream output = new FileOutputStream(repositoryFile, true);
 		IOUtils.write(site.getHeader(), output);
+		
+		if (mountsFile != null) {
+			IOUtils.copy(new FileInputStream(mountsFile), output);
+		}
 
 		// there is an XML files for attachments only if we requested some
 		if (filesFile != null) {

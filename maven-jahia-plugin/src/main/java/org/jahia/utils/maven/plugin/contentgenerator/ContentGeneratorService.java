@@ -17,6 +17,7 @@ import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ArticleBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.GroupBO;
+import org.jahia.utils.maven.plugin.contentgenerator.bo.MountPointBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.SiteBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.UserBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
@@ -241,11 +242,21 @@ public class ContentGeneratorService {
 				File tagsFile = new File(export.getOutputDir(), "tags.xml");
 				os.writeJdomDocumentToFile(tagsDoc, tagsFile);
 
+				// Mounts
+				File mountsFile = null;
+				if (export.getPercentagePagesWithCmisFile() > 0) {
+					logger.info("Generating mount point");
+					MountPointBO mountPoint = new MountPointBO(ContentGeneratorCst.MOUNT_POINT_CMIS, export.getCmisRepositoryId(), export.getCmisUrl(), export.getCmisUser(), export.getCmisPassword());
+					Document mountsDoc = new Document(mountPoint.getElement());
+					mountsFile = new File(export.getOutputDir(), "mounts.xml");
+					os.writeJdomDocumentToFile(mountsDoc, mountsFile);
+				}				
+				
 				// Copy pages => repository.xml
 				File repositoryFile = siteService
 						.createAndPopulateRepositoryFile(tempOutputDir, site,
 								export.getOutputFile(), filesFile, groupsFile,
-								tagsFile);
+								tagsFile, mountsFile);
 
 				filesToZip.add(repositoryFile);
 
