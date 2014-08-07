@@ -125,12 +125,9 @@ public class GenerateWiseMojo extends AbstractJahiaSiteMojo {
 	 */
 	protected String endCreationDateRange;
     
-	private ExportBO initExport() throws MojoExecutionException {
+	protected ExportBO initExport() throws MojoExecutionException {
 		boolean filesRequired = false;
-		if (nbFilesPerFolder > 0) {
-			filesRequired = true;
-		}
-		ExportBO wiseExport = super.initExport(filesRequired);
+		ExportBO wiseExport = super.initExport();
 		
 		wiseExport.setNbDocspaces(nbDocspaces);
 		wiseExport.setNbPolls(nbPolls);
@@ -166,10 +163,6 @@ public class GenerateWiseMojo extends AbstractJahiaSiteMojo {
 		wiseExport.setStartCreationDateRange(dStartCreationDateRange);
 		wiseExport.setEndCreationDateRange(dEndCreationDateRange);
 		
-		// Trick to init file pool directory. Should clean this.
-		if (wiseExport.getNbFilesPerFolder() > 0) {
-			wiseExport.setAddFilesToPage(ContentGeneratorCst.VALUE_ALL);
-		}
 		return wiseExport;
 	}
 	

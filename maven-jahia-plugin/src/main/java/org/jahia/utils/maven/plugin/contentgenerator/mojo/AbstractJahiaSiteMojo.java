@@ -46,8 +46,8 @@ public abstract class AbstractJahiaSiteMojo extends AbstractContentGeneratorMojo
 	 * 
 	 * @return a new export BO containing all the parameters
 	 */
-	protected ExportBO initExport(boolean filesRequired) throws MojoExecutionException {
-		ExportBO export = super.initExport(filesRequired);
+	protected ExportBO initExport() throws MojoExecutionException {
+		ExportBO export = super.initExport();
 		super.initFilesProperties(export);
 		export.setSiteKey(siteKey);
 		export.setNumberOfUsers(numberOfUsers);

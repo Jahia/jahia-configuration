@@ -80,7 +80,7 @@ public abstract class AbstractContentGeneratorMojo extends AbstractMojo {
 	 * 
 	 * @return a new export BO containing all the parameters
 	 */
-	protected ExportBO initExport(boolean filesRequired) throws MojoExecutionException {
+	protected ExportBO initExport() throws MojoExecutionException {
 		ExportBO export = new ExportBO();
 
 		/**
@@ -141,7 +141,7 @@ public abstract class AbstractContentGeneratorMojo extends AbstractMojo {
 		File outputMapFile = new File(outputDirectory, "sitemap.txt");
 		export.setMapFile(outputMapFile);
 
-		if (filesRequired) {
+		if (! export.isDisableInternalFileReference()) {
 			if (poolDirectory == null) {
 				throw new MojoExecutionException("Pool directory property can not be null");
 			}

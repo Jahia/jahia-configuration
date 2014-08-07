@@ -120,12 +120,6 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
 	 * @parameter expression="${jahia.cg.percentagePagesWithTplQuery}" default-value="0"
 	 */
 	protected Integer percentagePagesWithTplQuery;
-		
-	/**
-	 * Percentage of pages including a file from CMIS
-	 * @parameter expression="${jahia.cg.percentagePagesWithCmisFile}" default-value="0"
-	 */
-	protected Integer percentagePagesWithCmisFile;
 	
 	/**
 	 * Connection URL to the CMIS server
@@ -164,16 +158,23 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
 	 */
 	protected Integer cmisNbAvailableFiles;
     
-	private ExportBO initExport() throws MojoExecutionException {
+	/**
+	 * Disable reference to internal files on pages
+	 * @parameter expression="${jahia.cg.disable.internal.filereference}" default-value="false"
+	 */
+	protected boolean disableInternalFileReference;
+    
+	/**
+	 * Disable reference to internal files on pages
+	 * @parameter expression="${jahia.cg.disable.external.filereference}" default-value="false"
+	 */
+	protected boolean disableExternalFileReference;
+	
+	protected ExportBO initExport() throws MojoExecutionException {
 		ContentGeneratorService contentGeneratorService = ContentGeneratorService.getInstance();
-		boolean filesRequired = false;
-		if (ContentGeneratorCst.VALUE_ALL.equals(addFiles) || ContentGeneratorCst.VALUE_RANDOM.equals(addFiles)) {
-			filesRequired = true;
-		}
 			
-		ExportBO export = super.initExport(filesRequired);
+		ExportBO export = super.initExport();
 		
-		export.setAddFilesToPage(addFiles);
         export.setNbPagesTopLevel(nbPagesOnTopLevel);
         export.setNbSubLevels(nbSubLevels);
         export.setNbSubPagesPerPage(nbPagesPerLevel);
@@ -186,13 +187,13 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
         export.setPagesHaveVanity(pagesHaveVanity);
         export.setPercentagePagesWithTplList(percentagePagesWithTplList);
         export.setPercentagePagesWithTplQuery(percentagePagesWithTplQuery);
-        export.setPercentagePagesWithCmisFile(percentagePagesWithCmisFile);
         export.setCmisUrl(cmisUrl);
         export.setCmisUser(cmisUser);
         export.setCmisPassword(cmisPassword);
         export.setCmisRepositoryId(cmisRepositoryId);
         export.setCmisSiteName(cmisSiteName);
-        export.setCmisNbAvailableFiles(cmisNbAvailableFiles);
+        export.setDisableExternalFileReference(disableExternalFileReference);
+        export.setDisableInternalFileReference(disableInternalFileReference);
         
         String[] aLanguages = StringUtils.split(siteLanguages, ",");
         export.setSiteLanguages(Arrays.asList(aLanguages));
@@ -218,12 +219,6 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
 			export.setNbPagesWithTplQuery(new Integer(totalPages / percentagePagesWithTplQuery));
 		} else {
 			export.setNbPagesWithTplQuery(0);
-		}
-		
-		if (percentagePagesWithCmisFile > 0) {
-			export.setNbPagesWithCmisFile(new Integer(totalPages / percentagePagesWithCmisFile));
-		} else {
-			export.setNbPagesWithCmisFile(0);
 		}
 		
 		return export;

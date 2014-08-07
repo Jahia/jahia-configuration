@@ -104,7 +104,6 @@ public abstract class ContentGeneratorTestCase {
 		Integer nbPagesPerLevel = Integer.valueOf(3);
 		
 		export_default = new ExportBO();
-		export_default.setAddFilesToPage(ContentGeneratorCst.VALUE_NONE);
 		export_default.setPagesHaveVanity(Boolean.FALSE);
 		export_default.setNumberOfCategories(2);
 		

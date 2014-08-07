@@ -23,7 +23,7 @@ public class GenerateFilesMojo extends AbstractContentGeneratorMojo {
 	
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		ContentGeneratorService contentGeneratorService = ContentGeneratorService.getInstance();
-		ExportBO export = super.initExport(true);
+		ExportBO export = super.initExport();
 		export.setNumberOfFilesToGenerate(numberOfFilesToGenerate);
 		contentGeneratorService.generateFiles(export);
 	}

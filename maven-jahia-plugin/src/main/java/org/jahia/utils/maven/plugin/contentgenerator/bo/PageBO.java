@@ -259,7 +259,7 @@ public class PageBO {
 				}
 			}
 			
-			// based on the page name because we use the event template
+			// for pages with external/internal file reference, we check the page name
 			if (StringUtils.startsWith(this.uniqueName, ContentGeneratorCst.PAGE_TPL_QAEXTERNAL)) {
 				int i = 0;
 				for (Iterator iterator = externalFilePaths.iterator(); iterator.hasNext();) {
@@ -273,8 +273,7 @@ public class PageBO {
 				}
 			} 
 			
-			// add file only if an external one wasn't added before
-			if (! StringUtils.startsWith(this.uniqueName, ContentGeneratorCst.PAGE_TPL_QAEXTERNAL)) {
+			if (StringUtils.startsWith(this.uniqueName, ContentGeneratorCst.PAGE_TPL_QAINTERNAL)) {
 				if (this.getFileName() != null) {
 					Element randomFileNode = new Element("rand-file");
 					randomFileNode.setAttribute("primaryType", "jnt:fileReference", ContentGeneratorCst.NS_JCR);

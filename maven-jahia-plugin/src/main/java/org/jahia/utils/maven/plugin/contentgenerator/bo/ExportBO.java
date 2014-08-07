@@ -41,8 +41,6 @@ public class ExportBO {
 
 	protected List<String> siteLanguages;
 
-	protected String addFilesToPage;
-
 	protected File filesDirectory;
 
 	protected List<String> fileNames;
@@ -126,12 +124,9 @@ public class ExportBO {
 	
 	private String cmisSiteName;
 	
-	private Integer cmisNbAvailableFiles;
+	private boolean disableInternalFileReference;
 	
-	private Integer percentagePagesWithCmisFile;
-	
-	private Integer nbPagesWithCmisFile;
-	
+	private boolean disableExternalFileReference;
 	
 	public String getCmisUrl() {
 		return cmisUrl;
@@ -173,32 +168,8 @@ public class ExportBO {
 		this.cmisSiteName = cmisSiteName;
 	}
 
-	public Integer getCmisNbAvailableFiles() {
-		return cmisNbAvailableFiles;
-	}
-
-	public void setCmisNbAvailableFiles(Integer cmisNbAvailableFiles) {
-		this.cmisNbAvailableFiles = cmisNbAvailableFiles;
-	}
-
-	public Integer getPercentagePagesWithCmisFile() {
-		return percentagePagesWithCmisFile;
-	}
-
-	public void setPercentagePagesWithCmisFile(Integer percentagePagesWithCmisFile) {
-		this.percentagePagesWithCmisFile = percentagePagesWithCmisFile;
-	}
-
 	public Integer getPercentagePagesWithTplQuery() {
 		return percentagePagesWithTplQuery;
-	}
-
-	public Integer getNbPagesWithCmisFile() {
-		return nbPagesWithCmisFile;
-	}
-
-	public void setNbPagesWithCmisFile(Integer nbPagesWithCmisFile) {
-		this.nbPagesWithCmisFile = nbPagesWithCmisFile;
 	}
 
 	public void setPercentagePagesWithTplQuery(Integer percentagePagesWithTplQuery) {
@@ -324,14 +295,6 @@ public class ExportBO {
     public void setSiteLanguages(List<String> siteLanguages) {
         this.siteLanguages = siteLanguages;
     }
-
-    public String getAddFilesToPage() {
-		return addFilesToPage;
-	}
-
-	public void setAddFilesToPage(String addFilesToPage) {
-		this.addFilesToPage = addFilesToPage;
-	}
 
 	public File getFilesDirectory() {
 		return filesDirectory;
@@ -589,6 +552,22 @@ public class ExportBO {
 		this.endCreationDateRange = endCreationDateRange;
 	}
 
+	public boolean isDisableInternalFileReference() {
+		return disableInternalFileReference;
+	}
+
+	public void setDisableInternalFileReference(boolean disableInternalFileReference) {
+		this.disableInternalFileReference = disableInternalFileReference;
+	}
+
+	public boolean isDisableExternalFileReference() {
+		return disableExternalFileReference;
+	}
+
+	public void setDisableExternalFileReference(boolean disableExternalFileReference) {
+		this.disableExternalFileReference = disableExternalFileReference;
+	}
+
 	public ExportBO() {
 
 	}
@@ -601,7 +580,6 @@ public class ExportBO {
 		sb.append("<!-- sub pages per page: " + this.getNbSubPagesPerPage() + " -->\n");
 		sb.append("<!-- total pages: " + this.getTotalPages() + " -->\n");
 		sb.append("<!-- site key: " + this.getSiteKey() + " -->\n");
-		sb.append("<!-- files added: " + this.getAddFilesToPage() + " -->\n");
 		sb.append("<!-- big text per page: " + this.getNumberOfBigTextPerPage() + " -->\n");
 		return sb.toString();
 	}

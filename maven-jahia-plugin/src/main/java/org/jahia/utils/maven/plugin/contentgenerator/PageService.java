@@ -163,46 +163,55 @@ public class PageService {
                                 List<PageBO> subPages) {
 		ContentGeneratorService.currentPageIndex = ContentGeneratorService.currentPageIndex + 1;
 		
-		boolean addFile = false;
-		if (ContentGeneratorCst.VALUE_ALL.equals(export.getAddFilesToPage())) {
-			addFile = true;
-		} else if (ContentGeneratorCst.VALUE_RANDOM.equals(export.getAddFilesToPage())) {
-			Random random = new Random();
-			addFile = random.nextBoolean();
-		}
-
-		String fileName = null;
-		if (addFile) {
-			FileService fileService = new FileService();
-			fileName = fileService.getFileName(export.getFileNames());
-		}
-
-		logger.debug("		Creating new page level " + level + " - Page " + ContentGeneratorService.currentPageIndex
-				+ " - Articles " + articlesMap + " - file attached "
-				+ fileName);
 
 		// choose template (query, list, external)
         String template = ContentGeneratorCst.PAGE_TPL_DEFAULT;
         Integer indexPagesWithList = export.getNbPagesWithTplList();
-        Integer indexPagesWithQuery = export.getNbPagesWithTplList() + export.getNbPagesWithTplQuery();
-        Integer indexPagesWithCmisFile = export.getNbPagesWithTplList() + export.getNbPagesWithTplQuery() + export.getNbPagesWithCmisFile();
+        Integer indexPagesWithQuery = indexPagesWithList + export.getNbPagesWithTplQuery();
+        
+        // the remaining is distributed between pages with external file references, internal file references and just text
+        Integer indexPagesWithExternalFileReference = 0;
+        Integer remainingNbPages = export.getTotalPages() - (export.getNbPagesWithTplList() + export.getNbPagesWithTplQuery());
+        if (! export.isDisableExternalFileReference()) {
+	        Integer nbPagesWithExternalFileReference = Math.round(remainingNbPages * ContentGeneratorCst.PERCENTAGE_PAGES_WITH_EXTERNAL_FILE_REF);
+	        indexPagesWithExternalFileReference = indexPagesWithQuery + nbPagesWithExternalFileReference;
+        }
+        
+        Integer indexPagesWithInternalFileReference = 0;
+        if (! export.isDisableInternalFileReference()) {
+	        Integer nbPagesWithInternalFileReference = Math.round(remainingNbPages * ContentGeneratorCst.PERCENTAGE_PAGES_WITH_INTERNAL_FILE_REF);
+	        indexPagesWithInternalFileReference = indexPagesWithExternalFileReference + nbPagesWithInternalFileReference;
+        }
+        
+        // pages with qa-list template
         if (ContentGeneratorService.currentPageIndex <= indexPagesWithList) {
         	template = ContentGeneratorCst.PAGE_TPL_QALIST;
         }
+        
+        // pages with qa-query template
         if (ContentGeneratorService.currentPageIndex > indexPagesWithList && ContentGeneratorService.currentPageIndex <= indexPagesWithQuery) {
         	template = ContentGeneratorCst.PAGE_TPL_QAQUERY;
         }
         
         List externalFilePaths = new ArrayList();
-        if (ContentGeneratorService.currentPageIndex > indexPagesWithQuery && ContentGeneratorService.currentPageIndex <= indexPagesWithCmisFile) {
+        if (ContentGeneratorService.currentPageIndex > indexPagesWithQuery && ContentGeneratorService.currentPageIndex <= indexPagesWithExternalFileReference) {
         	pageName = ContentGeneratorCst.PAGE_TPL_QAEXTERNAL + ContentGeneratorService.currentPageIndex;
         	externalFilePaths.add(getRandomCmisFilePath(ContentGeneratorCst.CMIS_PICTURES_DIR));
         	externalFilePaths.add(getRandomCmisFilePath(ContentGeneratorCst.CMIS_TEXT_DIR));
         }
         
+        String fileName = null;
+        if (ContentGeneratorService.currentPageIndex > indexPagesWithExternalFileReference && ContentGeneratorService.currentPageIndex <= indexPagesWithInternalFileReference) {
+        	pageName = ContentGeneratorCst.PAGE_TPL_QAINTERNAL + ContentGeneratorService.currentPageIndex;
+			FileService fileService = new FileService();
+			fileName = fileService.getFileName(export.getFileNames());
+        }
+        
 		if (pageName == null) {
 			pageName = template + ContentGeneratorService.currentPageIndex;
 		}
+		
+		logger.debug("		Creating new page level " + level + ": " + pageName);
 
         HashMap<String, List<String>> acls = new HashMap<String, List<String>>();
         if (random.nextFloat() < export.getGroupAclRatio() && export.getNumberOfGroups() > 0) {
