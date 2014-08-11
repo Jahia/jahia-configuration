@@ -101,10 +101,10 @@ public class DeployMojo extends AbstractManagementMojo {
             "org.jahia.bundles.blueprint.extender.config", "org.jahia.bundles.http.bridge",
             "org.jahia.bundles.webconsole.config","org.jahia.bundles.jspapiusage.repackaging"));
 
-	private static final Set<String> JAHIA_PACKAGE_PROJECTS = new HashSet<String>(
-			Arrays.asList("jahia-data", "jahia-core-modules",
-					"jahia-additional-modules", "jahia-ee-data",
-					"jahia-ee-core-modules", "jahia-ee-additional-modules"));
+    private static final Set<String> JAHIA_PACKAGE_PROJECTS = new HashSet<String>(
+            Arrays.asList("jahia-data", "jahia-core-modules",
+                    "jahia-additional-modules", "jahia-ee-data",
+                    "jahia-ee-core-modules", "jahia-ee-additional-modules"));
 
     /**
      * The dependency tree builder to use.
@@ -177,7 +177,7 @@ public class DeployMojo extends AbstractManagementMojo {
     }
 
     public void doValidate() throws MojoExecutionException, MojoFailureException {
-    	ServerDeploymentInterface serverDeployer = null;
+        ServerDeploymentInterface serverDeployer = null;
         try {
             serverDeployer = getDeployer();
         } catch (Exception e) {
@@ -369,7 +369,7 @@ public class DeployMojo extends AbstractManagementMojo {
     private void deployModuleProject() throws Exception {
         File source = new File(output, project.getArtifactId() + "-" + project.getVersion() + "."
                 + (project.getPackaging().equals("bundle") ? "jar" : project.getPackaging()));
-		File target = new File(getDataDir(), "modules");
+        File target = new File(getDataDir(), "modules");
         getLog().info("Deploying module " + source + " into " + target);
         
         new ModuleDeployer(target, new MojoLogger(getLog())).deployModule(source);
@@ -378,16 +378,16 @@ public class DeployMojo extends AbstractManagementMojo {
     }
 
     private void deployModuleAsDependency(Artifact module) throws Exception {
-    	File target = new File(getDataDir(), "modules");
-    	getLog().info(
-				"Deploying module "
-						+ module.getArtifactId() + " into " + target + "...");
-		try {
-			File file = resolveArtifactFile(module);
-			new ModuleDeployer(target, new MojoLogger(getLog())).deployModule(file);
-		} catch (Exception e) {
-			getLog().error(e);
-		}
+        File target = new File(getDataDir(), "modules");
+        getLog().info(
+                "Deploying module "
+                        + module.getArtifactId() + " into " + target + "...");
+        try {
+            File file = resolveArtifactFile(module);
+            new ModuleDeployer(target, new MojoLogger(getLog())).deployModule(file);
+        } catch (Exception e) {
+            getLog().error(e);
+        }
         getLog().info("...done");
     }
     
@@ -407,21 +407,21 @@ public class DeployMojo extends AbstractManagementMojo {
         }
     }
 
-	private void deployPrepackagedSiteAsDependency(Artifact artifact)
-			throws Exception {
-		File target = new File(getDataDir(), "prepackagedSites");
-		getLog().info(
-				"Deploying prepackaged site " + artifact.getArtifactId() + " into "
-						+ target + "...");
-		try {
-			File file = resolveArtifactFile(artifact);
-			FileUtils.copyFile(file, new File(target, artifact.getArtifactId()
-					+ ".zip"));
-		} catch (Exception e) {
-			getLog().error(e);
-		}
-		getLog().info("...done");
-	}
+    private void deployPrepackagedSiteAsDependency(Artifact artifact)
+            throws Exception {
+        File target = new File(getDataDir(), "prepackagedSites");
+        getLog().info(
+                "Deploying prepackaged site " + artifact.getArtifactId() + " into "
+                        + target + "...");
+        try {
+            File file = resolveArtifactFile(artifact);
+            FileUtils.copyFile(file, new File(target, artifact.getArtifactId()
+                    + ".zip"));
+        } catch (Exception e) {
+            getLog().error(e);
+        }
+        getLog().info("...done");
+    }
 
     /**
      * Copy JAR file to jahia webapp, tries to hotswap classes
@@ -451,44 +451,44 @@ public class DeployMojo extends AbstractManagementMojo {
         try {
             boolean isJahiaServerGroup = project.getGroupId().equals("org.jahia.server");
             if (isJahiaServerGroup && JAHIA_PACKAGE_PROJECTS.contains(project.getArtifactId())) {
-            	deployPackage();
+                deployPackage();
             } else if ((project.getParent() != null) && ("prepackagedSites".equals(project.getParent().getArtifactId()))
                     || project.getGroupId().equals("org.jahia.prepackagedsites")) {
                 deployPrepackagedSiteProject();
             } else {
-	            boolean jdbcDrivers = isJahiaServerGroup && project.getArtifactId().startsWith("jdbc-drivers");
-	            boolean sharedLibraries = isJahiaServerGroup && project.getArtifactId().equals("shared-libraries");
-	            DependencyNode rootNode = getRootDependencyNode();
-	            List<?> l = rootNode.getChildren();
-	            for (Iterator<?> iterator = l.iterator(); iterator.hasNext();) {
-	                DependencyNode dependencyNode = (DependencyNode) iterator.next();
-	                Artifact artifact = dependencyNode.getArtifact();
-	                if (artifact.getGroupId().equals("org.jahia.server")) {
-	                    String artifactId = artifact.getArtifactId();
-						if (artifactId.equals("jahia-war")
-								|| artifactId.equals("jahia-ee-war")) {
-	                        deployWarDependency(dependencyNode);
-						} else if (artifactId.equals("shared-libraries")
-	                            || artifactId.startsWith("jdbc-drivers")) {
-	                        deploySharedLibraries(dependencyNode);
-	                    } else if (JAHIA_PACKAGE_PROJECTS.contains(artifactId)) {
-	                    	deployPackageFromDepenendency(artifact);
-	                    }
-					} else if (artifact.getGroupId()
-							.equals("org.jahia.modules")
-							|| (deployTests && artifact.getGroupId().equals(
-									"org.jahia.test"))
-							|| artifact.getGroupId().endsWith(".jahia.modules")) {
-						deployModuleAsDependency(artifact);
-					} else if (artifact.getGroupId().equals("org.jahia.prepackagedsites")) {
-		                deployPrepackagedSiteAsDependency(artifact);
-		            }
-	                if (sharedLibraries) {
-	                    deploySharedLibrary(artifact);
-	                } else if (jdbcDrivers) {
-	                    deployJdbcDriver(artifact);
-	                }
-	            }
+                boolean jdbcDrivers = isJahiaServerGroup && project.getArtifactId().startsWith("jdbc-drivers");
+                boolean sharedLibraries = isJahiaServerGroup && project.getArtifactId().equals("shared-libraries");
+                DependencyNode rootNode = getRootDependencyNode();
+                List<?> l = rootNode.getChildren();
+                for (Iterator<?> iterator = l.iterator(); iterator.hasNext();) {
+                    DependencyNode dependencyNode = (DependencyNode) iterator.next();
+                    Artifact artifact = dependencyNode.getArtifact();
+                    if (artifact.getGroupId().equals("org.jahia.server")) {
+                        String artifactId = artifact.getArtifactId();
+                        if (artifactId.equals("jahia-war")
+                                || artifactId.equals("jahia-ee-war")) {
+                            deployWarDependency(dependencyNode);
+                        } else if (artifactId.equals("shared-libraries")
+                                || artifactId.startsWith("jdbc-drivers")) {
+                            deploySharedLibraries(dependencyNode);
+                        } else if (JAHIA_PACKAGE_PROJECTS.contains(artifactId)) {
+                            deployPackageFromDepenendency(artifact);
+                        }
+                    } else if (artifact.getGroupId()
+                            .equals("org.jahia.modules")
+                            || (deployTests && artifact.getGroupId().equals(
+                                    "org.jahia.test"))
+                            || artifact.getGroupId().endsWith(".jahia.modules")) {
+                        deployModuleAsDependency(artifact);
+                    } else if (artifact.getGroupId().equals("org.jahia.prepackagedsites")) {
+                        deployPrepackagedSiteAsDependency(artifact);
+                    }
+                    if (sharedLibraries) {
+                        deploySharedLibrary(artifact);
+                    } else if (jdbcDrivers) {
+                        deployJdbcDriver(artifact);
+                    }
+                }
             }
         } catch (Exception e) {
             getLog().error("Error while deploying POM project", e);
@@ -496,97 +496,97 @@ public class DeployMojo extends AbstractManagementMojo {
     }
 
 
-	private void deployPackage() {
-		getLog().info(
-				"Deploying Digital Factory data package "
-						+ project.getArtifactId() + "...");
-		try {
-			File file = null;
-			getLog().info("Resolving artifact file...");
+    private void deployPackage() {
+        getLog().info(
+                "Deploying Digital Factory data package "
+                        + project.getArtifactId() + "...");
+        try {
+            File file = null;
+            getLog().info("Resolving artifact file...");
 
-			if (project.getAttachedArtifacts().size() > 0) {
-				Artifact artifact = (Artifact) project.getAttachedArtifacts()
-						.get(project.getAttachedArtifacts().size() - 1);
-				artifactResolver.resolve(artifact,
-						project.getRemoteArtifactRepositories(),
-						localRepository);
-				file = artifact.getFile();
-			} else {
-				ArtifactRequest request = new ArtifactRequest();
-				request.setArtifact(new org.sonatype.aether.util.artifact.DefaultArtifact(
-						project.getGroupId() + ":" + project.getArtifactId()
-								+ ":zip:package:"
-								+ project.getArtifact().getVersion()));
-				request.setRepositories(remoteRepos);
-				getLog().info("Resolving " + request.getArtifact() + "...");
-				ArtifactResult result = repoSystem.resolveArtifact(repoSession,
-						request);
-				file = result.getArtifact().getFile();
-			}
-			getLog().info("...resolved to: " + file);
+            if (project.getAttachedArtifacts().size() > 0) {
+                Artifact artifact = (Artifact) project.getAttachedArtifacts()
+                        .get(project.getAttachedArtifacts().size() - 1);
+                artifactResolver.resolve(artifact,
+                        project.getRemoteArtifactRepositories(),
+                        localRepository);
+                file = artifact.getFile();
+            } else {
+                ArtifactRequest request = new ArtifactRequest();
+                request.setArtifact(new org.sonatype.aether.util.artifact.DefaultArtifact(
+                        project.getGroupId() + ":" + project.getArtifactId()
+                                + ":zip:package:"
+                                + project.getArtifact().getVersion()));
+                request.setRepositories(remoteRepos);
+                getLog().info("Resolving " + request.getArtifact() + "...");
+                ArtifactResult result = repoSystem.resolveArtifact(repoSession,
+                        request);
+                file = result.getArtifact().getFile();
+            }
+            getLog().info("...resolved to: " + file);
 
-			deployPackageFile(file);
-		} catch (Exception e) {
-			getLog().error(e);
-		}
-	}
+            deployPackageFile(file);
+        } catch (Exception e) {
+            getLog().error(e);
+        }
+    }
 
-	private void deployPackageFromDepenendency(Artifact dependency) {
-		getLog().info(
-				"Deploying Digital Factory data package "
-						+ dependency.getArtifactId() + "...");
-		try {
-			File file = resolveArtifactFile(dependency);
+    private void deployPackageFromDepenendency(Artifact dependency) {
+        getLog().info(
+                "Deploying Digital Factory data package "
+                        + dependency.getArtifactId() + "...");
+        try {
+            File file = resolveArtifactFile(dependency);
 
-			deployPackageFile(file);
-		} catch (Exception e) {
-			getLog().error(e);
-		}
-	}
+            deployPackageFile(file);
+        } catch (Exception e) {
+            getLog().error(e);
+        }
+    }
 
-	private File resolveArtifactFile(Artifact artifact)
-			throws org.sonatype.aether.resolution.ArtifactResolutionException {
-		File file = null;
-		getLog().info("Resolving artifact file...");
+    private File resolveArtifactFile(Artifact artifact)
+            throws org.sonatype.aether.resolution.ArtifactResolutionException {
+        File file = null;
+        getLog().info("Resolving artifact file...");
 
-		ArtifactRequest request = new ArtifactRequest();
-		request.setArtifact(new org.sonatype.aether.util.artifact.DefaultArtifact(
-				artifact.getGroupId()
-						+ ":"
-						+ artifact.getArtifactId()
-						+ ":"
-						+ artifact.getType()
-						+ ":"
-						+ (StringUtils.isNotEmpty(artifact.getClassifier()) ? (artifact
-								.getClassifier() + ":") : "")
-						+ artifact.getVersion()));
-		request.setRepositories(remoteRepos);
-		getLog().info("Resolving " + request.getArtifact() + "...");
-		ArtifactResult result = repoSystem
-				.resolveArtifact(repoSession, request);
-		file = result.getArtifact().getFile();
-		getLog().info("...resolved to: " + file);
-		return file;
-	}
+        ArtifactRequest request = new ArtifactRequest();
+        request.setArtifact(new org.sonatype.aether.util.artifact.DefaultArtifact(
+                artifact.getGroupId()
+                        + ":"
+                        + artifact.getArtifactId()
+                        + ":"
+                        + artifact.getType()
+                        + ":"
+                        + (StringUtils.isNotEmpty(artifact.getClassifier()) ? (artifact
+                                .getClassifier() + ":") : "")
+                        + artifact.getVersion()));
+        request.setRepositories(remoteRepos);
+        getLog().info("Resolving " + request.getArtifact() + "...");
+        ArtifactResult result = repoSystem
+                .resolveArtifact(repoSession, request);
+        file = result.getArtifact().getFile();
+        getLog().info("...resolved to: " + file);
+        return file;
+    }
 
-	private void deployPackageFile(File packageFile) {
-		getLog().info(
-				"Deploying Digital Factory data package file "
-						+ packageFile + "...");
-		try {
-			getLog().info("Extracting content to data directory " + getDataDir() + "...");
-			ZipUnArchiver unarch = new ZipUnArchiver(packageFile);
-			unarch.enableLogging(getLog().isDebugEnabled() ? new ConsoleLogger(
-					Logger.LEVEL_DEBUG, "console") : new ConsoleLogger());
-			unarch.setDestDirectory(getDataDir());
-			unarch.extract();
-			getLog().info("...done.");
-		} catch (Exception e) {
-			getLog().error(e);
-		}
-	}
+    private void deployPackageFile(File packageFile) {
+        getLog().info(
+                "Deploying Digital Factory data package file "
+                        + packageFile + "...");
+        try {
+            getLog().info("Extracting content to data directory " + getDataDir() + "...");
+            ZipUnArchiver unarch = new ZipUnArchiver(packageFile);
+            unarch.enableLogging(getLog().isDebugEnabled() ? new ConsoleLogger(
+                    Logger.LEVEL_DEBUG, "console") : new ConsoleLogger());
+            unarch.setDestDirectory(getDataDir());
+            unarch.extract();
+            getLog().info("...done.");
+        } catch (Exception e) {
+            getLog().error(e);
+        }
+    }
 
-	protected DependencyNode getRootDependencyNode() throws DependencyTreeBuilderException {
+    protected DependencyNode getRootDependencyNode() throws DependencyTreeBuilderException {
         return dependencyTreeBuilder.buildDependencyTree(project, localRepository, artifactFactory,
                         artifactMetadataSource, null, artifactCollector);
     }
@@ -685,19 +685,19 @@ public class DeployMojo extends AbstractManagementMojo {
         createSymblolicLinks();
     }
 
-	private void createSymblolicLinks() {
-		getLog().info(
-				"Creating symbolic links for legacy modules and prepackagedSites folders...");
-		try {
-			ServerDeploymentFactory.createSymbolicLinksForLegacyFolders(
-					getWebappDeploymentDir(), getDataDir());
-		} catch (Exception e) {
-			getLog().warn(
-					"Unable to create symbolic links for legacy modules and prepackagedSites folders under "
-							+ getWebappDeploymentDir(), e);
-		}
-		getLog().info("...done creating links.");
-	}
+    private void createSymblolicLinks() {
+        getLog().info(
+                "Creating symbolic links for legacy modules and prepackagedSites folders...");
+        try {
+            ServerDeploymentFactory.createSymbolicLinksForLegacyFolders(
+                    getWebappDeploymentDir(), getDataDir());
+        } catch (Exception e) {
+            getLog().warn(
+                    "Unable to create symbolic links for legacy modules and prepackagedSites folders under "
+                            + getWebappDeploymentDir(), e);
+        }
+        getLog().info("...done creating links.");
+    }
 
     // *************** Hotswap
 
