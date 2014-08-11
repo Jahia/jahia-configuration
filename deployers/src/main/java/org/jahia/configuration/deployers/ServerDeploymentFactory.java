@@ -46,86 +46,86 @@ import org.jahia.configuration.deployers.jboss.JBossServerDeploymentImpl;
  */
 public final class ServerDeploymentFactory {
 
-	public static ServerDeploymentInterface getImplementation(
-			String serverType, File targetServerDir, File configDir,
-			File dataDir) {
-		if (serverType == null || serverType.length() == 0) {
-			throw new IllegalArgumentException("Server type is not provided");
-		}
-		serverType = serverType.trim().toLowerCase();
+    public static ServerDeploymentInterface getImplementation(
+            String serverType, File targetServerDir, File configDir,
+            File dataDir) {
+        if (serverType == null || serverType.length() == 0) {
+            throw new IllegalArgumentException("Server type is not provided");
+        }
+        serverType = serverType.trim().toLowerCase();
 
-		AbstractServerDeploymentImpl deployer = null;
+        AbstractServerDeploymentImpl deployer = null;
 
-		if (serverType.startsWith("tomcat")) {
-			deployer = new TomcatServerDeploymentImpl("tomcat",
-					"Apache Tomcat 7.x", targetServerDir);
-		} else if (serverType.startsWith("jboss")) {
-			deployer = new JBossServerDeploymentImpl("jboss",
-					"Red Hat JBoss AS 7.x / EAP 6.x", targetServerDir);
-		} else if (serverType.startsWith("was")
-				|| serverType.startsWith("websphere")) {
-			deployer = new WebsphereServerDeploymentImpl("websphere",
-					"IBM WebSphere Application Server 8.5.5.x", targetServerDir);
-		} else {
-			throw new IllegalArgumentException("Unsupported server type: "
-					+ serverType);
-		}
+        if (serverType.startsWith("tomcat")) {
+            deployer = new TomcatServerDeploymentImpl("tomcat",
+                    "Apache Tomcat 7.x", targetServerDir);
+        } else if (serverType.startsWith("jboss")) {
+            deployer = new JBossServerDeploymentImpl("jboss",
+                    "Red Hat JBoss AS 7.x / EAP 6.x", targetServerDir);
+        } else if (serverType.startsWith("was")
+                || serverType.startsWith("websphere")) {
+            deployer = new WebsphereServerDeploymentImpl("websphere",
+                    "IBM WebSphere Application Server 8.5.5.x", targetServerDir);
+        } else {
+            throw new IllegalArgumentException("Unsupported server type: "
+                    + serverType);
+        }
 
-		deployer.setConfigDir(configDir);
-		deployer.setDataDir(dataDir);
-		
-		deployer.init();
+        deployer.setConfigDir(configDir);
+        deployer.setDataDir(dataDir);
+        
+        deployer.init();
 
-		return deployer;
-	}
-	
-	public static ServerDeploymentInterface getImplementation(
-			String serverType, String serverVersion, File targetServerDir, File configDir,
-			File dataDir) {
-		return getImplementation(serverVersion != null ? serverType + serverVersion : serverType, targetServerDir, configDir, dataDir);
-	}
-	
-	
-	public static void createSymbolicLinksForLegacyFolders(File webAppDir,
-			File dataDir) throws IOException {
-		boolean isWindows = File.separatorChar == '\\';
-		File legacyDataDir = new File(webAppDir, "WEB-INF/var");
-		if (!legacyDataDir.exists()) {
-			legacyDataDir.mkdir();
-		}
-		File legacyModulesDir = new File(legacyDataDir, "modules");
-		if (!legacyModulesDir.exists()) {
-			if (isWindows) {
-				execute(new String[] {
-						"cmd.exe",
-						"/c",
-						"mklink",
-						"/j",
-						"\"" + legacyModulesDir + "\"",
-						"\"" + new File(dataDir, "modules").getAbsolutePath()
-								+ "\"" });
-			} else {
-				execute(new String[] { "ln", "-s",
-						new File(dataDir, "modules").getAbsolutePath(),
-						legacyModulesDir.getAbsolutePath() });
-			}
-		}
-		File legacyDemoDir = new File(legacyDataDir, "prepackagedSites");
-		if (!legacyDemoDir.exists()) {
-			if (isWindows) {
-				execute(new String[] { "cmd.exe", "/c", "mklink", "/j",
-						"\"" + legacyDemoDir + "\"",
-						"\"" + dataDir + "\\prepackagedSites\"" });
-			} else {
-				execute(new String[] { "ln", "-s",
-						dataDir + "/prepackagedSites",
-						legacyDemoDir.getAbsolutePath() });
-			}
-		}
-	}
+        return deployer;
+    }
+    
+    public static ServerDeploymentInterface getImplementation(
+            String serverType, String serverVersion, File targetServerDir, File configDir,
+            File dataDir) {
+        return getImplementation(serverVersion != null ? serverType + serverVersion : serverType, targetServerDir, configDir, dataDir);
+    }
+    
+    
+    public static void createSymbolicLinksForLegacyFolders(File webAppDir,
+            File dataDir) throws IOException {
+        boolean isWindows = File.separatorChar == '\\';
+        File legacyDataDir = new File(webAppDir, "WEB-INF/var");
+        if (!legacyDataDir.exists()) {
+            legacyDataDir.mkdir();
+        }
+        File legacyModulesDir = new File(legacyDataDir, "modules");
+        if (!legacyModulesDir.exists()) {
+            if (isWindows) {
+                execute(new String[] {
+                        "cmd.exe",
+                        "/c",
+                        "mklink",
+                        "/j",
+                        "\"" + legacyModulesDir + "\"",
+                        "\"" + new File(dataDir, "modules").getAbsolutePath()
+                                + "\"" });
+            } else {
+                execute(new String[] { "ln", "-s",
+                        new File(dataDir, "modules").getAbsolutePath(),
+                        legacyModulesDir.getAbsolutePath() });
+            }
+        }
+        File legacyDemoDir = new File(legacyDataDir, "prepackagedSites");
+        if (!legacyDemoDir.exists()) {
+            if (isWindows) {
+                execute(new String[] { "cmd.exe", "/c", "mklink", "/j",
+                        "\"" + legacyDemoDir + "\"",
+                        "\"" + dataDir + "\\prepackagedSites\"" });
+            } else {
+                execute(new String[] { "ln", "-s",
+                        dataDir + "/prepackagedSites",
+                        legacyDemoDir.getAbsolutePath() });
+            }
+        }
+    }
 
-	private static void execute(String[] command) throws IOException {
-		Runtime.getRuntime().exec(command);
-	}
+    private static void execute(String[] command) throws IOException {
+        Runtime.getRuntime().exec(command);
+    }
 
 }
