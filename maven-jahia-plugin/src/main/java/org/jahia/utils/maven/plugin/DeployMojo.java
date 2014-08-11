@@ -71,6 +71,7 @@ import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.codehaus.plexus.util.SelectorUtils;
+import org.jahia.configuration.deployers.ServerDeploymentFactory;
 import org.jahia.configuration.deployers.ServerDeploymentInterface;
 import org.jahia.configuration.modules.ModuleDeployer;
 import org.sonatype.aether.RepositorySystem;
@@ -357,6 +358,8 @@ public class DeployMojo extends AbstractManagementMojo {
                 getLog().error("Error while deploying WAR project", e);
             }
         }
+        
+        createSymblolicLinks();
     }
 
     /**
@@ -678,7 +681,23 @@ public class DeployMojo extends AbstractManagementMojo {
         } catch (IOException e) {
             getLog().error("Error while deploying dependency", e);
         }
+        
+        createSymblolicLinks();
     }
+
+	private void createSymblolicLinks() {
+		getLog().info(
+				"Creating symbolic links for legacy modules and prepackagedSites folders...");
+		try {
+			ServerDeploymentFactory.createSymbolicLinksForLegacyFolders(
+					getWebappDeploymentDir(), getDataDir());
+		} catch (Exception e) {
+			getLog().warn(
+					"Unable to create symbolic links for legacy modules and prepackagedSites folders under "
+							+ getWebappDeploymentDir(), e);
+		}
+		getLog().info("...done creating links.");
+	}
 
     // *************** Hotswap
 

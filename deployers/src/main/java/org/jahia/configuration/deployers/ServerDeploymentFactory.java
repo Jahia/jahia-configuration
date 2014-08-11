@@ -34,6 +34,7 @@
 package org.jahia.configuration.deployers;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.jahia.configuration.deployers.jboss.JBossServerDeploymentImpl;
 
@@ -82,6 +83,49 @@ public final class ServerDeploymentFactory {
 			String serverType, String serverVersion, File targetServerDir, File configDir,
 			File dataDir) {
 		return getImplementation(serverVersion != null ? serverType + serverVersion : serverType, targetServerDir, configDir, dataDir);
+	}
+	
+	
+	public static void createSymbolicLinksForLegacyFolders(File webAppDir,
+			File dataDir) throws IOException {
+		boolean isWindows = File.separatorChar == '\\';
+		File legacyDataDir = new File(webAppDir, "WEB-INF/var");
+		if (!legacyDataDir.exists()) {
+			legacyDataDir.mkdir();
+		}
+		File legacyModulesDir = new File(legacyDataDir, "modules");
+		if (!legacyModulesDir.exists()) {
+			if (isWindows) {
+				execute(new String[] {
+						"cmd.exe",
+						"/c",
+						"mklink",
+						"/j",
+						"\"" + legacyModulesDir + "\"",
+						"\"" + new File(dataDir, "modules").getAbsolutePath()
+								+ "\"" });
+			} else {
+				execute(new String[] { "ln", "-s",
+						new File(dataDir, "modules").getAbsolutePath(),
+						legacyModulesDir.getAbsolutePath() });
+			}
+		}
+		File legacyDemoDir = new File(legacyDataDir, "prepackagedSites");
+		if (!legacyDemoDir.exists()) {
+			if (isWindows) {
+				execute(new String[] { "cmd.exe", "/c", "mklink", "/j",
+						"\"" + legacyDemoDir + "\"",
+						"\"" + dataDir + "\\prepackagedSites\"" });
+			} else {
+				execute(new String[] { "ln", "-s",
+						dataDir + "/prepackagedSites",
+						legacyDemoDir.getAbsolutePath() });
+			}
+		}
+	}
+
+	private static void execute(String[] command) throws IOException {
+		Runtime.getRuntime().exec(command);
 	}
 
 }
