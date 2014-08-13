@@ -47,13 +47,13 @@ public class PropertiesManagerTest extends TestCase {
     public void testLoadBasicCase() throws IOException {
         PropertiesManager propertiesManager = new PropertiesManager(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry));
 
-        propertiesManager.setProperty("server", "testServerValue");
+//        propertiesManager.setProperty("server", "testServerValue");
         propertiesManager.setProperty("testPropertyName", "testPropertyValue");
         propertiesManager.storeProperties(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile.getPath());
 
         Properties testProperties = new Properties();
         testProperties.load(new FileInputStream(jahiaTargetPropertiesFile));
-        assertEquals("Server property does not have proper value", "testServerValue", testProperties.getProperty("server"));
+//        assertEquals("Server property does not have proper value", "testServerValue", testProperties.getProperty("server"));
         assertEquals("Test property does not have proper value", "testPropertyValue", testProperties.getProperty("testPropertyName"));
         assertEquals("Server version property (serverVersion) doesn't have default value !", "", testProperties.getProperty("serverVersion"));
     }
@@ -63,12 +63,12 @@ public class PropertiesManagerTest extends TestCase {
         PropertiesManager propertiesManager = new PropertiesManager(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry));
         propertiesManager.setUnmodifiedCommentingActivated(true);
 
-        propertiesManager.setProperty("server", "testServerValue");
+//        propertiesManager.setProperty("server", "testServerValue");
         propertiesManager.storeProperties(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile.getPath());
 
         Properties testProperties = new Properties();
         testProperties.load(new FileInputStream(jahiaTargetPropertiesFile));
-        assertEquals("Server property doesn't have proper value", "testServerValue", testProperties.getProperty("server"));
+//        assertEquals("Server property doesn't have proper value", "testServerValue", testProperties.getProperty("server"));
 
         BufferedReader bufferedReader = new BufferedReader(new FileReader(jahiaTargetPropertiesFile));
 
