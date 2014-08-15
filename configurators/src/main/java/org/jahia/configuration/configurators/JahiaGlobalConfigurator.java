@@ -12,6 +12,7 @@ import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileSystemManager;
 import org.apache.commons.vfs.VFS;
+import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.StringUtils;
@@ -234,6 +235,16 @@ public class JahiaGlobalConfigurator {
             }
         } catch (FileSystemException fse) {
             // in the case we cannot access the file, it means we should not do the advanced configuration, which is expected for community edition.
+        }
+
+        // create empty Spring config file for custom configuration
+        InputStream is = getClass().getResourceAsStream("/applicationcontext-custom.xml");
+        FileOutputStream os = new FileOutputStream(new File(targetConfigPath, "applicationcontext-custom.xml"));
+        try {
+            IOUtils.copy(is, os);
+        } finally {
+            IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(os);
         }
 
         String ldapTargetFile = new File(getDataDir(), "modules").getAbsolutePath();
@@ -492,45 +503,66 @@ public class JahiaGlobalConfigurator {
             }
 
             if ((jahiaConfigDir != null) && (externalizedConfigTempPath != null)) {
-                if (jahiaConfig.isExternalizedConfigExploded()) {
-                    // we copy configuration to folder without archiving it
-                    FileUtils.copyDirectoryToDirectory(new File(jahiaConfigDir, "jahia"),
-                            new File(jahiaConfig.getExternalizedConfigTargetPath()));
-                } else {
-                    boolean verbose = true;
-                    JarArchiver archiver = new JarArchiver();
-                    if (verbose) {
-                        archiver.enableLogging(new org.codehaus.plexus.logging.console.ConsoleLogger(Logger.LEVEL_DEBUG,
-                                "console"));
-                    }
-    
-                    String jarFileName = "jahia-config.jar";
-                    if (!StringUtils.isBlank(jahiaConfig.getExternalizedConfigFinalName())) {
-                        jarFileName = jahiaConfig.getExternalizedConfigFinalName();
-                        if (!StringUtils.isBlank(jahiaConfig.getExternalizedConfigClassifier())) {
-                            jarFileName += "-" + jahiaConfig.getExternalizedConfigClassifier();
-                        }
-                        jarFileName += ".jar";
-                    }
-    
-                    // let's generate the WAR file
-                    File targetFile = new File(jahiaConfig.getExternalizedConfigTargetPath(), jarFileName);
-                    // archiver.setManifest(targetManifestFile);
-                    archiver.setDestFile(targetFile);
-                    String excludes = null;
-    
-                    archiver.addDirectory(jahiaConfigDir, null,
-                            excludes != null ? excludes.split(",") : null);
-                    archiver.createArchive();
-                }
-
-                FileUtils.deleteDirectory(jahiaConfigDir);
+                copyExternalizedConfig();
 
             }
 
         } catch (Exception e) {
             getLogger().error("exception in setting the properties because of " + e, e);
         }
+    }
+
+    private void copyExternalizedConfig() throws IOException, ArchiverException {
+        if (jahiaConfig.isExternalizedConfigExploded()) {
+            // we copy configuration to folder without archiving it
+            
+            File target = new File(jahiaConfig.getExternalizedConfigTargetPath());
+            final File targetCfgDir = new File(target, "jahia");
+            final File srcDir = new File(jahiaConfigDir, "jahia");
+            if (targetCfgDir.isDirectory()) {
+                // we won't overwrite existing files
+                FileUtils.copyDirectory(srcDir, targetCfgDir, new FileFilter() {
+                    @Override
+                    public boolean accept(File pathname) {
+                        if (!pathname.isFile()) {
+                            return true;
+                        }
+                        return !new File(targetCfgDir, pathname.getAbsolutePath().substring(
+                                srcDir.getAbsolutePath().length())).exists();
+                    }
+                });
+            } else {
+                FileUtils.copyDirectoryToDirectory(srcDir, target);
+            }
+        } else {
+            boolean verbose = true;
+            JarArchiver archiver = new JarArchiver();
+            if (verbose) {
+                archiver.enableLogging(new org.codehaus.plexus.logging.console.ConsoleLogger(Logger.LEVEL_DEBUG,
+                        "console"));
+            }
+   
+            String jarFileName = "jahia-config.jar";
+            if (!StringUtils.isBlank(jahiaConfig.getExternalizedConfigFinalName())) {
+                jarFileName = jahiaConfig.getExternalizedConfigFinalName();
+                if (!StringUtils.isBlank(jahiaConfig.getExternalizedConfigClassifier())) {
+                    jarFileName += "-" + jahiaConfig.getExternalizedConfigClassifier();
+                }
+                jarFileName += ".jar";
+            }
+   
+            // let's generate the WAR file
+            File targetFile = new File(jahiaConfig.getExternalizedConfigTargetPath(), jarFileName);
+            // archiver.setManifest(targetManifestFile);
+            archiver.setDestFile(targetFile);
+            String excludes = null;
+   
+            archiver.addDirectory(jahiaConfigDir, null,
+                    excludes != null ? excludes.split(",") : null);
+            archiver.createArchive();
+        }
+
+        FileUtils.deleteDirectory(jahiaConfigDir);
     }
 
     private void copyImports(String importsFolder) {
