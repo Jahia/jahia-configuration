@@ -41,7 +41,7 @@ public class JahiaPropertiesConfiguratorTest extends AbstractConfiguratorTestCas
         targetJahiaPropertiesFile = jahiaDefaultConfigFileParentPath + "jahia.advanced.properties";
         JahiaPropertiesConfigurator websphereOracleConfigurator = new JahiaPropertiesConfigurator(oracleDBProperties, websphereOracleConfigBean);
         websphereOracleConfigurator.updateConfiguration(jahiaPropertiesConfigFile, targetJahiaPropertiesFile);
-        new JahiaAdvancedPropertiesConfigurator(logger, websphereOracleConfigBean).updateConfiguration(jahiaPropertiesConfigFile, targetJahiaPropertiesFile);
+        new JahiaNodePropertiesConfigurator(logger, websphereOracleConfigBean).updateConfiguration(jahiaPropertiesConfigFile, targetJahiaPropertiesFile);
         Properties websphereOracleProperties = new Properties();
         FileInputStream inStream = new FileInputStream(jahiaDefaultConfigFileParentPath + "jahia.advanced.properties");
         try {
@@ -57,7 +57,7 @@ public class JahiaPropertiesConfiguratorTest extends AbstractConfiguratorTestCas
 
         JahiaPropertiesConfigurator tomcatMySQLConfigurator = new JahiaPropertiesConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);
         tomcatMySQLConfigurator.updateConfiguration(new VFSConfigFile(fsManager, targetJahiaPropertiesFile), secondTargetJahiaPropertiesFile);
-        new JahiaAdvancedPropertiesConfigurator(logger, tomcatMySQLConfigBean).updateConfiguration(new VFSConfigFile(fsManager, secondTargetJahiaPropertiesFile), secondTargetJahiaPropertiesFile);
+        new JahiaNodePropertiesConfigurator(logger, tomcatMySQLConfigBean).updateConfiguration(new VFSConfigFile(fsManager, secondTargetJahiaPropertiesFile), secondTargetJahiaPropertiesFile);
         Properties tomcatMySQLProperties = new Properties();
         inStream = new FileInputStream(secondTargetJahiaPropertiesFile);
         try {

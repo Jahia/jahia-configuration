@@ -23,6 +23,8 @@ import org.json.JSONObject;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -114,7 +116,7 @@ public class JahiaGlobalConfigurator {
 		if (!dataDir.exists()) {
 			if (!dataDir.mkdirs()) {
 				throw new RuntimeException(
-						"Unable to create target data directory: " + dataDir);
+						"Unable to create target directory: " + dataDir);
 			}
 		}
 
@@ -148,7 +150,7 @@ public class JahiaGlobalConfigurator {
             !StringUtils.isBlank(jahiaConfig.getExternalizedConfigTargetPath())) {
             File tempDirectory = FileUtils.getTempDirectory();
             jahiaConfigDir = new File(tempDirectory, "jahia-config");
-            File jahiaConfigConfigDir = new File(jahiaConfigDir, "org/jahia/config");
+            File jahiaConfigConfigDir = new File(jahiaConfigDir, "jahia");
             jahiaConfigConfigDir.mkdirs();
             externalizedConfigTempPath = jahiaConfigConfigDir.getPath();
         }
@@ -212,36 +214,26 @@ public class JahiaGlobalConfigurator {
 
         String targetConfigPath = webappPath + "/WEB-INF/etc/config";
         String jahiaPropertiesFileName = "jahia.properties";
-        String jahiaAdvancedPropertiesFileName = "jahia.advanced.properties";
+        String jahiaNodePropertiesFileName = "jahia.node.properties";
         if (externalizedConfigTempPath != null) {
             targetConfigPath = externalizedConfigTempPath;
             if (!StringUtils.isBlank(jahiaConfigInterface.getExternalizedConfigClassifier())) {
                 jahiaPropertiesFileName = "jahia." + jahiaConfigInterface.getExternalizedConfigClassifier() + ".properties";
-                jahiaAdvancedPropertiesFileName = "jahia.advanced." + jahiaConfigInterface.getExternalizedConfigClassifier() + ".properties";
+                jahiaNodePropertiesFileName = "jahia.node." + jahiaConfigInterface.getExternalizedConfigClassifier() + ".properties";
             }
         }
 
-        FileObject jahiaImplFileObject = findVFSFile(sourceWebAppPath + "/WEB-INF/lib", "jahia\\-impl\\-.*\\.jar");
-        URL jahiaDefaultConfigJARURL = this.getClass().getClassLoader().getResource("jahia-default-config.jar");
-        if (jahiaImplFileObject != null) {
-            jahiaDefaultConfigJARURL = jahiaImplFileObject.getURL();
-        }
-
-        // Locate the Jar file
-        ConfigFile jahiaPropertiesConfigFile = new VFSConfigFile(fsManager.resolveFile("jar:" + jahiaDefaultConfigJARURL.toExternalForm()), "org/jahia/defaults/config/properties/jahia.properties");
-
+        ConfigFile jahiaPropertiesConfigFile = readJahiaProperties(sourceWebAppPath, fsManager);
+        
         new JahiaPropertiesConfigurator(dbProps, jahiaConfigInterface).updateConfiguration (jahiaPropertiesConfigFile, targetConfigPath + "/" + jahiaPropertiesFileName);
 
-        FileObject jahiaEEImplFileObject = findVFSFile(sourceWebAppPath + "/WEB-INF/lib", "jahia\\-ee\\-impl.*\\.jar");
-        if (jahiaEEImplFileObject != null) {
-            jahiaDefaultConfigJARURL = jahiaEEImplFileObject.getURL();
-        }
-
         try {
-            ConfigFile jahiaAdvancedPropertiesConfigFile = new VFSConfigFile(fsManager.resolveFile("jar:" + jahiaDefaultConfigJARURL.toExternalForm()), "org/jahia/defaults/config/properties/jahia.advanced.properties");
-            new JahiaAdvancedPropertiesConfigurator(logger, jahiaConfigInterface).updateConfiguration (jahiaAdvancedPropertiesConfigFile, targetConfigPath + "/" + jahiaAdvancedPropertiesFileName);
+            ConfigFile jahiaNodePropertiesConfigFile = readJahiaNodeProperties(sourceWebAppPath, fsManager);
+            if (jahiaNodePropertiesConfigFile != null) {
+                new JahiaNodePropertiesConfigurator(logger, jahiaConfigInterface).updateConfiguration (jahiaNodePropertiesConfigFile, targetConfigPath + "/" + jahiaNodePropertiesFileName);
+            }
         } catch (FileSystemException fse) {
-            // in the case we cannot access the file, it means we should not do the advanced configuration, which is expected for Jahia "core".
+            // in the case we cannot access the file, it means we should not do the advanced configuration, which is expected for community edition.
         }
 
         String ldapTargetFile = new File(getDataDir(), "modules").getAbsolutePath();
@@ -251,7 +243,7 @@ public class JahiaGlobalConfigurator {
         boolean jeeLocationSpecified = !StringUtils.isEmpty(jeeApplicationLocation);
         if (jeeLocationSpecified || getDeployer().isEarDeployment()) {
             if (!jeeLocationSpecified) {
-                jeeApplicationLocation = getDeployer().getDeploymentFilePath("jahia", "ear").getAbsolutePath();
+                jeeApplicationLocation = getDeployer().getDeploymentFilePath("digitalfactory", "ear").getAbsolutePath();
             }
             String jeeApplicationModuleList = jahiaConfigInterface.getJeeApplicationModuleList();
             if (StringUtils.isEmpty(jeeApplicationModuleList)) {
@@ -262,6 +254,86 @@ public class JahiaGlobalConfigurator {
                     new VFSConfigFile(fsManager, jeeApplicationLocation + "/META-INF/application.xml"),
                     jeeApplicationLocation + "/META-INF/application.xml");
         }
+    }
+
+    private ConfigFile readJahiaNodeProperties(String sourceWebAppPath, FileSystemManager fsManager)
+            throws FileSystemException {
+        URL jarUrl = null;
+        FileObject jahiaEEImplFileObject = findVFSFile(sourceWebAppPath + "/WEB-INF/lib", "jahia\\-ee\\-impl.*\\.jar");
+        if (jahiaEEImplFileObject != null) {
+            jarUrl = jahiaEEImplFileObject.getURL();
+        } else {
+            jarUrl = this.getClass().getClassLoader().getResource("jahia-default-config.jar");
+        }
+        if (jarUrl != null) {
+            return new VFSConfigFile(fsManager.resolveFile("jar:" + jarUrl.toExternalForm()),
+                    "org/jahia/defaults/config/properties/jahia.node.properties");
+        }
+        return null;
+    }
+
+    private ConfigFile readJahiaProperties(String sourceWebAppPath, FileSystemManager fsManager) throws IOException {
+        ConfigFile cfg = null;
+
+        // Locate the Jar file
+        FileObject jahiaImplFileObject = findVFSFile(sourceWebAppPath + "/WEB-INF/lib", "jahia\\-impl\\-.*\\.jar");
+        URL jahiaDefaultConfigJARURL = this.getClass().getClassLoader().getResource("jahia-default-config.jar");
+        if (jahiaImplFileObject != null) {
+            jahiaDefaultConfigJARURL = jahiaImplFileObject.getURL();
+        }
+        VFSConfigFile jahiaPropertiesConfigFile = null;
+        VFSConfigFile jahiaAdvancedPropertiesConfigFile = null;
+
+        try {
+            jahiaPropertiesConfigFile = new VFSConfigFile(fsManager.resolveFile("jar:"
+                    + jahiaDefaultConfigJARURL.toExternalForm()),
+                    "org/jahia/defaults/config/properties/jahia.properties");
+            cfg = jahiaPropertiesConfigFile;
+
+            FileObject jahiaEEImplFileObject = findVFSFile(sourceWebAppPath + "/WEB-INF/lib",
+                    "jahia\\-ee\\-impl.*\\.jar");
+            if (jahiaEEImplFileObject != null) {
+                jahiaDefaultConfigJARURL = jahiaEEImplFileObject.getURL();
+            }
+            try {
+                jahiaAdvancedPropertiesConfigFile = new VFSConfigFile(fsManager.resolveFile("jar:"
+                        + jahiaDefaultConfigJARURL.toExternalForm()),
+                        "org/jahia/defaults/config/properties/jahia.advanced.properties");
+                if (jahiaAdvancedPropertiesConfigFile != null) {
+                    InputStream is1 = jahiaPropertiesConfigFile.getInputStream();
+                    InputStream is2 = jahiaAdvancedPropertiesConfigFile.getInputStream();
+                    try {
+                        final String content = IOUtils.toString(is1) + "\n" + IOUtils.toString(is2);
+                        cfg = new ConfigFile() {
+                            @Override
+                            public URI getURI() throws IOException, URISyntaxException {
+                                return null;
+                            }
+
+                            @Override
+                            public InputStream getInputStream() throws IOException {
+                                return IOUtils.toInputStream(content);
+                            }
+                        };
+                    } finally {
+                        IOUtils.closeQuietly(is1);
+                        IOUtils.closeQuietly(is2);
+                    }
+                }
+            } catch (FileSystemException fse) {
+                // in the case we cannot access the file, it means we should not do the advanced configuration, which is expected for
+                // Jahia "core".
+            }
+        } finally {
+            if (jahiaPropertiesConfigFile != null) {
+                jahiaPropertiesConfigFile.close();
+            }
+            if (jahiaAdvancedPropertiesConfigFile != null) {
+                jahiaAdvancedPropertiesConfigFile.close();
+            }
+        }
+
+        return cfg;
     }
 
     private void updateForJBoss(Properties dbProps, JahiaConfigInterface jahiaConfigInterface,
@@ -422,7 +494,7 @@ public class JahiaGlobalConfigurator {
             if ((jahiaConfigDir != null) && (externalizedConfigTempPath != null)) {
                 if (jahiaConfig.isExternalizedConfigExploded()) {
                     // we copy configuration to folder without archiving it
-                    FileUtils.copyDirectoryToDirectory(new File(jahiaConfigDir, "org"),
+                    FileUtils.copyDirectoryToDirectory(new File(jahiaConfigDir, "jahia"),
                             new File(jahiaConfig.getExternalizedConfigTargetPath()));
                 } else {
                     boolean verbose = true;

@@ -66,7 +66,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String databasePassword = "";
     private List<String> siteImportLocation;
 
-    private String externalConfigPath = null;
     private String jahiaRootUsername = "root";
     private String jahiaRootPassword = "root1234";
     private String jahiaRootFirstname = "";
@@ -94,8 +93,8 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private Map<String, String> groupLdapProviderProperties = new HashMap<String, String>();
     private Map<String, String> userLdapProviderProperties = new HashMap<String, String>();
 
-    private boolean externalizedConfigActivated;
-    private boolean externalizedConfigExploded;
+    private boolean externalizedConfigActivated = true;
+    private boolean externalizedConfigExploded = true;
     private String externalizedConfigTargetPath;
     private String externalizedConfigClassifier;
     private String externalizedConfigFinalName = "jahia-config";
@@ -281,20 +280,12 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.targetConfigurationDirectory = targetConfigurationDirectory;
     }
 
-    public String getExternalConfigPath() {
-        return externalConfigPath;
-    }
-
     public String getJahiaRootPassword() {
         return jahiaRootPassword;
     }
 
     public String getWebAppDirName() {
         return webAppDirName;
-    }
-
-    public void setExternalConfigPath(String externalConfigPath) {
-        this.externalConfigPath = externalConfigPath;
     }
 
     public void setJahiaRootPassword(String jahiaRootPassword) {
