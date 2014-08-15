@@ -529,7 +529,8 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
                 isTomcat = true;
                 path = "${jahiaWebAppRoot}/../../digital-factory-config/";
             }
-        } else {
+        }
+        if (path == null) {
             throw new IllegalArgumentException("Externalized configuration is activated,"
                     + " but the target directory could not be detected. Please, specify it explicitly.");
         }
