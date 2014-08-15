@@ -56,9 +56,6 @@ import com.izforge.izpack.util.AbstractUIHandler;
  */
 public class ExternalToolsPanelAction implements PanelAction {
 
-    private static final String OS_NAME = System.getProperty("os.name")
-            .toLowerCase();
-    
     private static final Pattern WINDOWS_OFFICE_PATTERN = Pattern.compile("(LibreOffice|OpenOffice(\\.org)?) [3-9].*");
 
     public void executeAction(AutomatedInstallData adata,
@@ -107,7 +104,7 @@ public class ExternalToolsPanelAction implements PanelAction {
         if (System.getProperty("office.home") != null) {
             return new File(System.getProperty("office.home"));
         }
-        if (isWindows()) {
+        if (OsUtils.isWindows()) {
             return findToolHome(new String[] { "program/soffice.bin" },
                     new FilenameFilter() {
                         public boolean accept(File dir, String name) {
@@ -115,7 +112,7 @@ public class ExternalToolsPanelAction implements PanelAction {
                         }
                     }, false, System.getenv("ProgramFiles(x86)"), System
                             .getenv("ProgramFiles"));
-        } else if (isMac()) {
+        } else if (OsUtils.isMac()) {
             return findToolHome(new String[] { "MacOS/soffice.bin" }, null,
                     false, "/Applications/OpenOffice.org.app/Contents",
                     "/Applications/LibreOffice.app/Contents");
@@ -131,7 +128,7 @@ public class ExternalToolsPanelAction implements PanelAction {
         if (System.getProperty("imagemagick.home") != null) {
             return new File(System.getProperty("imagemagick.home"));
         }
-        if (isWindows()) {
+        if (OsUtils.isWindows()) {
             return findToolHome(
                     new String[] { "convert.exe" },
                     new FilenameFilter() {
@@ -140,7 +137,7 @@ public class ExternalToolsPanelAction implements PanelAction {
                         }
                     }, false, System.getenv("ProgramFiles(x86)"),
                     System.getenv("ProgramFiles"));
-        } else if (isMac()) {
+        } else if (OsUtils.isMac()) {
             return findToolHome(new String[] { "convert", "bin/convert" },
                     new FilenameFilter() {
                         public boolean accept(File dir, String name) {
@@ -159,7 +156,7 @@ public class ExternalToolsPanelAction implements PanelAction {
         if (System.getProperty("ffmpeg.executable") != null) {
             return new File(System.getProperty("ffmpeg.executable"));
         }
-        if (isWindows()) {
+        if (OsUtils.isWindows()) {
             return findToolHome(
                     new String[] { "ffmpeg.exe", "bin/ffmpeg.exe" },
                     new FilenameFilter() {
@@ -169,7 +166,7 @@ public class ExternalToolsPanelAction implements PanelAction {
                         }
                     }, true, System.getenv("ProgramFiles(x86)"),
                     System.getenv("ProgramFiles"));
-        } else if (isMac()) {
+        } else if (OsUtils.isMac()) {
             return findToolHome(new String[] { "ffmpeg", "bin/ffmpeg" },
                     new FilenameFilter() {
                         public boolean accept(File dir, String name) {
@@ -188,7 +185,7 @@ public class ExternalToolsPanelAction implements PanelAction {
         if (System.getProperty("pdf2swf.executable") != null) {
             return new File(System.getProperty("pdf2swf.executable"));
         }
-        if (isWindows()) {
+        if (OsUtils.isWindows()) {
             return findToolHome(new String[] { "pdf2swf.exe" },
                     new FilenameFilter() {
                         public boolean accept(File dir, String name) {
@@ -196,7 +193,7 @@ public class ExternalToolsPanelAction implements PanelAction {
                         }
                     }, true, System.getenv("ProgramFiles(x86)"),
                     System.getenv("ProgramFiles"));
-        } else if (isMac()) {
+        } else if (OsUtils.isMac()) {
             return findToolHome(new String[] { "pdf2swf" }, null, true,
                     "/opt/local/bin");
         } else {
@@ -232,17 +229,5 @@ public class ExternalToolsPanelAction implements PanelAction {
 
     public static File getToolExecutable(String executableName, File officeHome) {
         return new File(officeHome, executableName);
-    }
-
-    public static boolean isLinux() {
-        return OS_NAME.startsWith("linux");
-    }
-
-    public static boolean isMac() {
-        return OS_NAME.startsWith("mac");
-    }
-
-    public static boolean isWindows() {
-        return OS_NAME.startsWith("windows");
     }
 }

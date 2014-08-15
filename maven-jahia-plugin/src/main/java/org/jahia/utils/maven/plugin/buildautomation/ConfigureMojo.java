@@ -33,9 +33,16 @@
 
 package org.jahia.utils.maven.plugin.buildautomation;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -53,12 +60,6 @@ import org.jahia.configuration.configurators.JahiaGlobalConfigurator;
  * @requiresProject false
  */
 public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfigInterface {
-
-    /**
-     * @parameter expression="${jahia.configure.externalConfigPath}"
-     * if included, points to a directory that will be merged with the deployed Jahia to allow for custom deployment of configuration and/or extensions
-     */
-    protected String externalConfigPath;
 
     /**
      * @parameter default-value="${jahia.data.dir}/modules/"
@@ -245,14 +246,14 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      * Activates configuration externalization. Make sure to specify a value for the externalizedConfigTargetPath that
      * will indicate where the configuration JAR should be generated.
      *
-     * @parameter expression="${jahia.configure.externalizedActivated}" default-value="false"
+     * @parameter expression="${jahia.configure.externalizedActivated}" default-value="true"
      */
     protected boolean externalizedConfigActivated;
     
     /**
      * If active, the externalized configuration is deployed exploded.
      * 
-     * @parameter expression="${jahia.configure.externalizedExploded}" default-value="false"
+     * @parameter expression="${jahia.configure.externalizedExploded}" default-value="true"
      */
     protected boolean externalizedConfigExploded;
 
@@ -388,10 +389,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return targetServerVersion;
     }
 
-    public String getExternalConfigPath() {
-        return externalConfigPath;
-    }
-
     public String getWebAppDirName() {
         return webAppDirName;
     }
@@ -513,7 +510,75 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     }
 
     public String getExternalizedConfigTargetPath() {
+        if (externalizedConfigTargetPath == null && externalizedConfigActivated) {
+            initConfigTargetDir();
+        }
         return externalizedConfigTargetPath;
+    }
+
+    private void initConfigTargetDir() {
+        // initialize configuration directory location
+        String path = null;
+        boolean isTomcat = false;
+        boolean isJBoss = false;
+        if (targetServerType != null) {
+            if (targetServerType.startsWith("jboss")) {
+                isJBoss = true;
+                path = "${jahiaWebAppRoot}/../../digital-factory-config.jar/";
+            } else if (targetServerType.startsWith("tomcat")) {
+                isTomcat = true;
+                path = "${jahiaWebAppRoot}/../../digital-factory-config/";
+            }
+        } else {
+            throw new IllegalArgumentException("Externalized configuration is activated,"
+                    + " but the target directory could not be detected. Please, specify it explicitly.");
+        }
+        externalizedConfigTargetPath = JahiaGlobalConfigurator.resolveDataDir(path,
+                getWebappDeploymentDir().getAbsolutePath()).getAbsolutePath();
+        getLog().info("Configuration directory path resolved to: " + externalizedConfigTargetPath);
+        
+        try {
+            if (isTomcat) {
+                adjustCatalinaProperties();
+            } else if (isJBoss) {
+                FileUtils.touch(new File(externalizedConfigTargetPath, "../digital-factory-config.jar.dodeploy"));
+            }
+        } catch (IOException e) {
+            getLog().error(e.getMessage(), e);
+        }
+    }
+
+    private void adjustCatalinaProperties() throws IOException {
+        // check if the catalina.properties have to be adjusted
+        File catalinaProps = new File(targetServerDirectory, "conf/catalina.properties");
+        String content = FileUtils.readFileToString(catalinaProps);
+        if (!content.contains("${catalina.home}/digital-factory-config")) {
+            List<String> lines = IOUtils.readLines(new StringReader(content));
+            List<String> modifiedLines = new LinkedList<String>();
+            for (String line : lines) {
+                modifiedLines.add(line.startsWith("common.loader") ? addPathToCommonLoader(line) : line);
+            }
+            FileWriter fileWriter = new FileWriter(catalinaProps);
+            try {
+                IOUtils.writeLines(modifiedLines, null, fileWriter);
+                fileWriter.flush();
+                getLog().info(
+                        "Adjusted common.loader value in the catalina.properties"
+                                + " to reference digital-factory-config directory");
+            } finally {
+                IOUtils.closeQuietly(fileWriter);
+            }
+        }
+    }
+
+    private static String addPathToCommonLoader(String line) {
+        line = line.trim();
+        if (line.endsWith("\\")) {
+            line = line.substring(0, line.length() - 2) + ",${catalina.home}/digital-factory-config,\\";
+        } else {
+            line = line + ",${catalina.home}/digital-factory-config";
+        }
+        return line;
     }
 
     public String getExternalizedConfigClassifier() {

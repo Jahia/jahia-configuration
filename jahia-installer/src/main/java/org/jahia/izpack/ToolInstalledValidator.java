@@ -89,7 +89,7 @@ public class ToolInstalledValidator implements Validator {
                 if (file.exists() && file.isFile()) {
                     return true;
                 }
-                if (ExternalToolsPanelAction.isWindows()) {
+                if (OsUtils.isWindows()) {
                     file =  new File(tool, name + ".exe");
                     if (file.exists() && file.isFile()) {
                         return true;
@@ -101,7 +101,7 @@ public class ToolInstalledValidator implements Validator {
             String[] names = fileName.split(",");
             for (String name : names) {
                 name = name.trim();
-                if (toolName.equals(name) || ExternalToolsPanelAction.isWindows() && toolName.equals(name + ".exe")) {
+                if (toolName.equals(name) || OsUtils.isWindows() && toolName.equals(name + ".exe")) {
                     return true;
                 }
             }

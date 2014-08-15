@@ -317,7 +317,7 @@ public class DeployMojo extends AbstractManagementMojo {
             getLog().info(
                     "Deploying application server specific files for " + getDeployer().getName() + " in directory "
                             + targetServerDirectory);
-            File targetEarFolder = getDeployer().getDeploymentFilePath("jahia", "ear");
+            File targetEarFolder = getDeployer().getDeploymentFilePath("digitalfactory", "ear");
             getLog().info("Updating EAR resources in " + targetEarFolder);
             int updateFileCount = updateFiles(new File(baseDir, "src/main/resources"), targetEarFolder);
             getLog().info("Updated " + updateFileCount + " resources");

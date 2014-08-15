@@ -89,6 +89,12 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         
         configureScheduler();
         
+        if (jahiaConfigInterface.getJahiaAdvancedProperties() != null) {
+            for (Map.Entry<String, String> entry : jahiaConfigInterface.getJahiaAdvancedProperties().entrySet()) {
+                properties.setProperty(entry.getKey(), entry.getValue());
+            }
+        }
+
         properties.storeProperties(sourceJahiaPath.getInputStream(), targetJahiaPath);
     }
 

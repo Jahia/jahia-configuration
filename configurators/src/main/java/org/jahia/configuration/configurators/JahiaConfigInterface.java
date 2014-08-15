@@ -30,8 +30,6 @@ public interface JahiaConfigInterface {
 
     String getDb_script();
 
-    String getExternalConfigPath();
-
     /**
      * The LDAP group manager provider options, including LDAP directory URL, bind DN and password, search attributes, field mapping etc.
      * 
@@ -40,7 +38,7 @@ public interface JahiaConfigInterface {
     Map<String, String> getGroupLdapProviderProperties();
 
     /**
-     * Additional properties, that will be used in jahia.advanced.properties. This object covers properties, which have no direct setter in
+     * Additional properties, that will be used in jahia.properties. This object covers properties, which have no direct setter in
      * {@link JahiaConfigInterface} object.
      * 
      * @return a map with additional advanced Jahia properties

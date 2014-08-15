@@ -53,7 +53,7 @@ import org.jahia.configuration.deployers.AbstractServerDeploymentImpl;
  */
 public class JBossServerDeploymentImpl extends AbstractServerDeploymentImpl {
 
-    private static final String JAHIA_EAR_DIR_NAME = "jahia.ear";
+    private static final String JAHIA_EAR_DIR_NAME = "digitalfactory.ear";
 
     private static final String JAHIA_WAR_DIR_NAME = "jahia.war";
 

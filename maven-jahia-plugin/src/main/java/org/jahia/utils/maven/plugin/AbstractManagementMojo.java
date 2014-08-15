@@ -44,7 +44,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.commons.io.FileUtils;
-import org.codehaus.plexus.util.StringUtils;
 import org.jahia.configuration.configurators.JahiaGlobalConfigurator;
 import org.jahia.configuration.deployers.ServerDeploymentFactory;
 import org.jahia.configuration.deployers.ServerDeploymentInterface;
@@ -132,7 +131,7 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
 
     private ServerDeploymentInterface deployer;
 
-	private File webappDeploymentDir;
+    private File webappDeploymentDir;
     
     public void execute() throws MojoExecutionException, MojoFailureException {
         doValidate();
@@ -204,7 +203,6 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
         return cnt;
     }
 
-
     protected String getWebappDeploymentDirName() {
         String dirName = getDeployer().getWebappDeploymentDirNameOverride();
         return dirName != null ? dirName : (webAppDirName != null ? webAppDirName : "jahia");
@@ -214,47 +212,42 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
      * Get the folder on the application server where the jahia webapp is unpacked
      */
     protected File getWebappDeploymentDir() {
-		if (webappDeploymentDir == null) {
-			webappDeploymentDir = getDeployer().getDeploymentDirPath(
-					getWebappDeploymentDirName(), "war");
-		}
-		return webappDeploymentDir;
+        if (webappDeploymentDir == null) {
+            webappDeploymentDir = getDeployer().getDeploymentDirPath(getWebappDeploymentDirName(), "war");
+        }
+        return webappDeploymentDir;
     }
 
     protected ServerDeploymentInterface getDeployer() {
         if (deployer == null) {
-			deployer = ServerDeploymentFactory.getImplementation(
-					targetServerType, targetServerVersion, new File(
-							targetServerDirectory), null, null);
+            deployer = ServerDeploymentFactory.getImplementation(targetServerType, targetServerVersion, new File(
+                    targetServerDirectory), null, null);
         }
         return deployer;
     }
-    
-	protected File getDataDir() {
-		if (dataDir == null) {
-			dataDir = JahiaGlobalConfigurator.resolveDataDir(
-					getJahiaVarDiskPath(), getWebappDeploymentDir()
-							.getAbsolutePath());
-			getLog().info("Data directory path resolved to: " + dataDir);
-		}
 
-		return dataDir;
-	}
+    protected File getDataDir() {
+        if (dataDir == null) {
+            dataDir = JahiaGlobalConfigurator.resolveDataDir(getJahiaVarDiskPath(), getWebappDeploymentDir()
+                    .getAbsolutePath());
+            getLog().info("Data directory path resolved to: " + dataDir);
+        }
 
-	public String getJahiaVarDiskPath() {
-		if (jahiaVarDiskPath == null) {
-			jahiaVarDiskPath = "${jahiaWebAppRoot}/WEB-INF/var/";
-			if (targetServerType != null) {
-				if (targetServerType.startsWith("jboss")) {
-					jahiaVarDiskPath = "${jahiaWebAppRoot}/../../../data/digital-factory-data/";
-				} else if (targetServerType.startsWith("tomcat")) {
-					jahiaVarDiskPath = "${jahiaWebAppRoot}/../../digital-factory-data/";
-				}
-			}
-			getLog().info(
-					"Data directory path is set to \"" + jahiaVarDiskPath
-							+ "\".");
-		}
-		return jahiaVarDiskPath;
-	}
+        return dataDir;
+    }
+
+    public String getJahiaVarDiskPath() {
+        if (jahiaVarDiskPath == null) {
+            jahiaVarDiskPath = "${jahiaWebAppRoot}/WEB-INF/var/";
+            if (targetServerType != null) {
+                if (targetServerType.startsWith("jboss")) {
+                    jahiaVarDiskPath = "${jahiaWebAppRoot}/../../../data/digital-factory-data/";
+                } else if (targetServerType.startsWith("tomcat")) {
+                    jahiaVarDiskPath = "${jahiaWebAppRoot}/../../digital-factory-data/";
+                }
+            }
+            getLog().info("Data directory path is set to \"" + jahiaVarDiskPath + "\".");
+        }
+        return jahiaVarDiskPath;
+    }
 }
