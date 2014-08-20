@@ -369,7 +369,7 @@ public class JahiaGlobalConfigurator {
             File cliFile = new File(jahiaConfigInterface.getTargetServerDirectory(), "bin/jahia-config.cli");
             if (cliFile.exists()) {
                 configurator.writeCLIConfiguration(cliFile, null);
-                configurator.writeCLIConfiguration(new File(jahiaConfigInterface.getTargetServerDirectory(), "bin/jahia-config-domain.cli"), "/profile=default");
+                configurator.writeCLIConfiguration(new File(jahiaConfigInterface.getTargetServerDirectory(), "bin/jahia-config-domain.cli"), "default");
             }
         }
         configurator.updateDriverModule();
