@@ -138,7 +138,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
                         + "."
                         + (!storeFilesInDB ? " File data store path: "
                                 + (StringUtils.isNotEmpty(fileDataStorePath) ? fileDataStorePath
-                                        : "${rep.home}/datastore") + "." : ""));
+                                        : "${jahia.jackrabbit.datastore.path}") + "." : ""));
 
             if (storeFilesInDB) {
                 // We will use the DB-based data store
@@ -163,7 +163,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
                     store.addContent(new Element("param").setAttribute("name", "copyWhenReading")
                             .setAttribute("value", "true"));
                     store.addContent(new Element("param").setAttribute("name", "minRecordLength")
-                            .setAttribute("value", "4096"));
+                            .setAttribute("value", "1024"));
                     repositoryElement.addContent(store);
                 }
             } else {
@@ -182,7 +182,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
                     store = new Element("DataStore", namespace);
                     store.setAttribute("class", "org.apache.jackrabbit.core.data.FileDataStore");
                     store.addContent(new Element("param").setAttribute("name", "minRecordLength")
-                            .setAttribute("value", "4096"));
+                            .setAttribute("value", "1024"));
                     pathParam = new Element("param").setAttribute("name", "path").setAttribute("value", "");
                     store.addContent(pathParam);
                     repositoryElement.addContent(store);
@@ -193,7 +193,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
                     pathParam.setAttribute("value", fileDataStorePath);
                 }
                 if (StringUtils.isEmpty(pathParam.getAttributeValue("value"))) {
-                    pathParam.setAttribute("value", "${rep.home}/datastore");
+                    pathParam.setAttribute("value", "${jahia.jackrabbit.datastore.path}");
                 }
             }
     }
