@@ -77,6 +77,13 @@ public class DependenciesMojo extends AbstractMojo {
     protected List<String> excludeFromDirectoryScan = new ArrayList<String>();
 
     /**
+     * @parameter
+     */
+    protected List<String> excludedJarEntries;
+
+    protected List<Pattern> excludedJarEntryPatterns;
+
+    /**
      * @parameter default-value="${project.build.outputDirectory}"
      */
     protected String projectOutputDirectory;
@@ -393,6 +400,13 @@ public class DependenciesMojo extends AbstractMojo {
         } else {
             getLog().info("No artifact exclusions specified. Will scan all related dependencies of the project.");
         }
+        
+        if (excludedJarEntries != null && excludedJarEntries.size() > 0) {
+            excludedJarEntryPatterns = new LinkedList<Pattern>();
+            for (String p : excludedJarEntries) {
+                excludedJarEntryPatterns.add(Pattern.compile(p.trim()));
+            }
+        }
     }
 
     private int scanDependencies(ParsingContext parsingContext) throws IOException {
@@ -482,6 +496,10 @@ public class DependenciesMojo extends AbstractMojo {
                         || entryName.endsWith("/pom.xml")) {
                     continue;
                 }
+                
+                if (excludeJarEntry(entryName)) {
+                    continue;
+                }
                 ByteArrayOutputStream entryOutputStream = new ByteArrayOutputStream();
                 IOUtils.copy(jarInputStream, entryOutputStream);
                 if ("tld".equals(ext)) {
@@ -522,6 +540,18 @@ public class DependenciesMojo extends AbstractMojo {
         }
         
         return scanned;
+    }
+
+    private boolean excludeJarEntry(String entryName) {
+        if (excludedJarEntryPatterns != null) {
+            for (Pattern p : excludedJarEntryPatterns) {
+                if (p.matcher(entryName).matches()) {
+                    getLog().info("Matched JAR entry exclusion pattern for entry " + entryName);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void processDirectoryTlds(File directoryFile, ParsingContext parsingContext) throws IOException {
