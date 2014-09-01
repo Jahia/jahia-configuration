@@ -542,6 +542,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             }
             if (exclusionMatched != null) {
                 getLog().info("Matched exclusion " + exclusionMatched + ", ignoring artifact.");
+                continue;
             }
 
             if (artifact.getScope().contains(Artifact.SCOPE_PROVIDED) ||
