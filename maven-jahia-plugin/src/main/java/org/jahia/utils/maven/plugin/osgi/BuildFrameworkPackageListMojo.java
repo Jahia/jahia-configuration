@@ -1,41 +1,35 @@
 package org.jahia.utils.maven.plugin.osgi;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.maven.RepositoryUtils;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.DirectoryScanner;
-import org.eclipse.osgi.util.ManifestElement;
-import org.jahia.utils.maven.plugin.SLF4JLoggerToMojoLogBridge;
-import org.jahia.utils.osgi.PropertyFileUtils;
-import org.sonatype.aether.RepositorySystem;
-import org.sonatype.aether.RepositorySystemSession;
-import org.sonatype.aether.collection.CollectRequest;
-import org.sonatype.aether.collection.DependencyCollectionException;
-import org.sonatype.aether.graph.Dependency;
-import org.sonatype.aether.graph.DependencyNode;
-import org.sonatype.aether.graph.DependencyVisitor;
-import org.sonatype.aether.repository.RemoteRepository;
-import org.sonatype.aether.resolution.ArtifactRequest;
-import org.sonatype.aether.resolution.DependencyRequest;
-import org.sonatype.aether.resolution.DependencyResolutionException;
-import org.sonatype.aether.util.artifact.DefaultArtifact;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.codehaus.plexus.util.DirectoryScanner;
+import org.eclipse.osgi.util.ManifestElement;
+import org.jahia.utils.maven.plugin.AetherAwareMojo;
+import org.jahia.utils.maven.plugin.SLF4JLoggerToMojoLogBridge;
+import org.jahia.utils.osgi.PropertyFileUtils;
 
 /**
  * This maven goal will build the list of system packages that is exposed by the OSGi framework by default.
@@ -49,10 +43,11 @@ import java.util.regex.Pattern;
  * @goal build-framework-package-list
  * @requiresDependencyResolution test
  */
-public class BuildFrameworkPackageListMojo extends AbstractMojo {
+public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
 
     public static final String VERSION_NUMBER_PATTERN_STRING = "([\\d\\.]*\\d)(.*)";
-    private static final Pattern VERSION_NUMBER_PATTERN = Pattern.compile(VERSION_NUMBER_PATTERN_STRING);
+    //private static final Pattern VERSION_NUMBER_PATTERN = Pattern.compile(VERSION_NUMBER_PATTERN_STRING);
+    
     /**
      * Clean up version parameters. Other builders use more fuzzy definitions of
      * the version syntax. This method cleans up such a version to match an OSGi
@@ -134,41 +129,10 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
     protected boolean outputPackagesWithNoVersions = true;
 
     /**
-     * @parameter expression="${project}"
-     * @readonly
-     * @required
-     */
-    protected MavenProject project;
-
-    /**
-     * The entry point to Aether, i.e. the component doing all the work.
-     *
-     * @component
-     */
-    private RepositorySystem repoSystem;
-
-    /**
-     * The current repository/network configuration of Maven.
-     *
-     * @parameter default-value="${repositorySystemSession}"
-     * @readonly
-     */
-    private RepositorySystemSession repoSession;
-
-    /**
-     * The project's remote repositories to use for the resolution of plugins and their dependencies.
-     *
-     * @parameter default-value="${project.remotePluginRepositories}"
-     * @readonly
-     */
-    private List<RemoteRepository> remoteRepos;
-
-    /**
      * @parameter default-value="org.osgi.framework.system.packages.extra"
      */
     protected String propertyFilePropertyName = "org.osgi.framework.system.packages.extra";
 
-    private Map<String, DependencyNode> resolvedDependencyNodes = new HashMap<String, DependencyNode>();
     private List<Pattern> artifactExclusionPatterns = new ArrayList<Pattern>();
     private List<Pattern> packageExclusionPatterns = new ArrayList<Pattern>();
 
@@ -184,6 +148,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
             this.specificationVersion = specificationVersion;
         }
 
+        @SuppressWarnings("unused")
         public String getLocation() {
             return location;
         }
@@ -338,7 +303,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         if (artifactExcludes == null) {
             // We put the default value here because of bug http://jira.codehaus.org/browse/MNG-5440
             String[] artifactExcludesArray = ARTIFACT_EXCLUDE_DEFAULT_VALUE.split(",");
-            artifactExcludes = new ArrayList(Arrays.asList(artifactExcludesArray));
+            artifactExcludes = new ArrayList<String>(Arrays.asList(artifactExcludesArray));
         }
         for (String artifactExclude : artifactExcludes) {
             int colonPos = artifactExclude.indexOf(":");
@@ -362,7 +327,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         if (packageExcludes == null) {
             // We put the default value here because of bug http://jira.codehaus.org/browse/MNG-5440
             String[] packageExcludesArray = PACKAGE_EXCLUDE_DEFAULT_VALUE.split(",");
-            packageExcludes = new ArrayList(Arrays.asList(packageExcludesArray));
+            packageExcludes = new ArrayList<String>(Arrays.asList(packageExcludesArray));
         }
         for (String packageExclude : packageExcludes) {
             String packageExcludePattern = packageExclude;
@@ -668,7 +633,7 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         packageVersionCounts.put(packageName, versionLocations);
     }
 
-    private void scanJarDirectories(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException {
+    private void scanJarDirectories(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException, MojoExecutionException {
         if (jarDirectories == null || jarDirectories.size() == 0) {
             return;
         }
@@ -690,11 +655,12 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
                 String version = null;
                 File includedFileFile = new File(jarDirectoryFile, includeFile);
                 String artifactFileName = includedFileFile.getName();
-                Set<Artifact> relatedArtifacts = findArtifactsByArtifactId(artifactFileName);
-                if (relatedArtifacts.size() > 1) {
+                List<String> versions = getAetherHelper().getDependencyVersion(project, artifactFileName);
+                
+                if (versions.size() > 1) {
                     getLog().warn("multiple matching dependencies found for artifactId " + artifactFileName);
-                } else if (relatedArtifacts.size() == 1) {
-                    version = relatedArtifacts.iterator().next().getBaseVersion();
+                } else if (versions.size() == 1) {
+                    version = versions.iterator().next();
                 } else {
                     getLog().warn("Couldn't find dependency for artifactId " + artifactFileName);
                     // @todo let's try to extract the version from the file name.
@@ -705,97 +671,9 @@ public class BuildFrameworkPackageListMojo extends AbstractMojo {
         }
     }
 
-    private Set<Artifact> findArtifactsByArtifactId(String artifactId) {
-        Set<Artifact> resultArtifacts = new HashSet<Artifact>();
-        if (project == null) {
-            return resultArtifacts;
-        }
-        if (StringUtils.isEmpty(artifactId)) {
-            return resultArtifacts;
-        }
-        Set<Artifact> artifacts = project.getArtifacts();
-        for (Artifact artifact : artifacts) {
-            if (artifact.getType().equals("war")) {
-                // we have a WAR dependency, we will look in that project dependencies seperately since it is not
-                // directly transitive.
-                Set<Artifact> warArtifacts = findInWarDependencies(artifact, artifactId);
-                if (warArtifacts.size() > 0) {
-                    resultArtifacts.addAll(warArtifacts);
-                }
-            } else if (artifact.getFile().getName().equals(artifactId)) {
-                resultArtifacts.add(artifact);
-            }
-        }
-        /*
-        if (resultArtifacts.size() == 0) {
-            getLog().warn("Couldn't find " + artifactId + ". Searched in: ");
-            for (Artifact artifact : artifacts) {
-                getLog().warn("- " + artifact.getGroupId() + ":" + artifact.getArtifactId() + " at " + artifact.getFile());
-            }
-        }
-        */
-        return resultArtifacts;
-    }
+    
 
-    private Set<Artifact> findInWarDependencies(Artifact warArtifact, final String artifactId) {
-        final Set<Artifact> matchingArtifacts = new HashSet<Artifact>();
-        String artifactCoords = warArtifact.getGroupId() + ":" + warArtifact.getArtifactId() + ":" + warArtifact.getType() + ":" + warArtifact.getBaseVersion();
-        DependencyNode node = null;
-        if (resolvedDependencyNodes.containsKey(artifactCoords)) {
-            node = resolvedDependencyNodes.get(artifactCoords);
-        }
-
-        if (node == null) {
-            try {
-
-                getLog().info("Resolving artifact " + artifactCoords + "...");
-                ArtifactRequest request = new ArtifactRequest();
-                request.setArtifact(
-                        new DefaultArtifact(artifactCoords));
-                request.setRepositories(remoteRepos);
-
-                Dependency dependency =
-                        new Dependency(new DefaultArtifact(artifactCoords), "compile");
-
-                CollectRequest collectRequest = new CollectRequest();
-                collectRequest.setRoot(dependency);
-                collectRequest.setRepositories(remoteRepos);
-
-                node = repoSystem.collectDependencies(repoSession, collectRequest).getRoot();
-
-                DependencyRequest dependencyRequest = new DependencyRequest(node, null);
-
-                repoSystem.resolveDependencies(repoSession, dependencyRequest);
-
-                resolvedDependencyNodes.put(artifactCoords, node);
-
-            } catch (DependencyCollectionException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            } catch (DependencyResolutionException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            }
-        }
-
-        if (node != null) {
-            node.accept(new DependencyVisitor() {
-                @Override
-                public boolean visitEnter(DependencyNode node) {
-                    if (node.getDependency().getArtifact().getFile().getName().equals(artifactId)) {
-                        matchingArtifacts.add(RepositoryUtils.toArtifact(node.getDependency().getArtifact()));
-                    }
-                    return true;
-                }
-
-                @Override
-                public boolean visitLeave(DependencyNode node) {
-                    return true;
-                }
-            });
-
-        }
-        return matchingArtifacts;
-
-    }
+    
 
     // The following code was copied from the Maven Bundle Plugin code.
 /*

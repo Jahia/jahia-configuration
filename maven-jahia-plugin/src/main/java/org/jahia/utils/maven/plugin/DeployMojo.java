@@ -62,22 +62,21 @@ import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
 import org.apache.maven.artifact.resolver.ArtifactCollector;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.shared.dependency.tree.DependencyNode;
 import org.apache.maven.shared.dependency.tree.DependencyTreeBuilder;
 import org.apache.maven.shared.dependency.tree.DependencyTreeBuilderException;
+import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.codehaus.plexus.util.SelectorUtils;
 import org.jahia.configuration.deployers.ServerDeploymentInterface;
 import org.jahia.configuration.modules.ModuleDeployer;
-import org.sonatype.aether.RepositorySystem;
-import org.sonatype.aether.RepositorySystemSession;
-import org.sonatype.aether.repository.RemoteRepository;
-import org.sonatype.aether.resolution.ArtifactRequest;
-import org.sonatype.aether.resolution.ArtifactResult;
+import org.jahia.utils.maven.plugin.support.AetherHelper;
+import org.jahia.utils.maven.plugin.support.AetherHelperFactory;
 
 import com.sun.jdi.Bootstrap;
 import com.sun.jdi.ReferenceType;
@@ -142,29 +141,24 @@ public class DeployMojo extends AbstractManagementMojo {
      */
     private boolean deployTests;
 
+    private AetherHelper aetherHelper;
+
     /**
-     * The entry point to Aether, i.e. the component doing all the work.
-     *
      * @component
-     */
-    private RepositorySystem repoSystem;
-
-    /**
-     * The current repository/network configuration of Maven.
-     *
-     * @parameter default-value="${repositorySystemSession}"
+     * @required
      * @readonly
      */
-    private RepositorySystemSession repoSession;
-
+    private PlexusContainer container;
+    
     /**
-     * The project's remote repositories to use for the resolution of plugins and their dependencies.
+     * The current build session instance.
      *
-     * @parameter default-value="${project.remoteProjectRepositories}"
+     * @parameter expression="${session}"
+     * @required
      * @readonly
      */
-    private List<RemoteRepository> remoteRepos;
-
+    private MavenSession mavenSession;
+    
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
             if (targetServerDirectory != null) {
@@ -509,16 +503,9 @@ public class DeployMojo extends AbstractManagementMojo {
 						localRepository);
 				file = artifact.getFile();
 			} else {
-				ArtifactRequest request = new ArtifactRequest();
-				request.setArtifact(new org.sonatype.aether.util.artifact.DefaultArtifact(
-						project.getGroupId() + ":" + project.getArtifactId()
-								+ ":zip:package:"
-								+ project.getArtifact().getVersion()));
-				request.setRepositories(remoteRepos);
-				getLog().info("Resolving " + request.getArtifact() + "...");
-				ArtifactResult result = repoSystem.resolveArtifact(repoSession,
-						request);
-				file = result.getArtifact().getFile();
+				file = getAetherHelper().resolveArtifactFile(project.getGroupId() + ":" + project.getArtifactId()
+                        + ":zip:package:"
+                        + project.getArtifact().getVersion());
 			}
 			getLog().info("...resolved to: " + file);
 
@@ -541,27 +528,18 @@ public class DeployMojo extends AbstractManagementMojo {
 		}
 	}
 
-	private File resolveArtifactFile(Artifact artifact)
-			throws org.sonatype.aether.resolution.ArtifactResolutionException {
+	private File resolveArtifactFile(Artifact artifact) throws MojoExecutionException {
 		File file = null;
 		getLog().info("Resolving artifact file...");
-
-		ArtifactRequest request = new ArtifactRequest();
-		request.setArtifact(new org.sonatype.aether.util.artifact.DefaultArtifact(
-				artifact.getGroupId()
-						+ ":"
-						+ artifact.getArtifactId()
-						+ ":"
-						+ artifact.getType()
-						+ ":"
-						+ (StringUtils.isNotEmpty(artifact.getClassifier()) ? (artifact
-								.getClassifier() + ":") : "")
-						+ artifact.getVersion()));
-		request.setRepositories(remoteRepos);
-		getLog().info("Resolving " + request.getArtifact() + "...");
-		ArtifactResult result = repoSystem
-				.resolveArtifact(repoSession, request);
-		file = result.getArtifact().getFile();
+		file = getAetherHelper().resolveArtifactFile(artifact.getGroupId()
+                        + ":"
+                        + artifact.getArtifactId()
+                        + ":"
+                        + artifact.getType()
+                        + ":"
+                        + (StringUtils.isNotEmpty(artifact.getClassifier()) ? (artifact
+                                .getClassifier() + ":") : "")
+                        + artifact.getVersion());
 		getLog().info("...resolved to: " + file);
 		return file;
 	}
@@ -805,6 +783,13 @@ public class DeployMojo extends AbstractManagementMojo {
         } catch (Exception e) {
             getLog().warn("Cannot reload classes : "+ e.getMessage());
         }
+    }
+
+    public AetherHelper getAetherHelper() throws MojoExecutionException {
+        if (aetherHelper == null) {
+            aetherHelper = AetherHelperFactory.create(container, project, mavenSession, getLog());
+        }
+        return aetherHelper;
     }
 
 }
