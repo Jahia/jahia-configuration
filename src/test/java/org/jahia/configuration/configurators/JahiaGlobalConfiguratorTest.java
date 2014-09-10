@@ -100,7 +100,6 @@ public class JahiaGlobalConfiguratorTest extends TestCase {
             InputStream jahiaPropsInputStream = configJarFile.getInputStream(jahiaPropertiesJarEntry);
             Properties jahiaProperties = new Properties();
             jahiaProperties.load(jahiaPropsInputStream);
-            System.out.println(jahiaProperties);
             assertEquals("Tool manager is not set", "toolmgr", jahiaProperties.get("jahiaToolManagerUsername"));
         } finally {
             configJarFile.close();
