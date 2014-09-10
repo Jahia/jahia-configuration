@@ -44,15 +44,14 @@ public class PropertiesManagerTest extends TestCase {
     public void testLoadBasicCase() throws IOException {
         PropertiesManager propertiesManager = new PropertiesManager(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry));
 
-//        propertiesManager.setProperty("server", "testServerValue");
+        propertiesManager.setProperty("jahiaToolManagerUsername", "toolmgr");
         propertiesManager.setProperty("testPropertyName", "testPropertyValue");
         propertiesManager.storeProperties(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile.getPath());
 
         Properties testProperties = new Properties();
         testProperties.load(new FileInputStream(jahiaTargetPropertiesFile));
-//        assertEquals("Server property does not have proper value", "testServerValue", testProperties.getProperty("server"));
+        assertEquals("Tool manager value is not properly set", "toolmgr", testProperties.getProperty("jahiaToolManagerUsername"));
         assertEquals("Test property does not have proper value", "testPropertyValue", testProperties.getProperty("testPropertyName"));
-        //assertEquals("Server version property (serverVersion) doesn't have default value !", "", testProperties.getProperty("serverVersion"));
     }
 
     public void testCommentingCase() throws IOException {

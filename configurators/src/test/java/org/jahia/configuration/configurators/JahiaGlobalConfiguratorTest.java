@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.jar.JarEntry;
@@ -83,26 +82,29 @@ public class JahiaGlobalConfiguratorTest extends TestCase {
         websphereDerbyConfigBean.setExternalizedConfigFinalName("jahia-externalized-config");
         websphereDerbyConfigBean.setJeeApplicationLocation(configuratorsFile.toString());
         websphereDerbyConfigBean.setJeeApplicationModuleList("jahia-war:web:jahia.war:jahia,portlet-testsuite:web:websphere-testsuite.war:testsuite,java-example:java:somecode.jar");
+        websphereDerbyConfigBean.setJahiaToolManagerUsername("toolmgr");
 
         JahiaGlobalConfigurator jahiaGlobalConfigurator = new JahiaGlobalConfigurator(new SLF4JLogger(logger), websphereDerbyConfigBean);
         jahiaGlobalConfigurator.execute();
 
         File configFile = new File(configuratorsFile, "jahia-externalized-config-jahiaServer1.jar");
         JarFile configJarFile = new JarFile(configFile);
-        // assertNotNull("Missing LDAP configuration file in jahia-config.jar file!", configJarFile.getEntry("jahia/applicationcontext-ldap-config.xml"));
-        JarEntry licenseJarEntry = configJarFile.getJarEntry("jahia/license.xml");
-        assertNotNull("Missing license file in jahia-externalized-config-jahiaServer1.jar file!", licenseJarEntry);
-        JarEntry jahiaPropertiesJarEntry = configJarFile.getJarEntry("jahia/jahia.jahiaServer1.properties");
-        assertNotNull("Missing jahia.jahiaServer1.properties file in jahia-externalized-config-jahiaServer1.jar file!", jahiaPropertiesJarEntry);
-        JarEntry jahiaAdvancedPropertiesJarEntry = configJarFile.getJarEntry("jahia/jahia.node.jahiaServer1.properties");
-        assertNotNull("Missing jahia.node.jahiaServer1.properties file in jahia-externalized-config-jahiaServer1.jar file!", jahiaAdvancedPropertiesJarEntry);
-
-        InputStream jahiaPropsInputStream = configJarFile.getInputStream(jahiaPropertiesJarEntry);
-        Properties jahiaProperties = new Properties();
-        jahiaProperties.load(jahiaPropsInputStream);
-//        assertEquals("Server value not correct", "was", jahiaProperties.get("server"));
-//        assertEquals("Server version value not correct", "6.1.0.25", jahiaProperties.get("serverVersion"));
-
+        try {
+            JarEntry licenseJarEntry = configJarFile.getJarEntry("jahia/license.xml");
+            assertNotNull("Missing license file in jahia-externalized-config-jahiaServer1.jar file!", licenseJarEntry);
+            JarEntry jahiaPropertiesJarEntry = configJarFile.getJarEntry("jahia/jahia.jahiaServer1.properties");
+            assertNotNull("Missing jahia.jahiaServer1.properties file in jahia-externalized-config-jahiaServer1.jar file!", jahiaPropertiesJarEntry);
+            JarEntry jahiaAdvancedPropertiesJarEntry = configJarFile.getJarEntry("jahia/jahia.node.jahiaServer1.properties");
+            assertNotNull("Missing jahia.node.jahiaServer1.properties file in jahia-externalized-config-jahiaServer1.jar file!", jahiaAdvancedPropertiesJarEntry);
+    
+            InputStream jahiaPropsInputStream = configJarFile.getInputStream(jahiaPropertiesJarEntry);
+            Properties jahiaProperties = new Properties();
+            jahiaProperties.load(jahiaPropsInputStream);
+            System.out.println(jahiaProperties);
+            assertEquals("Tool manager is not set", "toolmgr", jahiaProperties.get("jahiaToolManagerUsername"));
+        } finally {
+            configJarFile.close();
+        }
         // The following tests are NOT exhaustive
         SAXBuilder saxBuilder = new SAXBuilder();
         saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
