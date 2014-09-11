@@ -63,7 +63,8 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
 
     private static final String BACKGROUND_VALIDATION_MILLIS = "600000";
 
-    private static final Namespace DS_NS = Namespace.getNamespace("urn:jboss:domain:datasources:1.1");
+    private static final Namespace DS_NS_62 = Namespace.getNamespace("urn:jboss:domain:datasources:1.1");
+    private static final Namespace DS_NS_63 = Namespace.getNamespace("urn:jboss:domain:datasources:1.2");
 
     private static final Map<String, String> EXCEPTION_SORTERS;
 
@@ -73,7 +74,8 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
 
     private static final String MIN_POOL_SIZE = "10";
 
-    private static final Namespace WEB_NS = Namespace.getNamespace("urn:jboss:domain:web:1.5");
+    private static final Namespace WEB_NS_62 = Namespace.getNamespace("urn:jboss:domain:web:1.5");
+    private static final Namespace WEB_NS_63 = Namespace.getNamespace("urn:jboss:domain:web:2.1");
 
     static {
         EXCEPTION_SORTERS = new HashMap<String, String>(6);
@@ -91,6 +93,12 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
     private String dbType;
 
     private ServerDeploymentInterface deployer;
+    
+    private boolean isJBoss63;
+    
+    private Namespace datasourceNs;
+    
+    private Namespace webNs;
 
     public JBossConfigurator(Map<?, ?> dbProperties, JahiaConfigInterface jahiaConfigInterface,
             ServerDeploymentInterface deployer, AbstractLogger logger) {
@@ -100,9 +108,14 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
     }
 
     private void configureConnector(Element profile) {
-        Element web = profile.getChild("subsystem", WEB_NS);
+        Namespace ns = WEB_NS_62;
+        Element web = profile.getChild("subsystem", ns);
+        if (web == null) {
+            ns = WEB_NS_63;
+            web = profile.getChild("subsystem", ns);
+        }
         if (web != null) {
-            for (Object child : web.getChildren("connector", WEB_NS)) {
+            for (Object child : web.getChildren("connector", ns)) {
                 Element connector = (Element) child;
                 Attribute name = connector.getAttribute("name");
                 if (name != null && "http".equals(name.getValue())) {
@@ -113,9 +126,9 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
     }
 
     private void configureDatasource(Element datasources) throws JDOMException {
-        Element ds = getElement(datasources, "xp:datasource[@jndi-name=\"java:/jahiaDS\"]", DS_NS.getURI());
+        Element ds = getElement(datasources, "xp:datasource[@jndi-name=\"java:/jahiaDS\"]", datasourceNs.getURI());
         if (ds == null) {
-            ds = new Element("datasource", DS_NS).setAttribute("jndi-name", "java:/jahiaDS")
+            ds = new Element("datasource", datasourceNs).setAttribute("jndi-name", "java:/jahiaDS")
                     .setAttribute("pool-name", "jahiaDS").setAttribute("enabled", "true")
                     .setAttribute("use-java-context", "true");
             datasources.addContent(0, ds);
@@ -143,18 +156,18 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
 
     private void configureDriver(Element datasources) throws JDOMException {
         Element drivers = getChildCreate(datasources, "drivers");
-        Element driver = getElement(drivers, "xp:driver[@name=\"jahia." + dbType + "\"]", DS_NS.getURI());
+        Element driver = getElement(drivers, "xp:driver[@name=\"jahia." + dbType + "\"]", datasourceNs.getURI());
         if (driver == null) {
-            driver = new Element("driver", DS_NS).setAttribute("name", "jahia." + dbType).setAttribute("module",
+            driver = new Element("driver", datasourceNs).setAttribute("name", "jahia." + dbType).setAttribute("module",
                     "org.jahia.jdbc." + dbType);
             drivers.addContent(driver);
         }
     }
 
     private void disableDefaultWelcomeWebApp(Element profile) {
-        Element web = profile.getChild("subsystem", WEB_NS);
+        Element web = profile.getChild("subsystem", webNs);
         if (web != null) {
-            Element virtualServer = web.getChild("virtual-server", WEB_NS);
+            Element virtualServer = web.getChild("virtual-server", webNs);
             if (virtualServer != null) {
                 virtualServer.setAttribute("enable-welcome-root", "false");
             }
@@ -162,9 +175,9 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
     }
 
     private Element getChildCreate(Element parent, String childName) {
-        Element child = parent.getChild(childName, DS_NS);
+        Element child = parent.getChild(childName, datasourceNs);
         if (child == null) {
-            child = new Element(childName, DS_NS);
+            child = new Element(childName, datasourceNs);
             parent.addContent(child);
         }
         return child;
@@ -217,6 +230,10 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
             org.jdom.Document jdomDocument = saxBuilder.build(fileReader);
 
             Element root = jdomDocument.getRootElement();
+            isJBoss63 = root.getNamespace().getURI().equals("urn:jboss:domain:1.6");
+            getLogger().info("Detected JBoss EAP version " + (isJBoss63 ? "6.3.x" : "6.2.x"));
+            datasourceNs = isJBoss63 ? DS_NS_63 : DS_NS_62;
+            webNs = isJBoss63 ? WEB_NS_63 : WEB_NS_62;
             Element profile = getProfile(root, sourceConfigFile);
             Element datasources = getChildCreate(getChildCreate(profile, "subsystem"), "datasources");
 
