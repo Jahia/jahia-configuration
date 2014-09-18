@@ -243,7 +243,10 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
                 if (targetServerType.startsWith("jboss")) {
                     jahiaVarDiskPath = "${jahiaWebAppRoot}/../../../data/digital-factory-data/";
                 } else if (targetServerType.startsWith("tomcat")) {
-                    jahiaVarDiskPath = "${jahiaWebAppRoot}/../../digital-factory-data/";
+                    jahiaVarDiskPath = JahiaGlobalConfigurator.resolveDataDir(
+                            "${jahiaWebAppRoot}/../../../digital-factory-data/",
+                            getWebappDeploymentDir().getAbsolutePath()).isDirectory() ? "${jahiaWebAppRoot}/../../../digital-factory-data/"
+                            : "${jahiaWebAppRoot}/../../digital-factory-data/";
                 }
             }
             getLog().info("Data directory path is set to \"" + jahiaVarDiskPath + "\".");
