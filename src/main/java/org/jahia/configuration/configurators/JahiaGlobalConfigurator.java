@@ -93,37 +93,37 @@ public class JahiaGlobalConfigurator {
         return valueList;
     }
     
-	public static File resolveDataDir(String dataDirPath,
-			String targetWebappDirPath) {
-		File dataDir = null;
-		if (dataDirPath.indexOf('$') != -1) {
-			Map<String, String> sysProps = new HashMap<String, String>();
-			String webappPath = targetWebappDirPath;
-			sysProps.put("jahiaWebAppRoot", webappPath);
-			if (dataDirPath.contains("$context")) {
-				sysProps.put("context", webappPath);
-			}
-			for (Map.Entry<Object, Object> el : System.getProperties()
-					.entrySet()) {
-				sysProps.put(String.valueOf(el.getKey()),
-						String.valueOf(el.getValue()));
-			}
-			dataDirPath = StringUtils.interpolate(dataDirPath, sysProps);
-		}
-		try {
-			dataDir = new File(dataDirPath).getCanonicalFile();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-		if (!dataDir.exists()) {
-			if (!dataDir.mkdirs()) {
-				throw new RuntimeException(
-						"Unable to create target directory: " + dataDir);
-			}
-		}
+    public static File resolveDataDir(String dataDirPath, String targetWebappDirPath) {
+        return resolveDataDir(dataDirPath, targetWebappDirPath, true);
+    }
 
-		return dataDir;
-	}
+    public static File resolveDataDir(String dataDirPath, String targetWebappDirPath, boolean doCreate) {
+        File dataDir = null;
+        if (dataDirPath.indexOf('$') != -1) {
+            Map<String, String> sysProps = new HashMap<String, String>();
+            String webappPath = targetWebappDirPath;
+            sysProps.put("jahiaWebAppRoot", webappPath);
+            if (dataDirPath.contains("$context")) {
+                sysProps.put("context", webappPath);
+            }
+            for (Map.Entry<Object, Object> el : System.getProperties().entrySet()) {
+                sysProps.put(String.valueOf(el.getKey()), String.valueOf(el.getValue()));
+            }
+            dataDirPath = StringUtils.interpolate(dataDirPath, sysProps);
+        }
+        try {
+            dataDir = new File(dataDirPath).getCanonicalFile();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        if (doCreate && !dataDir.exists()) {
+            if (!dataDir.mkdirs()) {
+                throw new RuntimeException("Unable to create target directory: " + dataDir);
+            }
+        }
+
+        return dataDir;
+    }
 
     JahiaConfigInterface jahiaConfig;
     DatabaseConnection db;
@@ -136,7 +136,7 @@ public class JahiaGlobalConfigurator {
 
     AbstractLogger logger;
     private ServerDeploymentInterface deployer;
-	private File dataDir;
+    private File dataDir;
 
     public JahiaGlobalConfigurator(AbstractLogger logger, JahiaConfigInterface jahiaConfig) {
         this.jahiaConfig = jahiaConfig;
@@ -415,9 +415,9 @@ public class JahiaGlobalConfigurator {
                 dbUrl = StringUtils.replace(dbUrl, "$context",
                         StringUtils.replace(sourceWebappPath, "\\", "/"));
             } else {
-				System.setProperty("derby.system.home", StringUtils.replace(
-						new File(getDataDir(), "dbdata").getAbsolutePath(),
-						"\\", "/"));
+                System.setProperty("derby.system.home", StringUtils.replace(
+                        new File(getDataDir(), "dbdata").getAbsolutePath(),
+                        "\\", "/"));
             }
         }
 
@@ -497,7 +497,7 @@ public class JahiaGlobalConfigurator {
             }
             if (jahiaConfig.getSiteImportLocation() != null) {
                 File importsFolder = new File(getDataDir(), "imports");
-				getLogger().info("Copying site Export to the " + importsFolder);
+                getLogger().info("Copying site Export to the " + importsFolder);
                 copyImports(importsFolder.getAbsolutePath());
             } else {
                 getLogger().info("No site import found, no import needed.");
@@ -656,7 +656,7 @@ public class JahiaGlobalConfigurator {
         File toFile = new File(toFileName);
 
         if (!fromFile.exists())
-        	return;
+            return;
 //            throw new IOException("FileCopy: " + "no such source file: "
 //                    + fromFileName);
         if (!fromFile.isFile())
@@ -836,20 +836,20 @@ public class JahiaGlobalConfigurator {
         if (!StringUtils.isEmpty(jeeApplicationLocation)) {
             return new File(jeeApplicationLocation, "jahia.war");
         } else {
-			return getDeployer().getDeploymentDirPath(
-					StringUtils.defaultString(getDeployer()
-							.getWebappDeploymentDirNameOverride(),
-							getWebappDeploymentDirName()), "war");
+            return getDeployer().getDeploymentDirPath(
+                    StringUtils.defaultString(getDeployer()
+                            .getWebappDeploymentDirNameOverride(),
+                            getWebappDeploymentDirName()), "war");
         }
     }
 
     private ServerDeploymentInterface getDeployer() {
         if (deployer == null) {
-			deployer = ServerDeploymentFactory.getImplementation(
-					jahiaConfig.getTargetServerType(),
-					jahiaConfig.getTargetServerVersion(),
-					new File(jahiaConfig.getTargetServerDirectory()), null,
-					null);
+            deployer = ServerDeploymentFactory.getImplementation(
+                    jahiaConfig.getTargetServerType(),
+                    jahiaConfig.getTargetServerVersion(),
+                    new File(jahiaConfig.getTargetServerDirectory()), null,
+                    null);
         }
 
         return deployer;
@@ -873,22 +873,22 @@ public class JahiaGlobalConfigurator {
             new BeanUtilsBean(CONVERTER_UTILS_BEAN, new PropertyUtilsBean()).populate(config, props);
         }
         if (logger != null) {
-        	props.put("databasePassword", "***");
-        	props.put("jahiaRootPassword", "***");
-        	props.put("jahiaToolManagerPassword", "***");
-        	props.put("mailServer", "***");
-        	logger.info("Loaded configuration from file " + configFile + ":\n" + props);
+            props.put("databasePassword", "***");
+            props.put("jahiaRootPassword", "***");
+            props.put("jahiaToolManagerPassword", "***");
+            props.put("mailServer", "***");
+            logger.info("Loaded configuration from file " + configFile + ":\n" + props);
         }
         return config;
     }
     
-	private File getDataDir() {
-		if (dataDir == null) {
-			dataDir = resolveDataDir(jahiaConfig.getJahiaVarDiskPath(),
-					getWebappDeploymentDir().getAbsolutePath());
-			getLogger().info("Data directory resolved to folder: " + dataDir);
-		}
+    private File getDataDir() {
+        if (dataDir == null) {
+            dataDir = resolveDataDir(jahiaConfig.getJahiaVarDiskPath(),
+                    getWebappDeploymentDir().getAbsolutePath());
+            getLogger().info("Data directory resolved to folder: " + dataDir);
+        }
 
-		return dataDir;
-	}
+        return dataDir;
+    }
 }
