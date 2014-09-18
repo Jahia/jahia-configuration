@@ -15,6 +15,7 @@ import org.apache.commons.vfs.VFS;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.logging.Logger;
+import org.codehaus.plexus.util.PropertyUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.jahia.configuration.deployers.ServerDeploymentFactory;
 import org.jahia.configuration.deployers.ServerDeploymentInterface;
@@ -520,6 +521,17 @@ public class JahiaGlobalConfigurator {
             final File targetCfgDir = new File(target, "jahia");
             final File srcDir = new File(jahiaConfigDir, "jahia");
             if (targetCfgDir.isDirectory()) {
+                File jahiaPropsFile = new File(targetCfgDir, "jahia.properties");
+                if (jahiaPropsFile.exists()) {
+                    Properties p = PropertyUtils.loadProperties(jahiaPropsFile);
+                    if (p.containsKey("db_script") && !jahiaConfig.getDatabaseType().equals(p.getProperty("db_script"))
+                            || !p.containsKey("db_script") && !jahiaConfig.getDatabaseType().equals("derby_embedded")) {
+                        getLogger()
+                                .info("Deleting existing " + jahiaPropsFile
+                                        + " file as the target database type has changed");
+                        jahiaPropsFile.delete();
+                    }
+                }
                 // we won't overwrite existing files
                 FileUtils.copyDirectory(srcDir, targetCfgDir, new FileFilter() {
                     @Override
