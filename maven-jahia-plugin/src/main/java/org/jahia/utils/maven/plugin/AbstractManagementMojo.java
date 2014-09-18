@@ -243,10 +243,19 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
                 if (targetServerType.startsWith("jboss")) {
                     jahiaVarDiskPath = "${jahiaWebAppRoot}/../../../data/digital-factory-data/";
                 } else if (targetServerType.startsWith("tomcat")) {
-                    jahiaVarDiskPath = JahiaGlobalConfigurator.resolveDataDir(
-                            "${jahiaWebAppRoot}/../../../digital-factory-data/",
-                            getWebappDeploymentDir().getAbsolutePath()).isDirectory() ? "${jahiaWebAppRoot}/../../../digital-factory-data/"
-                            : "${jahiaWebAppRoot}/../../digital-factory-data/";
+                    jahiaVarDiskPath = "${jahiaWebAppRoot}/../../digital-factory-data/";
+                    File dir = JahiaGlobalConfigurator.resolveDataDir(jahiaVarDiskPath, getWebappDeploymentDir()
+                            .getAbsolutePath(), false);
+                    if (!dir.isDirectory()) {
+                        // try one level up, if we deal with DF installed using installer
+                        jahiaVarDiskPath = "${jahiaWebAppRoot}/../../../digital-factory-data/";
+                        dir = JahiaGlobalConfigurator.resolveDataDir(jahiaVarDiskPath, getWebappDeploymentDir()
+                                .getAbsolutePath(), false);
+                        if (!dir.isDirectory()) {
+                            // will create it under tomcat
+                            jahiaVarDiskPath = "${jahiaWebAppRoot}/../../digital-factory-data/";
+                        }
+                    }
                 }
             }
             getLog().info("Data directory path is set to \"" + jahiaVarDiskPath + "\".");
