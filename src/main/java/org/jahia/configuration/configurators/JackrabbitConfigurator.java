@@ -124,7 +124,6 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
         }
     }
 
-    @SuppressWarnings("unchecked")
     protected void configureBinaryStorage(Element repositoryElement, Namespace namespace, Map dbProperties)
             throws JDOMException {
 
@@ -189,12 +188,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
                 } else {
                     pathParam = getElement(store, "//DataStore/param[@name=\"path\"]");
                 }
-                if (fileDataStorePath != null && fileDataStorePath.length() > 0) {
-                    pathParam.setAttribute("value", fileDataStorePath);
-                }
-                if (StringUtils.isEmpty(pathParam.getAttributeValue("value"))) {
-                    pathParam.setAttribute("value", "${jahia.jackrabbit.datastore.path}");
-                }
+                pathParam.setAttribute("value", "${jahia.jackrabbit.datastore.path}");
             }
     }
 }

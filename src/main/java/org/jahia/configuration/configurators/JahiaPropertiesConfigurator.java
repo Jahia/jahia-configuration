@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.codehaus.plexus.util.PropertyUtils;
+import org.codehaus.plexus.util.StringUtils;
 
 /**
  * Property configuration for the jahia.properties file.
@@ -93,6 +94,11 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
             for (Map.Entry<String, String> entry : jahiaConfigInterface.getJahiaAdvancedProperties().entrySet()) {
                 properties.setProperty(entry.getKey(), entry.getValue());
             }
+        }
+        
+        String fileDataStorePath = getValue(dbProperties, "fileDataStorePath");
+        if (StringUtils.isNotEmpty(fileDataStorePath)) {
+            properties.setProperty("jackrabbit.datastore.path", fileDataStorePath);
         }
 
         properties.storeProperties(sourceJahiaPath.getInputStream(), targetJahiaPath);
