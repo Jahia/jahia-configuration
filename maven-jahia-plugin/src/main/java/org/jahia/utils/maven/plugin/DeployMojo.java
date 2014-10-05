@@ -69,7 +69,10 @@ import org.apache.maven.shared.dependency.tree.DependencyNode;
 import org.apache.maven.shared.dependency.tree.DependencyTreeBuilder;
 import org.apache.maven.shared.dependency.tree.DependencyTreeBuilderException;
 import org.codehaus.plexus.PlexusContainer;
+import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
+import org.codehaus.plexus.components.io.fileselectors.FileSelector;
+import org.codehaus.plexus.components.io.fileselectors.IncludeExcludeFileSelector;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.codehaus.plexus.util.SelectorUtils;
@@ -342,12 +345,24 @@ public class DeployMojo extends AbstractManagementMojo {
                 getLog().error("Error while deploying WAR project", e);
             }
         } else {
-            File origSource = new File(baseDir, "src/main/webapp");
-            File source = new File(output, project.getBuild().getFinalName());
             try {
-                int cnt = updateFiles(source, origSource, webappDir, getDeployer().getWarExcludes());
-                getLog().info("Copied "+cnt+" files.");
-            } catch (IOException e) {
+                ZipUnArchiver unarch = new ZipUnArchiver(new File(output, project.getBuild().getFinalName() + ".war"));
+                unarch.enableLogging(getLog().isDebugEnabled() ? new ConsoleLogger(Logger.LEVEL_DEBUG, "console")
+                        : new ConsoleLogger());
+                if (!webappDir.exists() && !webappDir.mkdirs()) {
+                    throw new IOException("Unable to create target WAR directory " + webappDir);
+                }
+                unarch.setDestDirectory(webappDir);
+                String warExcludes = getDeployer().getWarExcludes();
+                String[] excludes = warExcludes != null ? StringUtils.split(warExcludes, " ,") : null;
+                if (excludes != null && excludes.length > 0) {
+                    IncludeExcludeFileSelector selector = new IncludeExcludeFileSelector();
+                    selector.setExcludes(excludes);
+                    unarch.setFileSelectors(new FileSelector[] { selector });
+                }
+                unarch.extract();
+                getLog().info("...done.");
+            } catch (ArchiverException e) {
                 getLog().error("Error while deploying WAR project", e);
             }
         }
