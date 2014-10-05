@@ -2,6 +2,8 @@ package org.jahia.utils.osgi;
 
 import asia.redact.bracket.properties.OutputAdapter;
 import asia.redact.bracket.properties.ValueModel;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 
@@ -52,6 +54,7 @@ public class PropertyFileUtils {
             OutputAdapter out = new OutputAdapter(frameworkProperties);
             FileWriter propertyOutputFileWriter = null;
             try {
+                FileUtils.touch(propertiesOutputFile);
                 propertyOutputFileWriter = new FileWriter(propertiesOutputFile);
                 out.writeTo(propertyOutputFileWriter);
             } catch (IOException e) {
