@@ -20,6 +20,7 @@ import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
@@ -390,28 +391,30 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
                 String exportPackageStr = mf.getMainAttributes().getValue("Export-Package");
                 String bundleVersion = mf.getMainAttributes().getValue("Bundle-Version");
                 ManifestElement[] manifestElements = ManifestElement.parseHeader("Export-Package", exportPackageStr);
-                for (ManifestElement manifestElement : manifestElements) {
-                    String[] packageNames = manifestElement.getValueComponents();
-                    String version = manifestElement.getAttribute("version");
-                    if (version != null) {
-                        for (String packageName : packageNames) {
-                            if (version.equals(bundleVersion)) {
-                                if (packageName.startsWith("org.jahia")) {
-                                    updateVersionLocationCounts(packageVersionCounts, inputManifestFile.toString(), version, bundleVersion, packageName);
+                if (manifestElements != null) {
+                    for (ManifestElement manifestElement : manifestElements) {
+                        String[] packageNames = manifestElement.getValueComponents();
+                        String version = manifestElement.getAttribute("version");
+                        if (version != null) {
+                            for (String packageName : packageNames) {
+                                if (version.equals(bundleVersion)) {
+                                    if (packageName.startsWith("org.jahia")) {
+                                        updateVersionLocationCounts(packageVersionCounts, inputManifestFile.toString(), version, bundleVersion, packageName);
+                                    } else {
+                                        updateVersionLocationCounts(packageVersionCounts, inputManifestFile.toString(), null, bundleVersion, packageName);
+                                    }
                                 } else {
-                                    updateVersionLocationCounts(packageVersionCounts, inputManifestFile.toString(), null, bundleVersion, packageName);
+                                    updateVersionLocationCounts(packageVersionCounts, inputManifestFile.toString(), version, bundleVersion, packageName);
                                 }
-                            } else {
-                                updateVersionLocationCounts(packageVersionCounts, inputManifestFile.toString(), version, bundleVersion, packageName);
+                            }
+                        } else {
+                            for (String packageName : packageNames) {
+                                updateVersionLocationCounts(packageVersionCounts, inputManifestFile.toString(), null, bundleVersion, packageName);
                             }
                         }
-                    } else {
-                        for (String packageName : packageNames) {
-                            updateVersionLocationCounts(packageVersionCounts, inputManifestFile.toString(), null, bundleVersion, packageName);
-                        }
                     }
+                    getLog().info("Found " + manifestElements.length + " package exports.");
                 }
-                getLog().info("Found " + manifestElements.length + " package exports.");
             }
         } finally {
             IOUtils.closeQuietly(in);
