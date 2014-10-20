@@ -129,6 +129,9 @@ public class DependenciesMojo extends AbstractMojo {
                 || !"jar".equals(project.getPackaging()) && !"bundle".equals(project.getPackaging()) && !"war".equals(project.getPackaging())) {
             return;
         }
+        if (excludeFromDirectoryScan == null || excludeFromDirectoryScan.size() == 0) {
+            excludeFromDirectoryScan.add("**/legacyMappings/*");
+        }
         long startTime = System.currentTimeMillis();
         ParsingContext parsingContext = new ParsingContext();
 
