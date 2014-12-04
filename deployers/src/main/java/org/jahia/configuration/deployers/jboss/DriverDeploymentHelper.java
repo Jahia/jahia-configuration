@@ -62,6 +62,7 @@ final class DriverDeploymentHelper {
         DBMS_TYPES.put("derbyclient", "derby");
         DBMS_TYPES.put("mysql", "mysql");
         DBMS_TYPES.put("ojdbc6", "oracle");
+        DBMS_TYPES.put("ojdbc7", "oracle");
         DBMS_TYPES.put("orai18n", "oracle");
         DBMS_TYPES.put("postgresql", "postgresql");
         DBMS_TYPES.put("sqljdbc4", "mssql");
@@ -74,7 +75,6 @@ final class DriverDeploymentHelper {
         boolean inPlace = targetDir.equals(driverJar.getParentFile());
         if (targetDir.isDirectory()) {
             // special case for the second JAR of the Oracle driver
-            // (a bit vague test, but let's assume that the orai18n is declared after ojdbc6 in the pom.xml)
             // second test is for the case driver JAR is already in-place (used only in configurators to configure module.xml)
             if (!"oracle".equals(driverType) && !inPlace) {
                 FileUtils.cleanDirectory(targetDir);
