@@ -28,7 +28,6 @@ public abstract class AbstractContentGeneratorMojo extends AbstractMojo {
 	 * @parameter expression="${jahia.cg.mysql.login}"
 	 * @required
 	 */
-
 	protected String mysql_login;
 
 	/**
@@ -37,6 +36,13 @@ public abstract class AbstractContentGeneratorMojo extends AbstractMojo {
 	 * @required
 	 */
 	protected String mysql_password;
+
+	/**
+	 * Port on which to connect to the MySQL database
+	 * @parameter expression="${jahia.cg.mysql.port}"
+	 * @required
+	 */
+	protected String mysql_port;
 
 	/**
 	 * MySQL database name
@@ -87,6 +93,8 @@ public abstract class AbstractContentGeneratorMojo extends AbstractMojo {
 		 * Database
 		 */
         DatabaseProperties.HOSTNAME = mysql_host;
+
+		DatabaseProperties.PORT = mysql_port != null ? mysql_port : "3306";
 
 		if (mysql_db == null) {
 			throw new MojoExecutionException("No database name provided");

@@ -23,7 +23,7 @@ public final class DatabaseService {
 	private DatabaseService() {
 	}
 
-    private Log logger = new SystemStreamLog();
+    private static final Log logger = new SystemStreamLog();
 
 
     public static DatabaseService getInstance() {
@@ -39,13 +39,15 @@ public final class DatabaseService {
 				Class.forName("com.mysql.jdbc.Driver").newInstance();
 
 				StringBuffer sbConnection = new StringBuffer("jdbc:mysql://");
-				sbConnection.append(DatabaseProperties.HOSTNAME);
-				sbConnection.append("/");
-				sbConnection.append(DatabaseProperties.DATABASE);
-				sbConnection.append("?user=");
-				sbConnection.append(DatabaseProperties.USER);
-				sbConnection.append("&password=");
-				sbConnection.append(DatabaseProperties.PASSWORD);
+				sbConnection.append(DatabaseProperties.HOSTNAME)
+						.append(":").append(DatabaseProperties.PORT)
+						.append("/")
+						.append(DatabaseProperties.DATABASE)
+						.append("?user=")
+						.append(DatabaseProperties.USER)
+						.append("&password=")
+						.append(DatabaseProperties.PASSWORD);
+				logger.info("Connecting to " + sbConnection);
 
 				dbConnection = java.sql.DriverManager.getConnection(sbConnection.toString());
 

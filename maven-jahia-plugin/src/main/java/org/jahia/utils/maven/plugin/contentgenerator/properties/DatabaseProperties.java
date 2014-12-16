@@ -2,7 +2,9 @@ package org.jahia.utils.maven.plugin.contentgenerator.properties;
 
 public class DatabaseProperties {
 	public static String HOSTNAME = null;
-	
+
+	public static String PORT = null;
+
 	public static String DATABASE = null;
 	
 	public static String USER = null;
