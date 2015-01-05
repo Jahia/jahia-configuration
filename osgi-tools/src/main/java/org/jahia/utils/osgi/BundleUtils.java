@@ -2,9 +2,7 @@ package org.jahia.utils.osgi;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
@@ -13,6 +11,8 @@ import java.util.jar.Manifest;
  * A small utility class to perform some analysis on an OSGi JAR bundle
  */
 public class BundleUtils {
+
+    public static final String DUPLICATE_MARKER = " - DUPLICATE #";
 
     /**
      * Retrieves the headers values for a single OSGi JAR bundle manifest entry. This may contain multiple
@@ -77,38 +77,54 @@ public class BundleUtils {
     public static PrintWriter dumpHeaderValues(String headerName, List<ManifestValueClause> headerValues, PrintWriter out) {
         out.print(headerName + ": ");
         int i=0;
+        Set<String> values = new TreeSet<String>();
         for (ManifestValueClause headerValue : headerValues) {
-            if (i > 0) {
-                out.print("    ");
-            }
+            StringBuffer sb = new StringBuffer();
             if (headerValue.getPaths().size() == 1) {
-                out.print(headerValue.getPaths().get(0));
+                sb.append(headerValue.getPaths().get(0));
             } else {
-                out.print(headerValue.getPaths());
+                sb.append(headerValue.getPaths());
             }
             for (Map.Entry<String,String> attributeEntry : headerValue.getAttributes().entrySet()) {
-                out.print("; ");
-                out.print(attributeEntry.getKey());
-                out.print("=");
+                sb.append(";");
+                sb.append(attributeEntry.getKey());
+                sb.append("=\"");
                 if (attributeEntry.getValue().length() > 40) {
-                    out.print(attributeEntry.getValue().substring(0, 40) + "...");
+                    sb.append(attributeEntry.getValue().substring(0, 40) + "...");
                 } else {
-                    out.print(attributeEntry.getValue());
+                    sb.append(attributeEntry.getValue());
                 }
+                sb.append("\"");
             }
             for (Map.Entry<String,String> directiveEntry : headerValue.getDirectives().entrySet()) {
-                out.print("; ");
-                out.print(directiveEntry.getKey());
-                out.print(":=");
+                sb.append(";");
+                sb.append(directiveEntry.getKey());
+                sb.append(":=");
                 if (directiveEntry.getValue().length() > 40) {
-                    out.print(directiveEntry.getValue().substring(0, 40) + "...");
+                    sb.append(directiveEntry.getValue().substring(0, 40) + "...");
                 } else {
-                    out.print(directiveEntry.getValue());
+                    sb.append(directiveEntry.getValue());
                 }
             }
-            out.println("");
+            final String value = sb.toString();
+            if (!values.contains(value)) {
+                values.add(value);
+            } else {
+                int duplicateCount = 1;
+                while (values.contains(value + DUPLICATE_MARKER + duplicateCount)) {
+                    duplicateCount++;
+                }
+                values.add(value + DUPLICATE_MARKER + duplicateCount);
+            }
             i++;
         }
+        String prefix = "";
+        for (String value : values) {
+            out.print(prefix);
+            out.print(value);
+            prefix = ",\n    ";
+        }
+        out.println("");
         return out;
     }
 }

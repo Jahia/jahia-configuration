@@ -29,7 +29,10 @@ import org.jahia.utils.maven.plugin.AbstractManagementMojo;
 import org.jahia.utils.migration.Migrators;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Jahia utility goal to help with the migration of Jahia modules to OSGi packaging.
@@ -37,7 +40,7 @@ import java.util.*;
  * @goal convert-to-osgi
  * @requiresDependencyResolution runtime
  */
-public class ConvertToOSGI extends AbstractManagementMojo {
+public class ConvertToOSGiMojo extends AbstractManagementMojo {
 
     private static Map<String, String> jahiaManifestAttributes = new HashMap<String, String>();
 

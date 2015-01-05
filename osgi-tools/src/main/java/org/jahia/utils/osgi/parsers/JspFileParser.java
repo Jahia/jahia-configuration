@@ -28,18 +28,18 @@ public class JspFileParser extends AbstractFileParser {
         return "jsp".equals(ext) || "jspf".equals(ext) || "tag".equals(ext) || "tagf".equals(ext);
     }
 
-    public boolean parse(String fileName, InputStream inputStream, ParsingContext parsingContext, boolean externalDependency) throws IOException {
-        getLogger().debug("Processing JSP " + fileName + "...");
+    public boolean parse(String fileName, InputStream inputStream, String fileParent, boolean externalDependency, boolean optionalDependency, String version, ParsingContext parsingContext) throws IOException {
+        getLogger().debug("Processing JSP " + fileParent + " / " + fileName + "...");
         String jspFileContent = IOUtils.toString(inputStream);
 
-        parsePageImport(parsingContext, jspFileContent);
-        parseIdeaTypeHint(parsingContext, jspFileContent);
-        parseJspUseBean(parsingContext, jspFileContent);
+        parsePageImport(parsingContext, jspFileContent, fileParent + " / " + fileName, optionalDependency, version);
+        parseIdeaTypeHint(parsingContext, jspFileContent, fileParent + " / " + fileName, optionalDependency, version);
+        parseJspUseBean(parsingContext, jspFileContent, fileParent + " / " + fileName, optionalDependency, version);
         parseTaglib(fileName, parsingContext, jspFileContent);
         return true;
     }
 
-    private void parseJspUseBean(ParsingContext parsingContext, String jspFileContent) {
+    private void parseJspUseBean(ParsingContext parsingContext, String jspFileContent, String sourceLocation, boolean optionalDependency, String version) {
         Matcher jspUseBeanTagMatcher = JSP_USEBEAN_TAG_PATTERN.matcher(jspFileContent);
         while (jspUseBeanTagMatcher.find()) {
             String useBeanAttributes = jspUseBeanTagMatcher.group(1);
@@ -48,7 +48,7 @@ public class JspFileParser extends AbstractFileParser {
                 String attributeName = tagAttributesMatcher.group(1);
                 String attributeValue = tagAttributesMatcher.group(2);
                 if ("class".equals(attributeName) || "type".equals(attributeName)) {
-                    parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(attributeValue));
+                    parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(attributeValue, optionalDependency, version, sourceLocation, parsingContext));
                 }
             }
         }
@@ -58,16 +58,16 @@ public class JspFileParser extends AbstractFileParser {
         Matcher taglibUriMatcher = JSP_TAGLIB_PATTERN.matcher(jspFileContent);
         while (taglibUriMatcher.find()) {
             String taglibUri = taglibUriMatcher.group(1);
-            parsingContext.getTaglibUris().add(taglibUri);
+            parsingContext.addTaglibUri(taglibUri);
             if (!parsingContext.getTaglibPackages().containsKey(taglibUri)) {
                 Set<String> unresolvedUrisForJsp = parsingContext.getUnresolvedTaglibUris().get(fileName);
                 if (unresolvedUrisForJsp == null) {
                     unresolvedUrisForJsp = new TreeSet<String>();
                 }
                 unresolvedUrisForJsp.add(taglibUri);
-                parsingContext.getUnresolvedTaglibUris().put(fileName, unresolvedUrisForJsp);
+                parsingContext.putUnresolvedTaglibUris(fileName, unresolvedUrisForJsp);
             } else {
-                Set<String> taglibPackageSet = parsingContext.getTaglibPackages().get(taglibUri);
+                Set<PackageInfo> taglibPackageSet = parsingContext.getTaglibPackages().get(taglibUri);
                 boolean externalTagLib = parsingContext.getExternalTaglibs().get(taglibUri);
                 if (externalTagLib) {
                     parsingContext.addAllPackageImports(taglibPackageSet);
@@ -76,28 +76,28 @@ public class JspFileParser extends AbstractFileParser {
         }
     }
 
-    private void parseIdeaTypeHint(ParsingContext parsingContext, String jspFileContent) {
+    private void parseIdeaTypeHint(ParsingContext parsingContext, String jspFileContent, String sourceLocation, boolean optionalDependency, String version) {
         Matcher ideaTypeHintMatcher = IDEA_TYPE_HINT_PATTERN.matcher(jspFileContent);
         while (ideaTypeHintMatcher.find()) {
             String classImportString = ideaTypeHintMatcher.group(1);
-            parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(classImportString));
+            parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(classImportString, optionalDependency, version, sourceLocation, parsingContext));
         }
     }
 
-    private void parsePageImport(ParsingContext parsingContext, String jspFileContent) {
+    private void parsePageImport(ParsingContext parsingContext, String jspFileContent, String sourceLocation, boolean optionalDependency, String version) {
         Matcher pageImportMatcher = JSP_PAGE_IMPORT_PATTERN.matcher(jspFileContent);
         while (pageImportMatcher.find()) {
             String classImportString = pageImportMatcher.group(1);
             if (classImportString.contains(",")) {
                 getLogger().debug("Multiple imports in a single JSP page import statement detected: " + classImportString);
                 String[] classImports = StringUtils.split(classImportString, ",");
-                Set<String> jspPackageImports = new TreeSet<String>();
+                Set<PackageInfo> jspPackageImports = new TreeSet<PackageInfo>();
                 for (String classImport : classImports) {
-                    jspPackageImports.addAll(PackageUtils.getPackagesFromClass(classImport.trim()));
+                    jspPackageImports.addAll(PackageUtils.getPackagesFromClass(classImport.trim(), optionalDependency, version, sourceLocation, parsingContext));
                 }
                 parsingContext.addAllPackageImports(jspPackageImports);
             } else {
-                parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(classImportString));
+                parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(classImportString, optionalDependency, version, sourceLocation, parsingContext));
             }
         }
     }

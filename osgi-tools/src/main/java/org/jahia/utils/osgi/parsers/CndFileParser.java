@@ -10,6 +10,8 @@ import javax.jcr.ValueFormatException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * A CND (JCR content definition) file parser
@@ -21,7 +23,7 @@ public class CndFileParser extends AbstractFileParser {
         return "cnd".equals(ext);
     }
 
-    public boolean parse(String fileName, InputStream inputStream, ParsingContext parsingContext, boolean externalDependency) throws IOException {
+    public boolean parse(String fileName, InputStream inputStream, String fileParent, boolean externalDependency, boolean optionalDependency, String version, ParsingContext parsingContext) throws IOException {
         getLogger().debug("Processing CND " + fileName + "...");
 
         try {
@@ -29,7 +31,11 @@ public class CndFileParser extends AbstractFileParser {
             jahiaCndReader.setDoRegister(false);
             jahiaCndReader.parse();
 
-            jahiaCndReader.getDefinitionsAndReferences(parsingContext.getContentTypeDefinitions(), parsingContext.getContentTypeReferences());
+            Set<String> contentTypeDefinitions = new TreeSet<String>();
+            Set<String> contentTypeReferences = new TreeSet<String>();
+            jahiaCndReader.getDefinitionsAndReferences(contentTypeDefinitions, contentTypeReferences);
+            parsingContext.addAllContentTypeDefinitions(contentTypeDefinitions);
+            parsingContext.addAllContentTypeReferences(contentTypeReferences);
         } catch (ParseException e) {
             getLogger().error("Error while parsing CND file " + fileName, e);
         } catch (ValueFormatException e) {

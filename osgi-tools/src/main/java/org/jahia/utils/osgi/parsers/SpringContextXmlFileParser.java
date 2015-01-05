@@ -46,10 +46,10 @@ public class SpringContextXmlFileParser extends AbstractXmlFileParser {
     }
 
     @Override
-    public void parse(String fileName, Element rootElement, ParsingContext parsingContext, boolean externalDependency) throws JDOMException {
+    public void parse(String fileName, Element rootElement, String fileParent, boolean externalDependency, boolean optionalDependency, String version, ParsingContext parsingContext) throws JDOMException {
         getLogger().debug("Processing Spring context file " + fileName + "...");
 
-        getRefsUsingXPathQueries(fileName, rootElement, true, false, SPRING_XPATH_CLASSNAME_QUERIES, "beans", parsingContext);
-        getRefsUsingXPathQueries(fileName, rootElement, false, true, SPRING_XPATH_PACKAGE_QUERIES, "beans", parsingContext);
+        getRefsUsingXPathQueries(fileName, rootElement, true, false, SPRING_XPATH_CLASSNAME_QUERIES, "beans", fileParent, version, optionalDependency, parsingContext);
+        getRefsUsingXPathQueries(fileName, rootElement, false, true, SPRING_XPATH_PACKAGE_QUERIES, "beans", fileParent, version, optionalDependency, parsingContext);
     }
 }

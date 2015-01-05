@@ -1,84 +1,389 @@
 package org.jahia.utils.osgi.parsers;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang.StringUtils;
+import org.jahia.utils.osgi.PackageUtils;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
  * Context for parsing files
  */
-public class ParsingContext {
+public class ParsingContext implements Serializable {
 
-    private Set<String> packageImports = new TreeSet<String>();
+    protected String mavenCoords;
+    protected long lastModified;
+    protected long fileSize;
+    protected String fileName;
+    protected String filePath;
+    protected String version;
+    protected boolean inCache = false;
     private Set<String> taglibUris = new TreeSet<String>();
     private Map<String, Set<String>> unresolvedTaglibUris = new TreeMap<String,Set<String>>();
-    private Map<String, Set<String>> taglibPackages = new HashMap<String, Set<String>>();
+    private Map<String, Set<PackageInfo>> taglibPackages = new HashMap<String, Set<PackageInfo>>();
     private Map<String, Boolean> externalTaglibs = new HashMap<String, Boolean>();
     private Set<String> contentTypeDefinitions = new TreeSet<String>();
     private Set<String> contentTypeReferences = new TreeSet<String>();
-    private Set<String> projectPackages = new TreeSet<String>();
     private Set<String> additionalFilesToParse = new TreeSet<String>();
+    private Set<PackageInfo> splitPackages = new TreeSet<PackageInfo>();
+    private boolean osgiBundle = false;
+    private List<String> bundleClassPath = new ArrayList<String>();
+    private Set<PackageInfo> localPackages = new TreeSet<PackageInfo>();
+    private Set<PackageInfo> packageImports = new TreeSet<PackageInfo>();
+    private Set<PackageInfo> packageExports = new TreeSet<PackageInfo>();
+    private Set<PackageInfo> packageIgnores = new TreeSet<PackageInfo>();
 
-    public void addPackageImport(String packageName) {
-        if (StringUtils.isEmpty(packageName)) {
+    @JsonIgnore protected ParsingContext parentParsingContext;
+    @JsonIgnore protected List<ParsingContext> children = new ArrayList<ParsingContext>();
+    @JsonIgnore boolean optional = false;
+    @JsonIgnore boolean external = false;
+
+    public ParsingContext() {
+    }
+
+    public ParsingContext(String mavenCoords, long lastModified, long fileSize, String fileName, String filePath, String version, ParsingContext parentParsingContext) {
+        this.mavenCoords = mavenCoords;
+        this.lastModified = lastModified;
+        this.fileSize = fileSize;
+        this.fileName = fileName;
+        this.filePath = filePath;
+        this.version = version;
+        this.inCache = false;
+        this.parentParsingContext = parentParsingContext;
+    }
+
+    public void addPackageImport(PackageInfo packageInfo, Boolean forceOptional) {
+        if (StringUtils.isEmpty(packageInfo.getName())) {
             return;
         }
-        if (!packageName.startsWith("java.") &&
-            !packageImports.contains(packageName) &&
-            !packageImports.contains(packageName + ";resolution:=optional")) {
-            packageImports.add(packageName);
+        if (!packageInfo.getName().startsWith("java.")) {
+            if (!localPackages.contains(packageInfo)) {
+                if (!packageImports.contains(packageInfo)) {
+                    packageImports.add(packageInfo);
+                } else {
+                    PackageInfo existingPackageInfo = null;
+                    // we must add the new source locations to the existing entry
+                    for (PackageInfo packageImport : packageImports) {
+                        if (packageImport.equals(packageImport)) {
+                            existingPackageInfo = packageImport;
+                            break;
+                        }
+                    }
+                    if (existingPackageInfo != null) {
+                        Set<String> existingSourceLocations = existingPackageInfo.getSourceLocations();
+                        Set<String> newSourceLocations = new TreeSet<String>(existingSourceLocations);
+                        newSourceLocations.addAll(packageInfo.getSourceLocations());
+                        boolean optional = packageInfo.isOptional();
+                        if (forceOptional != null && forceOptional) {
+                            optional = true;
+                        }
+                        PackageInfo newPackageInfo = new PackageInfo(existingPackageInfo.getName(),
+                                existingPackageInfo.getVersion(), optional, newSourceLocations, this);
+                        packageImports.remove(existingPackageInfo);
+                        packageImports.add(newPackageInfo);
+                    }
+                }
+            }
         }
     }
 
-    public void addAllPackageImports(Collection<String> packageNames) {
-        for (String packageName : packageNames) {
-            addPackageImport(packageName);
+    public void addPackageImport(PackageInfo packageInfo) {
+        addPackageImport(packageInfo, null);
+    }
+
+    public void addAllPackageImports(Collection<PackageInfo> packageInfos, Boolean forceOptional) {
+        for (PackageInfo packageInfo : packageInfos) {
+            addPackageImport(packageInfo, forceOptional);
         }
+    }
+
+    public void addAllPackageImports(Collection<PackageInfo> packageInfos) {
+        addAllPackageImports(packageInfos, null);
     }
 
     public Set<String> getTaglibUris() {
         return taglibUris;
     }
 
-    public Map<String, Set<String>> getTaglibPackages() {
+    public boolean addTaglibUri(String taglibUri) {
+        return taglibUris.add(taglibUri);
+    }
+
+    public boolean addAllTaglibUris(Set<String> taglibUrisToAdd) {
+        return taglibUris.addAll(taglibUrisToAdd);
+    }
+
+    public Map<String, Set<PackageInfo>> getTaglibPackages() {
         return taglibPackages;
+    }
+
+    public Set<PackageInfo> putTaglibPackages(String uri, Set<PackageInfo> packages) {
+        return taglibPackages.put(uri, packages);
     }
 
     public Map<String, Boolean> getExternalTaglibs() {
         return externalTaglibs;
     }
 
+    public Boolean putExternalTaglib(String uri, Boolean external) {
+        return externalTaglibs.put(uri, external);
+    }
+
     public Set<String> getContentTypeDefinitions() {
         return contentTypeDefinitions;
+    }
+
+    public boolean addAllContentTypeDefinitions(Set<String> newContentTypeDefinitions) {
+        return contentTypeDefinitions.addAll(newContentTypeDefinitions);
     }
 
     public Set<String> getContentTypeReferences() {
         return contentTypeReferences;
     }
 
-    public Set<String> getPackageImports() {
+    public boolean addContentTypeReference(String contentTypeReference) {
+        return contentTypeReferences.add(contentTypeReference);
+    }
+
+    public boolean addAllContentTypeReferences(Set<String> newContentTypeReferences) {
+        return contentTypeReferences.addAll(newContentTypeReferences);
+    }
+
+    public Set<PackageInfo> getPackageImports() {
         return packageImports;
     }
 
-    public Set<String> getProjectPackages() {
-        return projectPackages;
-    }
 
     public Map<String,Set<String>> getUnresolvedTaglibUris() {
         return unresolvedTaglibUris;
+    }
+
+    public Set<String> putUnresolvedTaglibUris(String fileName, Set<String> unresolvedUrisForJsp) {
+        return unresolvedTaglibUris.put(fileName, unresolvedUrisForJsp);
     }
 
     public void addAdditionalFileToParse(String filePath) {
         additionalFilesToParse.add(filePath);
     }
 
+    public void clearAdditionalFilesToParse() {
+        additionalFilesToParse.clear();
+    }
     public Set<String> getAdditionalFilesToParse() {
         return additionalFilesToParse;
     }
 
-    public void postProcess() {
+    public Set<PackageInfo> getSplitPackages() {
+        return splitPackages;
+    }
+
+    public void removeLocalPackagesFromImports() {
         // now let's remove all the project packages from the imports, we assume we will not import split packages.
-        packageImports.removeAll(projectPackages);
+        packageImports.removeAll(localPackages);
+    }
+
+    public String getMavenCoords() {
+        return mavenCoords;
+    }
+
+    public long getLastModified() {
+        return lastModified;
+    }
+
+    public long getFileSize() {
+        return fileSize;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public boolean addLocalPackage(PackageInfo packageInfo) {
+        return localPackages.add(packageInfo);
+    }
+
+    public Set<PackageInfo> getLocalPackages() {
+        return localPackages;
+    }
+
+    public void addChildJarParsingContext(ParsingContext childParsingContext) {
+        this.children.add(childParsingContext);
+    }
+
+    public Set<PackageInfo> getPackageExports() {
+        return packageExports;
+    }
+
+    public boolean addPackageExport(PackageInfo packageInfo) {
+        return packageExports.add(packageInfo);
+    }
+
+    public Set<PackageInfo> getPackageIgnores() {
+        return packageIgnores;
+    }
+
+    public boolean addPackageIgnore(PackageInfo packageInfo) {
+        return packageIgnores.add(packageInfo);
+    }
+
+    public List<ParsingContext> getChildren() {
+        return children;
+    }
+
+    public boolean isInCache() {
+        return inCache;
+    }
+
+    public void setInCache(boolean inCache) {
+        this.inCache = inCache;
+    }
+
+    public boolean isOptional() {
+        return optional;
+    }
+
+    public void setOptional(boolean optional) {
+        this.optional = optional;
+    }
+
+    public boolean isExternal() {
+        return external;
+    }
+
+    public void setExternal(boolean external) {
+        this.external = external;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public ParsingContext getParentParsingContext() {
+        return parentParsingContext;
+    }
+
+    public void setParentParsingContext(ParsingContext parentParsingContext) {
+        this.parentParsingContext = parentParsingContext;
+    }
+
+    public boolean isOsgiBundle() {
+        return osgiBundle;
+    }
+
+    public void setOsgiBundle(boolean osgiBundle) {
+        this.osgiBundle = osgiBundle;
+    }
+
+    public List<String> getBundleClassPath() {
+        return bundleClassPath;
+    }
+
+    public void setBundleClassPath(List<String> bundleClassPath) {
+        this.bundleClassPath = bundleClassPath;
+    }
+
+    public void postProcess() {
+
+        if (children != null && children.size() > 0) {
+            for (ParsingContext childParsingContext : children) {
+                addAllTaglibUris(childParsingContext.getTaglibUris());
+                getTaglibPackages().putAll(childParsingContext.getTaglibPackages());
+                Set<String> externalTaglibUris = new TreeSet<String>();
+                Set<String> internalTaglibUris = new TreeSet<String>();
+                for (Map.Entry<String,Boolean> taglibUriExternalEntry : childParsingContext.getExternalTaglibs().entrySet()) {
+                    if (taglibUriExternalEntry.getValue()) {
+                        externalTaglibUris.add(taglibUriExternalEntry.getKey());
+                    } else {
+                        internalTaglibUris.add(taglibUriExternalEntry.getKey());
+                    }
+                }
+                if (childParsingContext.isOptional()) {
+                    addAllPackageImports(childParsingContext.getLocalPackages(), true);
+                    // mark all child taglib uris as external
+                    for (String externalTaglibUri : externalTaglibUris) {
+                        getExternalTaglibs().put(externalTaglibUri, true);
+                    }
+                    for (String internalTaglibUri : internalTaglibUris) {
+                        getExternalTaglibs().put(internalTaglibUri, true);
+                    }
+                } else {
+                    if (childParsingContext.isExternal()) {
+
+                        // let's do split-package detection
+
+                        for (PackageInfo localPackage : localPackages) {
+                            if (PackageUtils.containsIgnoreVersion(childParsingContext.getPackageExports(), localPackage)) {
+                                PackageInfo splitPackageInfo = new PackageInfo(localPackage);
+                                for (PackageInfo childPackageExport : childParsingContext.getPackageExports()) {
+                                    if (childPackageExport.equalsIgnoreVersion(localPackage)) {
+                                        if (childPackageExport.getSourceLocations() != null &&
+                                                childPackageExport.getSourceLocations().size() > 0) {
+                                            splitPackageInfo.getSourceLocations().addAll(childPackageExport.getSourceLocations());
+                                        } else {
+                                            splitPackageInfo.getSourceLocations().add(childPackageExport.getOrigin().getFilePath());
+                                        }
+                                    }
+                                }
+                                splitPackages.add(splitPackageInfo);
+                            }
+                        }
+
+                        // mark all child taglib uris as external
+                        for (String externalTaglibUri : externalTaglibUris) {
+                            getExternalTaglibs().put(externalTaglibUri, true);
+                        }
+                        for (String internalTaglibUri : internalTaglibUris) {
+                            getExternalTaglibs().put(internalTaglibUri, true);
+                        }
+                    } else {
+                        // child context is internal
+                        addAllPackageImports(childParsingContext.getPackageImports());
+
+                        addAllContentTypeDefinitions(childParsingContext.getContentTypeDefinitions());
+                        addAllContentTypeReferences(childParsingContext.getContentTypeReferences());
+
+                        // simply keep the internal/external as it was originally.
+                        for (String externalTaglibUri : externalTaglibUris) {
+                            getExternalTaglibs().put(externalTaglibUri, true);
+                        }
+                        for (String internalTaglibUri : internalTaglibUris) {
+                            getExternalTaglibs().put(internalTaglibUri, false);
+                        }
+                    }
+                }
+                // add all package ignores as optional packages
+                addAllPackageImports(childParsingContext.getPackageIgnores(), true);
+            }
+        }
+
+        // first let's detect split packages between the imports and the local packages.
+        for (PackageInfo localPackage : localPackages) {
+            if (PackageUtils.containsIgnoreVersion(packageImports, localPackage)) {
+                PackageInfo splitPackageInfo = new PackageInfo(localPackage);
+                for (PackageInfo packageImport : packageImports) {
+                    if (packageImport.equalsIgnoreVersion(localPackage)) {
+                        if (packageImport.getSourceLocations() != null &&
+                                packageImport.getSourceLocations().size() > 0) {
+                            splitPackageInfo.getSourceLocations().addAll(packageImport.getSourceLocations());
+                        } else {
+                            splitPackageInfo.getSourceLocations().add(packageImport.getOrigin().getFilePath());
+                        }
+                    }
+                }
+                splitPackages.add(splitPackageInfo);
+            }
+        }
+
+        removeLocalPackagesFromImports();
 
         contentTypeReferences.removeAll(contentTypeDefinitions);
 
@@ -87,11 +392,11 @@ public class ParsingContext {
         for (Map.Entry<String,Set<String>> unresolvedTaglibUri : unresolvedTaglibUris.entrySet()) {
             for (String singleUri : unresolvedTaglibUri.getValue()) {
                 if (taglibUris.contains(singleUri)) {
-                    Set<String> taglibPackageSet = getTaglibPackages().get(singleUri);
+                    Set<PackageInfo> taglibPackageSet = getTaglibPackages().get(singleUri);
                     if (taglibPackageSet != null) {
                         boolean externalTagLib = getExternalTaglibs().get(singleUri);
                         if (externalTagLib) {
-                            addAllPackageImports(taglibPackageSet);
+                            addAllPackageImports(taglibPackageSet, null);
                         }
                         Set<String> resolvedUrisForJsp = resolvedUris.get(unresolvedTaglibUri.getKey());
                         if (resolvedUrisForJsp == null) {
@@ -104,6 +409,7 @@ public class ParsingContext {
             }
         }
 
+        // we now remove all the resolved URIs from the unresolved map
         for (Map.Entry<String,Set<String>> resolvedUri : resolvedUris.entrySet()) {
             Set<String> unresolvedUrisForJsp = unresolvedTaglibUris.get(resolvedUri.getKey());
             if (unresolvedUrisForJsp != null) {
@@ -117,16 +423,36 @@ public class ParsingContext {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("ParsingContext{\n");
-        sb.append("  packageImports=").append(packageImports).append("\n");
-        sb.append("  taglibUris=").append(taglibUris).append("\n");
-        sb.append("  unresolvedTaglibUris=").append(unresolvedTaglibUris).append("\n");
-        sb.append("  taglibPackages=").append(taglibPackages).append("\n");
-        sb.append("  externalTaglibs=").append(externalTaglibs).append("\n");
-        sb.append("  contentTypeDefinitions=").append(contentTypeDefinitions).append("\n");
-        sb.append("  contentTypeReferences=").append(contentTypeReferences).append("\n");
-        sb.append("  projectPackages=").append(projectPackages).append("\n");
+        final StringBuffer sb = new StringBuffer("ParsingContext{");
+        sb.append("mavenCoords='").append(mavenCoords).append('\'');
+        sb.append(", lastModified=").append(lastModified);
+        sb.append(", fileSize=").append(fileSize);
+        sb.append(", fileName='").append(fileName).append('\'');
+        sb.append(", filePath='").append(filePath).append('\'');
+        sb.append(", version='").append(version).append('\'');
+        sb.append(", inCache=").append(inCache);
+        sb.append(", optional=").append(optional);
+        sb.append(", external=").append(external);
+        sb.append(", osgiBundle=").append(osgiBundle);
+        sb.append(", bundleClassPath=").append(bundleClassPath);
         sb.append('}');
         return sb.toString();
     }
+
+    public void reconnectPackageInfos() {
+        reconnectPackageInfos(localPackages);
+        reconnectPackageInfos(packageExports);
+        reconnectPackageInfos(packageIgnores);
+        reconnectPackageInfos(getPackageImports());
+        for (Map.Entry<String,Set<PackageInfo>> taglibPackage : getTaglibPackages().entrySet()) {
+            reconnectPackageInfos(taglibPackage.getValue());
+        }
+    }
+
+    private void reconnectPackageInfos(Collection<PackageInfo> packageInfos) {
+        for (PackageInfo packageInfo : packageInfos) {
+            packageInfo.setOrigin(this);
+        }
+    }
+
 }

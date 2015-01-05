@@ -72,26 +72,15 @@
 
 package org.jahia.utils.maven.plugin.support;
 
-import static org.jahia.utils.maven.plugin.support.MavenAetherHelperUtils.doesJarHavePackageName;
-import static org.jahia.utils.maven.plugin.support.MavenAetherHelperUtils.getCoords;
-import static org.jahia.utils.maven.plugin.support.MavenAetherHelperUtils.getTrail;
-
-import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.lang.StringUtils;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.handler.ArtifactHandler;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
-import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.collection.DependencyCollectionException;
@@ -100,10 +89,17 @@ import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.aether.graph.DependencyVisitor;
 import org.eclipse.aether.graph.Exclusion;
 import org.eclipse.aether.repository.RemoteRepository;
-import org.eclipse.aether.resolution.ArtifactRequest;
-import org.eclipse.aether.resolution.ArtifactResolutionException;
-import org.eclipse.aether.resolution.DependencyRequest;
-import org.eclipse.aether.resolution.DependencyResolutionException;
+import org.eclipse.aether.resolution.*;
+import org.eclipse.aether.util.graph.selector.AndDependencySelector;
+import org.eclipse.aether.util.graph.selector.ExclusionDependencySelector;
+import org.eclipse.aether.util.graph.selector.OptionalDependencySelector;
+import org.eclipse.aether.util.graph.selector.ScopeDependencySelector;
+import org.jahia.utils.osgi.parsers.ParsingContext;
+
+import java.io.File;
+import java.util.*;
+
+import static org.jahia.utils.maven.plugin.support.MavenAetherHelperUtils.*;
 
 /**
  * Artifact and dependency resolution helper which will be used for Maven 3.1.x and above execution environment.
@@ -190,25 +186,140 @@ public class Maven31AetherHelper implements AetherHelper {
         }
     }
 
+    class PackageCollectorDependencyVisitor implements DependencyVisitor {
+
+        private ArtifactProcessor artifactProcessor;
+        private ArtifactHandler artifactHandler;
+        private Deque<String> curTrail = null;
+        private Deque<Artifact> artifactStack = new ArrayDeque<Artifact>();
+        private Deque<ParsingContext> parsingContextStack = new ArrayDeque<ParsingContext>();
+        private Deque<String> loopCheckTrail = new ArrayDeque<String>();
+        private int depth = 0;
+
+        public PackageCollectorDependencyVisitor(ArtifactProcessor artifactProcessor, ArtifactHandler artifactHandler, List<String> dependencyTrail, ParsingContext rootParsingContext) {
+            this.artifactProcessor = artifactProcessor;
+            this.artifactHandler = artifactHandler;
+            this.curTrail = new ArrayDeque<String>(dependencyTrail);
+            this.parsingContextStack.push(rootParsingContext);
+        }
+
+        @Override
+        public boolean visitEnter(DependencyNode node) {
+            depth++;
+            Artifact mavenArtifact = new org.apache.maven.artifact.DefaultArtifact(node.getDependency().getArtifact().getGroupId(),
+                    node.getDependency().getArtifact().getArtifactId(),
+                    node.getDependency().getArtifact().getVersion(),
+                    node.getDependency().getScope(),
+                    node.getDependency().getArtifact().getExtension(),
+                    node.getDependency().getArtifact().getClassifier(),
+                    artifactHandler);
+            boolean visitChildren = true;
+            String trailSuffix = "";
+            if (node.getDependency().isOptional()) {
+                trailSuffix = "[optional]";
+            }
+            curTrail.push(node.toString() + trailSuffix);
+            String trail = getTrailPadding(curTrail);
+            if (!loopCheckTrail.contains(node.toString())) {
+                loopCheckTrail.push(node.toString());
+            } else {
+                log.warn("Already visited dependency " + node.toString() + "!!!");
+                visitChildren = false;
+            }
+            // log.debug(trail + "Starting visit of artifact " + node.getDependency().getArtifact() + "...");
+            if (node.getDependency().getArtifact().getFile() == null) {
+                log.warn(trail + "No local file for artifact " + node.getDependency().getArtifact());
+                log.info(trail + "Resolving artifact " + node.getDependency().getArtifact() + "...");
+                ArtifactRequest request = new ArtifactRequest();
+                request.setArtifact(node.getDependency().getArtifact());
+                request.setRepositories(remoteRepos);
+                try {
+                    ArtifactResult artifactResult = repoSystem.resolveArtifact(moreDependenciesSession, request);
+                    node.getDependency().getArtifact().setFile(artifactResult.getArtifact().getFile());
+                } catch (ArtifactResolutionException e) {
+                    log.warn(trail + "Error resolving artifact " + node.getDependency().getArtifact() + ": " + e.getMessage());
+                    visitChildren = false;
+                }
+            }
+            mavenArtifact.setFile(node.getDependency().getArtifact().getFile());
+            mavenArtifact.setOptional(node.getDependency().isOptional());
+            artifactStack.push(mavenArtifact);
+            ParsingContext parsingContext = null;
+            ParsingContext parentParsingContext = null;
+            if (parsingContextStack.size() > 0) {
+                parentParsingContext = parsingContextStack.peek();
+            }
+            boolean external = false;
+            if (Artifact.SCOPE_PROVIDED.equals(node.getDependency().getScope())) {
+                external = true;
+            }
+            if (mavenArtifact.getFile() != null) {
+                try {
+                    parsingContext = artifactProcessor.enterArtifact(mavenArtifact, node.getDependency().isOptional(), external, parentParsingContext, trail, depth);
+                } catch (MojoExecutionException e) {
+                    e.printStackTrace();
+                    visitChildren = false;
+                }
+                parsingContextStack.push(parsingContext);
+            }
+            return visitChildren;
+        }
+
+        @Override
+        public boolean visitLeave(DependencyNode node) {
+            depth--;
+            boolean visitSiblings = true;
+            String trail = getTrailPadding(curTrail);
+            // log.debug(trail + "Ending visit of artifact " + node.getDependency().getArtifact() + "...");
+            Artifact mavenArtifact = null;
+            if (node.getDependency().getArtifact().getArtifactId().equals(artifactStack.peek().getArtifactId())) {
+                mavenArtifact = artifactStack.pop();
+            } else {
+                log.warn(trail + "Expected artifact " + node.getDependency().getArtifact().getArtifactId() + " on artifact stack but got " + artifactStack.peek().getArtifactId());
+            }
+            if (mavenArtifact != null && mavenArtifact.getFile() != null) {
+                try {
+                    boolean external = false;
+                    if (Artifact.SCOPE_PROVIDED.equals(node.getDependency().getScope())) {
+                        external = true;
+                    }
+                    artifactProcessor.exitArtifact(mavenArtifact, node.getDependency().isOptional(), external, trail, parsingContextStack.peek(), depth);
+                } catch (MojoExecutionException e) {
+                    e.printStackTrace();
+                }
+                parsingContextStack.pop();
+            }
+            curTrail.pop();
+            loopCheckTrail.pop();
+            return visitSiblings;
+        }
+    }
+
     private Log log;
 
     private List<RemoteRepository> remoteRepos;
 
-    private RepositorySystemSession repoSession;
+    // private RepositorySystemSession repoSession;
 
     private RepositorySystem repoSystem;
 
     private Map<String, DependencyNode> resolvedDependencyNodes = new HashMap<String, DependencyNode>();
 
+    DefaultRepositorySystemSession moreDependenciesSession;
+
     public Maven31AetherHelper(RepositorySystem repoSystem, RepositorySystemSession repoSession,
             List<RemoteRepository> remoteRepos, Log log) {
         this.repoSystem = repoSystem;
-        this.repoSession = repoSession;
+        // this.repoSession = repoSession;
+        // we build our own custom session to re-introduce the collection of "provided" dependencies that are excluded by the default Maven session.
+        this.moreDependenciesSession = new DefaultRepositorySystemSession(repoSession);
+        AndDependencySelector andDependencySelector = new AndDependencySelector(new ScopeDependencySelector("test"), new OptionalDependencySelector(), new ExclusionDependencySelector());
+        this.moreDependenciesSession.setDependencySelector(andDependencySelector);
         this.remoteRepos = remoteRepos;
         this.log = log;
     }
 
-    private Set<String> findInWarDependencies(org.apache.maven.artifact.Artifact warArtifact, final String artifactId) {
+    private Set<String> findInWarDependencies(Artifact warArtifact, final String artifactId) {
         final Set<String> versions = new LinkedHashSet<String>();
         String artifactCoords = warArtifact.getGroupId() + ":" + warArtifact.getArtifactId() + ":"
                 + warArtifact.getType() + ":" + warArtifact.getBaseVersion();
@@ -231,11 +342,11 @@ public class Maven31AetherHelper implements AetherHelper {
                 collectRequest.setRoot(dependency);
                 collectRequest.setRepositories(remoteRepos);
 
-                node = repoSystem.collectDependencies(repoSession, collectRequest).getRoot();
+                node = repoSystem.collectDependencies(moreDependenciesSession, collectRequest).getRoot();
 
                 DependencyRequest dependencyRequest = new DependencyRequest(node, null);
 
-                repoSystem.resolveDependencies(repoSession, dependencyRequest);
+                repoSystem.resolveDependencies(moreDependenciesSession, dependencyRequest);
 
                 resolvedDependencyNodes.put(artifactCoords, node);
 
@@ -268,47 +379,10 @@ public class Maven31AetherHelper implements AetherHelper {
     }
 
     @Override
-    public List<String> getDependencyVersion(MavenProject project, String artifactFileName)
-            throws MojoExecutionException {
-        if (project == null || StringUtils.isEmpty(artifactFileName)) {
-            return Collections.emptyList();
-        }
-
-        Set<String> versions = new LinkedHashSet<String>();
-
-        Set<org.apache.maven.artifact.Artifact> artifacts = project.getArtifacts();
-        for (org.apache.maven.artifact.Artifact artifact : artifacts) {
-            if (artifact.getType().equals("war")) {
-                // we have a WAR dependency, we will look in that project dependencies seperately since it is not
-                // directly transitive.
-                versions.addAll(findInWarDependencies(artifact, artifactFileName));
-            } else if (artifact.getFile().getName().equals(artifactFileName)) {
-                versions.add(artifact.getBaseVersion());
-            }
-        }
-        return new LinkedList<String>(versions);
-    }
-
-    @Override
-    public File resolveArtifactFile(String coords) throws MojoExecutionException {
-        ArtifactRequest request = new ArtifactRequest();
-        request.setArtifact(new DefaultArtifact(coords));
-        request.setRepositories(remoteRepos);
-        Artifact artifact = null;
-        try {
-            artifact = repoSystem.resolveArtifact(repoSession, request).getArtifact();
-        } catch (ArtifactResolutionException e) {
-            throw new MojoExecutionException(e.getMessage(), e);
-        }
-
-        return artifact != null ? artifact.getFile() : null;
-    }
-
-    @Override
     public Map<String, List<String>> findPackages(MavenProject project, List<String> packageNames)
             throws MojoExecutionException {
         final Map<String, List<String>> foundPackages = new HashMap<String, List<String>>();
-        for (org.apache.maven.artifact.Artifact artifact : project.getArtifacts()) {
+        for (Artifact artifact : project.getArtifacts()) {
             if (artifact.isOptional()) {
                 log.debug("Processing optional dependency " + artifact + "...");
             }
@@ -330,7 +404,7 @@ public class Maven31AetherHelper implements AetherHelper {
             if (!foundPackages.containsKey(packageName)) {
                 log.warn("Couldn't find " + packageName
                         + " in normal project dependencies, will now search optional (and excluded) dependencies");
-                for (org.apache.maven.artifact.Artifact artifact : project.getArtifacts()) {
+                for (Artifact artifact : project.getArtifacts()) {
                     if (artifact.isOptional()) {
                         log.debug("Processing optional artifact " + artifact + "...");
                     }
@@ -360,10 +434,10 @@ public class Maven31AetherHelper implements AetherHelper {
 
         DependencyNode dependencyNode = null;
         try {
-            dependencyNode = repoSystem.collectDependencies(repoSession, collectRequest).getRoot();
+            dependencyNode = repoSystem.collectDependencies(moreDependenciesSession, collectRequest).getRoot();
             DependencyRequest dependencyRequest = new DependencyRequest(dependencyNode, null);
 
-            repoSystem.resolveDependencies(repoSession, dependencyRequest);
+            DependencyResult dependencyResult = repoSystem.resolveDependencies(moreDependenciesSession, dependencyRequest);
 
         } catch (DependencyCollectionException e) {
             log.error("Error collecting dependencies for " + artifactCoords + ": " + e.getMessage());
@@ -371,6 +445,54 @@ public class Maven31AetherHelper implements AetherHelper {
             log.error("Error resolving dependencies for " + artifactCoords + ": " + e.getMessage());
         }
         return dependencyNode;
+    }
+
+    @Override
+    public List<String> getDependencyVersion(MavenProject project, String artifactFileName)
+            throws MojoExecutionException {
+        if (project == null || StringUtils.isEmpty(artifactFileName)) {
+            return Collections.emptyList();
+        }
+
+        Set<String> versions = new LinkedHashSet<String>();
+
+        Set<Artifact> artifacts = project.getArtifacts();
+        for (Artifact artifact : artifacts) {
+            if (artifact.getType().equals("war")) {
+                // we have a WAR dependency, we will look in that project dependencies seperately since it is not
+                // directly transitive.
+                versions.addAll(findInWarDependencies(artifact, artifactFileName));
+            } else if (artifact.getFile().getName().equals(artifactFileName)) {
+                versions.add(artifact.getBaseVersion());
+            }
+        }
+
+        return new LinkedList<String>(versions);
+    }
+
+    @Override
+    public File resolveArtifactFile(String coords) throws MojoExecutionException {
+        ArtifactRequest request = new ArtifactRequest();
+        request.setArtifact(new DefaultArtifact(coords));
+        request.setRepositories(remoteRepos);
+        org.eclipse.aether.artifact.Artifact artifact = null;
+        try {
+            artifact = repoSystem.resolveArtifact(moreDependenciesSession, request).getArtifact();
+        } catch (ArtifactResolutionException e) {
+            throw new MojoExecutionException(e.getMessage(), e);
+        }
+
+        return artifact != null ? artifact.getFile() : null;
+    }
+
+    @Override
+    public void processArtifactAndDependencies(Artifact artifact, boolean optional, ArtifactProcessor artifactProcessor, ArtifactHandler artifactHandler, ParsingContext rootParsingContext) {
+        DependencyNode dependencyNode = getDependencyNode(getCoords(artifact));
+        if (dependencyNode != null) {
+            List<String> trail = new LinkedList<String>(artifact.getDependencyTrail());
+            dependencyNode.setScope(artifact.getScope()); // copy the scope from the artifact for the root node.
+            dependencyNode.accept(new PackageCollectorDependencyVisitor(artifactProcessor, artifactHandler, trail, rootParsingContext));
+        }
     }
 
     private DependencyNode resolveExclusion(DependencyNode dependencyNode, Exclusion exclusion) {

@@ -77,12 +77,24 @@ public class Parsers {
         return parsersByPhase.get(phaseID);
     }
 
+    public boolean canParseForPhase(int phaseID, String fileName) {
+        SortedSet<FileParser> phaseParsers = getPhaseParsers(phaseID);
+        if (phaseParsers == null || phaseParsers.size() == 0) {
+            return false;
+        }
+        for (FileParser fileParser : phaseParsers) {
+            if (fileParser.canParse(fileName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean parse(int phaseID,
                          String fileName,
                          InputStream inputStream,
-                         ParsingContext parsingContext,
-                         boolean externalDependency,
-                         Logger logger) throws IOException {
+                         String fileParent,
+                         boolean externalDependency, boolean optionalDependency, String version, Logger logger, ParsingContext parsingContext) throws IOException {
         SortedSet<FileParser> phaseParsers = getPhaseParsers(phaseID);
         if (phaseParsers == null || phaseParsers.size() == 0) {
             return false;
@@ -92,7 +104,7 @@ public class Parsers {
         for (FileParser fileParser : phaseParsers) {
             fileParser.setLogger(logger);
             if (fileParser.canParse(fileName)) {
-                if (fileParser.parse(fileName, bufferedInputStream, parsingContext, externalDependency)) {
+                if (fileParser.parse(fileName, bufferedInputStream, fileParent, externalDependency, optionalDependency , version, parsingContext)) {
                     return true;
                 }
                 bufferedInputStream.reset();

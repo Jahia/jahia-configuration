@@ -6,6 +6,7 @@ import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.jahia.utils.osgi.ClassDependencyTracker;
 
@@ -35,46 +36,26 @@ public class FindPackageUsesMojo extends AbstractMojo {
      */
     protected MavenProject project;
 
+    /**
+     * The directory for the generated bundles.
+     *
+     * @parameter expression="${project.build.outputDirectory}"
+     * @required
+     */
+    private File outputDirectory;
+
+    /**
+     * @parameter default-value="true"
+     */
+    private boolean searchInDependencies = true;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (packageNames == null || packageNames.size() == 0) {
             getLog().warn("No package names specified, will abort now !");
             return;
         }
-        getLog().info("Scanning project dependencies...");
-        final Map<String, Map<String, Artifact>> packageResults = new TreeMap<String, Map<String, Artifact>>();
-        for (Artifact artifact : project.getArtifacts()) {
-            if (artifact.isOptional()) {
-                getLog().debug("Processing optional dependency " + artifact + "...");
-            }
-            if (!artifact.getType().equals("jar")) {
-                getLog().warn("Found non JAR artifact " + artifact);
-            }
-            boolean currentTrailWasDisplayed = false;
-            int trailDepth = artifact.getDependencyTrail().size();
-            for (String packageName : packageNames) {
-                Map<String, Artifact> foundClasses = packageResults.get(packageName);
-                if (foundClasses == null) {
-                    foundClasses = new TreeMap<String, Artifact>();
-                }
-                Set<String> classesThatHaveDependency = findClassesThatUsePackage(artifact.getFile(), packageName);
-                if (classesThatHaveDependency != null & classesThatHaveDependency.size() > 0) {
-                    List<String> trail = new ArrayList<String>(artifact.getDependencyTrail());
-                    if (artifact.isOptional()) {
-                        trail.add("[optional]");
-                    }
-                    for (String classThatHasDependency : classesThatHaveDependency) {
-                        if (!currentTrailWasDisplayed) {
-                            displayTrailTree(project, artifact);
-                            currentTrailWasDisplayed = true;
-                        }
-                        getLog().info(getPaddingString(trailDepth) + "+--> Found class " + classThatHasDependency + " that uses package " + packageName);
-                        foundClasses.put(classThatHasDependency, artifact);
-                    }
-                    packageResults.put(packageName, foundClasses);
-                }
-            }
-        }
+        final Map<String, Map<String, Artifact>> packageResults = findPackageUses(packageNames, project.getArtifacts(), project, outputDirectory, searchInDependencies, getLog());
         getLog().info("=================================================================================");
         getLog().info("SEARCH RESULTS SUMMARY");
         getLog().info("---------------------------------------------------------------------------------");
@@ -82,28 +63,102 @@ public class FindPackageUsesMojo extends AbstractMojo {
             if (!packageResults.containsKey(packageName)) {
                 getLog().warn("Couldn't find " + packageName + " uses anywhere !");
             } else {
-                getLog().info("Package " + packageName + " used in classes :");
+                getLog().info("Package " + packageName + " used in :");
                 Map<String, Artifact> foundClasses = packageResults.get(packageName);
                 for (Map.Entry<String, Artifact> foundClass : foundClasses.entrySet()) {
                     getLog().info("  " + foundClass.getKey() + " ( " + foundClass.getValue().getFile() + ")");
                 }
             }
         }
-
     }
 
-    private Set<String> findClassesThatUsePackage(File jarFile, String packageName) {
+    public static Map<String, Map<String, Artifact>> findPackageUses(List<String> packageNames, Set<Artifact> artifacts, MavenProject project, File buildOutputDirectory, boolean searchInDependencies, Log log) {
+        final Map<String, Map<String, Artifact>> packageResults = new TreeMap<String, Map<String, Artifact>>();
+
+        log.info("Scanning project build directory...");
+
+        if (buildOutputDirectory.exists()) {
+            findPackageUsesInDirectory(packageNames, project, log, packageResults, buildOutputDirectory);
+        }
+
+        if (!searchInDependencies) {
+            return packageResults;
+        }
+
+        log.info("Scanning project dependencies...");
+
+        for (Artifact artifact : artifacts) {
+            if (artifact.isOptional()) {
+                log.debug("Processing optional dependency " + artifact + "...");
+            }
+            if (artifact.getType().equals("pom")) {
+                log.warn("Skipping POM artifact " + artifact);
+                continue;
+            }
+            if (!artifact.getType().equals("jar")) {
+                log.warn("Found non JAR artifact " + artifact);
+            }
+            findPackageUsesInArtifact(packageNames, project, log, packageResults, artifact);
+        }
+        return packageResults;
+    }
+
+    public static void findPackageUsesInArtifact(List<String> packageNames, MavenProject project, Log log, Map<String, Map<String, Artifact>> packageResults, Artifact artifact) {
+        boolean currentTrailWasDisplayed = false;
+        int trailDepth = artifact.getDependencyTrail().size();
+        for (String packageName : packageNames) {
+            Map<String, Artifact> foundClasses = packageResults.get(packageName);
+            if (foundClasses == null) {
+                foundClasses = new TreeMap<String, Artifact>();
+            }
+            Set<String> classesThatHaveDependency = findClassesThatUsePackage(artifact.getFile(), packageName, project, log);
+            if (classesThatHaveDependency != null & classesThatHaveDependency.size() > 0) {
+                List<String> trail = new ArrayList<String>(artifact.getDependencyTrail());
+                if (artifact.isOptional()) {
+                    trail.add("[optional]");
+                }
+                for (String classThatHasDependency : classesThatHaveDependency) {
+                    if (!currentTrailWasDisplayed) {
+                        displayTrailTree(project, artifact, log);
+                        currentTrailWasDisplayed = true;
+                    }
+                    log.info(getPaddingString(trailDepth) + "+--> Found class " + classThatHasDependency + " that uses package " + packageName);
+                    foundClasses.put(classThatHasDependency, artifact);
+                }
+                packageResults.put(packageName, foundClasses);
+            }
+        }
+    }
+
+    public static void findPackageUsesInDirectory(List<String> packageNames, MavenProject project, Log log, Map<String, Map<String, Artifact>> packageResults, File directory) {
+        for (String packageName : packageNames) {
+            Map<String, Artifact> foundClasses = packageResults.get(packageName);
+            if (foundClasses == null) {
+                foundClasses = new TreeMap<String, Artifact>();
+            }
+            Set<String> classesThatHaveDependency = findClassesThatUsePackage(directory, packageName, project, log);
+            if (classesThatHaveDependency != null & classesThatHaveDependency.size() > 0) {
+                for (String classThatHasDependency : classesThatHaveDependency) {
+                    log.info( "+--> Found class " + classThatHasDependency + " that uses package " + packageName);
+                    foundClasses.put(classThatHasDependency, project.getArtifact());
+                }
+                packageResults.put(packageName, foundClasses);
+            }
+        }
+    }
+
+    private static Set<String> findClassesThatUsePackage(File jarFile, String packageName, MavenProject project, Log log) {
         Set<String> classesThatHaveDependency = new TreeSet<String>();
         JarInputStream jarInputStream = null;
         if (jarFile == null) {
-            getLog().warn("File is null !");
+            log.warn("File is null !");
             return classesThatHaveDependency;
         }
         if (!jarFile.exists()) {
-            getLog().warn("File " + jarFile + " does not exist !");
+            log.warn("File " + jarFile + " does not exist !");
             return classesThatHaveDependency;
         }
-        getLog().debug("Scanning JAR " + jarFile + "...");
+        log.debug("Scanning JAR " + jarFile + "...");
         try {
             classesThatHaveDependency = ClassDependencyTracker.findDependencyInJar(jarFile, packageName, project.getTestClasspathElements());
         } catch (IOException e) {
@@ -116,12 +171,12 @@ public class FindPackageUsesMojo extends AbstractMojo {
         return classesThatHaveDependency;
     }
 
-    private void displayTrailTree(MavenProject project, Artifact artifact) {
+    private static void displayTrailTree(MavenProject project, Artifact artifact, Log log) {
         StringBuilder builder = new StringBuilder();
         int i = 0;
         for (String trailEntry : artifact.getDependencyTrail()) {
             builder.append(trailEntry);
-            Artifact dependencyArtifact = findArtifactInProject(project, trailEntry);
+            Artifact dependencyArtifact = findArtifactInProject(project, trailEntry, log);
             if (dependencyArtifact != null) {
                 if (dependencyArtifact.isOptional()) {
                     builder.append(" [OPTIONAL]");
@@ -132,7 +187,7 @@ public class FindPackageUsesMojo extends AbstractMojo {
                 }
             }
             if (i < artifact.getDependencyTrail().size() - 1) {
-                getLog().info(builder.toString());
+                log.info(builder.toString());
                 builder = new StringBuilder();
                 builder.append(getPaddingString(i));
                 builder.append("+- ");
@@ -140,10 +195,10 @@ public class FindPackageUsesMojo extends AbstractMojo {
             i++;
         }
         builder.append(" (" + artifact.getFile() + ") : ");
-        getLog().info(builder.toString());
+        log.info(builder.toString());
     }
 
-    private Artifact findArtifactInProject(MavenProject project, String artifactIdentifier) {
+    private static Artifact findArtifactInProject(MavenProject project, String artifactIdentifier, Log log) {
         List<Artifact> results = new ArrayList<Artifact>();
         if (artifactMatches(project.getArtifact(), artifactIdentifier)) {
             results.add(project.getArtifact());
@@ -154,22 +209,22 @@ public class FindPackageUsesMojo extends AbstractMojo {
             }
         }
         if (results.size() > 1) {
-            getLog().warn("Found more than one matching dependency for identifier " + artifactIdentifier + ":");
+            log.warn("Found more than one matching dependency for identifier " + artifactIdentifier + ":");
             for (Artifact resultArtifact : results) {
-                getLog().warn(" --> " + resultArtifact.toString());
+                log.warn(" --> " + resultArtifact.toString());
             }
             return null;
         } else {
             if (results.size() == 1) {
                 return results.get(0);
             } else {
-                getLog().warn("Couldn't find project dependency for identifier " + artifactIdentifier + "!");
+                log.warn("Couldn't find project dependency for identifier " + artifactIdentifier + "!");
                 return null;
             }
         }
     }
 
-    private boolean artifactMatches(Artifact artifact, String artifactIdentifier) {
+    private static boolean artifactMatches(Artifact artifact, String artifactIdentifier) {
         String[] artifactIdentifierParts = artifactIdentifier.split(":");
         String artifactGroupId = null;
         String artifactId = null;
@@ -221,7 +276,7 @@ public class FindPackageUsesMojo extends AbstractMojo {
         return true;
     }
 
-    private String getPaddingString(int i) {
+    private static String getPaddingString(int i) {
         StringBuilder builder = new StringBuilder();
         for (int j = 0; j < i; j++) {
             builder.append("  ");

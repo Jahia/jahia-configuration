@@ -22,7 +22,7 @@ public class DrlFileParser extends AbstractFileParser {
         return "drl".equals(ext);
     }
 
-    public boolean parse(String fileName, InputStream inputStream, ParsingContext parsingContext, boolean externalDependency) throws IOException {
+    public boolean parse(String fileName, InputStream inputStream, String fileParent, boolean externalDependency, boolean optionalDependency, String version, ParsingContext parsingContext) throws IOException {
         getLogger().debug("Processing Drools Rule file " + fileName + "...");
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
         String line = null;
@@ -30,8 +30,8 @@ public class DrlFileParser extends AbstractFileParser {
             Matcher ruleImportMatcher = RULE_IMPORT_PATTERN.matcher(line);
             if (ruleImportMatcher.matches()) {
                 String ruleImport = ruleImportMatcher.group(1);
-                getLogger().debug(fileName + ": found rule import " + ruleImport + " package=" + PackageUtils.getPackagesFromClass(ruleImport).toString());
-                parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(ruleImport));
+                getLogger().debug(fileParent + " / " + fileName + ": found rule import " + ruleImport + " package=" + PackageUtils.getPackagesFromClass(ruleImport, optionalDependency, version, fileName, parsingContext).toString());
+                parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(ruleImport, optionalDependency, version, fileParent + "/" + fileName, parsingContext));
             }
         }
         return true;

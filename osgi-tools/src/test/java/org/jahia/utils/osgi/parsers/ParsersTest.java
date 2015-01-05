@@ -19,6 +19,7 @@ public class ParsersTest {
     @Test
     public void testParsers() throws IOException {
         ParsingContext parsingContext = new ParsingContext();
+        String version = "1.0";
 
         String tmpDirLocation = System.getProperty("java.io.tmpdir");
         File tmpDirTestLocation = new File(tmpDirLocation, "test-" + System.currentTimeMillis());
@@ -36,11 +37,11 @@ public class ParsersTest {
         copyClassLoaderResourceToFile("org/jahia/utils/osgi/parsers/functions.tld", functionsTagLibFile);
         copyClassLoaderResourceToFile("org/jahia/utils/osgi/parsers/translation.jpdl.xml", jPDLWorkflowDefFile);
 
-        parseFile(cndDefinitionsFile.getName(), new FileInputStream(cndDefinitionsFile), parsingContext, false, logger);
-        parseFile(jspFile.getName(), new FileInputStream(jspFile), parsingContext, false, logger);
-        parseFile(ruleFile.getName(), new FileInputStream(ruleFile), parsingContext, false, logger);
-        parseFile(functionsTagLibFile.getName(), new FileInputStream(functionsTagLibFile), parsingContext, true, logger);
-        parseFile(jPDLWorkflowDefFile.getName(), new FileInputStream(jPDLWorkflowDefFile), parsingContext, true, logger);
+        parseFile(cndDefinitionsFile.getName(), new FileInputStream(cndDefinitionsFile), tmpDirTestLocation.getPath(), false, false, version, logger, parsingContext);
+        parseFile(jspFile.getName(), new FileInputStream(jspFile), tmpDirTestLocation.getPath(), false, false, version, logger, parsingContext);
+        parseFile(ruleFile.getName(), new FileInputStream(ruleFile), tmpDirTestLocation.getPath(), false, false, version, logger, parsingContext);
+        parseFile(functionsTagLibFile.getName(), new FileInputStream(functionsTagLibFile), tmpDirTestLocation.getPath(), true, false, version, logger, parsingContext);
+        parseFile(jPDLWorkflowDefFile.getName(), new FileInputStream(jPDLWorkflowDefFile), tmpDirTestLocation.getPath(), true, false, version, logger, parsingContext);
 
         parsingContext.postProcess();
 
@@ -50,24 +51,24 @@ public class ParsersTest {
 
         // from the JSP parser
         // - @elvariable type hint
-        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.services.render.scripting"));
-        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.test1.generic.level1"));
-        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.test1.generic.level2"));
-        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.test1.generic.level3"));
-        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.utils"));
-        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.services.notification"));
-        Assert.assertFalse("bad import package", parsingContext.getPackageImports().contains("java.lang"));
+        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains(new PackageInfo("org.jahia.services.render.scripting")));
+        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains(new PackageInfo("org.jahia.test1.generic.level1")));
+        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains(new PackageInfo("org.jahia.test1.generic.level2")));
+        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains(new PackageInfo("org.jahia.test1.generic.level3")));
+        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains(new PackageInfo("org.jahia.utils")));
+        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains(new PackageInfo("org.jahia.services.notification")));
+        Assert.assertFalse("bad import package", parsingContext.getPackageImports().contains(new PackageInfo("java.lang")));
         // - jsp:useBean tag
-        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.configuration.modules"));
+        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains(new PackageInfo("org.jahia.configuration.modules")));
         // - from taglib usages
-        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.apache.commons.lang"));
-        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.taglibs.functions"));
+        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains(new PackageInfo("org.apache.commons.lang")));
+        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains(new PackageInfo("org.jahia.taglibs.functions")));
 
         // from the rules DRL file
-        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.services.content.rules"));
+        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains(new PackageInfo("org.jahia.services.content.rules")));
 
         // from the jBPM jPDL Workflow definition file
-        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains("org.jahia.services.workflow.jbpm"));
+        Assert.assertTrue("Missing import package", parsingContext.getPackageImports().contains(new PackageInfo("org.jahia.services.workflow.jbpm")));
 
         // from the content definition file (definitions.cnd)
         Assert.assertTrue("Missing content type definition", parsingContext.getContentTypeDefinitions().contains("test:versionable"));
@@ -78,10 +79,10 @@ public class ParsersTest {
 
     }
 
-    private void parseFile(String fileName, InputStream inputStream, ParsingContext parsingContext, boolean externalDependency, Logger logger) throws IOException {
+    private void parseFile(String fileName, InputStream inputStream, String fileParent, boolean externalDependency, boolean optionalDependency, String version, Logger logger, ParsingContext parsingContext) throws IOException {
         try {
-        Parsers.getInstance().parse(0, fileName, inputStream, parsingContext, externalDependency, logger);
-        Parsers.getInstance().parse(1, fileName, inputStream, parsingContext, externalDependency, logger);
+        Parsers.getInstance().parse(0, fileName, inputStream, fileParent, externalDependency, optionalDependency, version, logger, parsingContext);
+        Parsers.getInstance().parse(1, fileName, inputStream, fileParent, externalDependency, optionalDependency, version, logger, parsingContext);
         } finally {
             IOUtils.closeQuietly(inputStream);
         }

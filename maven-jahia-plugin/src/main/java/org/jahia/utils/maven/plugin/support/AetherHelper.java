@@ -72,12 +72,15 @@
 
 package org.jahia.utils.maven.plugin.support;
 
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.handler.ArtifactHandler;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
+import org.jahia.utils.osgi.parsers.ParsingContext;
+
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
 
 /**
  * Artifact and dependency resolution facade.
@@ -91,5 +94,7 @@ public interface AetherHelper {
     List<String> getDependencyVersion(MavenProject project, String artifactFileName) throws MojoExecutionException;
 
     File resolveArtifactFile(String coords) throws MojoExecutionException;
+
+    void processArtifactAndDependencies(Artifact artifact, boolean optional, ArtifactProcessor artifactProcessor, ArtifactHandler artifactHandler, ParsingContext rootParsingContext);
 
 }

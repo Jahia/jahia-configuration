@@ -12,18 +12,22 @@ import java.util.List;
  */
 public class JpdlXmlFileParser extends AbstractXmlFileParser {
 
-    @Override
-    public boolean canParse(String fileName, Element rootElement) {
+    public boolean canParse(String fileName) {
         return fileName.toLowerCase().endsWith(".jpdl.xml");
     }
 
     @Override
-    public void parse(String fileName, Element rootElement, ParsingContext parsingContext, boolean externalDependency) throws JDOMException {
-        getLogger().debug("Processing workflow definition file (JBPM JPDL) " + fileName + "...");
+    public boolean canParse(String fileName, Element rootElement) {
+        return true;
+    }
+
+    @Override
+    public void parse(String fileName, Element rootElement, String fileParent, boolean externalDependency, boolean optionalDependency, String version, ParsingContext parsingContext) throws JDOMException {
+        getLogger().debug("Processing workflow definition file (JBPM JPDL) " + fileParent + " / " +fileName + "...");
         List<Attribute> classAttributes = getAttributes(rootElement, "//@class");
         for (Attribute classAttribute : classAttributes) {
-            getLogger().debug(fileName + " Found class " + classAttribute.getValue() + " package=" + PackageUtils.getPackagesFromClass(classAttribute.getValue()).toString());
-            parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(classAttribute.getValue()));
+            getLogger().debug(fileName + " Found class " + classAttribute.getValue() + " package=" + PackageUtils.getPackagesFromClass(classAttribute.getValue(), optionalDependency, version, fileName, parsingContext).toString());
+            parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(classAttribute.getValue(), optionalDependency, version, fileParent + "/" +fileName, parsingContext));
         }
     }
 }

@@ -16,12 +16,14 @@ import java.util.*;
  */
 public class TldXmlFileParser extends AbstractXmlFileParser {
     
-    private static Map<String, List<String>> knownTransitiveImportPackages;
+    private static Map<String, List<PackageInfo>> knownTransitiveImportPackages;
     
     static {
-        knownTransitiveImportPackages = new HashMap<String, List<String>>();
+        knownTransitiveImportPackages = new HashMap<String, List<PackageInfo>>();
+        List<PackageInfo> springServletFormTagTransitiveImport = new ArrayList<PackageInfo>();
+        springServletFormTagTransitiveImport.add(new PackageInfo("org.springframework.web.servlet.tags", "Jahia Maven plugin built-in hardcoded transitive import list", null));
         knownTransitiveImportPackages.put("org.springframework.web.servlet.tags.form",
-                Arrays.asList(new String[] { "org.springframework.web.servlet.tags" }));
+                springServletFormTagTransitiveImport);
     }
 
     public static String getTaglibUri(Element tldRootElement) throws JDOMException {
@@ -48,7 +50,7 @@ public class TldXmlFileParser extends AbstractXmlFileParser {
     }
 
     @Override
-    public void parse(String fileName, Element rootElement, ParsingContext parsingContext, boolean externalDependency)
+    public void parse(String fileName, Element rootElement, String fileParent, boolean externalDependency, boolean optionalDependency, String version, ParsingContext parsingContext)
             throws JDOMException {
         dumpElementNamespaces(rootElement);
         boolean hasDefaultNamespace = !StringUtils.isEmpty(rootElement.getNamespaceURI());
@@ -58,13 +60,13 @@ public class TldXmlFileParser extends AbstractXmlFileParser {
 
         String uri = getTaglibUri(rootElement);
         if (uri == null) {
-            getLogger().warn("Couldn't find /taglib/uri tag in " + fileName + ", aborting TLD parsing !");
+            getLogger().warn("Couldn't find /taglib/uri tag in " + fileParent + " / " + fileName + ", aborting TLD parsing !");
             return;
         }
         getLogger().debug("Taglib URI=" + uri);
-        Set<String> taglibPackageSet = parsingContext.getTaglibPackages().get(uri);
+        Set<PackageInfo> taglibPackageSet = parsingContext.getTaglibPackages().get(uri);
         if (taglibPackageSet == null) {
-            taglibPackageSet = new TreeSet<String>();
+            taglibPackageSet = new TreeSet<PackageInfo>();
         }
 
         List<Element> tagClassElements = new LinkedList<Element>();
@@ -76,8 +78,8 @@ public class TldXmlFileParser extends AbstractXmlFileParser {
         for (Element tagClassElement : tagClassElements) {
             getLogger().debug(
                     fileName + " Found tag class " + tagClassElement.getTextTrim() + " package="
-                            + PackageUtils.getPackagesFromClass(tagClassElement.getTextTrim()).toString());
-            taglibPackageSet.addAll(PackageUtils.getPackagesFromClass(tagClassElement.getTextTrim()));
+                            + PackageUtils.getPackagesFromClass(tagClassElement.getTextTrim(), optionalDependency, version, fileParent + "/" + fileName, parsingContext).toString());
+            taglibPackageSet.addAll(PackageUtils.getPackagesFromClass(tagClassElement.getTextTrim(), optionalDependency, version, fileParent + "/" + fileName, parsingContext));
         }
 
         // Parsing function class
@@ -90,14 +92,14 @@ public class TldXmlFileParser extends AbstractXmlFileParser {
         for (Element functionClassElement : functionClassElements) {
             getLogger().debug(
                     fileName + " Found function class " + functionClassElement.getTextTrim() + " package="
-                            + PackageUtils.getPackagesFromClass(functionClassElement.getTextTrim()).toString());
-            taglibPackageSet.addAll(PackageUtils.getPackagesFromClass(functionClassElement.getTextTrim()));
+                            + PackageUtils.getPackagesFromClass(functionClassElement.getTextTrim(), optionalDependency, version , fileParent + "/" + fileName, parsingContext).toString());
+            taglibPackageSet.addAll(PackageUtils.getPackagesFromClass(functionClassElement.getTextTrim(), optionalDependency, version , fileParent + "/" + fileName, parsingContext));
         }
 
         // Parsing function signature
         for (Element functionSignatureElement : getElements(rootElement,
                 hasDefaultNamespace ? "//xp:function/xp:function-signature" : "//function/function-signature")) {
-            List<String> pkgs = getPackagesFromFunctionSignature(functionSignatureElement.getTextTrim());
+            List<PackageInfo> pkgs = getPackagesFromFunctionSignature(functionSignatureElement.getTextTrim(), fileParent + "/" + fileName, optionalDependency, version, parsingContext);
             if (pkgs != null && !pkgs.isEmpty()) {
                 getLogger().debug(
                         fileName + " Found packages in function signature " + functionSignatureElement.getTextTrim()
@@ -110,7 +112,7 @@ public class TldXmlFileParser extends AbstractXmlFileParser {
         for (Object comment : selectNodes(rootElement, "//comment()")) {
             if (comment instanceof Comment) {
                 String text = ((Comment) comment).getText();
-                List<String> pkgs = getPackagesFromTagFileComment(text);
+                List<PackageInfo> pkgs = getPackagesFromTagFileComment(text, fileParent + "/" + fileName, parsingContext);
                 if (pkgs != null && !pkgs.isEmpty()) {
                     getLogger().debug(
                             fileName + " Found import packages hint in comment " + text + " packages=["
@@ -130,45 +132,45 @@ public class TldXmlFileParser extends AbstractXmlFileParser {
             parsingContext.addAdditionalFileToParse(tagFilePath);
         }
         
-        Set<String> effectivePackages = new TreeSet<String>(taglibPackageSet);
-        for (String pkg : taglibPackageSet) {
-            if (knownTransitiveImportPackages.containsKey(pkg)) {
-                effectivePackages.addAll(knownTransitiveImportPackages.get(pkg));
+        Set<PackageInfo> effectivePackages = new TreeSet<PackageInfo>(taglibPackageSet);
+        for (PackageInfo pkg : taglibPackageSet) {
+            if (knownTransitiveImportPackages.containsKey(pkg.getName())) {
+                effectivePackages.addAll(knownTransitiveImportPackages.get(pkg.getName()));
             }
         }
 
-        parsingContext.getTaglibPackages().put(uri, effectivePackages);
-        parsingContext.getExternalTaglibs().put(uri, externalDependency);
+        parsingContext.putTaglibPackages(uri, effectivePackages);
+        parsingContext.putExternalTaglib(uri, externalDependency);
     }
 
-    private List<String> getPackagesFromTagFileComment(String text) {
+    private List<PackageInfo> getPackagesFromTagFileComment(String text, String sourceLocation, ParsingContext parsingContext) {
         if (text == null || !text.contains("Import-Package:")) {
             return null;
         }
 
-        List<String> pkgs = null;
+        List<PackageInfo> pkgs = null;
         String[] tokens = StringUtils.split(StringUtils.replace(text, "Import-Package:", ""), "\n\r \t,");
         for (String token : tokens) {
             if (token.indexOf('.') != -1 && !token.startsWith("java.lang")) {
                 if (pkgs == null) {
-                    pkgs = new LinkedList<String>();
+                    pkgs = new LinkedList<PackageInfo>();
                 }
-                pkgs.add(token);
+                pkgs.add(new PackageInfo(token, sourceLocation, parsingContext));
             }
         }
 
         return pkgs;
     }
 
-    private List<String> getPackagesFromFunctionSignature(String signature) {
-        List<String> pkgs = null;
+    private List<PackageInfo> getPackagesFromFunctionSignature(String signature, String sourceLocation, boolean optionalDependency, String version, ParsingContext parsingContext) {
+        List<PackageInfo> pkgs = null;
         String[] tokens = StringUtils.split(signature, "\n\r \t,()");
         for (String token : tokens) {
             if (token.indexOf('.') != -1 && !token.startsWith("java.lang")) {
                 if (pkgs == null) {
-                    pkgs = new LinkedList<String>();
+                    pkgs = new LinkedList<PackageInfo>();
                 }
-                pkgs.addAll(PackageUtils.getPackagesFromClass(token));
+                pkgs.addAll(PackageUtils.getPackagesFromClass(token, optionalDependency, version, sourceLocation, parsingContext));
             }
         }
 

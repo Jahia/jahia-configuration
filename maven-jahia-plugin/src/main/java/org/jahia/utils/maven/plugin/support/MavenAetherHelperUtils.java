@@ -72,26 +72,32 @@
 
 package org.jahia.utils.maven.plugin.support;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.List;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.logging.Log;
+import org.jahia.utils.osgi.PackageUtils;
+import org.jahia.utils.osgi.parsers.PackageInfo;
+import org.jahia.utils.osgi.parsers.ParsingContext;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Deque;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 
 /**
  * Aether helper related utility methods.
  * 
  * @author Sergiy Shyrkov
  */
-final class MavenAetherHelperUtils {
+public final class MavenAetherHelperUtils {
 
-    static boolean doesJarHavePackageName(File jarFile, String packageName, Log log) {
+    public static boolean doesJarHavePackageName(File jarFile, String packageName, Log log) {
         JarInputStream jarInputStream = null;
         if (jarFile == null) {
             log.warn("File is null !");
@@ -123,10 +129,49 @@ final class MavenAetherHelperUtils {
         return false;
     }
 
-    static String getCoords(Artifact artifact) {
+    public static Set<PackageInfo> getJarPackages(File jarFile, boolean optionalJar, String version, ParsingContext parsingContext, Log log) {
+        JarInputStream jarInputStream = null;
+        Set<PackageInfo> packageInfos = new LinkedHashSet<PackageInfo>();
+        if (jarFile == null) {
+            log.warn("File is null !");
+            return packageInfos;
+        }
+        if (!jarFile.exists()) {
+            log.warn("File " + jarFile + " does not exist !");
+            return packageInfos;
+        }
+        log.debug("Scanning JAR " + jarFile + "...");
+        try {
+            jarInputStream = new JarInputStream(new FileInputStream(jarFile));
+            JarEntry jarEntry = null;
+            while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
+                String jarPackageName = jarEntry.getName().replaceAll("/", ".");
+                if (jarPackageName.endsWith(".")) {
+                    jarPackageName = jarPackageName.substring(0, jarPackageName.length() - 1);
+                }
+                if (jarPackageName.startsWith("META-INF") ||
+                        jarPackageName.startsWith("WEB-INF") ||
+                        jarPackageName.startsWith("OSGI-INF")) {
+                    continue;
+                }
+                packageInfos.addAll(PackageUtils.getPackagesFromClass(jarPackageName, optionalJar, version, jarFile.getCanonicalPath(), parsingContext));
+            }
+        } catch (IOException e) {
+            log.error(e);
+            ;
+        } finally {
+            IOUtils.closeQuietly(jarInputStream);
+        }
+        return packageInfos;
+    }
+
+    public static String getCoords(Artifact artifact) {
         String artifactCoords = artifact.getGroupId() + ":" + artifact.getArtifactId();
         if (StringUtils.isNotEmpty(artifact.getType()) && !("*".equals(artifact.getType()))) {
             artifactCoords += ":" + artifact.getType();
+        }
+        if (StringUtils.isNotEmpty(artifact.getClassifier())) {
+            artifactCoords += ":" + artifact.getClassifier();
         }
         if (StringUtils.isNotEmpty(artifact.getBaseVersion()) && !("*".equals(artifact.getBaseVersion()))) {
             artifactCoords += ":" + artifact.getBaseVersion();
@@ -135,8 +180,38 @@ final class MavenAetherHelperUtils {
         return artifactCoords;
     }
 
+    public static String getDiskPath(Artifact artifact) {
+        String artifactDiskPath = artifact.getGroupId();
+        artifactDiskPath = artifactDiskPath.replaceAll("\\.", "/");
+        artifactDiskPath += "/" + artifact.getArtifactId();
+        if (StringUtils.isNotEmpty(artifact.getBaseVersion()) && !("*".equals(artifact.getBaseVersion()))) {
+            artifactDiskPath += "/" + artifact.getBaseVersion();
+        }
+        artifactDiskPath += "/" + artifact.getArtifactId();
+        if (StringUtils.isNotEmpty(artifact.getBaseVersion()) && !("*".equals(artifact.getBaseVersion()))) {
+            artifactDiskPath += "-" + artifact.getBaseVersion();
+        }
+        if (StringUtils.isNotEmpty(artifact.getClassifier())) {
+            artifactDiskPath += "-" + artifact.getClassifier();
+        }
+        if (StringUtils.isNotEmpty(artifact.getType()) && !("*".equals(artifact.getType()))) {
+            artifactDiskPath += "." + artifact.getType();
+        }
+        return artifactDiskPath;
+    }
+
     static String getTrail(List<String> dependencyTrail) {
         return StringUtils.join(dependencyTrail, " -> ");
+    }
+
+    static String getTrailPadding(Deque<String> dependencyTrail) {
+        StringBuffer padding = new StringBuffer();
+        for (int i=0; i < dependencyTrail.size(); i++) {
+            padding.append("  ");
+        }
+        padding.append(dependencyTrail.peek());
+        padding.append(" ");
+        return padding.toString();
     }
 
 }

@@ -19,9 +19,9 @@ public class JCRImportXmlFileParser extends AbstractXmlFileParser {
     }
 
     @Override
-    public void parse(String fileName, Element rootElement, ParsingContext parsingContext, boolean externalDependency) throws JDOMException {
-        getLogger().debug("Processing JCR import file " + fileName + "...");
+    public void parse(String fileName, Element rootElement, String fileParent, boolean externalDependency, boolean optionalDependency, String version, ParsingContext parsingContext) throws JDOMException {
+        getLogger().debug("Processing JCR import file " + fileParent + " / " + fileName + "...");
 
-        getRefsUsingXPathQueries(fileName, rootElement, false, false, JCR_IMPORT_XPATH_QUERIES, "xp", parsingContext);
+        getRefsUsingXPathQueries(fileName, rootElement, false, false, JCR_IMPORT_XPATH_QUERIES, "xp", fileParent, version, optionalDependency, parsingContext);
     }
 }

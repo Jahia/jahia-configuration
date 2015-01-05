@@ -2,6 +2,8 @@ package org.jahia.utils.osgi;
 
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A clause in a OSGi bundle manifest header value. Clauses are separated by commas in the OSGi bundle manifest header values.
@@ -10,6 +12,8 @@ public class ManifestValueClause {
     List<String> paths;
     Map<String,String> attributes;
     Map<String,String> directives;
+
+    public static final Pattern EXTENDED_PATTERN = Pattern.compile("[A-Za-z0-9-_\\.]+");
 
     public ManifestValueClause(List<String> paths, Map<String, String> attributes, Map<String, String> directives) {
         this.paths = paths;
@@ -29,6 +33,14 @@ public class ManifestValueClause {
         return directives;
     }
 
+    private boolean mustQuote(String value) {
+        Matcher extendedMatcher = EXTENDED_PATTERN.matcher(value);
+        if (extendedMatcher.matches()) {
+            return false;
+        }
+        return true;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
@@ -45,7 +57,14 @@ public class ManifestValueClause {
         for (Map.Entry<String,String> attributeEntry : attributes.entrySet()) {
             sb.append(attributeEntry.getKey());
             sb.append("=");
+            boolean needQuotes = mustQuote(attributeEntry.getValue());
+            if (needQuotes) {
+                sb.append("\"");
+            }
             sb.append(attributeEntry.getValue());
+            if (needQuotes) {
+                sb.append("\"");
+            }
             if (i < attributes.size() -1) {
                 sb.append(";");
             }
@@ -58,7 +77,14 @@ public class ManifestValueClause {
         for (Map.Entry<String,String> directiveEntry : directives.entrySet()) {
             sb.append(directiveEntry.getKey());
             sb.append(":=");
+            boolean needQuotes = mustQuote(directiveEntry.getValue());
+            if (needQuotes) {
+                sb.append("\"");
+            }
             sb.append(directiveEntry.getValue());
+            if (needQuotes) {
+                sb.append("\"");
+            }
             if (i < directives.size() -1) {
                 sb.append(";");
             }

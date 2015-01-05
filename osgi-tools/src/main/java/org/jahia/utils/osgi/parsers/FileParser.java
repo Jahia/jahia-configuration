@@ -18,6 +18,6 @@ public interface FileParser {
 
     public boolean canParse(String fileName);
 
-    public boolean parse(String fileName, InputStream inputStream, ParsingContext parsingContext, boolean externalDependency) throws IOException;
+    public boolean parse(String fileName, InputStream inputStream, String fileParent, boolean externalDependency, boolean optionalDependency, String version, ParsingContext parsingContext) throws IOException;
 
 }

@@ -22,7 +22,7 @@ public class GroovyFileParser extends AbstractFileParser {
         return "groovy".equals(ext);
     }
 
-    public boolean parse(String fileName, InputStream inputStream, ParsingContext parsingContext, boolean externalDependency) throws IOException {
+    public boolean parse(String fileName, InputStream inputStream, String fileParent, boolean externalDependency, boolean optionalDependency, String version, ParsingContext parsingContext) throws IOException {
         getLogger().debug("Processing Groovy file " + fileName + "...");
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
         String line = null;
@@ -30,8 +30,8 @@ public class GroovyFileParser extends AbstractFileParser {
             Matcher groovyImportMatcher = GROOVY_IMPORT_PATTERN.matcher(line);
             if (groovyImportMatcher.matches()) {
                 String groovyImport = groovyImportMatcher.group(1);
-                getLogger().debug(fileName + ": found Groovy import " + groovyImport + " package=" + PackageUtils.getPackagesFromClass(groovyImport).toString());
-                parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(groovyImport));
+                getLogger().debug(fileParent + " / " + fileName + ": found Groovy import " + groovyImport + " package=" + PackageUtils.getPackagesFromClass(groovyImport, optionalDependency, version, fileName, parsingContext).toString());
+                parsingContext.addAllPackageImports(PackageUtils.getPackagesFromClass(groovyImport, optionalDependency, version , fileParent + "/" + fileName, parsingContext));
             }
         }
         return true;
