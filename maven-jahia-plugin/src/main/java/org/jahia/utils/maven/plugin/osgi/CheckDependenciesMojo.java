@@ -82,9 +82,9 @@ public class CheckDependenciesMojo extends DependenciesMojo {
 
 
     /**
-     * @parameter default-value="true"
+     * @parameter default-value="false"
      */
-    protected boolean failBuildOnMissingPackageExports = true;
+    protected boolean failBuildOnMissingPackageExports = false;
 
     /**
      * @parameter default-value="false"
