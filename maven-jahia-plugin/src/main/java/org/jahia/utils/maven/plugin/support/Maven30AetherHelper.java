@@ -114,17 +114,30 @@ public class Maven30AetherHelper implements AetherHelper {
         private boolean excludedDependency = false;
         private Map<String, List<String>> foundPackages;
         private String packageName;
+        private Deque<String> loopCheckTrail = null;
 
         public PackagerFinderDependencyVisitor(String packageName, Map<String, List<String>> foundPackages,
-                boolean excludedDependency, List<String> dependencyTrail) {
+                boolean excludedDependency, List<String> dependencyTrail, Deque<String> loopCheckTrail) {
             this.packageName = packageName;
             this.foundPackages = foundPackages;
             this.excludedDependency = excludedDependency;
             this.dependencyTrail = new LinkedList<String>(dependencyTrail);
+            if (loopCheckTrail == null) {
+                this.loopCheckTrail = new ArrayDeque<String>();
+            } else {
+                this.loopCheckTrail = loopCheckTrail;
+            }
         }
 
         @Override
         public boolean visitEnter(DependencyNode node) {
+            if (!loopCheckTrail.contains(node.toString())) {
+                loopCheckTrail.push(node.toString());
+            } else {
+                log.warn("Already visited dependency " + node.toString() + "!!!");
+                loopCheckTrail.push(node.toString());
+                return false;
+            }
             if (node.getDependency().getArtifact().getFile() == null) {
                 log.warn("No local file for artifact " + node.getDependency().getArtifact());
                 return true;
@@ -173,7 +186,7 @@ public class Maven30AetherHelper implements AetherHelper {
                     DependencyNode exclusionNode = resolveExclusion(node, exclusion);
                     if (exclusionNode != null) {
                         exclusionNode.accept(new PackagerFinderDependencyVisitor(packageName, foundPackages, true,
-                                new LinkedList<String>(curTrail)));
+                                new LinkedList<String>(curTrail), loopCheckTrail));
                     }
                 }
             }
@@ -182,6 +195,7 @@ public class Maven30AetherHelper implements AetherHelper {
 
         @Override
         public boolean visitLeave(DependencyNode node) {
+            loopCheckTrail.pop();
             return true;
         }
     }
@@ -412,7 +426,7 @@ public class Maven30AetherHelper implements AetherHelper {
                     if (dependencyNode != null) {
                         List<String> trail = new LinkedList<String>(artifact.getDependencyTrail());
                         dependencyNode.accept(new PackagerFinderDependencyVisitor(packageName, foundPackages, false,
-                                trail));
+                                trail, null));
                     }
                 }
             }
