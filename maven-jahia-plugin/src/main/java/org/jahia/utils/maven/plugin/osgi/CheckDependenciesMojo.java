@@ -185,38 +185,43 @@ public class CheckDependenciesMojo extends DependenciesMojo {
                         boolean optionalClause = false;
                         if ("optional".equals(clauseResolution)) {
                             optionalClause = true;
+                        } else {
+                            importPackageClause.getDirectives().put("resolution", "optional");
+                            modifiedImportPackageClauses = true;
                         }
                         if (visitedPackageImports.contains(importPackagePath)) {
                             getLog().warn("Duplicate import detected on package " + importPackagePath + ", will remove duplicate. To remove this warning remove the duplicate import (possibly coming from a explicit import in the maven-bundle-plugin instructions)");
                             clausesToRemove.add(importPackageClause);
                             modifiedImportPackageClauses = true;
                         }
-                        PackageInfo importPackageInfo = new PackageInfo(importPackagePath, clauseVersion, optionalClause, artifactFile.getPath(), projectParsingContext);
-                        if (!optionalClause) {
-                            if (PackageUtils.containsMatchingVersion(allPackageExports, importPackageInfo)
-                                    && !importPackageInfo.isOptional()) {
-                                // we must now check if the import is strict and if the available export is part of
-                                // an optional export, in which case we will have to change it to be optional
-                                for (PackageInfo packageExport : allPackageExports) {
-                                    if (packageExport.matches(importPackageInfo)) {
-                                        if (packageExport.getOrigin() != null) {
-                                            ParsingContext parsingContext = packageExport.getOrigin();
-                                            if (parsingContext.isOptional()) {
-                                                // JAR is optional, we should modify the import package clause to be optional too !
-                                                getLog().warn("Mandatory package import " + importPackageInfo + " provided by optional JAR " + getTrail(packageExport) + " will be forced as optional !");
-                                                importPackageClause.getDirectives().put("resolution", "optional");
-                                                modifiedImportPackageClauses = true;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            if (!PackageUtils.containsIgnoreVersion(allPackageExports, importPackageInfo) &&
-                                    !PackageUtils.containsIgnoreVersion(systemPackages, importPackageInfo) &&
-                                    !PackageUtils.containsIgnoreVersion(projectParsingContext.getLocalPackages(), importPackageInfo)) {
-                                missingPackageExports.add(importPackageInfo);
-                            }
-                        }
+
+
+//                        PackageInfo importPackageInfo = new PackageInfo(importPackagePath, clauseVersion, optionalClause, artifactFile.getPath(), projectParsingContext);
+//                        if (!optionalClause) {
+//                            if (PackageUtils.containsMatchingVersion(allPackageExports, importPackageInfo)
+//                                    && !importPackageInfo.isOptional()) {
+//                                // we must now check if the import is strict and if the available export is part of
+//                                // an optional export, in which case we will have to change it to be optional
+//                                for (PackageInfo packageExport : allPackageExports) {
+//                                    if (packageExport.matches(importPackageInfo)) {
+//                                        if (packageExport.getOrigin() != null) {
+//                                            ParsingContext parsingContext = packageExport.getOrigin();
+//                                            if (parsingContext.isOptional()) {
+//                                                // JAR is optional, we should modify the import package clause to be optional too !
+//                                                getLog().warn("Mandatory package import " + importPackageInfo + " provided by optional JAR " + getTrail(packageExport) + " will be forced as optional !");
+//                                                importPackageClause.getDirectives().put("resolution", "optional");
+//                                                modifiedImportPackageClauses = true;
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                            if (!PackageUtils.containsIgnoreVersion(allPackageExports, importPackageInfo) &&
+//                                    !PackageUtils.containsIgnoreVersion(systemPackages, importPackageInfo) &&
+//                                    !PackageUtils.containsIgnoreVersion(projectParsingContext.getLocalPackages(), importPackageInfo)) {
+//                                missingPackageExports.add(importPackageInfo);
+//                            }
+//                        }
                         visitedPackageImports.add(importPackagePath);
                     }
                 }
