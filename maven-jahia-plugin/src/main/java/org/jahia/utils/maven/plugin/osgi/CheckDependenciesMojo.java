@@ -11,6 +11,7 @@ import org.apache.tika.io.IOUtils;
 import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.archiver.manager.ArchiverManager;
+import org.glassfish.jersey.client.ClientProperties;
 import org.jahia.utils.maven.plugin.support.MavenAetherHelperUtils;
 import org.jahia.utils.osgi.BundleUtils;
 import org.jahia.utils.osgi.ManifestValueClause;
@@ -18,7 +19,18 @@ import org.jahia.utils.osgi.PackageUtils;
 import org.jahia.utils.osgi.parsers.PackageInfo;
 import org.jahia.utils.osgi.parsers.ParsingContext;
 
+import javax.net.ssl.*;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.*;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -90,6 +102,109 @@ public class CheckDependenciesMojo extends DependenciesMojo {
      * @parameter default-value="false"
      */
     private boolean searchInDependencies = false;
+
+    /**
+     * This method will use the public REST API at search.maven.org to search for Maven dependencies that contain
+     * a package using an URL such as :
+     *
+     * http://search.maven.org/solrsearch/select?q=fc:%22com.mchange.v2.c3p0%22&rows=20&wt=json
+     *
+     * @param packageName
+     */
+    public static List<String> findPackageInMavenCentral(String packageName) {
+        List<String> artifactResults = new ArrayList<String>();
+        Client client = getRestClient(PackageUtils.MAVEN_SEARCH_HOST_URL);
+
+        WebTarget target = client.target(PackageUtils.MAVEN_SEARCH_HOST_URL).path("solrsearch/select")
+                .queryParam("q", "fc:\"" + packageName + "\"")
+                .queryParam("rows", "5")
+                .queryParam("wt", "json");
+
+        Invocation.Builder invocationBuilder =
+                target.request(MediaType.APPLICATION_JSON_TYPE);
+
+        Map<String, Object> searchResults = null;
+        try {
+            Response response = invocationBuilder.get();
+            searchResults= (Map<String, Object>) response.readEntity(Map.class);
+        } catch (ProcessingException pe) {
+            artifactResults.add(PackageUtils.NETWORK_ERROR_PREFIX + pe.getMessage());
+        }
+
+        if (searchResults != null) {
+            Map<String,Object> searchResponse = (Map<String,Object>) searchResults.get("response");
+            Integer searchResultCount = (Integer) searchResponse.get("numFound");
+            List<Map<String,Object>> docs = (List<Map<String,Object>>) searchResponse.get("docs");
+            for (Map<String,Object> doc : docs) {
+                String artifactId = (String) doc.get("id");
+                artifactResults.add(artifactId);
+            }
+        }
+
+        return artifactResults;
+    }
+
+    private static Map<String,Client> clients = new TreeMap<String,Client>();
+
+    private static Client getRestClient(String targetUrl) {
+
+        if (clients.containsKey(targetUrl)) {
+            return clients.get(targetUrl);
+        }
+
+        Client client = null;
+        if (targetUrl != null) {
+            if (targetUrl.startsWith("https://")) {
+                try {
+                    // Create a trust manager that does not validate certificate chains
+                    TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+                        public X509Certificate[] getAcceptedIssuers() {
+                            return null;
+                        }
+
+                        public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                        }
+
+                        public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                        }
+                    }
+                    };
+                    // Create all-trusting host name verifier
+                    HostnameVerifier allHostsValid = new HostnameVerifier() {
+                        public boolean verify(String hostname, SSLSession session) {
+                            return true;
+                        }
+                    };
+                    SSLContext sslContext = SSLContext.getInstance("SSL");
+                    sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+                    client = ClientBuilder.newBuilder().
+                            sslContext(sslContext).
+                            hostnameVerifier(allHostsValid).build();
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                } catch (KeyManagementException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                client = ClientBuilder.newClient();
+
+            }
+        }
+        if (client == null) {
+            return null;
+        }
+
+        client.property(ClientProperties.CONNECT_TIMEOUT, 1000);
+        client.property(ClientProperties.READ_TIMEOUT,    3000);
+        /*
+        HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(contextServerSettings.getContextServerUsername(), contextServerSettings.getContextServerPassword());
+        client.register(feature);
+        */
+        clients.put(targetUrl, client);
+        return client;
+    }
+
+
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -267,7 +382,7 @@ public class CheckDependenciesMojo extends DependenciesMojo {
             for (PackageInfo missingPackageExport : missingPackageExports) {
                 optionaDirectivesBuilder.append(separator);
                 errorMessageBuilder.append(missingPackageExport);
-                List<String> artifactIDs = PackageUtils.findPackageInMavenCentral(missingPackageExport.getName());
+                List<String> artifactIDs = findPackageInMavenCentral(missingPackageExport.getName());
                 if (artifactIDs.size() > 0) {
                     String artifactList = StringUtils.join(artifactIDs, ", ");
                     errorMessageBuilder.append(" (available from Maven Central artifacts ");
