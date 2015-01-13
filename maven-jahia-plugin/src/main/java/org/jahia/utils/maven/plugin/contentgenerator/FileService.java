@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.jahia.utils.maven.plugin.contentgenerator.wise.FileAndFolderService;
 
 /**
  * Class to handle files used as attachments in Jahia pages
@@ -124,6 +125,7 @@ public class FileService {
 	 */
 	public void createAndPopulateFilesXmlFile(File tempXmlFile, List<File> fileNames) throws IOException {
 		GregorianCalendar gc  = (GregorianCalendar) GregorianCalendar.getInstance();
+		FileAndFolderService fileAndFolderService = FileAndFolderService.getInstance();
 		
 		FileUtils.writeStringToFile(tempXmlFile, sep);
 
@@ -137,13 +139,16 @@ public class FileService {
 		for (Iterator<File> iterator = fileNames.iterator(); iterator.hasNext();) {
 			File file = iterator.next();
 			String fileName = file.getName();
-			
+			String mimeType = fileAndFolderService.getMimeType(file);
+			if (mimeType == null) {
+				mimeType = "application/text";
+			}
 			filesXml.append("          <"
 					+ org.apache.jackrabbit.util.ISO9075.encode(fileName)
 					+ " jcr:primaryType=\"jnt:file\" jcr:title=\""
                     + fileName
                     + "\">\n");
-			filesXml.append("             <jcr:content jcr:mimeType=\"application/txt\" jcr:primaryType=\"jnt:resource\" />\n");
+			filesXml.append("             <jcr:content jcr:mimeType=\"" + mimeType +"\" jcr:primaryType=\"jnt:resource\" />\n");
 			filesXml.append("          </" + org.apache.jackrabbit.util.ISO9075.encode(fileName) + ">\n");
 		}
 

@@ -311,15 +311,8 @@ public class FileAndFolderService {
 
 			// Detect MIME type
 			File f = new File(filesDirectory + sep + fileName);
-			Tika tikaParser = new Tika();
-			String mimeType = "";
-			try {
-				mimeType = tikaParser.detect(f);
-			} catch (IOException e) {
-				logger.error("Impossible to detect the MIME type for file " + f.getAbsoluteFile());
-				e.printStackTrace();
-			}
-
+			String mimeType = getMimeType(f);
+			
 			// Extract file content
 			Metadata metadata = new Metadata();
 			if (mimeType != null) {
@@ -403,5 +396,17 @@ public class FileAndFolderService {
 		Calendar c = GregorianCalendar.getInstance();
 		c.setTime(d);
 		return org.apache.jackrabbit.util.ISO8601.format(c); 
+	}
+	
+	public String getMimeType(File f) {
+		Tika tikaParser = new Tika();
+		String mimeType = "";
+		try {
+			mimeType = tikaParser.detect(f);
+		} catch (IOException e) {
+			logger.error("Impossible to detect the MIME type for file " + f.getAbsoluteFile());
+			e.printStackTrace();
+		}
+		return mimeType;
 	}
 }
