@@ -19,6 +19,7 @@ public class PackageInfo implements Comparable<PackageInfo> {
     @JsonIgnore private Set<String> sourceLocations = new TreeSet<String>();
     private Properties otherDirectives = new Properties();
     @JsonIgnore private ParsingContext origin = null;
+    @JsonIgnore private boolean embedded = false;
 
     public PackageInfo() {
     }
@@ -30,6 +31,7 @@ public class PackageInfo implements Comparable<PackageInfo> {
         this.sourceLocations = new TreeSet<String>(source.getSourceLocations());
         this.otherDirectives = new Properties(source.getOtherDirectives());
         this.origin = source.origin;
+        this.embedded = source.embedded;
     }
 
     public PackageInfo(String name, String sourceLocation, ParsingContext parsingContext) {
@@ -88,6 +90,14 @@ public class PackageInfo implements Comparable<PackageInfo> {
 
     public ParsingContext getOrigin() {
         return origin;
+    }
+
+    public boolean isEmbedded() {
+        return embedded;
+    }
+
+    public void setEmbedded(boolean embedded) {
+        this.embedded = embedded;
     }
 
     @Override

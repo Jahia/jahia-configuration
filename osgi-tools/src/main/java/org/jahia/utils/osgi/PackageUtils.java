@@ -5,9 +5,7 @@ import aQute.bnd.version.VersionRange;
 import org.jahia.utils.osgi.parsers.PackageInfo;
 import org.jahia.utils.osgi.parsers.ParsingContext;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -94,6 +92,22 @@ public class PackageUtils {
             }
         }
         return false;
+    }
+
+    public static int removeMatchingVersions(Collection<PackageInfo> packages, PackageInfo targetPackage) {
+        int matchCount = 0;
+        List<PackageInfo> packagesToRemove = new ArrayList<PackageInfo>();
+        for (PackageInfo packageInfo : packages) {
+            if (packageInfo.matches(targetPackage)) {
+                packagesToRemove.add(packageInfo);
+            }
+        }
+        for (PackageInfo packageToRemove : packagesToRemove) {
+            if (packages.remove(packageToRemove)) {
+                matchCount++;
+            }
+        }
+        return matchCount;
     }
 
     /**

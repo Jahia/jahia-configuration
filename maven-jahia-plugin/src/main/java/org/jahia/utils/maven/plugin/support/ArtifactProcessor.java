@@ -9,6 +9,8 @@ import org.jahia.utils.osgi.parsers.ParsingContext;
  */
 public interface ArtifactProcessor {
 
+    public boolean isExternal(Artifact artifact);
+
     public ParsingContext enterArtifact(Artifact artifact, boolean optional, boolean external, ParsingContext parentParsingContext, String logPrefix, int depth) throws MojoExecutionException;
 
     public boolean exitArtifact(Artifact artifact, boolean optional, boolean external, String logPrefix, ParsingContext parsingContext, int depth) throws MojoExecutionException;

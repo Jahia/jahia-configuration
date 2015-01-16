@@ -1,16 +1,17 @@
 package org.jahia.utils.maven.plugin.osgi;
 
+import aQute.bnd.osgi.Builder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.tika.io.IOUtils;
 import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.archiver.manager.ArchiverManager;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.glassfish.jersey.client.ClientProperties;
 import org.jahia.utils.maven.plugin.support.MavenAetherHelperUtils;
 import org.jahia.utils.osgi.BundleUtils;
@@ -207,7 +208,9 @@ public class CheckDependenciesMojo extends DependenciesMojo {
 
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void execute() throws MojoExecutionException {
+        setBuildDirectory(projectBuildDirectory);
+        setOutputDirectory(new File(projectOutputDirectory));
 
         if (!"jar".equals(project.getPackaging()) && !"bundle".equals(project.getPackaging()) && !"war".equals(project.getPackaging())) {
             getLog().info("Not a JAR/WAR/Bundle project, will do nothing.");
@@ -221,12 +224,29 @@ public class CheckDependenciesMojo extends DependenciesMojo {
 
         final ParsingContext projectParsingContext = new ParsingContext(MavenAetherHelperUtils.getCoords(project.getArtifact()), 0, 0, project.getArtifactId(), project.getBasedir().getPath(), project.getVersion(), null);
 
-        if (existingImports != null) {
-            String[] existingImportsArray = StringUtils.split(existingImports, ", \n\r");
-            for (String existingImport : existingImportsArray) {
-                explicitPackageImports.add(new PackageInfo(existingImport, null, false, "Maven plugin configuration", projectParsingContext));
+        Map originalInstructions = new LinkedHashMap();
+        try {
+            Xpp3Dom felixBundlePluginConfiguration = (Xpp3Dom) project.getPlugin("org.apache.felix:maven-bundle-plugin")
+                    .getConfiguration();
+            Xpp3Dom instructionsDom = felixBundlePluginConfiguration.getChild("instructions");
+            for (Xpp3Dom instructionChild : instructionsDom.getChildren()) {
+                originalInstructions.put(instructionChild.getName(), instructionChild.getValue());
             }
+            excludeDependencies = felixBundlePluginConfiguration.getChild("excludeDependencies").getValue();
+        } catch (Exception e) {
+            // no overrides
         }
+
+        Properties properties = new Properties();
+        try {
+            Builder builder = getOSGiBuilder(project, originalInstructions, properties, getClasspath(project));
+            resolveEmbeddedDependencies(project, builder);
+        } catch (Exception e) {
+            throw new MojoExecutionException("Error trying to process bundle plugin instructions", e);
+        }
+
+        List<PackageInfo> existingPackageImports = getExistingImportPackages(projectParsingContext);
+        explicitPackageImports.addAll(existingPackageImports);
 
         parsingContextCache = new ParsingContextCache(new File(dependencyParsingCacheDirectory), null);
 
@@ -241,9 +261,9 @@ public class CheckDependenciesMojo extends DependenciesMojo {
 
             scanned = scanDependencies(projectParsingContext);
         } catch (IOException e) {
-            throw new MojoFailureException("Error while scanning dependencies", e);
+            throw new MojoExecutionException("Error while scanning dependencies", e);
         } catch (DependencyResolutionRequiredException e) {
-            throw new MojoFailureException("Error while scanning project packages", e);
+            throw new MojoExecutionException("Error while scanning project packages", e);
         }
 
         getLog().info(
@@ -262,7 +282,7 @@ public class CheckDependenciesMojo extends DependenciesMojo {
                     splitPackageList.append(StringUtils.join(packageInfo.getSourceLocations(), "\n    "));
                     splitPackageList.append("\n");
                 }
-                throw new MojoFailureException("Detected split packages:\n" + splitPackageList.toString());
+                throw new MojoExecutionException("Detected split packages:\n" + splitPackageList.toString());
             }
         }
 
@@ -274,10 +294,10 @@ public class CheckDependenciesMojo extends DependenciesMojo {
 
         File artifactFile = new File(artifactFilePath);
         if (artifactFile == null || !artifactFile.exists()) {
-            throw new MojoFailureException("No artifact generated for project, was the goal called in the proper phase (should be verify) ?");
+            throw new MojoExecutionException("No artifact generated for project, was the goal called in the proper phase (should be verify) ?");
         }
 
-        Set<PackageInfo> allPackageExports = collectAllDependenciesExports(projectParsingContext);
+        List<PackageInfo> allPackageExports = collectAllDependenciesExports(projectParsingContext);
 
         Set<PackageInfo> missingPackageExports = new TreeSet<PackageInfo>();
         JarFile jarFile = null;
@@ -285,7 +305,7 @@ public class CheckDependenciesMojo extends DependenciesMojo {
             jarFile = new JarFile(artifactFile);
             Manifest manifest = jarFile.getManifest();
             if (manifest.getMainAttributes() == null) {
-                throw new MojoFailureException("Error reading OSGi bundle manifest data from artifact " + artifactFile);
+                throw new MojoExecutionException("Error reading OSGi bundle manifest data from artifact " + artifactFile);
             }
             String importPackageHeaderValue = manifest.getMainAttributes().getValue("Import-Package");
             Set<String> visitedPackageImports = new TreeSet<String>();
@@ -351,7 +371,7 @@ public class CheckDependenciesMojo extends DependenciesMojo {
                 }
             }
         } catch (IOException e) {
-            throw new MojoFailureException("Error reading OSGi bundle manifest data from artifact " + artifactFile, e);
+            throw new MojoExecutionException("Error reading OSGi bundle manifest data from artifact " + artifactFile, e);
         } finally {
             if (jarFile != null) {
                 try {
@@ -420,7 +440,7 @@ public class CheckDependenciesMojo extends DependenciesMojo {
             getLog().warn("or mvn jahia:find-packages -DpackageNames=COMMA_SEPARATED_PACKAGE_LIST to find the packages inside the project");
             getLog().warn("");
             if (failBuildOnMissingPackageExports) {
-                throw new MojoFailureException("Missing package exports for imported packages (see build log for details)");
+                throw new MojoExecutionException("Missing package exports for imported packages (see build log for details)");
             }
         }
     }
@@ -605,7 +625,7 @@ public class CheckDependenciesMojo extends DependenciesMojo {
         return val;
     }
 
-    private void loadSystemPackages() throws MojoFailureException {
+    private void loadSystemPackages() throws MojoExecutionException {
         Properties dependenciesProperties = new Properties();
         InputStream dependenciesPropertiesStream = this.getClass().getClassLoader().getResourceAsStream("org/jahia/utils/maven/plugin/osgi/dependencies.properties");
         try {
@@ -625,12 +645,12 @@ public class CheckDependenciesMojo extends DependenciesMojo {
                 }
             }
         } catch (IOException e) {
-            throw new MojoFailureException("Error loading system exports", e);
+            throw new MojoExecutionException("Error loading system exports", e);
         }
     }
 
-    private Set<PackageInfo> collectAllDependenciesExports(ParsingContext parsingContext) {
-        SortedSet<PackageInfo> allExports = new TreeSet<PackageInfo>();
+    private List<PackageInfo> collectAllDependenciesExports(ParsingContext parsingContext) {
+        List<PackageInfo> allExports = new ArrayList<PackageInfo>();
         if (parsingContext.getChildren() != null) {
             for (ParsingContext childParsingContext : parsingContext.getChildren()) {
                 if (childParsingContext.isExternal()) {

@@ -36,8 +36,8 @@ public class ParsingContext implements Serializable {
 
     @JsonIgnore protected ParsingContext parentParsingContext;
     @JsonIgnore protected List<ParsingContext> children = new ArrayList<ParsingContext>();
-    @JsonIgnore boolean optional = false;
-    @JsonIgnore boolean external = false;
+    @JsonIgnore Boolean optional = null;
+    @JsonIgnore Boolean external = null;
 
     public ParsingContext() {
     }
@@ -179,8 +179,24 @@ public class ParsingContext implements Serializable {
     }
 
     public void removeLocalPackagesFromImports() {
+
         // now let's remove all the project packages from the imports, we assume we will not import split packages.
+
         packageImports.removeAll(localPackages);
+    }
+
+    public SortedSet<PackageInfo> getChildrenLocalPackagesToRemoveFromImports() {
+        SortedSet<PackageInfo> childLocalPackagesToRemove = new TreeSet<PackageInfo>();
+        if (children != null && children.size() > 0) {
+            for (ParsingContext childParsingContext : children) {
+                // remove all child local packages that satisfy package imports, since we are embedding them.
+                if (!childParsingContext.isExternal() && !childParsingContext.isOptional()) {
+                    childLocalPackagesToRemove.addAll(childParsingContext.getLocalPackages());
+                    childLocalPackagesToRemove.addAll(childParsingContext.getChildrenLocalPackagesToRemoveFromImports());
+                }
+            }
+        }
+        return childLocalPackagesToRemove;
     }
 
     public String getMavenCoords() {
@@ -244,18 +260,36 @@ public class ParsingContext implements Serializable {
     }
 
     public boolean isOptional() {
+        if (optional == null) {
+            return false;
+        }
         return optional;
     }
 
+    /**
+     * This method will only set the optional state if it was not set before or if the new state is not optional
+     * @param optional
+     */
     public void setOptional(boolean optional) {
-        this.optional = optional;
+        if (this.optional == null) {
+            this.optional = optional;
+        }
+        if (this.optional && !optional) {
+            this.optional = optional;
+        }
     }
 
     public boolean isExternal() {
+        if (this.external == null) {
+            return false;
+        }
         return external;
     }
 
     public void setExternal(boolean external) {
+        if (this.external != null) {
+
+        }
         this.external = external;
     }
 
@@ -306,8 +340,39 @@ public class ParsingContext implements Serializable {
                         internalTaglibUris.add(taglibUriExternalEntry.getKey());
                     }
                 }
-                if (childParsingContext.isOptional()) {
-                    addAllPackageImports(childParsingContext.getLocalPackages(), true);
+
+                if (childParsingContext.isExternal()) {
+
+                    if (childParsingContext.isOptional()) {
+                        addAllPackageImports(childParsingContext.getPackageExports(), true);
+                        // mark all child taglib uris as external
+                        for (String externalTaglibUri : externalTaglibUris) {
+                            getExternalTaglibs().put(externalTaglibUri, true);
+                        }
+                        for (String internalTaglibUri : internalTaglibUris) {
+                            getExternalTaglibs().put(internalTaglibUri, true);
+                        }
+                    }
+
+                    // let's do split-package detection
+
+                    for (PackageInfo localPackage : localPackages) {
+                        if (PackageUtils.containsIgnoreVersion(childParsingContext.getPackageExports(), localPackage)) {
+                            PackageInfo splitPackageInfo = new PackageInfo(localPackage);
+                            for (PackageInfo childPackageExport : childParsingContext.getPackageExports()) {
+                                if (childPackageExport.equalsIgnoreVersion(localPackage)) {
+                                    if (childPackageExport.getSourceLocations() != null &&
+                                            childPackageExport.getSourceLocations().size() > 0) {
+                                        splitPackageInfo.getSourceLocations().addAll(childPackageExport.getSourceLocations());
+                                    } else {
+                                        splitPackageInfo.getSourceLocations().add(childPackageExport.getOrigin().getFilePath());
+                                    }
+                                }
+                            }
+                            splitPackages.add(splitPackageInfo);
+                        }
+                    }
+
                     // mark all child taglib uris as external
                     for (String externalTaglibUri : externalTaglibUris) {
                         getExternalTaglibs().put(externalTaglibUri, true);
@@ -316,48 +381,18 @@ public class ParsingContext implements Serializable {
                         getExternalTaglibs().put(internalTaglibUri, true);
                     }
                 } else {
-                    if (childParsingContext.isExternal()) {
+                    // child context is internal
+                    addAllPackageImports(childParsingContext.getPackageImports());
 
-                        // let's do split-package detection
+                    addAllContentTypeDefinitions(childParsingContext.getContentTypeDefinitions());
+                    addAllContentTypeReferences(childParsingContext.getContentTypeReferences());
 
-                        for (PackageInfo localPackage : localPackages) {
-                            if (PackageUtils.containsIgnoreVersion(childParsingContext.getPackageExports(), localPackage)) {
-                                PackageInfo splitPackageInfo = new PackageInfo(localPackage);
-                                for (PackageInfo childPackageExport : childParsingContext.getPackageExports()) {
-                                    if (childPackageExport.equalsIgnoreVersion(localPackage)) {
-                                        if (childPackageExport.getSourceLocations() != null &&
-                                                childPackageExport.getSourceLocations().size() > 0) {
-                                            splitPackageInfo.getSourceLocations().addAll(childPackageExport.getSourceLocations());
-                                        } else {
-                                            splitPackageInfo.getSourceLocations().add(childPackageExport.getOrigin().getFilePath());
-                                        }
-                                    }
-                                }
-                                splitPackages.add(splitPackageInfo);
-                            }
-                        }
-
-                        // mark all child taglib uris as external
-                        for (String externalTaglibUri : externalTaglibUris) {
-                            getExternalTaglibs().put(externalTaglibUri, true);
-                        }
-                        for (String internalTaglibUri : internalTaglibUris) {
-                            getExternalTaglibs().put(internalTaglibUri, true);
-                        }
-                    } else {
-                        // child context is internal
-                        addAllPackageImports(childParsingContext.getPackageImports());
-
-                        addAllContentTypeDefinitions(childParsingContext.getContentTypeDefinitions());
-                        addAllContentTypeReferences(childParsingContext.getContentTypeReferences());
-
-                        // simply keep the internal/external as it was originally.
-                        for (String externalTaglibUri : externalTaglibUris) {
-                            getExternalTaglibs().put(externalTaglibUri, true);
-                        }
-                        for (String internalTaglibUri : internalTaglibUris) {
-                            getExternalTaglibs().put(internalTaglibUri, false);
-                        }
+                    // simply keep the internal/external as it was originally.
+                    for (String externalTaglibUri : externalTaglibUris) {
+                        getExternalTaglibs().put(externalTaglibUri, true);
+                    }
+                    for (String internalTaglibUri : internalTaglibUris) {
+                        getExternalTaglibs().put(internalTaglibUri, false);
                     }
                 }
                 // add all package ignores as optional packages

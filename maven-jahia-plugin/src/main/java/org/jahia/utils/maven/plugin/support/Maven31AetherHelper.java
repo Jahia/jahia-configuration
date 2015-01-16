@@ -225,7 +225,7 @@ public class Maven31AetherHelper implements AetherHelper {
                     node.getDependency().getArtifact().getVersion(),
                     node.getDependency().getScope(),
                     node.getDependency().getArtifact().getExtension(),
-                    node.getDependency().getArtifact().getClassifier(),
+                    StringUtils.isBlank(node.getDependency().getArtifact().getClassifier()) ? null : node.getDependency().getArtifact().getClassifier(),
                     artifactHandler);
             boolean visitChildren = true;
             String trailSuffix = "";
@@ -263,11 +263,8 @@ public class Maven31AetherHelper implements AetherHelper {
             if (parsingContextStack.size() > 0) {
                 parentParsingContext = parsingContextStack.peek();
             }
-            boolean external = false;
-            if (Artifact.SCOPE_PROVIDED.equals(node.getDependency().getScope())) {
-                external = true;
-            }
             if (mavenArtifact.getFile() != null) {
+                boolean external = artifactProcessor.isExternal(mavenArtifact);
                 try {
                     parsingContext = artifactProcessor.enterArtifact(mavenArtifact, node.getDependency().isOptional(), external, parentParsingContext, trail, depth);
                 } catch (MojoExecutionException e) {

@@ -1,21 +1,29 @@
 package org.jahia.utils.maven.plugin.osgi;
 
+import aQute.bnd.header.Attrs;
+import aQute.bnd.osgi.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.felix.bundleplugin.BundlePlugin;
+import org.apache.felix.bundleplugin.DependencyEmbedder;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.jahia.utils.maven.plugin.AetherAwareMojo;
 import org.jahia.utils.maven.plugin.SLF4JLoggerToMojoLogBridge;
+import org.jahia.utils.maven.plugin.support.AetherHelper;
+import org.jahia.utils.maven.plugin.support.AetherHelperFactory;
 import org.jahia.utils.maven.plugin.support.ArtifactProcessor;
 import org.jahia.utils.maven.plugin.support.MavenAetherHelperUtils;
 import org.jahia.utils.osgi.BundleUtils;
 import org.jahia.utils.osgi.ManifestValueClause;
+import org.jahia.utils.osgi.PackageUtils;
 import org.jahia.utils.osgi.PropertyFileUtils;
 import org.jahia.utils.osgi.parsers.PackageInfo;
 import org.jahia.utils.osgi.parsers.Parsers;
@@ -46,7 +54,7 @@ import java.util.regex.Pattern;
  * @requiresDependencyCollection test
  * @todo add support for JSP tag files, more...
  */
-public class DependenciesMojo extends AetherAwareMojo {
+public class DependenciesMojo extends BundlePlugin {
 
     protected static final Set<String> SUPPORTED_FILE_EXTENSIONS_TO_SCAN = new HashSet<String>(Arrays.asList("jsp",
             "jspf", "tag", "tagf", "cnd", "drl", "xml", "groovy"));
@@ -55,6 +63,31 @@ public class DependenciesMojo extends AetherAwareMojo {
 
     protected static final Set<String> DEPENDENCIES_SCAN_SCOPES = new HashSet<String>(Arrays.asList(
             Artifact.SCOPE_PROVIDED, Artifact.SCOPE_COMPILE, Artifact.SCOPE_RUNTIME));
+
+    private AetherHelper aetherHelper;
+
+    /**
+     * @component
+     * @required
+     * @readonly
+     */
+    protected PlexusContainer container;
+
+    /**
+     * The current build session instance.
+     *
+     * @parameter expression="${session}"
+     * @required
+     * @readonly
+     */
+    protected MavenSession mavenSession;
+
+    /**
+     * @parameter expression="${project}"
+     * @readonly
+     * @required
+     */
+    protected MavenProject project;
 
     /**
      * @parameter
@@ -82,6 +115,14 @@ public class DependenciesMojo extends AetherAwareMojo {
      * @parameter default-value="${project.build.outputDirectory}"
      */
     protected String projectOutputDirectory;
+
+    /**
+     * The directory for the generated JAR.
+     *
+     * @parameter expression="${project.build.directory}"
+     * @required
+     */
+    protected String projectBuildDirectory;
 
     /**
      * @parameter
@@ -116,6 +157,15 @@ public class DependenciesMojo extends AetherAwareMojo {
     protected List<Pattern> artifactExclusionPatterns = new ArrayList<Pattern>();
     protected Logger logger = new SLF4JLoggerToMojoLogBridge(getLog());
     protected ParsingContextCache parsingContextCache;
+    protected Collection<String> inlinedPaths = new LinkedHashSet<String>();
+    protected Collection<Artifact> embeddedArtifacts = new LinkedHashSet<Artifact>();
+
+    protected AetherHelper getAetherHelper() throws MojoExecutionException {
+        if (aetherHelper == null) {
+            aetherHelper = AetherHelperFactory.create(container, project, mavenSession, getLog());
+        }
+        return aetherHelper;
+    }
 
     @Override
     public void setLog(Log log) {
@@ -124,7 +174,9 @@ public class DependenciesMojo extends AetherAwareMojo {
     }
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void execute() throws MojoExecutionException {
+        setBuildDirectory(projectBuildDirectory);
+        setOutputDirectory(new File(projectOutputDirectory));
         if (project.getGroupId().equals("org.jahia.modules") && project.getArtifactId().equals("jahia-modules")
                 || !"jar".equals(project.getPackaging()) && !"bundle".equals(project.getPackaging()) && !"war".equals(project.getPackaging())) {
             return;
@@ -137,12 +189,42 @@ public class DependenciesMojo extends AetherAwareMojo {
 
         parsingContextCache = new ParsingContextCache(new File(dependencyParsingCacheDirectory), null);
 
-        if (existingImports != null) {
-            String[] existingImportsArray = StringUtils.split(existingImports, ", \n\r");
-            for (String existingImport : existingImportsArray) {
-                projectParsingContext.addPackageImport(new PackageInfo(existingImport, null, false, "Maven plugin configuration", projectParsingContext));
+        if (project.getPlugin("org.apache.felix:maven-bundle-plugin") != null) {
+            Map originalInstructions = new LinkedHashMap();
+            try {
+                Xpp3Dom felixBundlePluginConfiguration = (Xpp3Dom) project.getPlugin("org.apache.felix:maven-bundle-plugin")
+                        .getConfiguration();
+                Xpp3Dom instructionsDom = felixBundlePluginConfiguration.getChild("instructions");
+                for (Xpp3Dom instructionChild : instructionsDom.getChildren()) {
+                    originalInstructions.put(instructionChild.getName(), instructionChild.getValue());
+                }
+                excludeDependencies = felixBundlePluginConfiguration.getChild("excludeDependencies").getValue();
+            } catch (Exception e) {
+                // no overrides
+            }
+
+            Properties properties = new Properties();
+            try {
+                Builder builder = getOSGiBuilder(project, originalInstructions, properties, getClasspath(project));
+                resolveEmbeddedDependencies(project, builder);
+            } catch (Exception e) {
+                throw new MojoExecutionException("Error trying to process bundle plugin instructions", e);
+            }
+        } else {
+            // we are not in a bundle project
+            if (project.getPackaging().equals("war")) {
+                for (Artifact artifact : project.getArtifacts()) {
+                    if (!artifact.getScope().toLowerCase().equals("provided") &&
+                            !artifact.getScope().toLowerCase().equals("test")) {
+                        // artifact will be embedded in WAR
+                        embeddedArtifacts.add(artifact);
+                    }
+                }
             }
         }
+
+        List<PackageInfo> existingPackageImports = getExistingImportPackages(projectParsingContext);
+        projectParsingContext.addAllPackageImports(existingPackageImports);
 
         buildExclusionPatterns();
 
@@ -163,9 +245,9 @@ public class DependenciesMojo extends AetherAwareMojo {
                     "Scanned " + scanned + " project dependencies in " + (System.currentTimeMillis() - timer)
                             + " ms. Currently we have " + projectParsingContext.getLocalPackages().size() + " project packages.");
         } catch (IOException e) {
-            throw new MojoFailureException("Error while scanning dependencies", e);
+            throw new MojoExecutionException("Error while scanning dependencies", e);
         } catch (DependencyResolutionRequiredException e) {
-            throw new MojoFailureException("Error while scanning dependencies", e);
+            throw new MojoExecutionException("Error while scanning dependencies", e);
         }
         if (scanDirectories.isEmpty()) {
             scanDirectories.add(project.getBasedir() + "/src/main/resources");
@@ -184,7 +266,7 @@ public class DependenciesMojo extends AetherAwareMojo {
                 processDirectoryTlds(scanDirectoryFile, project.getVersion(), projectParsingContext);
                 processDirectory(scanDirectoryFile, false, project.getVersion(), projectParsingContext);
             } catch (IOException e) {
-                throw new MojoFailureException("Error processing resource directory " + scanDirectoryFile, e);
+                throw new MojoExecutionException("Error processing resource directory " + scanDirectoryFile, e);
             }
         }
         getLog().info(
@@ -198,6 +280,10 @@ public class DependenciesMojo extends AetherAwareMojo {
         }
 
         projectParsingContext.postProcess();
+
+        SortedSet<PackageInfo> childLocalPackagesToRemoveFromImport = projectParsingContext.getChildrenLocalPackagesToRemoveFromImports();for (PackageInfo childLocalPackageToRemove : childLocalPackagesToRemoveFromImport) {
+                PackageUtils.removeMatchingVersions(projectParsingContext.getPackageImports(), childLocalPackageToRemove);
+        }
 
         if (projectParsingContext.getUnresolvedTaglibUris().size() > 0 ) {
             for (Map.Entry<String,Set<String>> unresolvedUrisForJsp : projectParsingContext.getUnresolvedTaglibUris().entrySet()) {
@@ -315,6 +401,35 @@ public class DependenciesMojo extends AetherAwareMojo {
         getLog().info("Took " + (System.currentTimeMillis() - startTime) + " ms for the dependencies analysis");
     }
 
+    public List<PackageInfo> getExistingImportPackages(ParsingContext projectParsingContext) throws MojoExecutionException {
+        List<PackageInfo> existingPackageImports = new ArrayList<PackageInfo>();
+        if (existingImports != null) {
+            try {
+                List<ManifestValueClause> existingImportValueClauses = BundleUtils.getHeaderClauses("Import-Package", existingImports);
+                for (ManifestValueClause existingImportValueClause : existingImportValueClauses) {
+                    String clauseVersion = existingImportValueClause.getAttributes().get("version");
+                    String clauseResolution = existingImportValueClause.getDirectives().get("resolution");
+                    boolean optionalClause = false;
+                    if ("optional".equals(clauseResolution)) {
+                        optionalClause = true;
+                    }
+                    for (String existingImportPath : existingImportValueClause.getPaths()) {
+                        existingPackageImports.add(new PackageInfo(existingImportPath, clauseVersion, optionalClause, "Maven plugin configuration", projectParsingContext));
+                    }
+                }
+            } catch (IOException e) {
+                throw new MojoExecutionException("Error while parsing existing import clauses", e);
+            }
+            /*
+            String[] existingImportsArray = StringUtils.split(existingImports, ", \n\r");
+            for (String existingImport : existingImportsArray) {
+                projectParsingContext.addPackageImport(new PackageInfo(existingImport, null, false, "Maven plugin configuration", projectParsingContext));
+            }
+            */
+        }
+        return existingPackageImports;
+    }
+
     private Map<String, String> getPackageImportOverrides() {
         Map<String, String> overrides = null;
         String importPackageOverride = null;
@@ -336,7 +451,7 @@ public class DependenciesMojo extends AetherAwareMojo {
         return overrides != null && !overrides.isEmpty() ? overrides : null;
     }
 
-    protected void scanClassesBuildDirectory(ParsingContext parsingContext) throws IOException, DependencyResolutionRequiredException, MojoExecutionException, MojoFailureException {
+    protected void scanClassesBuildDirectory(ParsingContext parsingContext) throws IOException, DependencyResolutionRequiredException, MojoExecutionException {
         File outputDirectoryFile = new File(projectOutputDirectory);
         if (!outputDirectoryFile.exists()) {
             getLog().warn("Couldn't scan project output directory " + outputDirectoryFile + " because it doesn't exist !");
@@ -393,7 +508,7 @@ public class DependenciesMojo extends AetherAwareMojo {
     }
 
     protected int scanDependencies(final ParsingContext projectParsingContext) throws IOException, MojoExecutionException {
-        getLog().info("Scanning project embedded dependencies...");
+        getLog().info("Scanning project dependencies...");
         int scanned = 0;
 
         for (Artifact artifact : project.getDependencyArtifacts()) {
@@ -406,13 +521,24 @@ public class DependenciesMojo extends AetherAwareMojo {
                 continue;
             }
 
-            if (Artifact.SCOPE_PROVIDED.equals(artifact.getScope())) {
-                continue;
-            }
-
             final int scannedCopy = scanned;
             final DependenciesMojo dependenciesMojo = this;
             getAetherHelper().processArtifactAndDependencies(artifact, artifact.isOptional(), new ArtifactProcessor() {
+
+                @Override
+                public boolean isExternal(Artifact artifact) {
+                    for (String inlinedPath : inlinedPaths) {
+                        if (inlinedPath.startsWith(artifact.getFile().getPath())) {
+                            return false;
+                        }
+                    }
+                    for (Artifact embeddedArtifact : embeddedArtifacts) {
+                        if (artifact.equals(embeddedArtifact)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
 
                 @Override
                 public ParsingContext enterArtifact(Artifact artifact, boolean optional, boolean external, ParsingContext parentParsingContext, String logPrefix, int depth) throws MojoExecutionException {
@@ -433,45 +559,6 @@ public class DependenciesMojo extends AetherAwareMojo {
         }
 
         projectParsingContext.removeLocalPackagesFromImports();
-
-        getLog().info("Scanning project external dependencies...");
-
-        for (Artifact artifact : project.getDependencyArtifacts()) {
-            if (artifact.isOptional()) {
-                getLog().info("Scanning optional dependency " + artifact + "...");
-            }
-
-            if (!DEPENDENCIES_SCAN_PACKAGING.contains(artifact.getType())
-                    || !DEPENDENCIES_SCAN_SCOPES.contains(artifact.getScope()) || isExcludedFromScan(artifact)) {
-                continue;
-            }
-
-            if (!Artifact.SCOPE_PROVIDED.equals(artifact.getScope())) {
-                continue;
-            }
-
-            final int scannedCopy = scanned;
-            final DependenciesMojo dependenciesMojo = this;
-            getAetherHelper().processArtifactAndDependencies(artifact, artifact.isOptional(), new ArtifactProcessor() {
-
-                @Override
-                public ParsingContext enterArtifact(Artifact artifact, boolean optional, boolean external, ParsingContext parentParsingContext, String logPrefix, int depth) throws MojoExecutionException {
-                    try {
-                        return dependenciesMojo.startProcessingArtifact(projectParsingContext, scannedCopy, artifact, external, optional, parentParsingContext, logPrefix, depth);
-                    } catch (IOException e) {
-                        throw new MojoExecutionException("Error processing artifact " + artifact, e);
-                    }
-                }
-                @Override
-                public boolean exitArtifact(Artifact artifact, boolean optional, boolean external, String logPrefix, ParsingContext parsingContext, int depth) throws MojoExecutionException {
-                    return dependenciesMojo.endProcessingArtifact(projectParsingContext, artifact, external, logPrefix, parsingContext, depth);
-                }
-
-            }, artifact.getArtifactHandler(), projectParsingContext);
-
-
-            scanned++;
-        }
 
         return scanned;
     }
@@ -500,9 +587,13 @@ public class DependenciesMojo extends AetherAwareMojo {
         }
         if (optional) {
             parsingContext.setOptional(true);
+        } else {
+            parsingContext.setOptional(false);
         }
-        if (depth == 1 && externalDependency) {
+        if (externalDependency) {
             parsingContext.setExternal(true);
+        } else {
+            parsingContext.setExternal(false);
         }
         return parsingContext;
     }
@@ -516,9 +607,11 @@ public class DependenciesMojo extends AetherAwareMojo {
             getLog().warn(logPrefix + ": Artifact file path ("+artifact.getFile().getPath()+") and jarParsingContext file path ("+ parsingContext.getFilePath()+") do not match, will not put parsed JAR context "+ parsingContext +" in cache !");
             return false;
         }
+        /*
         if (artifact.isOptional() && !externalDependency) {
             projectParsingContext.addAllPackageImports(parsingContext.getLocalPackages(), true);
         }
+        */
         parsingContext.postProcess();
         if (!parsingContext.isInCache()) {
             parsingContextCache.put(artifact, parsingContext);
@@ -778,6 +871,127 @@ public class DependenciesMojo extends AetherAwareMojo {
 
     private Logger getLogger() {
         return logger;
+    }
+
+    protected void resolveEmbeddedDependencies( MavenProject currentProject, Builder builder ) throws Exception
+    {
+        if ( currentProject.getBasedir() != null )
+        {
+            // update BND instructions to add included Maven resources
+            includeMavenResources( currentProject, builder, getLog() );
+
+            // calculate default export/private settings based on sources
+            addLocalPackages( new File(projectOutputDirectory), builder );
+
+            // tell BND where the current project source resides
+            addMavenSourcePath( currentProject, builder, getLog() );
+        }
+
+        // update BND instructions to embed selected Maven dependencies
+        Collection<Artifact> embeddableArtifacts = getEmbeddableArtifacts( currentProject, builder );
+        DependencyEmbedder dependencyEmbedder = new DependencyEmbedder( getLog(), embeddableArtifacts );
+        dependencyEmbedder.processHeaders( builder );
+        inlinedPaths = dependencyEmbedder.getInlinedPaths();
+        embeddedArtifacts = dependencyEmbedder.getEmbeddedArtifacts();
+    }
+
+    /* code copied from BundlePlugin because resources were private */
+
+    private static final String LOCAL_PACKAGES = "{local-packages}";
+
+    private static void addLocalPackages( File outputDirectory, Analyzer analyzer ) throws IOException
+    {
+        Packages packages = new Packages();
+
+        if ( outputDirectory != null && outputDirectory.isDirectory() )
+        {
+            // scan classes directory for potential packages
+            DirectoryScanner scanner = new DirectoryScanner();
+            scanner.setBasedir( outputDirectory );
+            scanner.setIncludes( new String[]
+                    { "**/*.class" } );
+
+            scanner.addDefaultExcludes();
+            scanner.scan();
+
+            String[] paths = scanner.getIncludedFiles();
+            for ( int i = 0; i < paths.length; i++ )
+            {
+                packages.put( analyzer.getPackageRef( getPackageName( paths[i] ) ) );
+            }
+        }
+
+        Packages exportedPkgs = new Packages();
+        Packages privatePkgs = new Packages();
+
+        boolean noprivatePackages = "!*".equals( analyzer.getProperty( Analyzer.PRIVATE_PACKAGE ) );
+
+        for ( Descriptors.PackageRef pkg : packages.keySet() )
+        {
+            // mark all source packages as private by default (can be overridden by export list)
+            privatePkgs.put( pkg );
+
+            // we can't export the default package (".") and we shouldn't export internal packages
+            String fqn = pkg.getFQN();
+            if ( noprivatePackages || !( ".".equals( fqn ) || fqn.contains( ".internal" ) || fqn.contains( ".impl" ) ) )
+            {
+                exportedPkgs.put( pkg );
+            }
+        }
+
+        Properties properties = analyzer.getProperties();
+        String exported = properties.getProperty( Analyzer.EXPORT_PACKAGE );
+        if ( exported == null )
+        {
+            if ( !properties.containsKey( Analyzer.EXPORT_CONTENTS ) )
+            {
+                // no -exportcontents overriding the exports, so use our computed list
+                for ( Attrs attrs : exportedPkgs.values() )
+                {
+                    attrs.put( Constants.SPLIT_PACKAGE_DIRECTIVE, "merge-first" );
+                }
+                properties.setProperty( Analyzer.EXPORT_PACKAGE, Processor.printClauses( exportedPkgs ) );
+            }
+            else
+            {
+                // leave Export-Package empty (but non-null) as we have -exportcontents
+                properties.setProperty( Analyzer.EXPORT_PACKAGE, "" );
+            }
+        }
+        else if ( exported.indexOf( LOCAL_PACKAGES ) >= 0 )
+        {
+            String newExported = org.codehaus.plexus.util.StringUtils.replace(exported, LOCAL_PACKAGES, Processor.printClauses(exportedPkgs));
+            properties.setProperty( Analyzer.EXPORT_PACKAGE, newExported );
+        }
+
+        String internal = properties.getProperty( Analyzer.PRIVATE_PACKAGE );
+        if ( internal == null )
+        {
+            if ( !privatePkgs.isEmpty() )
+            {
+                for ( Attrs attrs : privatePkgs.values() )
+                {
+                    attrs.put( Constants.SPLIT_PACKAGE_DIRECTIVE, "merge-first" );
+                }
+                properties.setProperty( Analyzer.PRIVATE_PACKAGE, Processor.printClauses( privatePkgs ) );
+            }
+            else
+            {
+                // if there are really no private packages then use "!*" as this will keep the Bnd Tool happy
+                properties.setProperty( Analyzer.PRIVATE_PACKAGE, "!*" );
+            }
+        }
+        else if ( internal.indexOf( LOCAL_PACKAGES ) >= 0 )
+        {
+            String newInternal = org.codehaus.plexus.util.StringUtils.replace(internal, LOCAL_PACKAGES, Processor.printClauses(privatePkgs));
+            properties.setProperty( Analyzer.PRIVATE_PACKAGE, newInternal );
+        }
+    }
+
+    private static String getPackageName( String filename )
+    {
+        int n = filename.lastIndexOf( File.separatorChar );
+        return n < 0 ? "." : filename.substring( 0, n ).replace( File.separatorChar, '.' );
     }
 
 }
