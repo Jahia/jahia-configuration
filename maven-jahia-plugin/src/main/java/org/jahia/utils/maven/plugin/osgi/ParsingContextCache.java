@@ -20,7 +20,7 @@ import java.util.TreeMap;
  */
 public class ParsingContextCache {
 
-    private static final String CACHE_MODEL_VERSION = "0.1";
+    private static final String CACHE_MODEL_VERSION = "0.2";
 
     private File cacheLocation;
     private Map<String,ParsingContext> parsingContextCache = new TreeMap<String,ParsingContext>();
