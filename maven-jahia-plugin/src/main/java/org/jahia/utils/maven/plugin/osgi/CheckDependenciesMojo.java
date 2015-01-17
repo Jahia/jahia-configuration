@@ -1,6 +1,7 @@
 package org.jahia.utils.maven.plugin.osgi;
 
 import aQute.bnd.osgi.Builder;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
@@ -454,12 +455,13 @@ public class CheckDependenciesMojo extends DependenciesMojo {
             separator=",";
         }
         manifest.getMainAttributes().putValue("Import-Package", sb.toString());
-        File outputDir = unpackBundle(artifactFile);
-        if (outputDir == null) {
+        File expandedJarDirectory = unpackBundle(artifactFile);
+        getLog().info("Extract JAR " + artifactFile + " contents to directory " + expandedJarDirectory);
+        if (expandedJarDirectory == null) {
             getLog().error("Error unpacking artifact " + artifactFile + " aborting bundle update");
             return;
         }
-        File manifestFile = new File(outputDir, "META-INF/MANIFEST.MF");
+        File manifestFile = new File(expandedJarDirectory, "META-INF/MANIFEST.MF");
         if (manifestFile.exists()) {
             getLog().info("Overwriting existing META-INF/MANIFEST file");
         } else {
@@ -478,7 +480,14 @@ public class CheckDependenciesMojo extends DependenciesMojo {
         } finally {
             IOUtils.closeQuietly(manifestFileOutputStream);
         }
-        packBundle(artifactFile, manifestFile, outputDir);
+        packBundle(artifactFile, manifestFile, expandedJarDirectory);
+
+        try {
+            FileUtils.deleteDirectory(expandedJarDirectory);
+            getLog().info("Deleted temporary JAR extraction directory " + expandedJarDirectory);
+        } catch (IOException e) {
+            getLog().error("Error purging temporary extracted JAR directory " + expandedJarDirectory, e);
+        }
 
         Artifact mainArtifact = project.getArtifact();
 
@@ -666,9 +675,10 @@ public class CheckDependenciesMojo extends DependenciesMojo {
 
     private File unpackBundle( File jarFile )
     {
-        File outputDir = outputDirectory;
-        if ( null == outputDir ) {
-            outputDir = new File( buildDirectory, "classes" );
+        File outputDir = new File( buildDirectory, jarFile.getName() + "-" + System.currentTimeMillis());
+        if (outputDir.exists()) {
+            getLog().error( "Problem unpacking " + jarFile + " to " + outputDir + " : directory already exists !" );
+            return null;
         }
 
         try {
@@ -692,7 +702,6 @@ public class CheckDependenciesMojo extends DependenciesMojo {
     }
 
     private void packBundle ( File jarFile, File manifestFile, File contentDirectory ) {
-        File outputDir = outputDirectory;
         try {
             JarArchiver archiver = (JarArchiver) archiverManager.getArchiver("jar");
 
@@ -702,7 +711,7 @@ public class CheckDependenciesMojo extends DependenciesMojo {
             archiver.addDirectory(contentDirectory, null, null);
             archiver.createArchive();
         } catch ( Exception e ) {
-            getLog().error( "Problem packing " + jarFile + " to " + outputDir, e );
+            getLog().error( "Problem packing " + jarFile + " with contents from  " + contentDirectory, e );
         }
 
     }
