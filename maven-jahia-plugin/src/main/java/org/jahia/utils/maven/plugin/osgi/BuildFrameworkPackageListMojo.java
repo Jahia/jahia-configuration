@@ -134,6 +134,11 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
      */
     protected String propertyFilePropertyName = "org.osgi.framework.system.packages.extra";
 
+    /**
+     * @parameter default-value="org.osgi.framework.bootdelegation"
+     */
+    protected String propertyFileBootDelegationPropertyName = "org.osgi.framework.bootdelegation";
+
     private List<Pattern> artifactExclusionPatterns = new ArrayList<Pattern>();
     private List<Pattern> packageExclusionPatterns = new ArrayList<Pattern>();
 
@@ -206,6 +211,7 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
 
             scanExistingManifest(packageVersionCounts);
 
+            excludeBootDelegation(packageVersionCounts);
             resolveSplitPackages(packageVersionCounts, packageVersions);
 
             if (propertiesOutputFile != null && !propertiesOutputFile.exists()) {
@@ -611,6 +617,42 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
             }
         }
         jarInputStream.close();
+    }
+
+    private void excludeBootDelegation(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException, MojoExecutionException {
+        if (!propertiesInputFile.exists()) {
+            return;
+        }
+        FileInputStream fileInputStream = null;
+        try {
+            Properties properties = new Properties();
+            fileInputStream = new FileInputStream(propertiesInputFile);
+            properties.load(fileInputStream);
+            String bootDelegationValue = (String) properties.get(propertyFileBootDelegationPropertyName);
+            if (bootDelegationValue == null) {
+                return;
+            }
+            String[] bootDelegation = bootDelegationValue.split(",");
+            List<String> excludedPatterns = new ArrayList<String>();
+            List<String> excludedPackages = new ArrayList<String>();
+            for (String bootDelegatedPackage : bootDelegation) {
+                if (bootDelegatedPackage.endsWith(".*")) {
+                    excludedPatterns.add(bootDelegatedPackage.substring(0,bootDelegatedPackage.length()-2));
+                } else {
+                    excludedPackages.add(bootDelegatedPackage);
+                }
+            }
+            for (String pack : packageVersionCounts.keySet()) {
+                for (String pattern : excludedPatterns) {
+                    if (pack.startsWith(pattern)) {
+                        excludedPackages.add(pack);
+                    }
+                }
+            }
+            packageVersionCounts.keySet().removeAll(excludedPackages);
+        } finally {
+            IOUtils.closeQuietly(fileInputStream);
+        }
     }
 
     private void updateVersionLocationCounts(Map<String, Map<String, VersionLocation>> packageVersionCounts,
