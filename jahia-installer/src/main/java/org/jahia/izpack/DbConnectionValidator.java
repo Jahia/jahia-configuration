@@ -40,12 +40,24 @@
 
 package org.jahia.izpack;
 
-import java.sql.*;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.DriverPropertyInfo;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
+import java.util.logging.Logger;
 
 import com.izforge.izpack.installer.AutomatedInstallData;
-import com.izforge.izpack.installer.DataValidator;
 import com.izforge.izpack.util.Debug;
 
 /**
@@ -53,32 +65,61 @@ import com.izforge.izpack.util.Debug;
  * 
  * @author Sergiy Shyrkov
  */
-public class DbConnectionValidator implements DataValidator {
+public class DbConnectionValidator extends MySQLDriverValidator {
+    
+    /**
+     * Driver delegate for MySQL driver.
+     * 
+     * @author Sergiy Shyrkov
+     */
+    public static class DriverDelegate implements Driver {
+        
+        private final Driver driver;
+        
+        public DriverDelegate(Driver driver) {
+            if (driver == null) {
+                throw new IllegalArgumentException("Driver cannot be null.");
+            }
+            this.driver = driver;
+        }
 
-    private static String formatMessage(String msg) {
-        if (msg == null || msg.length() <= 80) {
-            return msg;
+        @Override
+        public Connection connect(String url, Properties info) throws SQLException {
+            return driver.connect(url, info);
         }
-        
-        String[] lines = msg.split("\\. ");
-        StringBuilder b = new StringBuilder(msg.length());
-        for (String line : lines) {
-            b.append(line).append(".\n");
+
+        @Override
+        public boolean acceptsURL(String url) throws SQLException {
+            return driver.acceptsURL(url);
         }
-        
-        return b.toString();
+
+        @Override
+        public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) throws SQLException {
+            return driver.getPropertyInfo(url, info);
+        }
+
+        @Override
+        public int getMajorVersion() {
+            return driver.getMajorVersion();
+        }
+
+        @Override
+        public int getMinorVersion() {
+            return driver.getMinorVersion();
+        }
+
+        @Override
+        public boolean jdbcCompliant() {
+            return driver.jdbcCompliant();
+        }
+
+        @Override
+        public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+            return driver.getParentLogger();
+        }
     }
 
-    private static String getVar(AutomatedInstallData adata, String name,
-            String defValue) {
-        String var = adata.getVariable(name);
-        return var != null ? var : defValue;
-    }
-    private String errorMsg;
-
-    private String warningMsg = "";
-
-    private boolean doValidate(AutomatedInstallData adata) {
+    protected boolean doValidate(AutomatedInstallData adata) {
         if (!Boolean.valueOf(adata.getVariable(getVar(adata,
                 "DbConnectionValidationPanelAction.validateVariable",
                 "dbSettings.dbms.createTables")))) {
@@ -128,36 +169,22 @@ public class DbConnectionValidator implements DataValidator {
         return passed;
     }
 
-    private String getMessage(AutomatedInstallData adata, String key) {
-        String errorMsg = adata.langpack.getString(key);
-        errorMsg = errorMsg == null || errorMsg.length() == 0
-                || key.equals(errorMsg) ? "An error occurred while establishing the connection to the database"
-                : errorMsg;
-        return errorMsg;
-    }
-
-    public boolean getDefaultAnswer() {
-        return false;
-    }
-
-    public String getErrorMessageId() {
-        return errorMsg;
-    }
-
-    public String getWarningMessageId() {
-        return warningMsg;
-    }
-
-    public Status validateData(AutomatedInstallData adata) {
-        return doValidate(adata) ? Status.OK : Status.ERROR;
+    protected String getMessage(AutomatedInstallData adata, String key) {
+        return super.getMessage(adata, key, "An error occurred while establishing the connection to the database");
     }
 
     private boolean validateDbConnection(String driver, String url,
                                          String username, String password, String dbmsType, AutomatedInstallData adata) throws ClassNotFoundException,
-            SQLException, InstantiationException, IllegalAccessException {
+            SQLException, InstantiationException, IllegalAccessException, MalformedURLException {
         boolean valid = true;
-
-        Class.forName(driver).newInstance();
+        
+        if (dbmsType.equals("mysql")) {
+            // need to load the driver JAR
+            loadMySQLDriver(driver, adata);
+        } else {
+            Class.forName(driver).newInstance();
+        }
+        
         Connection theConnection = DriverManager.getConnection(url, username,
                 password);
         Statement theStatement = theConnection.createStatement();
@@ -177,6 +204,14 @@ public class DbConnectionValidator implements DataValidator {
         }
 
         return valid;
+    }
+
+    private void loadMySQLDriver(String driverClass, AutomatedInstallData adata) throws MalformedURLException,
+            InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+        String path = getDriverPath(adata);
+        URLClassLoader urlLoader = new URLClassLoader(new URL[] { new File(path).toURI().toURL() });
+        Driver driverInstance = (Driver) Class.forName(driverClass, true, urlLoader).newInstance();
+        DriverManager.registerDriver(new DriverDelegate(driverInstance));
     }
 
     private String checkDatabase(String databaseType, Statement statement,AutomatedInstallData adata) throws SQLException{
