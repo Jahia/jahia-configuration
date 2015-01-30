@@ -71,7 +71,17 @@ public class MySQLDriverValidator extends BaseDataValidator {
             errorMsg = getMessage(adata, "dbType.mysql.path.validator",
                     "The selected file does not match the expected one: mysql-connector-java-" + version + ".jar");
             System.out.println("\n" + errorMsg + "\n");
+        } else {
+            String licenseAccepted = adata.getVariable(getVar(adata, "DbConnectionValidationPanelAction.mysqlDriverLicenseVariable",
+                    "mysql.driver.license"));
+            if (licenseAccepted != null && !"true".equals(licenseAccepted)) {
+                errorMsg = getMessage(adata, "dbType.mysql.license.validator",
+                        "You must accept the terms and conditions of the GPL License");
+                System.out.println("\n" + errorMsg + "\n");
+                passed = false;
+            }
         }
+        
 
         return passed;
     }

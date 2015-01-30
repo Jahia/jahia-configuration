@@ -120,6 +120,9 @@ public class DbConnectionValidator extends MySQLDriverValidator {
     }
 
     protected boolean doValidate(AutomatedInstallData adata) {
+        if (!validateOracleDriverLicense(adata)) {
+            return false;
+        }
         if (!Boolean.valueOf(adata.getVariable(getVar(adata,
                 "DbConnectionValidationPanelAction.validateVariable",
                 "dbSettings.dbms.createTables")))) {
@@ -242,6 +245,22 @@ public class DbConnectionValidator extends MySQLDriverValidator {
         return null;
     }
 
+    private boolean validateOracleDriverLicense(AutomatedInstallData adata) {
+        String dbType = adata.getVariable(getVar(adata, "DbConnectionValidationPanelAction.dbTypeVariable",
+                "dbSettings.dbms.type"));
+        if (!"oracle".equals(dbType)) {
+            return true;
+        }
+        String licenseAccepted = adata.getVariable(getVar(adata,
+                "DbConnectionValidationPanelAction.oracleDriverLicenseVariable", "oracle.driver.license"));
+        if (licenseAccepted != null && !"true".equals(licenseAccepted)) {
+            errorMsg = getMessage(adata, "dbSettings.dbms.type.oracle.license.validator",
+                    "You must accept the terms and conditions of the OTN License Agreement");
+            System.out.println("\n" + errorMsg + "\n");
+            return false;
+        }
 
+        return true;
+    }
 
 }
