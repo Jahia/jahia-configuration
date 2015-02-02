@@ -4,30 +4,14 @@
     <parent>
         <groupId>org.jahia.configuration</groupId>
         <artifactId>jahia-configuration-root</artifactId>
-        <version>4.2</version>
+        <version>4.3-SNAPSHOT</version>
     </parent>
     
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jahia-installer-lib</artifactId>
     <name>Jahia Installer</name>
-    <version>4.2.3-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <repositories>
-        <repository>
-            <id>jahia-public</id>
-            <name>Jahia Public Repository</name>
-            <url>https://devtools.jahia.com/nexus/content/groups/public</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-    
     <dependencies>
         <dependency>
             <groupId>org.codehaus.izpack</groupId>
