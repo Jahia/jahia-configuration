@@ -173,7 +173,7 @@ public class PageBO {
 			//xmlns:rep=\"internal\"
 					
 			pageElement.setAttribute("changefreq", "monthly");
-			pageElement.setAttribute("templateNode", "/sites/" + this.getSiteKey() + "/templates/base/" + pageTemplate, ContentGeneratorCst.NS_J);
+			pageElement.setAttribute("templateName", pageTemplate, ContentGeneratorCst.NS_J);
 			pageElement.setAttribute("primaryType", "jnt:page", ContentGeneratorCst.NS_JCR);
 			pageElement.setAttribute("priority", "0.5");
 			
