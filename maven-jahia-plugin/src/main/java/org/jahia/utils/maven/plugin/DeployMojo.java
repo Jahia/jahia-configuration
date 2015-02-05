@@ -100,7 +100,8 @@ public class DeployMojo extends AbstractManagementMojo {
     private static final Set<String> JAHIA_SYSTEM_BUNDLES = new HashSet<String>(Arrays.asList(
             "org.jahia.bundles.url.jahiawar", "org.jahia.bundles.extender.jahiamodules",
             "org.jahia.bundles.blueprint.extender.config", "org.jahia.bundles.http.bridge",
-            "org.jahia.bundles.webconsole.config","org.jahia.bundles.jspapiusage.repackaging"));
+            "org.jahia.bundles.webconsole.config", "org.jahia.bundles.jspapiusage.repackaging",
+            "org.jahia.bundles.configadmin.persistence"));
 
 	private static final Set<String> JAHIA_PACKAGE_PROJECTS = new HashSet<String>(
 			Arrays.asList("jahia-data", "jahia-core-modules",
