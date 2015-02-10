@@ -634,6 +634,14 @@ public class DependenciesMojo extends BundlePlugin {
 
     private int scanJar(File jarFile, boolean externalDependency, String packageDirectory, String version, boolean optional, ParsingContext parsingContext, String logPrefix) throws IOException {
         int scanned = 0;
+
+        if (jarFile.isDirectory()) {
+            getLog().debug(logPrefix + "Processing dependency directory " + jarFile + "...");
+            processDirectoryTlds(jarFile, version, parsingContext);
+            processDirectory(jarFile, false, version, parsingContext);
+            return scanned;
+        }
+
         JarInputStream jarInputStream = new JarInputStream(new FileInputStream(jarFile));
         try {
             JarEntry jarEntry = null;
