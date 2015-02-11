@@ -18,6 +18,7 @@ import org.jahia.utils.maven.plugin.support.MavenAetherHelperUtils;
 import org.jahia.utils.osgi.BundleUtils;
 import org.jahia.utils.osgi.ManifestValueClause;
 import org.jahia.utils.osgi.PackageUtils;
+import org.jahia.utils.osgi.parsers.FullyEqualPackageInfo;
 import org.jahia.utils.osgi.parsers.PackageInfo;
 import org.jahia.utils.osgi.parsers.ParsingContext;
 
@@ -298,7 +299,7 @@ public class CheckDependenciesMojo extends DependenciesMojo {
             throw new MojoExecutionException("No artifact generated for project, was the goal called in the proper phase (should be verify) ?");
         }
 
-        List<PackageInfo> allPackageExports = collectAllDependenciesExports(projectParsingContext);
+        Set<FullyEqualPackageInfo> allPackageExports = collectAllDependenciesExports(projectParsingContext, new HashSet<String>());
 
         Set<PackageInfo> missingPackageExports = new TreeSet<PackageInfo>();
         JarFile jarFile = null;
@@ -658,16 +659,20 @@ public class CheckDependenciesMojo extends DependenciesMojo {
         }
     }
 
-    private List<PackageInfo> collectAllDependenciesExports(ParsingContext parsingContext) {
-        List<PackageInfo> allExports = new ArrayList<PackageInfo>();
+    private Set<FullyEqualPackageInfo> collectAllDependenciesExports(ParsingContext parsingContext, Set<String> alreadyVisitedContexts) {
+        Set<FullyEqualPackageInfo> allExports = new HashSet<FullyEqualPackageInfo>();
+        if (alreadyVisitedContexts.contains(parsingContext.getMavenCoords())) {
+            return allExports;
+        }
+        alreadyVisitedContexts.add(parsingContext.getMavenCoords());
         if (parsingContext.getChildren() != null) {
             for (ParsingContext childParsingContext : parsingContext.getChildren()) {
                 if (childParsingContext.isExternal()) {
-                    allExports.addAll(childParsingContext.getPackageExports());
+                    allExports.addAll(FullyEqualPackageInfo.toFullyEqualPackageInfoSet(childParsingContext.getPackageExports(), null));
                 } else {
-                    allExports.addAll(childParsingContext.getLocalPackages());
+                    allExports.addAll(FullyEqualPackageInfo.toFullyEqualPackageInfoSet(childParsingContext.getLocalPackages(), null));
                 }
-                allExports.addAll(collectAllDependenciesExports(childParsingContext));
+                allExports.addAll(collectAllDependenciesExports(childParsingContext, alreadyVisitedContexts));
             }
         }
         return allExports;

@@ -13,13 +13,13 @@ import java.util.TreeSet;
  */
 public class PackageInfo implements Comparable<PackageInfo> {
 
-    private String name = null;
-    private String version = null;
-    private boolean optional = false;
-    @JsonIgnore private Set<String> sourceLocations = new TreeSet<String>();
-    private Properties otherDirectives = new Properties();
-    @JsonIgnore private ParsingContext origin = null;
-    @JsonIgnore private boolean embedded = false;
+    protected String name = null;
+    protected String version = null;
+    protected boolean optional = false;
+    @JsonIgnore protected Set<String> sourceLocations = new TreeSet<String>();
+    protected Properties otherDirectives = new Properties();
+    @JsonIgnore protected ParsingContext origin = null;
+    @JsonIgnore protected boolean embedded = false;
 
     public PackageInfo() {
     }
