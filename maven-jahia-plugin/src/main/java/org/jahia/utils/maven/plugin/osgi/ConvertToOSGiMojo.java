@@ -63,9 +63,7 @@ public class ConvertToOSGiMojo extends AbstractManagementMojo {
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
 
-        ScmManager scmManager = new BasicScmManager();
-        scmManager.setScmProvider("svn", new SvnExeScmProvider());
-        scmManager.setScmProvider("git", new GitExeScmProvider());
+        ScmManager scmManager = null;
         File pomXmlFile = new File(baseDir, "pom.xml");
         String scmURL = null;
         Reader reader = null;
@@ -82,12 +80,17 @@ public class ConvertToOSGiMojo extends AbstractManagementMojo {
         } finally {
             IOUtils.closeQuietly(reader);
         }
-        try {
-            scmRepository = scmURL == null || "dummy".equalsIgnoreCase(ScmUrlUtils.getProvider(scmURL)) ? null : scmManager.makeScmRepository(scmURL);
-        } catch (ScmRepositoryException e) {
-            e.printStackTrace();
-        } catch (NoSuchScmProviderException e) {
-            e.printStackTrace();
+        if (scmURL != null && !"dummy".equalsIgnoreCase(ScmUrlUtils.getProvider(scmURL))) {
+            try {
+                scmManager = new BasicScmManager();
+                scmManager.setScmProvider("svn", new SvnExeScmProvider());
+                scmManager.setScmProvider("git", new GitExeScmProvider());
+                scmRepository = scmManager.makeScmRepository(scmURL);
+            } catch (ScmRepositoryException e) {
+                e.printStackTrace();
+            } catch (NoSuchScmProviderException e) {
+                e.printStackTrace();
+            }
         }
         File webapp = new File(baseDir, "src/main/webapp");
         File resources = new File(baseDir, "src/main/resources");
@@ -99,8 +102,10 @@ public class ConvertToOSGiMojo extends AbstractManagementMojo {
                     ScmFileSet filesToRemove = new ScmFileSet(oldWorkflowDir,null,null);
                     getLog().info("Moving " + oldWorkflowDir + " to " + newWorkflowDirParent + "...");
                     FileUtils.moveDirectoryToDirectory(oldWorkflowDir, newWorkflowDirParent, true);
-                    scmManager.remove(scmRepository, filesToRemove, "remove workflow dir");
-                    scmManager.add(scmRepository, new ScmFileSet(newWorkflowDirParent,null,null));
+                    if (scmRepository != null) {
+                        scmManager.remove(scmRepository, filesToRemove, "remove workflow dir");
+                        scmManager.add(scmRepository, new ScmFileSet(newWorkflowDirParent,null,null));
+                    }
                 }
             }
             if (webapp.exists()) {
