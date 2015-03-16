@@ -3,6 +3,7 @@ package org.jahia.utils.maven.plugin.osgi;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Model;
+import org.apache.maven.model.Scm;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -12,6 +13,7 @@ import org.apache.maven.scm.ScmFileSet;
 import org.apache.maven.scm.manager.BasicScmManager;
 import org.apache.maven.scm.manager.NoSuchScmProviderException;
 import org.apache.maven.scm.manager.ScmManager;
+import org.apache.maven.scm.provider.ScmUrlUtils;
 import org.apache.maven.scm.provider.git.gitexe.GitExeScmProvider;
 import org.apache.maven.scm.provider.svn.svnexe.SvnExeScmProvider;
 import org.apache.maven.scm.repository.ScmRepository;
@@ -71,7 +73,8 @@ public class ConvertToOSGiMojo extends AbstractManagementMojo {
         try {
             reader = new FileReader(pomXmlFile);
             Model model = new MavenXpp3Reader().read(reader);
-            scmURL = model.getScm().getConnection();
+            final Scm scm = model.getScm();
+            scmURL = scm != null ? scm.getConnection() : null;
         } catch (XmlPullParserException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -80,7 +83,7 @@ public class ConvertToOSGiMojo extends AbstractManagementMojo {
             IOUtils.closeQuietly(reader);
         }
         try {
-            scmRepository = scmManager.makeScmRepository(scmURL);
+            scmRepository = scmURL == null || "dummy".equalsIgnoreCase(ScmUrlUtils.getProvider(scmURL)) ? null : scmManager.makeScmRepository(scmURL);
         } catch (ScmRepositoryException e) {
             e.printStackTrace();
         } catch (NoSuchScmProviderException e) {
@@ -107,15 +110,18 @@ public class ConvertToOSGiMojo extends AbstractManagementMojo {
                 FileUtils.deleteQuietly(webXml);
                 getLog().info("Moving contents of directory " + webapp + " into directory " + resources + "...");
                 moveWithMerge(webapp, resources);
-                scmManager.add(scmRepository, new ScmFileSet(new File(""), resources));
-                List<File> filesToAdd = listFilesAndDirectories(resources);
-                scmManager.add(scmRepository, new ScmFileSet(resources,filesToAdd), "add resources files");
-                scmManager.remove(scmRepository, new ScmFileSet(webapp,filesToRemove), "remove webapps files");
+                if (scmRepository != null) {
+                    scmManager.add(scmRepository, new ScmFileSet(new File(""), resources));
+                    List<File> filesToAdd = listFilesAndDirectories(resources);
+                    scmManager.add(scmRepository, new ScmFileSet(resources,filesToAdd), "add resources files");
+                    scmManager.remove(scmRepository, new ScmFileSet(webapp,filesToRemove), "remove webapps files");
+                }
             }
 
             getLog().info("Performing Maven project modifications...");
             parsePom();
-            scmManager.add(scmRepository, new ScmFileSet( new File( "" ), pomXmlFile ));
+            if (scmRepository != null)
+                scmManager.add(scmRepository, new ScmFileSet( new File( "" ), pomXmlFile ));
 
             if (performMigration) {
                 getLog().info("Performing needed migration modifications");
