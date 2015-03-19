@@ -35,20 +35,14 @@ package org.jahia.utils.maven.plugin.resources;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
-import java.util.MissingResourceException;
-import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -62,81 +56,6 @@ import org.apache.maven.plugin.MojoFailureException;
  * @author Sergiy Shyrkov
  */
 public class GWTDictionaryMojo extends AbstractMojo {
-
-    private static String escape(String value) {
-        StringBuilder out = new StringBuilder(value.length() * 2);
-        int sz = value.length();
-        for (int i = 0; i < sz; i++) {
-            char ch = value.charAt(i);
-
-            // handle unicode
-            if (ch > 0xfff) {
-                out.append("\\u" + hex(ch));
-            } else if (ch > 0xff) {
-                out.append("\\u0" + hex(ch));
-            } else if (ch > 0x7f) {
-                out.append("\\u00" + hex(ch));
-            } else if (ch < 32) {
-                switch (ch) {
-                    case '\b':
-                        out.append('\\');
-                        out.append('b');
-                        break;
-                    case '\n':
-                        out.append('\\');
-                        out.append('n');
-                        break;
-                    case '\t':
-                        out.append('\\');
-                        out.append('t');
-                        break;
-                    case '\f':
-                        out.append('\\');
-                        out.append('f');
-                        break;
-                    case '\r':
-                        out.append('\\');
-                        out.append('r');
-                        break;
-                    default:
-                        if (ch > 0xf) {
-                            out.append("\\u00" + hex(ch));
-                        } else {
-                            out.append("\\u000" + hex(ch));
-                        }
-                        break;
-                }
-            } else {
-                switch (ch) {
-                    case '\'':
-                        out.append('\\');
-                        out.append('\'');
-                        break;
-                    case '"':
-                        out.append('\\');
-                        out.append('"');
-                        break;
-                    case '\\':
-                        out.append('\\');
-                        out.append('\\');
-                        break;
-                    case '/':
-                        out.append('\\');
-                        out.append('/');
-                        break;
-                    default:
-                        out.append(ch);
-                        break;
-                }
-            }
-        }
-
-        return out.toString();
-    }
-
-    private static String hex(char ch) {
-        return Integer.toHexString(ch).toUpperCase(Locale.ENGLISH);
-    }
 
     /**
      * The directory to output files into
@@ -224,13 +143,13 @@ public class GWTDictionaryMojo extends AbstractMojo {
         }
         for (Iterator<String> iterator = keys.iterator(); iterator.hasNext();) {
             String key = iterator.next();
-            String value = bundle != null ? getValue(bundle, key) : null;
+            String value = bundle != null ? JavaScriptDictionaryMojo.getValue(bundle, key) : null;
             if (value == null) {
-                value = getValue(defBundle, key);
+                value = JavaScriptDictionaryMojo.getValue(defBundle, key);
             }
 
             if (value != null) {
-                out.append(key.replace('.', '_')).append(":\"").append(escape(value)).append("\"");
+                out.append(key.replace('.', '_')).append(":\"").append(JavaScriptDictionaryMojo.escape(value)).append("\"");
                 if (iterator.hasNext()) {
                     out.append(",");
                 }
@@ -265,31 +184,7 @@ public class GWTDictionaryMojo extends AbstractMojo {
         getLog().info("...conversion done.");
     }
 
-    private String getValue(ResourceBundle bundle, String key) {
-        String value = null;
-        try {
-            value = bundle.getString(key);
-        } catch (MissingResourceException e) {
-            // ignore
-        }
-        return value;
-    }
-
     private ResourceBundle lookupBundle(String... locales) throws IOException {
-        ResourceBundle rb = null;
-        for (String locale : locales) {
-            File f = new File(src, resourceBundle + "_" + locale + ".properties");
-            if (f.exists()) {
-                InputStream is = null;
-                try {
-                    is = FileUtils.openInputStream(f);
-                    rb = new PropertyResourceBundle(is);
-                    break;
-                } finally {
-                    IOUtils.closeQuietly(is);
-                }
-            }
-        }
-        return rb;
+        return JavaScriptDictionaryMojo.lookupBundle(src, resourceBundle, locales);
     }
 }
