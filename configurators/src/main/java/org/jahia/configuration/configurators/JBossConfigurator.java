@@ -302,6 +302,8 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         cli.append(dbType);
         cli.append(", driver-name=jahia.");
         cli.append(dbType);
+        cli.append(", driver-class-name=");
+        cli.append(getDbPropForCLI("jahia.database.driver"));
         cli.append(")\n");
         cli.append("\n");
 
