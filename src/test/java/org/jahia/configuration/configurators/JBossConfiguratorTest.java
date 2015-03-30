@@ -70,7 +70,8 @@ public class JBossConfiguratorTest extends AbstractXMLConfiguratorTestCase {
 
         String content = FileUtils.readFileToString(new File(destFileName));
 
-        assertTrue(content.contains("<driver name=\"jahia.oracle\" module=\"org.jahia.jdbc.oracle\" />"));
+        assertTrue(content.contains("<driver name=\"jahia.oracle\" module=\"org.jahia.jdbc.oracle\">"));
+        assertTrue(content.contains("<driver-class>oracle.jdbc.OracleDriver</driver-class>"));
         assertTrue(content.contains("<datasource jndi-name=\"java:/jahiaDS\""));
         assertTrue(content.contains("<connection-url>jdbc:oracle"));
         
@@ -88,7 +89,8 @@ public class JBossConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         assertFalse(FileUtils.contentEquals(new File(unchangedDestFileName), new File(updatedDestFileName)));
         
         content = FileUtils.readFileToString(new File(updatedDestFileName));
-        assertTrue(content.contains("<driver name=\"jahia.mysql\" module=\"org.jahia.jdbc.mysql\" />"));
+        assertTrue(content.contains("<driver name=\"jahia.mysql\" module=\"org.jahia.jdbc.mysql\">"));
+        assertTrue(content.contains("<driver-class>com.mysql.jdbc.Driver</driver-class>"));
         assertTrue(content.contains("<connection-url>jdbc:mysql"));
         assertFalse(content.contains("<connection-url>jdbc:oracle"));
         assertTrue(content.contains("<connector name=\"http\" protocol=\"org.apache.coyote.http11.Http11NioProtocol\" scheme=\"http\" socket-binding=\"http\" />"));
