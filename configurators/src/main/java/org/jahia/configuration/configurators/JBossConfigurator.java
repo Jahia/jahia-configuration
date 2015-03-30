@@ -160,6 +160,10 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         if (driver == null) {
             driver = new Element("driver", datasourceNs).setAttribute("name", "jahia." + dbType).setAttribute("module",
                     "org.jahia.jdbc." + dbType);
+            Element driverClazz = new Element("driver-class", datasourceNs);
+            driverClazz.addContent(getDBProperty("jahia.database.driver"));
+            
+            driver.addContent(driverClazz);
             drivers.addContent(driver);
         }
     }
