@@ -41,6 +41,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.codehaus.plexus.archiver.ArchiverException;
+import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
+import org.codehaus.plexus.components.io.fileselectors.FileInfo;
+import org.codehaus.plexus.components.io.fileselectors.FileSelector;
+import org.codehaus.plexus.logging.Logger;
+import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.jahia.configuration.modules.ModuleDeployer;
 
 /**
@@ -97,15 +103,15 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
         ModuleDeployer deployer = new ModuleDeployer(target, new MojoLogger(getLog()));
         for (Artifact dependencyFile : (Iterable<Artifact>) dependencyFiles) {
             File file = dependencyFile.getFile();
-            if (deployModules && (dependencyFile.getGroupId().equals("org.jahia.modules") || dependencyFile.getGroupId().equals("org.jahia.templates") || dependencyFile.getGroupId().endsWith(".jahia.modules")) || deployTests && dependencyFile.getGroupId().equals("org.jahia.test")) {
+            String groupId = dependencyFile.getGroupId();
+            if (deployModules && (groupId.equals("org.jahia.modules") || groupId.equals("org.jahia.templates") || groupId.endsWith(".jahia.modules")) || deployTests && groupId.equals("org.jahia.test")) {
                 try {
                     deployer.deployModule(file);
                     dependenciesToRemove.add(dependencyFile);
                 } catch (IOException e) {
                     getLog().error("Error when copying file " + file, e);
                 }
-            }
-            if (dependencyFile.getGroupId().equals("org.jahia.prepackagedsites")) {
+            } else if (groupId.equals("org.jahia.prepackagedsites")) {
                 try {
                     File deployDir = deployToServer ? getDataDir() : new File(output, "digital-factory-data");
                     FileUtils.copyFile(file, new File(deployDir,"prepackagedSites/"+dependencyFile.getArtifactId()+".zip"));
@@ -115,6 +121,15 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
                     getLog().error("Error when copying file " + file, e);
                 } catch(Exception e) {
                     throw new MojoExecutionException("Cannot deploy prepackaged site", e);
+                }
+            } else if (groupId.equals("org.jahia.packages") && (dependencyFile.getType().equals("jar") || dependencyFile.getType().equals("bundle"))) {
+                try {
+                    getLog().info("Deploying package " + file.getName());
+                    dependenciesToRemove.add(dependencyFile);
+                    deployPackageFile(file, deployer);
+                } catch (Exception e) {
+                    getLog().error("Cannot deploy package " + dependencyFile, e);
+                    throw new MojoExecutionException("Cannot deploy package " + dependencyFile, e);
                 }
             }
 
@@ -126,4 +141,30 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
         project.setDependencyArtifacts(new LinkedHashSet(dependencyList));
     }
 
+    private void deployPackageFile(File file, ModuleDeployer deployer) throws ArchiverException, IOException {
+        ZipUnArchiver unzip = new ZipUnArchiver(file);
+        unzip.enableLogging(new ConsoleLogger(getLog().isDebugEnabled() ? Logger.LEVEL_DEBUG : Logger.LEVEL_INFO,
+                "console"));
+        File target = new File(FileUtils.getTempDirectory(), CopyTemplatesMojo.class.getSimpleName());
+        FileUtils.deleteQuietly(target);
+        target.mkdir();
+        unzip.setDestDirectory(target);
+        unzip.setFileSelectors(Collections.singletonList(new FileSelector() {
+            @Override
+            public boolean isSelected(FileInfo fileInfo) throws IOException {
+                return fileInfo.isFile() && fileInfo.getName().endsWith(".jar");
+            }
+        }).toArray(new FileSelector[] {}));
+
+        unzip.extract();
+
+        File[] jars = target.listFiles();
+        if (jars == null) {
+            return;
+        }
+
+        for (File f : jars) {
+            deployer.deployModule(f);
+        }
+    }
 }
