@@ -25,18 +25,33 @@ public class JahiaVersionMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         MavenProject p = project.getParent();
-        while (p!= null && !StringUtils.equals(p.getArtifactId(),"jahia-modules")) {
+        while (p != null && !StringUtils.equals(p.getArtifactId(), "jahia-modules")) {
             p = p.getParent();
         }
         if (p != null) {
-            project.getProperties().put("jahia.version",p.getVersion());
-        }  else {
+            project.getProperties().put("jahia.version", p.getVersion());
+            if (!project.getProperties().containsKey("jahia-download-sources-available")) {
+                project.getProperties()
+                        .put("jahia-download-sources-available", isProjectProtected() ? "false" : "true");
+            }
+        } else {
             for (Dependency dep : project.getDependencies()) {
-                if (StringUtils.equals(dep.getArtifactId(),"jahia-impl")) {
-                    project.getProperties().put("jahia.version",dep.getVersion());
+                if (StringUtils.equals(dep.getArtifactId(), "jahia-impl")) {
+                    project.getProperties().put("jahia.version", dep.getVersion());
                     return;
                 }
             }
         }
     }
+
+    private boolean isProjectProtected() {
+        String id = project.getDistributionManagement() != null
+                && project.getDistributionManagement().getRepository() != null ? project.getDistributionManagement()
+                .getRepository().getId() : null;
+
+        return id != null
+                && ("jahia-enterprise-releases".equals(id) || "jahia-internal-releases".equals(id) || "workspace-factory-releases"
+                        .equals(id));
+    }
+
 }
