@@ -34,10 +34,12 @@
 package org.jahia.configuration.configurators;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.Map;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.PropertyUtils;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -98,7 +100,17 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         
         String fileDataStorePath = getValue(dbProperties, "fileDataStorePath");
         if (StringUtils.isNotEmpty(fileDataStorePath)) {
-            properties.setProperty("jackrabbit.datastore.path", fileDataStorePath);
+            String datastorePropertyName = "jackrabbit.datastore.path";
+            InputStream is = sourceJahiaPath.getInputStream();
+            try {
+                if (IOUtils.toString(is).contains("jahia.jackrabbit.datastore.path")) {
+                    // DF 7.1.0.0+
+                    datastorePropertyName = "jahia.jackrabbit.datastore.path";
+                }
+            } finally {
+                IOUtils.closeQuietly(is);
+            }
+            properties.setProperty(datastorePropertyName, fileDataStorePath);
         }
 
         properties.storeProperties(sourceJahiaPath.getInputStream(), targetJahiaPath);
