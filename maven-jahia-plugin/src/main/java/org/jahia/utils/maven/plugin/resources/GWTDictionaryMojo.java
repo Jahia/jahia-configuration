@@ -57,6 +57,14 @@ import org.apache.maven.plugin.MojoFailureException;
  */
 public class GWTDictionaryMojo extends AbstractMojo {
 
+    private static String normalizeKey(String key) {
+        String normalized = key.indexOf('.') != -1 ? key.replace('.', '_') : key;
+        if (normalized.indexOf('-') != -1) {
+            normalized = normalized.replace('-', '_');
+        }
+        return normalized;
+    }
+
     /**
      * The directory to output files into
      * 
@@ -149,7 +157,7 @@ public class GWTDictionaryMojo extends AbstractMojo {
             }
 
             if (value != null) {
-                out.append(key.replace('.', '_')).append(":\"").append(JavaScriptDictionaryMojo.escape(value)).append("\"");
+                out.append(normalizeKey(key)).append(":\"").append(JavaScriptDictionaryMojo.escape(value)).append("\"");
                 if (iterator.hasNext()) {
                     out.append(",");
                 }
