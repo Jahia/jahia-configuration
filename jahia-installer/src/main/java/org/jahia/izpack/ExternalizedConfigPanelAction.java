@@ -40,6 +40,8 @@
 
 package org.jahia.izpack;
 
+import java.util.Properties;
+
 import com.izforge.izpack.installer.AutomatedInstallData;
 import com.izforge.izpack.installer.PanelAction;
 import com.izforge.izpack.installer.PanelActionConfiguration;
@@ -52,13 +54,44 @@ import com.izforge.izpack.util.AbstractUIHandler;
  */
 public class ExternalizedConfigPanelAction implements PanelAction {
 
+    private static String normalize(String path) {
+        return path.replace('\\', '/');
+    }
+
+    protected static void processRelativePaths(Properties data) {
+        String installDir = normalize(data.getProperty("INSTALL_PATH")) + '/';
+        String cfgDir = data.getProperty("externalizedConfigTargetPathNormalized");
+        // check that the config folder is under install dir
+        if (cfgDir.startsWith(installDir)) {
+            data.put("isConfigDirRelative", "true");
+            // rewrite path to relative for tomcat.common.loader
+            data.put("tomcat.common.loader", "${catalina.home}/../" + cfgDir.substring(installDir.length()));
+        }
+
+        String dataDir = normalize(data.getProperty("data.dir"));
+        // check that the data folder is under install dir
+        if (dataDir.startsWith(installDir)) {
+            data.put("isDataDirRelative", "true");
+            // rewrite paths to relative
+            String relativeDataDir = dataDir.substring(installDir.length());
+            if (relativeDataDir.endsWith("/")) {
+                relativeDataDir = relativeDataDir.substring(0, relativeDataDir.length() - 1);
+            }
+            data.put("derby.home.unix", "$CATALINA_HOME/../" + relativeDataDir + "/dbdata");
+            data.put("derby.home.win", "%CATALINA_HOME%\\..\\" + relativeDataDir.replace('/', '\\') + "\\dbdata");
+            data.put("jahiaVarDiskPath", "${jahiaWebAppRoot}/../../../" + relativeDataDir);
+        }
+    }
+
     public void executeAction(AutomatedInstallData adata, AbstractUIHandler handler) {
         String value = adata.getVariable("externalizedConfigTargetPath");
         adata.setVariable("externalizedConfigTargetPathNormalized", value != null ? value.replace('\\', '/') : value);
+        if ("true".equals(adata.getVariable("jahia.tomcat.pack.selected"))) {
+            processRelativePaths(adata.getVariables());
+        }
     }
 
     public void initialize(PanelActionConfiguration configuration) {
         // do nothing
     }
-
 }
