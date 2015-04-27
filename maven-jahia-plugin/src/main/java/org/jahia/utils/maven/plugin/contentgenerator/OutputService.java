@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -175,5 +176,14 @@ public class OutputService {
 		String s2 = StringUtils.replace(s, " ", "");
 		StringUtils.lowerCase(s2);
 		return s2;
+	}
+	
+	public void writePropertiesToFile(Properties properties, File file) throws IOException {
+		FileOutputStream out = new FileOutputStream(file);
+		try {
+			properties.store(out, null);
+		} finally {
+			out.close();
+		}
 	}
 }
