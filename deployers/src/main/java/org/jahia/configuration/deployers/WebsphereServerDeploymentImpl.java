@@ -50,4 +50,8 @@ public class WebsphereServerDeploymentImpl extends AbstractServerDeploymentImpl 
         return "jahia.war";
     }
 
+    @Override
+    public boolean isAutoDeploySupported() {
+        return false;
+    }
 }
