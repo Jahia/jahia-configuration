@@ -76,6 +76,7 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
 
     private static final Namespace WEB_NS_62 = Namespace.getNamespace("urn:jboss:domain:web:1.5");
     private static final Namespace WEB_NS_63 = Namespace.getNamespace("urn:jboss:domain:web:2.1");
+    private static final Namespace WEB_NS_64 = Namespace.getNamespace("urn:jboss:domain:web:2.2");
 
     static {
         EXCEPTION_SORTERS = new HashMap<String, String>(6);
@@ -96,6 +97,8 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
     
     private boolean isJBoss63;
     
+    private boolean isJBoss64;
+    
     private Namespace datasourceNs;
     
     private Namespace webNs;
@@ -112,6 +115,10 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         Element web = profile.getChild("subsystem", ns);
         if (web == null) {
             ns = WEB_NS_63;
+            web = profile.getChild("subsystem", ns);
+        }
+        if (web == null) {
+            ns = WEB_NS_64;
             web = profile.getChild("subsystem", ns);
         }
         if (web != null) {
@@ -235,9 +242,10 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
 
             Element root = jdomDocument.getRootElement();
             isJBoss63 = root.getNamespace().getURI().equals("urn:jboss:domain:1.6");
-            getLogger().info("Detected JBoss EAP version " + (isJBoss63 ? "6.3.x" : "6.2.x"));
-            datasourceNs = isJBoss63 ? DS_NS_63 : DS_NS_62;
-            webNs = isJBoss63 ? WEB_NS_63 : WEB_NS_62;
+            isJBoss64 = root.getNamespace().getURI().equals("urn:jboss:domain:1.7");
+            getLogger().info("Detected JBoss EAP version " + (isJBoss63 ? "6.3.x" : (isJBoss64 ? "6.4.x" : "6.2.x")));
+            datasourceNs = isJBoss63 || isJBoss64 ? DS_NS_63 : DS_NS_62;
+            webNs = isJBoss63 ? WEB_NS_63 : (isJBoss64 ? WEB_NS_64 : WEB_NS_62);
             Element profile = getProfile(root, sourceConfigFile);
             Element datasources = getChildCreate(getChildCreate(profile, "subsystem"), "datasources");
 
