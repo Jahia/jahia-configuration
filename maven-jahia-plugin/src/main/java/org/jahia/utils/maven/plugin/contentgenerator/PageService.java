@@ -21,8 +21,8 @@ import org.jdom.Document;
 
 public class PageService {
 
-    private int nbOftenKeywordsAlreadyAssigned = 0;
-    private int nbSeldomKeywordsAlreadyAssigned = 0;
+    private int nbOftenKeywordsAlreadyAssigned;
+    private int nbSeldomKeywordsAlreadyAssigned;
     private Map<String, List<CmisDirectoryPath>> cmisFilePaths;
     private final Random random = new Random();
 
@@ -31,8 +31,6 @@ public class PageService {
     private static final Log LOGGER = new SystemStreamLog();
 
     public PageService() {
-        nbOftenKeywordsAlreadyAssigned = 0;
-        nbSeldomKeywordsAlreadyAssigned = 0;
         initCmisFilePath();
     }
 
@@ -233,8 +231,9 @@ public class PageService {
         String seldomKeywords = getSeldomKeywords(export.getTotalPages());
         String description = oftenKeywords + " " + seldomKeywords;
 
-        PageBO page = new PageBO(pageName, articlesMap, level, subPages,
-                export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory, idTag,  visibilityOnPage, export.getVisibilityStartDate(), export.getVisibilityEndDate(), description, template, export.getCmisSiteName(), externalFilePaths);
+        PageBO page = new PageBO(pageName, articlesMap, subPages, export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory, idTag, visibilityOnPage,
+                export.getVisibilityStartDate(), export.getVisibilityEndDate(), description, template, export.getCmisSiteName(), externalFilePaths, export.getPcPersonalizedContent(), export.getMinPersonalizationVariants(),
+                export.getMaxPersonalizationVariants());
 
         return page;
     }
@@ -251,7 +250,7 @@ public class PageService {
      *            pages above
      * @return String containing all the generated paths, one per line
      */
-    public List<String> getPagesPath(List<PageBO> pages, String path) {
+    public static List<String> getPagesPath(List<PageBO> pages, String path) {
 
         List<String> siteMap = new ArrayList<String>();
 
@@ -284,9 +283,8 @@ public class PageService {
             keywords = new HashSet<String>(OFTEN_USED_DESCRIPTION_WORDS);
         } else {
             int i = 1;
-            Random r = new Random();
             while (i <= nbKeywordsToGet) {
-                int randomId = r.nextInt(nbKeywordsAvailable - 1);
+                int randomId = random.nextInt(nbKeywordsAvailable - 1);
                 boolean added = keywords.add(OFTEN_USED_DESCRIPTION_WORDS.get(randomId));
                 if (added) {
                     i++;
@@ -314,9 +312,8 @@ public class PageService {
             keywords = new HashSet<String>(SELDOM_USED_DESCRIPTION_WORDS);
         } else {
             int i = 1;
-            Random r = new Random();
             while (i <= nbKeywordsToGet) {
-                int randomId = r.nextInt(nbKeywordsAvailable - 1);
+                int randomId = random.nextInt(nbKeywordsAvailable - 1);
                 boolean added = keywords.add(SELDOM_USED_DESCRIPTION_WORDS.get(randomId));
                 if (added) {
                     i++;
@@ -370,7 +367,7 @@ public class PageService {
         cmisFilePaths.put(ContentGeneratorCst.CMIS_TEXT_DIR, picturesPaths);
     }
 
-    private class CmisDirectoryPath {
+    private static class CmisDirectoryPath {
 
         private String directoryPath;
         private String fileSuffix;
