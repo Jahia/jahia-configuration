@@ -17,6 +17,7 @@ import org.jahia.utils.maven.plugin.contentgenerator.bo.ArticleBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.PageBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
+import org.jahia.utils.maven.plugin.support.RandomUtils;
 import org.jdom.Document;
 
 public class PageService {
@@ -232,8 +233,8 @@ public class PageService {
         String description = oftenKeywords + " " + seldomKeywords;
 
         PageBO page = new PageBO(pageName, articlesMap, subPages, export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory, idTag, visibilityOnPage,
-                export.getVisibilityStartDate(), export.getVisibilityEndDate(), description, template, export.getCmisSiteName(), externalFilePaths, export.getPcPersonalizedContent(), export.getMinPersonalizationVariants(),
-                export.getMaxPersonalizationVariants());
+                export.getVisibilityStartDate(), export.getVisibilityEndDate(), description, template, export.getCmisSiteName(), externalFilePaths, RandomUtils.isRandomOccurrence(export.getPcPersonalizedPages()),
+                export.getMinPersonalizationVariants(), export.getMaxPersonalizationVariants());
 
         return page;
     }

@@ -41,7 +41,7 @@ public abstract class ContentGeneratorTestCase {
         HashMap<String, ArticleBO> articleBOHashMap = new HashMap<String, ArticleBO>();
         articleBOHashMap.put("en", new ArticleBO(0,"Title " + pageID, "Content " + pageID));
         articleBOHashMap.put("fr", new ArticleBO(0,"Titre " + pageID, "Contenu " + pageID));
-        PageBO page = new PageBO("page" + pageID, articleBOHashMap, subPages, hasVanity, SITE_KEY, null, 2, new HashMap<String, List<String>>(), 1, 1, Boolean.FALSE, null, null, null, ContentGeneratorCst.PAGE_TPL_DEFAULT, null, null, 0, 2, 3);
+        PageBO page = new PageBO("page" + pageID, articleBOHashMap, subPages, hasVanity, SITE_KEY, null, 2, new HashMap<String, List<String>>(), 1, 1, Boolean.FALSE, null, null, null, ContentGeneratorCst.PAGE_TPL_DEFAULT, null, null, false, 2, 3);
         return page;
     }
 

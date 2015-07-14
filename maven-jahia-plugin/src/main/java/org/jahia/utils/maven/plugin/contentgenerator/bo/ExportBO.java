@@ -72,7 +72,7 @@ public class ExportBO {
     private String cmisSiteName;
     private boolean disableInternalFileReference;
     private boolean disableExternalFileReference;
-    private int pcPersonalizedContent;
+    private int pcPersonalizedPages;
     private int minPersonalizationVariants;
     private int maxPersonalizationVariants;
 
@@ -516,12 +516,12 @@ public class ExportBO {
         this.disableExternalFileReference = disableExternalFileReference;
     }
 
-    public int getPcPersonalizedContent() {
-        return pcPersonalizedContent;
+    public int getPcPersonalizedPages() {
+        return pcPersonalizedPages;
     }
 
-    public void setPcPersonalizedContent(int pcPersonalizedContent) {
-        this.pcPersonalizedContent = pcPersonalizedContent;
+    public void setPcPersonalizedPages(int pcPersonalizedPages) {
+        this.pcPersonalizedPages = pcPersonalizedPages;
     }
 
     public int getMinPersonalizationVariants() {

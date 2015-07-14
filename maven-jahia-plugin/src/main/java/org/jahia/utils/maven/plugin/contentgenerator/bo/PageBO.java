@@ -8,7 +8,9 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.mutable.MutableBoolean;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
+import org.jahia.utils.maven.plugin.support.RandomUtils;
 import org.jdom.Attribute;
 import org.jdom.Element;
 
@@ -32,13 +34,13 @@ public class PageBO {
     private String pageTemplate;
     private String cmisSite;
     private List<String> externalFilePaths;
-    private int pcPersonalizedContent;
+    private boolean personalize;
     private int minPersonalizationVariants;
     private int maxPersonalizationVariants;
 
     public PageBO(final String pUniqueName, Map<String, ArticleBO> articles, final List<PageBO> pSubPages, Boolean pHasVanity, String pSiteKey, String pFileName, Integer pNumberBigText,
             Map<String, List<String>> acls, Integer idCategory, Integer idTag, Boolean visibilityEnabled, String visibilityStartDate, String visibilityEndDate, String description, String pageTemplate,
-            String cmisSite, List<String> externalFilePaths, int pcPersonalizedContent, int minPersonalizationVariants, int maxPersonalizationVariants) {
+            String cmisSite, List<String> externalFilePaths, boolean personalize, int minPersonalizationVariants, int maxPersonalizationVariants) {
 
         this.articles = articles;
         this.subPages = pSubPages;
@@ -57,7 +59,7 @@ public class PageBO {
         this.pageTemplate = pageTemplate;
         this.cmisSite = cmisSite;
         this.externalFilePaths = externalFilePaths;
-        this.pcPersonalizedContent = pcPersonalizedContent;
+        this.personalize = personalize;
         this.minPersonalizationVariants = minPersonalizationVariants;
         this.maxPersonalizationVariants = maxPersonalizationVariants;
     }
@@ -143,6 +145,31 @@ public class PageBO {
             }
 
             // begin content list
+            int personalizableContentCount = 0;
+            if (pageTemplate.equals(ContentGeneratorCst.PAGE_TPL_QALIST)) {
+                personalizableContentCount += ContentGeneratorCst.NB_NEWS_IN_QALIST;
+            } else if (pageTemplate.equals(ContentGeneratorCst.PAGE_TPL_DEFAULT)) {
+                personalizableContentCount += numberBigText.intValue();
+            }
+            if (StringUtils.startsWith(uniqueName, ContentGeneratorCst.PAGE_TPL_QAEXTERNAL)) {
+                personalizableContentCount += externalFilePaths.size();
+            }
+            if (StringUtils.startsWith(uniqueName, ContentGeneratorCst.PAGE_TPL_QAINTERNAL)) {
+                if (fileName != null) {
+                    personalizableContentCount++;
+                }
+            }
+            int pcElementPersonalizationFactor;
+            if (personalizableContentCount == 0) {
+                pcElementPersonalizationFactor = 0;
+            } else {
+                pcElementPersonalizationFactor = Math.round(100 / (float) personalizableContentCount);
+                if (pcElementPersonalizationFactor == 0) {
+                    pcElementPersonalizationFactor = 1;
+                }
+            }
+            MutableBoolean personalized = new MutableBoolean(false);
+
             Element listNode = new Element("listA");
             listNode.setAttribute("primaryType", "jnt:contentList", ContentGeneratorCst.NS_JCR);
 
@@ -155,7 +182,7 @@ public class PageBO {
 
                 for (int i = 1; i <= ContentGeneratorCst.NB_NEWS_IN_QALIST; i++) {
                     Element newsNode = new NewsBO(uniqueName + "-" + "news" + i , languages).getElement();
-                    listNode.addContent(getOptionallyPersonalizedNode(newsNode));
+                    listNode.addContent(getOptionallyPersonalizedNode(newsNode, pcElementPersonalizationFactor, personalized));
                 }
             } else if (pageTemplate.equals(ContentGeneratorCst.PAGE_TPL_DEFAULT)) {
 
@@ -173,7 +200,7 @@ public class PageBO {
 
                         bigTextNode.addContent(translationNode);
                     }
-                    listNode.addContent(getOptionallyPersonalizedNode(bigTextNode));
+                    listNode.addContent(getOptionallyPersonalizedNode(bigTextNode, pcElementPersonalizationFactor, personalized));
                 }
             }
 
@@ -185,7 +212,7 @@ public class PageBO {
                     Element externalFileReference = new Element("external-file-reference-" + i);
                     externalFileReference.setAttribute("node", "/mounts/" + ContentGeneratorCst.MOUNT_POINT_NAME + "/Sites/" + cmisSite + externalFilePath, ContentGeneratorCst.NS_J);
                     externalFileReference.setAttribute("primaryType", "jnt:fileReference", ContentGeneratorCst.NS_JCR);
-                    listNode.addContent(getOptionallyPersonalizedNode(externalFileReference));
+                    listNode.addContent(getOptionallyPersonalizedNode(externalFileReference, pcElementPersonalizationFactor, personalized));
                     i++;
                 }
             }
@@ -217,7 +244,7 @@ public class PageBO {
 
                     publicationNode.addContent(publicationTranslationNode);
 
-                    listNode.addContent(getOptionallyPersonalizedNode(publicationNode));
+                    listNode.addContent(getOptionallyPersonalizedNode(publicationNode, pcElementPersonalizationFactor, personalized));
                 }
             }
 
@@ -271,13 +298,23 @@ public class PageBO {
         return getElement().getText();
     }
 
-    private Element getOptionallyPersonalizedNode(Element element) {
+    private Element getOptionallyPersonalizedNode(Element element, int pcElementPersonalizationFactor, MutableBoolean personalized) {
 
         Random random = ThreadLocalRandom.current();
 
-        if (random.nextInt(100) + 1 > pcPersonalizedContent) {
+        if (!personalize) {
+            // No need to personalize.
             return element;
         }
+        if (personalized.booleanValue()) {
+            // Already personalized.
+            return element;
+        }
+        if (!RandomUtils.isRandomOccurrence(pcElementPersonalizationFactor)) {
+            return element;
+        }
+
+        personalized.setValue(true);
 
         Element personalizationElement = new Element("experience-" + element.getName());
         personalizationElement.setAttribute("primaryType", "wemnt:personalizedContent", ContentGeneratorCst.NS_JCR);
@@ -298,9 +335,9 @@ public class PageBO {
             if (mixinTypesAttribute == null) {
                 mixinTypes = StringUtils.EMPTY;
             } else {
-                mixinTypes = mixinTypesAttribute.getValue();
+                mixinTypes = mixinTypesAttribute.getValue() + " ";
             }
-            variantElement.setAttribute("mixinTypes", mixinTypes + " wemmix:editItem", ContentGeneratorCst.NS_JCR);
+            variantElement.setAttribute("mixinTypes", mixinTypes + "wemmix:editItem", ContentGeneratorCst.NS_JCR);
 
             String jsonFilter = "{\"parameterValues\":{\"subConditions\":[{\"type\":\"profileSegmentCondition\",\"parameterValues\":{\"segments\":[\"" + segments[i] + "\"]}}],\"operator\":\"and\"},\"type\":\"booleanCondition\"}";
             variantElement.setAttribute("jsonFilter", jsonFilter, ContentGeneratorCst.NS_WEM);

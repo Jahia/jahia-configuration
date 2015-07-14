@@ -170,10 +170,10 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
     protected boolean disableExternalFileReference;
 
     /**
-     * How much content should be personalized, per cent.
-     * @parameter expression="${jahia.cg.pcPersonalizedContent}" default-value="0"
+     * How many pages should contain a single piece of personalized content, per cent.
+     * @parameter expression="${jahia.cg.pcPersonalizedPages}" default-value="0"
      */
-    protected int pcPersonalizedContent;
+    protected int pcPersonalizedPages;
 
     /**
      * Minimum number of personalization variants, in case we personalize a piece of content.
@@ -238,7 +238,7 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
             export.setNbPagesWithTplQuery(0);
         }
 
-        if (pcPersonalizedContent > 100) {
+        if (pcPersonalizedPages > 100) {
             throw new RuntimeException("Wrong perconalized content percentage");
         }
         if (minPersonalizationVariants < 0) {
@@ -247,7 +247,7 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
         if (maxPersonalizationVariants < minPersonalizationVariants) {
             throw new RuntimeException("Wrong max number of personalization variants");
         }
-        export.setPcPersonalizedContent(pcPersonalizedContent);
+        export.setPcPersonalizedPages(pcPersonalizedPages);
         export.setMinPersonalizationVariants(minPersonalizationVariants);
         export.setMaxPersonalizationVariants(maxPersonalizationVariants);
 
