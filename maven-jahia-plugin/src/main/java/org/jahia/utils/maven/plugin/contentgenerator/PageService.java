@@ -84,12 +84,10 @@ public class PageService {
         }
 
         LOGGER.info("Pages path are being written to the map file");
-        List<String> pagesPath = getPagesPath(listeTopPages, "/sites/" + export.getSiteKey() + "/" + rootPageName);
-        outService.appendPathToFile(export.getMapFile(), pagesPath);
-
         PageBO rootPage = createNewPage(export, rootPageName, articlesMap, export.getNbSubLevels() + 1, listeTopPages);
+        List<String> pagesPath = getPagesPath(listeTopPages, "/sites/" + export.getSiteKey() + "/" + rootPage.getName());
+        outService.appendPathToFile(export.getMapFile(), pagesPath);
         outService.appendStringToFile(export.getOutputFile(), rootPage.getJcrXml());
-
         Document pagesDocument = new Document(rootPage.getElement());
         os.writeJdomDocumentToFile(pagesDocument, export.getOutputFile());
     }
@@ -233,7 +231,7 @@ public class PageService {
         String description = oftenKeywords + " " + seldomKeywords;
 
         PageBO page = new PageBO(pageName, articlesMap, subPages, export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory, idTag, visibilityOnPage,
-                export.getVisibilityStartDate(), export.getVisibilityEndDate(), description, template, export.getCmisSiteName(), externalFilePaths, RandomUtils.isRandomOccurrence(export.getPcPersonalizedPages()),
+                export.getVisibilityStartDate(), export.getVisibilityEndDate(), description, template, export.getCmisSiteName(), externalFilePaths,  RandomUtils.isRandomOccurrence(export.getPcPersonalizedPages()),
                 export.getMinPersonalizationVariants(), export.getMaxPersonalizationVariants());
 
         return page;
@@ -260,7 +258,7 @@ public class PageService {
         }
         for (Iterator<PageBO> iterator = pages.iterator(); iterator.hasNext();) {
             PageBO page = iterator.next();
-            String newPath = path + ContentGeneratorCst.PAGE_PATH_SEPARATOR + page.getUniqueName();
+            String newPath = path + ContentGeneratorCst.PAGE_PATH_SEPARATOR + page.getName();
             siteMap.add(newPath);
             if (page.getSubPages() != null) {
                 siteMap.addAll(getPagesPath(page.getSubPages(), newPath));

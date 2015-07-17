@@ -39,6 +39,7 @@ public final class ContentGeneratorCst {
     public static final String SITE_PROPERTIES_FILENAME = "site.properties";
     public static final String EXPORT_PROPERTIES_FILENAME = "export.properties";
     public static final Integer NB_NEWS_IN_QALIST = 100;
+    public static final Integer NB_NEWS_PER_PAGE_IN_QALIST = 10;
 
     /**
      * Namespaces
