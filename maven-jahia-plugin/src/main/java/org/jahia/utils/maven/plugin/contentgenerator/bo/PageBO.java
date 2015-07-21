@@ -233,6 +233,7 @@ public class PageBO {
         if (personalized) {
             if (personalizableElements.isEmpty()) {
                 personalized = false;
+                pageElement.setName(getName()); // Re-set the root element name: it must change according to page personalization change.
             } else {
                 Element element = personalizableElements.get(ThreadLocalRandom.current().nextInt(personalizableElements.size()));
                 int elementIndex = listNode.indexOf(element);
