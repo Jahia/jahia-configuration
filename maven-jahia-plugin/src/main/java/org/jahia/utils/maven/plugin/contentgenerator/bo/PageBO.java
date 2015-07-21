@@ -227,7 +227,6 @@ public class PageBO {
             publicationNode.addContent(publicationTranslationNode);
 
             listNode.addContent(publicationNode);
-            personalizableElements.add(publicationNode);
         }
 
         if (personalized) {
