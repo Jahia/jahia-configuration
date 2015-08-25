@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.jahia.configuration</groupId>
 		<artifactId>jahia-configuration-root</artifactId>
-		<version>4.7</version>
+		<version>5.0-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.jahia.server</groupId>
