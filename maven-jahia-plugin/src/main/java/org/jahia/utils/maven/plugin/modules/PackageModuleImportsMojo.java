@@ -139,8 +139,8 @@ public class PackageModuleImportsMojo extends AbstractMojo {
                         + absoluteDestFile + " (excludes=" + excludes
                         + ", inludes=" + includes + ")");
         try {
-            archiver.addDirectory(src, excludes != null ? excludes.split(",")
-                    : null, includes != null ? includes.split(",") : null);
+            archiver.addDirectory(src, includes != null ? includes.split(",") : null,
+                    excludes != null ? excludes.split(",") : null);
 
             archiver.createArchive();
         } catch (Exception e) {
