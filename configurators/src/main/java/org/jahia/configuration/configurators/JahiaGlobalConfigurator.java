@@ -15,7 +15,6 @@ import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.PropertyUtils;
 import org.codehaus.plexus.util.StringUtils;
-import org.jahia.commons.Version;
 import org.jahia.commons.encryption.EncryptionUtils;
 import org.jahia.configuration.deployers.ServerDeploymentFactory;
 import org.jahia.configuration.deployers.ServerDeploymentInterface;
@@ -37,8 +36,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -138,10 +135,6 @@ public class JahiaGlobalConfigurator {
     private ServerDeploymentInterface deployer;
     private File dataDir;
     
-    private Version dfVersion;
-    
-    private static ThreadLocal<Boolean> useNewPasswordDigester = new ThreadLocal<Boolean>(); 
-
     public JahiaGlobalConfigurator(AbstractLogger logger, JahiaConfigInterface jahiaConfig) {
         this.jahiaConfig = jahiaConfig;
         this.logger = logger;
@@ -168,7 +161,6 @@ public class JahiaGlobalConfigurator {
         try {
             setProperties();
         } finally {
-            useNewPasswordDigester.remove();
             VFSConfigFile.closeAllOpened();
         }
     }
@@ -205,7 +197,6 @@ public class JahiaGlobalConfigurator {
         String rootUserTemplate = sourceWebAppPath + "/WEB-INF/etc/repository/template-root-user.xml";
         FileObject rootUserTemplateFile = fsManager.resolveFile(rootUserTemplate);
         if (rootUserTemplateFile.exists()) {
-            initPasswordDigester(rootUserTemplateFile);
             if (Boolean.valueOf(jahiaConfigInterface.getProcessingServer())) {
                 new RootUserConfigurator(dbProps, jahiaConfigInterface, encryptPassword(jahiaConfigInterface.getJahiaRootPassword())).updateConfiguration(new VFSConfigFile(fsManager, rootUserTemplate), webappPath + "/WEB-INF/etc/repository/root-user.xml");
             }
@@ -272,15 +263,6 @@ public class JahiaGlobalConfigurator {
             new ApplicationXmlConfigurator(jahiaConfigInterface, jeeApplicationModuleList).updateConfiguration(
                     new VFSConfigFile(fsManager, jeeApplicationLocation + "/META-INF/application.xml"),
                     jeeApplicationLocation + "/META-INF/application.xml");
-        }
-    }
-
-    private void initPasswordDigester(FileObject rootUserTemplateFile) {
-        Version version = getDFVersion();
-        logger.info("Detected Digital Factory version is: " + version);
-        if (version != null && version.compareTo(new Version("7.1.0.1")) >= 0) {
-            logger.info("Using new password digester");
-            useNewPasswordDigester.set(Boolean.TRUE);
         }
     }
 
@@ -811,8 +793,7 @@ public class JahiaGlobalConfigurator {
 
 
     public static String encryptPassword(String password) {
-        return useNewPasswordDigester.get() != null && useNewPasswordDigester.get().booleanValue()
-                ? EncryptionUtils.pbkdf2Digest(password, true) : EncryptionUtils.sha1DigestLegacy(password);
+        return EncryptionUtils.pbkdf2Digest(password, true);
     }
 
     protected String getWebappDeploymentDirName() {
@@ -886,34 +867,4 @@ public class JahiaGlobalConfigurator {
         return dataDir;
     }
     
-    private Version getDFVersion() {
-        if (dfVersion == null) {
-            File libDir = new File(webappDir, "WEB-INF/lib");
-            if (libDir.isDirectory()) {
-                File[] jahiaImpls = libDir.listFiles(new FilenameFilter() {
-                    public boolean accept(File dir, String name) {
-                        return name.startsWith("jahia-impl-") && name.endsWith(".jar");
-                    }
-                });
-                if (jahiaImpls != null && jahiaImpls.length > 0) {
-                    JarFile jar = null;
-                    try {
-                        jar = new JarFile(jahiaImpls[0]);
-                        Manifest manifest = jar.getManifest();
-                        if (manifest != null) {
-                            String versionString = manifest.getMainAttributes().getValue("Implementation-Version");
-                            dfVersion = new Version(versionString);
-                        }
-                    } catch (IOException e) {
-                        logger.warn("Unable to defect DF version from the JAR " + jahiaImpls[0] + ". Cause: "
-                                + e.getMessage(), e);
-                    } finally {
-                        IOUtils.closeQuietly(jar);
-                    }
-                }
-            }
-        }
-
-        return dfVersion;
-    }
 }
