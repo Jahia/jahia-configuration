@@ -181,7 +181,7 @@ public class DbConnectionValidator extends MySQLDriverValidator {
             SQLException, InstantiationException, IllegalAccessException, MalformedURLException {
         boolean valid = true;
         
-        if (dbmsType.equals("mysql")) {
+        if (dbmsType.equals("mysql") && getDriverPath(adata) != null) {
             // need to load the driver JAR
             loadMySQLDriver(driver, adata);
         } else {
