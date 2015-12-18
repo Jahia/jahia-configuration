@@ -11,8 +11,8 @@ import java.io.IOException;
 public class Main {
     public static void main(String[] args) {
         AbstractLogger logger = new ConsoleLogger(ConsoleLogger.LEVEL_INFO);
-        logger.info("\nDigital Factory 7.0 Configuration Tool");
-        logger.info("Copyright 2002-2014 - Jahia Solutions Group SA http://www.jahia.com - All Rights Reserved\n");
+        logger.info("\nDigital Experience Manager 7.1 Configuration Tool");
+        logger.info("Copyright 2002-2016 - Jahia Solutions Group SA http://www.jahia.com - All Rights Reserved\n");
         if (args.length > 0) {
             if ((args[0].equals("--deploy-module") || args[0].equals("-dm")) && args.length > 2) {
                 try {
@@ -21,14 +21,14 @@ public class Main {
                     File output = new File(target, "modules");
     
                     if (!output.exists()) {
-                        logger.error("Target does not seem to be a valid Digital Factory data folder.");
+                        logger.error("Target does not seem to be a valid Digital Experience Manager data folder.");
                         System.exit(-1);
                     }
     
                     ModuleDeployer deployer = new ModuleDeployer(output, logger);
     
                     try {
-                        logger.info("Deploying modules to Digital Factory application at " + target + "\n");
+                        logger.info("Deploying modules to Digital Experience Manager application at " + target + "\n");
                         for (int i = 1; i < args.length - 1; i++) {
                             String arg = args[i];
                             File f = new File(arg);
@@ -71,9 +71,9 @@ public class Main {
         logger.info("\t\t\t"+"Expects a path to a properties file with configuration");
         logger.info("\t\t\t"+"settings as a parameter.");
 
-        logger.info(" -dm,--deploy-module"+"\t"+"Deploys provided module to a specified Digital Factory server.");
+        logger.info(" -dm,--deploy-module"+"\t"+"Deploys provided module to a specified Digital Experience Manager server.");
         logger.info("\t\t\t"+"Expects one or more paths to module JAR (OSGi bundle) files followed");
-        logger.info("\t\t\t"+"by a path to the Digital Factory data folder.");
+        logger.info("\t\t\t"+"by a path to the Digital Experience Manager data folder.");
 
         logger.info("\nExamples:");
         logger.info(" java -jar configurators-x.yy-standalone.jar --configure /opt/jahia/install.properties");

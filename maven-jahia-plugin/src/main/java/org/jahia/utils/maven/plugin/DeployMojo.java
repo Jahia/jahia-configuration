@@ -505,7 +505,7 @@ public class DeployMojo extends AbstractManagementMojo {
 
 	private void deployPackage() {
 		getLog().info(
-				"Deploying Digital Factory data package "
+				"Deploying Digital Experience Manager data package "
 						+ project.getArtifactId() + "...");
 		try {
 			File file = null;
@@ -533,7 +533,7 @@ public class DeployMojo extends AbstractManagementMojo {
 
 	private void deployPackageFromDepenendency(Artifact dependency) {
 		getLog().info(
-				"Deploying Digital Factory data package "
+				"Deploying Digital Experience Manager data package "
 						+ dependency.getArtifactId() + "...");
 		try {
 			File file = resolveArtifactFile(dependency);
@@ -562,7 +562,7 @@ public class DeployMojo extends AbstractManagementMojo {
 
 	private void deployPackageFile(File packageFile) {
 		getLog().info(
-				"Deploying Digital Factory data package file "
+				"Deploying Digital Experience Manager data package file "
 						+ packageFile + "...");
 		try {
 			getLog().info("Extracting content to data directory " + getDataDir() + "...");
