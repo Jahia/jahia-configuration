@@ -419,7 +419,7 @@ public class Maven31AetherHelper implements AetherHelper {
             dependencyNode = repoSystem.collectDependencies(moreDependenciesSession, collectRequest).getRoot();
             DependencyRequest dependencyRequest = new DependencyRequest(dependencyNode, null);
 
-            DependencyResult dependencyResult = repoSystem.resolveDependencies(moreDependenciesSession, dependencyRequest);
+            repoSystem.resolveDependencies(moreDependenciesSession, dependencyRequest);
 
         } catch (DependencyCollectionException e) {
             log.error("Error collecting dependencies for " + artifactCoords + ": " + e.getMessage());
@@ -471,9 +471,15 @@ public class Maven31AetherHelper implements AetherHelper {
     public void processArtifactAndDependencies(Artifact artifact, boolean optional, ArtifactProcessor artifactProcessor, ArtifactHandler artifactHandler, ParsingContext rootParsingContext) {
         DependencyNode dependencyNode = getDependencyNode(getCoords(artifact));
         if (dependencyNode != null) {
-            List<String> trail = new LinkedList<String>(artifact.getDependencyTrail());
-            dependencyNode.setScope(artifact.getScope()); // copy the scope from the artifact for the root node.
-            dependencyNode.accept(new PackageCollectorDependencyVisitor(artifactProcessor, artifactHandler, trail, rootParsingContext));
+            List<String> dependencyTrail = artifact.getDependencyTrail();
+            if (dependencyTrail != null) {
+                List<String> trail = new LinkedList<String>(dependencyTrail);
+                dependencyNode.setScope(artifact.getScope()); // copy the scope from the artifact for the root node.
+                dependencyNode.accept(new PackageCollectorDependencyVisitor(artifactProcessor, artifactHandler, trail, rootParsingContext));
+            } else {
+                log.error("Error retrieving dependency trail for project dependency " + artifact
+                        + "\nPlease, ensure the consistency of that dependency.");
+            }
         }
     }
 
