@@ -6,6 +6,6 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
                         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-    <!-- Place your own bean definitions or customize/override the Digital Factory beans here -->
+    <!-- Place your own bean definitions or customize/override the Digital Experience Manager beans here -->
 
 </beans>
