@@ -301,23 +301,15 @@ public class JahiaCndReader {
         }
         while (!currentTokenEquals(Lexer.EOF)) {
             ExtendedNodeType ntd = new ExtendedNodeType(registry, systemId);
-            try {
-                doNodeTypeName(ntd);
-                doSuperTypes(ntd);
-                doOptions(ntd);
-                doItemDefs(ntd);
+            doNodeTypeName(ntd);
+            doSuperTypes(ntd);
+            doOptions(ntd);
+            doItemDefs(ntd);
 
-                if (doRegister) {
-                    registry.addNodeType(ntd.getNameObject(),ntd);
-                }
-                nodeTypesList.add(ntd);
-            } catch (ParseException e) {
-                logger.error(e.getMessage(), e);
-                nextToken();
-                while (!currentTokenEquals(Lexer.BEGIN_NODE_TYPE_NAME) && !currentTokenEquals(Lexer.EOF)) {
-                    nextToken();
-                }
+            if (doRegister) {
+                registry.addNodeType(ntd.getNameObject(),ntd);
             }
+            nodeTypesList.add(ntd);
         }
         /*
         for (ExtendedNodeType type : nodeTypesList) {

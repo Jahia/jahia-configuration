@@ -80,11 +80,11 @@ public class CndFileParser extends AbstractFileParser {
             parsingContext.addAllContentTypeDefinitions(contentTypeDefinitions);
             parsingContext.addAllContentTypeReferences(contentTypeReferences);
         } catch (ParseException e) {
-            getLogger().error("Error while parsing CND file " + fileName, e);
+            throw new IOException(e);
         } catch (ValueFormatException e) {
-            getLogger().error("Error while parsing CND file " + fileName, e);
+            throw new IOException(e);
         } catch (RepositoryException e) {
-            getLogger().error("Error while parsing CND file " + fileName, e);
+            throw new IOException(e);
         }
         return true;
     }
