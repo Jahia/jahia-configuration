@@ -48,7 +48,7 @@
 	<parent>
 		<groupId>org.jahia.configuration</groupId>
 		<artifactId>jahia-configuration-root</artifactId>
-		<version>4.9-SNAPSHOT</version>
+		<version>4.9-KARAF-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.jahia.server</groupId>
