@@ -63,7 +63,6 @@ import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
@@ -73,6 +72,8 @@ import org.codehaus.plexus.util.DirectoryScanner;
 import org.eclipse.osgi.util.ManifestElement;
 import org.jahia.utils.maven.plugin.AetherAwareMojo;
 import org.jahia.utils.maven.plugin.SLF4JLoggerToMojoLogBridge;
+import org.jahia.utils.osgi.ManifestValueClause;
+import org.jahia.utils.osgi.ManifestValueParser;
 import org.jahia.utils.osgi.PropertyFileUtils;
 
 /**
@@ -178,6 +179,11 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
     protected String propertyFilePropertyName = "org.osgi.framework.system.packages.extra";
 
     /**
+     * @parameter default-value="org.osgi.framework.system.packages"
+     */
+    protected String propertyFileSystemPackagesPropertyName = "org.osgi.framework.system.packages";
+
+    /**
      * @parameter default-value="org.osgi.framework.bootdelegation"
      */
     protected String propertyFileBootDelegationPropertyName = "org.osgi.framework.bootdelegation";
@@ -254,7 +260,8 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
 
             scanExistingManifest(packageVersionCounts);
 
-            excludeBootDelegation(packageVersionCounts);
+            excludeBootDelegationPackages(packageVersionCounts);
+            excludeSystemPackages(packageVersionCounts);
             resolveSplitPackages(packageVersionCounts, packageVersions);
 
             if (propertiesOutputFile != null && !propertiesOutputFile.exists()) {
@@ -662,7 +669,7 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         jarInputStream.close();
     }
 
-    private void excludeBootDelegation(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException, MojoExecutionException {
+    private void excludePackages(Map<String, Map<String, VersionLocation>> packageVersionCounts, String propertyFileExclusionPropertyName) throws IOException, MojoExecutionException {
         if (!propertiesInputFile.exists()) {
             return;
         }
@@ -671,18 +678,21 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
             Properties properties = new Properties();
             fileInputStream = new FileInputStream(propertiesInputFile);
             properties.load(fileInputStream);
-            String bootDelegationValue = (String) properties.get(propertyFileBootDelegationPropertyName);
-            if (bootDelegationValue == null) {
+            String packageExclusionList = (String) properties.get(propertyFileExclusionPropertyName);
+            if (packageExclusionList == null) {
                 return;
             }
-            String[] bootDelegation = bootDelegationValue.split(",");
+            ManifestValueParser manifestValueParser = new ManifestValueParser(propertyFileExclusionPropertyName, packageExclusionList, true);
+            List<ManifestValueClause> exclusionValueClauses = manifestValueParser.getManifestValueClauses();
             List<String> excludedPatterns = new ArrayList<String>();
             List<String> excludedPackages = new ArrayList<String>();
-            for (String bootDelegatedPackage : bootDelegation) {
-                if (bootDelegatedPackage.endsWith(".*")) {
-                    excludedPatterns.add(bootDelegatedPackage.substring(0,bootDelegatedPackage.length()-2));
-                } else {
-                    excludedPackages.add(bootDelegatedPackage);
+            for (ManifestValueClause exclusionValueClause : exclusionValueClauses) {
+                for (String exclusionPath : exclusionValueClause.getPaths()) {
+                    if (exclusionPath.endsWith(".*")) {
+                        excludedPatterns.add(exclusionPath.substring(0, exclusionPath.length() - 2));
+                    } else {
+                        excludedPackages.add(exclusionPath);
+                    }
                 }
             }
             for (String pack : packageVersionCounts.keySet()) {
@@ -696,6 +706,14 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         } finally {
             IOUtils.closeQuietly(fileInputStream);
         }
+    }
+
+    private void excludeBootDelegationPackages(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException, MojoExecutionException {
+        excludePackages(packageVersionCounts, propertyFileBootDelegationPropertyName);
+    }
+
+    private void excludeSystemPackages(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException, MojoExecutionException {
+        excludePackages(packageVersionCounts, propertyFileSystemPackagesPropertyName);
     }
 
     private void updateVersionLocationCounts(Map<String, Map<String, VersionLocation>> packageVersionCounts,

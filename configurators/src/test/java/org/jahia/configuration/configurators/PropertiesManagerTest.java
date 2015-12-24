@@ -43,6 +43,9 @@
  */
 package org.jahia.configuration.configurators;
 
+import difflib.Delta;
+import difflib.DiffUtils;
+import difflib.Patch;
 import junit.framework.TestCase;
 
 import java.io.*;
@@ -88,53 +91,76 @@ public class PropertiesManagerTest extends TestCase {
         PropertiesManager propertiesManager = new PropertiesManager(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry));
 
         propertiesManager.setProperty("jahiaToolManagerUsername", "toolmgr");
-        propertiesManager.setProperty("testPropertyName", "testPropertyValue");
+        propertiesManager.setProperty("testPropertyName\u2126", "testPropertyValue\u2126");
+        propertiesManager.setProperty("backslashTest", "c:\\Program Files (x86)\\SWFTools\\pdf2swf.exe");
+
+        // test some loaded values for validity
+        assertEquals("Property with colon separator is invalid", "value1value2value3", propertiesManager.getProperty("colonSeparatorKey"));
+        assertEquals("Whitespace separated propertiy is invalid", "value", propertiesManager.getProperty("whiteSpaceKey"));
+        assertEquals("No value property is invalid", "", propertiesManager.getProperty("noValueKey"));
+        assertEquals("Special characters in key property is invalid", "value", propertiesManager.getProperty("key_with_special_characters_:=_in_it."));
+        assertEquals("Long text property is invalid", "This is an example \nof a long text with carriage returns \nembedded.", propertiesManager.getProperty("longTextProperty"));
+        assertEquals("Comma separated property is invalid", "test1,test2", propertiesManager.getProperty("commaSeparatedProperty"));
+
+        // test storage
         propertiesManager.storeProperties(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile.getPath());
+
+        Patch patch = getFileDiffs(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile);
+        assertEquals("Only two lines should be modified", 2, patch.getDeltas().size());
 
         Properties testProperties = new Properties();
         testProperties.load(new FileInputStream(jahiaTargetPropertiesFile));
         assertEquals("Tool manager value is not properly set", "toolmgr", testProperties.getProperty("jahiaToolManagerUsername"));
-        assertEquals("Test property does not have proper value", "testPropertyValue", testProperties.getProperty("testPropertyName"));
+        assertEquals("Test property does not have proper value", "testPropertyValue\u2126", testProperties.getProperty("testPropertyName\u2126"));
+        assertEquals("Backslash property does not have proper value", "c:\\Program Files (x86)\\SWFTools\\pdf2swf.exe", testProperties.getProperty("backslashTest"));
+        assertEquals("Pattern property does not have a proper value", "[0-9a-z_A-Z\\-\\{\\}]+", testProperties.getProperty("userManagementGroupNamePattern"));
+        assertEquals("Pattern property does not have a proper value", "[0-9a-z_A-Z\\-\\{\\}\\.@]+", testProperties.getProperty("userManagementUserNamePattern"));
     }
 
     public void testCommentingCase() throws IOException {
 
-//        PropertiesManager propertiesManager = new PropertiesManager(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry));
-//        propertiesManager.setUnmodifiedCommentingActivated(true);
-//
-////        propertiesManager.setProperty("server", "testServerValue");
-//        propertiesManager.storeProperties(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile.getPath());
-//
-//        Properties testProperties = new Properties();
-//        testProperties.load(new FileInputStream(jahiaTargetPropertiesFile));
-////        assertEquals("Server property doesn't have proper value", "testServerValue", testProperties.getProperty("server"));
-//
-//        BufferedReader bufferedReader = new BufferedReader(new FileReader(jahiaTargetPropertiesFile));
-//
-//        String currentLine;
-//        boolean foundCommentedServerVersion = false;
-//        while ((currentLine = bufferedReader.readLine()) != null) {
-//            if (!currentLine.startsWith("#")) {
-//                continue;
-//            }
-//            int equalPosition = currentLine.indexOf("=");
-//            if (equalPosition != -1) {
-//                String currentPropertyName = currentLine.substring(1, equalPosition).trim();
-//                if ("serverVersion".equals(currentPropertyName)) {
-//                    foundCommentedServerVersion = true;
-//                }
-//            }
-//        }
-//        bufferedReader.close();
-//        assertTrue("Server version property (serverVersion) should have been commented out!", foundCommentedServerVersion);
+        PropertiesManager propertiesManager = new PropertiesManager(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry));
+        propertiesManager.setUnmodifiedCommentingActivated(true);
 
+        propertiesManager.setProperty("server", "testServerValue");
+        propertiesManager.storeProperties(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile.getPath());
+
+        Patch patch = getFileDiffs(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile);
+        assertEquals("83 lines should be modified", 83, patch.getDeltas().size());
+
+        Properties testProperties = new Properties();
+        testProperties.load(new FileInputStream(jahiaTargetPropertiesFile));
+        assertEquals("Server property doesn't have proper value", "testServerValue", testProperties.getProperty("server"));
+        assertNull("Operating mode property should be commented out", testProperties.getProperty("operatingMode"));
+
+        BufferedReader bufferedReader = new BufferedReader(new FileReader(jahiaTargetPropertiesFile));
+
+        String currentLine;
+        boolean foundCommentedServerVersion = false;
+        while ((currentLine = bufferedReader.readLine()) != null) {
+            if (!currentLine.startsWith("#")) {
+                continue;
+            }
+            int equalPosition = currentLine.indexOf("=");
+            if (equalPosition != -1) {
+                String currentPropertyName = currentLine.substring(1, equalPosition).trim();
+                if ("operatingMode".equals(currentPropertyName)) {
+                    foundCommentedServerVersion = true;
+                }
+            }
+        }
+        bufferedReader.close();
+        assertTrue("Server version property (serverVersion) should have been commented out!", foundCommentedServerVersion);
     }
 
     public void testAdditionalProperties() throws IOException {
         PropertiesManager propertiesManager = new PropertiesManager(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry));
-        propertiesManager.setProperty("testPropertyName", "testPropertyValue");
         propertiesManager.setAdditionalPropertiesMessage("###ADDITIONALPROPERTIES###");
+        propertiesManager.setProperty("testPropertyName", "testPropertyValue");
         propertiesManager.storeProperties(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile.getPath());
+
+        Patch patch = getFileDiffs(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile);
+        assertEquals("Only one line should be modified", 1, patch.getDeltas().size());
 
         List<String> fileContents = getFileContents(jahiaTargetPropertiesFile);
         int additionalPropertiesIndex = indexOfInStringList(fileContents, "# ###ADDITIONALPROPERTIES###" );
@@ -144,9 +170,50 @@ public class PropertiesManagerTest extends TestCase {
         assertTrue("Property should be after additional properties message in file", propertyIndex > additionalPropertiesIndex);
     }
 
+    public void testRemoveProperty() throws IOException {
+        PropertiesManager propertiesManager = new PropertiesManager(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry));
+        propertiesManager.removeProperty("operatingMode");
+        propertiesManager.storeProperties(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile.getPath());
+
+        Patch patch = getFileDiffs(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile);
+        assertEquals("Only one line should be modified", 1, patch.getDeltas().size());
+
+        Properties testProperties = new Properties();
+        testProperties.load(new FileInputStream(jahiaTargetPropertiesFile));
+        assertNull("Property operatingMode should have been removed from file !", testProperties.getProperty("operatingMode"));
+    }
+
+    public void testMultiValuedProperties() throws IOException {
+        PropertiesManager propertiesManager = new PropertiesManager(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry));
+        propertiesManager.setProperty("multiValuedProperty", new String[] { "value1", "value2"} );
+        Object multilinePropertyValue = propertiesManager.getRawProperty("multilineProperty");
+        assertTrue("Multi line property is not of correct type", multilinePropertyValue instanceof String);
+        assertEquals("Multi line property has incorrect number of values", "value1, value2", multilinePropertyValue);
+        propertiesManager.storeProperties(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile.getPath());
+
+        Patch patch = getFileDiffs(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile);
+        assertEquals("Only one line should be modified", 1, patch.getDeltas().size());
+
+        Properties testProperties = new Properties();
+        testProperties.load(new FileInputStream(jahiaTargetPropertiesFile));
+        assertEquals("Multi-valued property not saved properly", "value1value2", testProperties.getProperty("multiValuedProperty"));
+        propertiesManager = new PropertiesManager(new FileInputStream(jahiaTargetPropertiesFile));
+    }
+
     private List<String> getFileContents(File inputFile) throws IOException {
         List<String> fileContents = new ArrayList<String>();
         BufferedReader bufferedReader = new BufferedReader(new FileReader(jahiaTargetPropertiesFile));
+        String currentLine;
+        while ((currentLine = bufferedReader.readLine()) != null) {
+            fileContents.add(currentLine);
+        }
+        bufferedReader.close();
+        return fileContents;
+    }
+
+    private List<String> getFileContents(InputStream inputStream) throws IOException {
+        List<String> fileContents = new ArrayList<String>();
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
         String currentLine;
         while ((currentLine = bufferedReader.readLine()) != null) {
             fileContents.add(currentLine);
@@ -184,5 +251,20 @@ public class PropertiesManagerTest extends TestCase {
         }
         return -1;
     }
+
+    public Patch getFileDiffs(InputStream originalFileInputStream, File revisedFile) throws IOException {
+        List<String> original = getFileContents(originalFileInputStream);
+        List<String> revised  = getFileContents(revisedFile);
+
+        // Compute diff. Get the Patch object. Patch is the container for computed deltas.
+        Patch patch = DiffUtils.diff(original, revised);
+
+        System.out.println("File comparison between original and modified file:");
+        for (Delta delta: patch.getDeltas()) {
+            System.out.println(delta);
+        }
+        return patch;
+    }
+
 
 }
