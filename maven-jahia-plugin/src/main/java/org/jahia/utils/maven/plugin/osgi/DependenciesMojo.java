@@ -437,25 +437,29 @@ public class DependenciesMojo extends BundlePlugin {
 
 
         if (jahiaDependsCapabilitiesActivated) {
-            if (originalInstructions.containsKey("Jahia-Depends") && !ArrayUtils.contains(StringUtils.split(originalInstructions.get("_removeheaders"),", \n"), "Jahia-Depends")) {
-                getLog().info("Building OSGi capabilities for Jahia module dependencies...");
-                StringBuilder jahiaDependsRequireCapabilities = new StringBuilder();
-                jahiaDependsRequireCapabilities.append(jahiaDependsCapabilitiesPrefix);
-                String jahiaDependsValue = originalInstructions.get("Jahia-Depends");
-                if (StringUtils.isNotEmpty(jahiaDependsValue)) {
-                    String[] jahiaDependsArray = jahiaDependsValue.split(",");
-                    int counter = 0;
-                    for (String jahiaDependsEntry : jahiaDependsArray) {
-                        jahiaDependsRequireCapabilities.append("com.jahia.modules.dependencies; filter:=\"(moduleIdentifier=").append(jahiaDependsEntry.trim()).append(")\"");
-                        if (counter < jahiaDependsArray.length - 1) {
-                            jahiaDependsRequireCapabilities.append(",");
+            try {
+                if (originalInstructions.containsKey("Jahia-Depends") && !ArrayUtils.contains(StringUtils.split(originalInstructions.get("_removeheaders"),", \n"), "Jahia-Depends")) {
+                    getLog().info("Building OSGi capabilities for Jahia module dependencies...");
+                    StringBuilder jahiaDependsRequireCapabilities = new StringBuilder();
+                    jahiaDependsRequireCapabilities.append(jahiaDependsCapabilitiesPrefix);
+                    String jahiaDependsValue = originalInstructions.get("Jahia-Depends");
+                    if (StringUtils.isNotEmpty(jahiaDependsValue)) {
+                        String[] jahiaDependsArray = jahiaDependsValue.split(",");
+                        int counter = 0;
+                        for (String jahiaDependsEntry : jahiaDependsArray) {
+                            jahiaDependsRequireCapabilities.append("com.jahia.modules.dependencies; filter:=\"(moduleIdentifier=").append(jahiaDependsEntry.trim()).append(")\"");
+                            if (counter < jahiaDependsArray.length - 1) {
+                                jahiaDependsRequireCapabilities.append(",");
+                            }
+                            counter++;
                         }
-                        counter++;
+                        project.getProperties().put("jahia.plugin.requiredModulesCapabilities", jahiaDependsRequireCapabilities.toString());
                     }
-                    project.getProperties().put("jahia.plugin.requiredModulesCapabilities", jahiaDependsRequireCapabilities.toString());
                 }
+                project.getProperties().put("jahia.plugin.providedModulesCapabilities", jahiaDependsCapabilitiesPrefix + "com.jahia.modules.dependencies; moduleIdentifier=\"" + project.getArtifactId() + "\"");
+            } catch (Exception e) {
+                getLog().error("Error generating capabilities from Jahia-Depends", e);
             }
-            project.getProperties().put("jahia.plugin.providedModulesCapabilities", jahiaDependsCapabilitiesPrefix + "com.jahia.modules.dependencies; moduleIdentifier=\"" + project.getArtifactId() + "\"");
         }
 
         String generatedPackageList = generatedPackageBuffer.toString();
