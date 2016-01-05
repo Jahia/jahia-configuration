@@ -43,26 +43,6 @@
  */
 package org.jahia.utils.maven.plugin.osgi;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.jar.Attributes;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
-import java.util.jar.Manifest;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
@@ -75,6 +55,18 @@ import org.jahia.utils.maven.plugin.SLF4JLoggerToMojoLogBridge;
 import org.jahia.utils.osgi.ManifestValueClause;
 import org.jahia.utils.osgi.ManifestValueParser;
 import org.jahia.utils.osgi.PropertyFileUtils;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.*;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
+import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This maven goal will build the list of system packages that is exposed by the OSGi framework by default.
@@ -260,7 +252,6 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
 
             scanExistingManifest(packageVersionCounts);
 
-            excludeBootDelegationPackages(packageVersionCounts);
             excludeSystemPackages(packageVersionCounts);
             resolveSplitPackages(packageVersionCounts, packageVersions);
 
@@ -282,7 +273,7 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
                             StringBuilder packageExport = new StringBuilder();
                             packageExport.append(packageVersion.getKey());
                             versionString = cleanupVersion(versionString);
-                            packageExport.append(";version\\=\"");
+                            packageExport.append(";version=\"");
                             packageExport.append(versionString);
                             packageExport.append("\"");
                             if (!isPackageExcluded(packageExport.toString()) &&
@@ -320,9 +311,11 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
             if (manualPackageList != null) {
                 for (String manualPackage : manualPackageList) {
                     if (!packageList.contains(manualPackage+",") && !isPackageExcluded(manualPackage)) {
+                        /*
                         if (manualPackage.contains("=")) {
                             manualPackage = manualPackage.replaceAll("=", "\\=");
                         }
+                        */
                         packageList.add(manualPackage +",");
                         generatedPackageBuffer.append(manualPackage);
                         generatedPackageBuffer.append(",");
@@ -706,10 +699,6 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         } finally {
             IOUtils.closeQuietly(fileInputStream);
         }
-    }
-
-    private void excludeBootDelegationPackages(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException, MojoExecutionException {
-        excludePackages(packageVersionCounts, propertyFileBootDelegationPropertyName);
     }
 
     private void excludeSystemPackages(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException, MojoExecutionException {
