@@ -57,6 +57,7 @@ import javax.jcr.version.OnParentVersionAction;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * JahiaCndReader. Parses node type definitions written in the compact
@@ -1072,11 +1073,13 @@ public class JahiaCndReader {
                 if (selectorOptions.size() > 0) {
                     if (selectorOptions.containsKey("nodes")) {
                         String nodeSelector = selectorOptions.get("nodes");
-                        String[] nodeSelectorOptions = nodeSelector.split(";");
-                        if (nodeSelectorOptions.length > 1) {
-                            if (StringUtils.isNotEmpty(nodeSelectorOptions[1])) {
-                                getLog().debug(filename+ "  found choicelist node type " + nodeSelectorOptions[1]);
-                                contentTypeReferences.add(nodeSelectorOptions[1]);
+                        for (String nodeSelectorItem : Pattern.compile("|", Pattern.LITERAL).split(nodeSelector)) {
+                            String[] nodeSelectorOptions = nodeSelectorItem.split(";");
+                            if (nodeSelectorOptions.length > 1) {
+                                if (StringUtils.isNotEmpty(nodeSelectorOptions[1])) {
+                                    getLog().debug(filename+ "  found choicelist node type " + nodeSelectorOptions[1]);
+                                    contentTypeReferences.add(nodeSelectorOptions[1]);
+                                }
                             }
                         }
                     }
