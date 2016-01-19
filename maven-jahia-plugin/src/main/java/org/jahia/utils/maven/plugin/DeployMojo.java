@@ -377,6 +377,12 @@ public class DeployMojo extends AbstractManagementMojo {
                 getLog().error("Error while deploying WAR project", e);
             }
         }
+        File dataPackage = getAetherHelper().resolveArtifactFile(project.getGroupId() + ":" + project.getArtifactId() + ":zip:data-package:" + project.getArtifact().getVersion());
+        if (dataPackage != null) {
+            deployPackageFile(dataPackage);
+        }
+
+
     }
 
     /**
