@@ -269,17 +269,24 @@ public class CheckDependenciesMojo extends DependenciesMojo {
 
         final ParsingContext projectParsingContext = new ParsingContext(MavenAetherHelperUtils.getCoords(project.getArtifact()), 0, 0, project.getArtifactId(), project.getBasedir().getPath(), project.getVersion(), null);
 
-        Map originalInstructions = new LinkedHashMap();
+        List<PackageInfo> bundlePluginExplicitPackages = new ArrayList<PackageInfo>();
+        Map<String,String> originalInstructions = new LinkedHashMap<String,String>();
         try {
             Xpp3Dom felixBundlePluginConfiguration = (Xpp3Dom) project.getPlugin("org.apache.felix:maven-bundle-plugin")
                     .getConfiguration();
-            Xpp3Dom instructionsDom = felixBundlePluginConfiguration.getChild("instructions");
-            for (Xpp3Dom instructionChild : instructionsDom.getChildren()) {
-                originalInstructions.put(instructionChild.getName(), instructionChild.getValue());
+            if (felixBundlePluginConfiguration != null) {
+                Xpp3Dom instructionsDom = felixBundlePluginConfiguration.getChild("instructions");
+                for (Xpp3Dom instructionChild : instructionsDom.getChildren()) {
+                    originalInstructions.put(instructionChild.getName(), instructionChild.getValue());
+                }
+                if (felixBundlePluginConfiguration.getChild("excludeDependencies") != null) {
+                    excludeDependencies = felixBundlePluginConfiguration.getChild("excludeDependencies").getValue();
+                }
+                getBundlePluginExplicitPackageImports(projectParsingContext, bundlePluginExplicitPackages, originalInstructions);
             }
-            excludeDependencies = felixBundlePluginConfiguration.getChild("excludeDependencies").getValue();
         } catch (Exception e) {
             // no overrides
+            getLog().info("No maven-bundle-plugin found, will not use dependency exclude or deal with explicit Import-Package configurations. (" + e.getMessage() +")");
         }
 
         Properties properties = new Properties();
@@ -365,9 +372,20 @@ public class CheckDependenciesMojo extends DependenciesMojo {
                         boolean optionalClause = false;
                         if ("optional".equals(clauseResolution)) {
                             optionalClause = true;
+                        } else if ("mandatory".equals(clauseResolution)) {
+                            // the resolution directive is explicitely specified as mandatory, we won't modify it
+                            optionalClause = false;
                         } else {
-                            importPackageClause.getDirectives().put("resolution", "optional");
-                            modifiedImportPackageClauses = true;
+                            if (containsPackage(existingPackageImports, importPackagePath) ||
+                                    containsPackage(bundlePluginExplicitPackages, importPackagePath)) {
+                                // the package was explicitely configured either through Maven properties or through
+                                // explicit configuration in the bundle plugin, in this case we will not touch the
+                                // package's resolution directive
+                                getLog().info("Explicit package configuration found for " + importPackagePath + ", will not mark as optional.");
+                            } else {
+                                importPackageClause.getDirectives().put("resolution", "optional");
+                                modifiedImportPackageClauses = true;
+                            }
                         }
                         if (visitedPackageImports.contains(importPackagePath)) {
                             getLog().warn("Duplicate import detected on package " + importPackagePath + ", will remove duplicate. To remove this warning remove the duplicate import (possibly coming from a explicit import in the maven-bundle-plugin instructions)");
@@ -488,6 +506,33 @@ public class CheckDependenciesMojo extends DependenciesMojo {
                 throw new MojoExecutionException("Missing package exports for imported packages (see build log for details)");
             }
         }
+    }
+
+    public void getBundlePluginExplicitPackageImports(ParsingContext projectParsingContext, List<PackageInfo> bundlePluginExplicitPackages, Map<String, String> originalInstructions) throws IOException {
+        String importPackageInstruction = originalInstructions.get("Import-Package");
+        // now let's remove all variable substitutions
+        importPackageInstruction = importPackageInstruction.replaceAll(",(\\s)*\\$\\{.*\\}", "");
+        List<ManifestValueClause> existingImportValueClauses = BundleUtils.getHeaderClauses("Import-Package", importPackageInstruction);
+        for (ManifestValueClause existingImportValueClause : existingImportValueClauses) {
+            String clauseVersion = existingImportValueClause.getAttributes().get("version");
+            String clauseResolution = existingImportValueClause.getDirectives().get("resolution");
+            boolean optionalClause = false;
+            if ("optional".equals(clauseResolution)) {
+                optionalClause = true;
+            }
+            for (String existingImportPath : existingImportValueClause.getPaths()) {
+                bundlePluginExplicitPackages.add(new PackageInfo(existingImportPath, clauseVersion, optionalClause, "Maven plugin configuration", projectParsingContext));
+            }
+        }
+    }
+
+    private boolean containsPackage(List<PackageInfo> packages, String packageName) {
+        for (PackageInfo packageInfo : packages) {
+            if (packageInfo.getName().equals(packageName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void updateBundle(Manifest manifest, List<ManifestValueClause> importPackageClauses, File artifactFile, String buildDirectory) {
