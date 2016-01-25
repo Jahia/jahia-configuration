@@ -43,19 +43,12 @@
  */
 package org.jahia.utils.osgi;
 
-import asia.redact.bracket.properties.OutputAdapter;
-import asia.redact.bracket.properties.ValueModel;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+import org.apache.felix.utils.properties.Properties;
 import org.slf4j.Logger;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Arrays;
 
 /**
  * A utility class to handle property file operations.
@@ -68,43 +61,14 @@ public class PropertyFileUtils {
                                    String[] propertyValues,
                                    Logger logger) throws IOException {
         if ((propertiesOutputFile != null) && (propertyValues.length > 0)) {
-            asia.redact.bracket.properties.Properties frameworkProperties = null;
+            Properties frameworkProperties = null;
             if (propertiesInputFile != null && propertiesInputFile.exists()) {
-                FileReader propertiesInputFileReader = null;
-                try {
-                    propertiesInputFileReader = new FileReader(propertiesInputFile);
-                    asia.redact.bracket.properties.Properties.Factory.mode = asia.redact.bracket.properties.Properties.Mode.Line;
-                    asia.redact.bracket.properties.Properties props = asia.redact.bracket.properties.Properties.Factory.getInstance(propertiesInputFileReader);
-                    // we will now reprocess the keys to trim them since there is a bug in the library http://code.google.com/p/bracket-properties/issues/detail?id=1
-                    Map<String,ValueModel> propertyMap = props.getPropertyMap();
-                    Map<String,ValueModel> propertyMapCopy = new LinkedHashMap<String,ValueModel>(props.getPropertyMap());
-                    propertyMap.clear();
-                    for (Map.Entry<String,ValueModel> propertyMapEntry : propertyMapCopy.entrySet()) {
-                        String trimmedPropertyKey = propertyMapEntry.getKey().trim();
-                        if (!trimmedPropertyKey.equals(propertyMapEntry.getKey())) {
-                            logger.debug("Replacing invalid property key [" + propertyMapEntry.getKey() + "] with [" + trimmedPropertyKey + "]");
-                        }
-                        propertyMap.put(trimmedPropertyKey, propertyMapEntry.getValue());
-                    }
-                    frameworkProperties = props;
-                } finally {
-                    IOUtils.closeQuietly(propertiesInputFileReader);
-                }
+                frameworkProperties = new Properties(propertiesInputFile);
             } else {
-                frameworkProperties = asia.redact.bracket.properties.Properties.Factory.getInstance();
+                frameworkProperties = new Properties();
             }
-            frameworkProperties.put(propertyFilePropertyName, propertyValues);
-            OutputAdapter out = new OutputAdapter(frameworkProperties);
-            FileWriter propertyOutputFileWriter = null;
-            try {
-                FileUtils.touch(propertiesOutputFile);
-                propertyOutputFileWriter = new FileWriter(propertiesOutputFile);
-                out.writeTo(propertyOutputFileWriter);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                IOUtils.closeQuietly(propertyOutputFileWriter);
-            }
+            frameworkProperties.put(propertyFilePropertyName, frameworkProperties.getComments(propertyFilePropertyName), Arrays.asList(propertyValues));
+            frameworkProperties.save(propertiesOutputFile);
             logger.info("Generated property file saved in " + propertiesOutputFile.getCanonicalPath());
         }
     }
