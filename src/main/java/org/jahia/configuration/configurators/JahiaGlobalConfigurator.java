@@ -65,11 +65,14 @@ import org.jahia.configuration.logging.AbstractLogger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -306,6 +309,25 @@ public class JahiaGlobalConfigurator {
             new ApplicationXmlConfigurator(jahiaConfigInterface, jeeApplicationModuleList).updateConfiguration(
                     new VFSConfigFile(fsManager, jeeApplicationLocation + "/META-INF/application.xml"),
                     jeeApplicationLocation + "/META-INF/application.xml");
+        }
+
+        updateKarafUser(jahiaConfigInterface);
+    }
+
+    private void updateKarafUser(JahiaConfigInterface jahiaConfigInterface) throws IOException, NoSuchAlgorithmException {
+        File karafUsers = new File(getDataDir(),"karaf-etc/users.properties");
+        if (karafUsers.exists()) {
+            List<String> lines = FileUtils.readLines(karafUsers);
+            List<String> newLines = new ArrayList<String>();
+            for (String line : lines) {
+                if (line.startsWith("karaf =")) {
+                    MessageDigest md = MessageDigest.getInstance("SHA-512");
+                    String p = DatatypeConverter.printBase64Binary(md.digest(jahiaConfigInterface.getJahiaToolManagerPassword().getBytes()));
+                    line = jahiaConfigInterface.getJahiaToolManagerUsername() + " = {CRYPT}" + p + "{CRYPT},_g_:admingroup";
+                }
+                newLines.add(line);
+            }
+            FileUtils.writeLines(karafUsers, newLines);
         }
     }
 
