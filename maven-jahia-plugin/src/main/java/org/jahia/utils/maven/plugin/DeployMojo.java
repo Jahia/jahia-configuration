@@ -488,13 +488,14 @@ public class DeployMojo extends AbstractManagementMojo {
 	                Artifact artifact = dependencyNode.getArtifact();
 	                if (artifact.getGroupId().equals("org.jahia.server")) {
 	                    String artifactId = artifact.getArtifactId();
-						if (artifactId.equals("jahia-war")
-								|| artifactId.equals("jahia-ee-war")) {
+						if ((artifactId.equals("jahia-war")
+								|| artifactId.equals("jahia-ee-war")) && !StringUtils.equals(artifact.getClassifier(), "data-package")) {
 	                        deployWarDependency(dependencyNode);
 						} else if (artifactId.equals("shared-libraries")
 	                            || artifactId.startsWith("jdbc-drivers")) {
 	                        deploySharedLibraries(dependencyNode);
-	                    } else if (JAHIA_PACKAGE_PROJECTS.contains(artifactId)) {
+	                    } else if (JAHIA_PACKAGE_PROJECTS.contains(artifactId) || (artifactId.equals("jahia-war")
+                                || artifactId.equals("jahia-ee-war")) && StringUtils.equals(artifact.getClassifier(), "data-package")) {
 	                    	deployPackageFromDepenendency(artifact);
 	                    }
 					} else if (artifact.getGroupId()
