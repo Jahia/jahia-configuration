@@ -315,7 +315,7 @@ public class JahiaGlobalConfigurator {
     }
 
     private void updateKarafUser(JahiaConfigInterface jahiaConfigInterface) throws IOException, NoSuchAlgorithmException {
-        File karafUsers = new File(getDataDir(),"karaf-etc/users.properties");
+        File karafUsers = new File(getDataDir(),"etc/users.properties");
         if (karafUsers.exists()) {
             List<String> lines = FileUtils.readLines(karafUsers);
             List<String> newLines = new ArrayList<String>();
