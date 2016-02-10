@@ -62,10 +62,6 @@ import java.util.Arrays;
  */
 public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
 
-    // Default values if properties don't exist
-    private static final String EXPORT_JAHIA_RELEASE = "7.1";
-    private static final String EXPORT_BUILD_NUMBER = "53717";
-
     /**
      * Number of big text container per page
      * @parameter expression="${jahia.cg.numberOfBigTextPerPage}"
@@ -241,13 +237,13 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
 
     /**
      * Jahia/Dx target version of the export (used in export.properties)
-     * @parameter expression="${jahia.cg.jahiaRelease}"
+     * @parameter expression="${jahia.cg.jahiaRelease}" default-value="7.1"
      */
     protected String jahiaRelease;
 
     /**
      * Jahia/Dx target build number of the export (used in export.properties)
-     * @parameter expression="${jahia.cg.buildNumber}"
+     * @parameter expression="${jahia.cg.buildNumber}" default-value="53717"
      */
     protected String buildNumber;
 
@@ -277,20 +273,11 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
         export.setCmisServerType(cmisRepositoryType);
         export.setDisableExternalFileReference(disableExternalFileReference);
         export.setDisableInternalFileReference(disableInternalFileReference);
+        export.setJahiaRelease(jahiaRelease);
+        export.setBuildNumber(buildNumber);
 
         String[] aLanguages = StringUtils.split(siteLanguages, ",");
         export.setSiteLanguages(Arrays.asList(aLanguages));
-
-        if (jahiaRelease == null) {
-            jahiaRelease = EXPORT_JAHIA_RELEASE;
-        }
-
-        if (buildNumber == null) {
-            buildNumber = EXPORT_BUILD_NUMBER;
-        }
-
-        export.setJahiaRelease(jahiaRelease);
-        export.setBuildNumber(buildNumber);
 
         if (visibilityEnabled == null) {
             visibilityEnabled = Boolean.FALSE;
