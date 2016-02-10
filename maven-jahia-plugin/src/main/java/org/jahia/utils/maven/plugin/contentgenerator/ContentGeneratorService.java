@@ -43,31 +43,20 @@
  */
 package org.jahia.utils.maven.plugin.contentgenerator;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Properties;
-
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
-import org.jahia.utils.maven.plugin.contentgenerator.bo.ArticleBO;
-import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
-import org.jahia.utils.maven.plugin.contentgenerator.bo.GroupBO;
-import org.jahia.utils.maven.plugin.contentgenerator.bo.MountPointBO;
-import org.jahia.utils.maven.plugin.contentgenerator.bo.SiteBO;
-import org.jahia.utils.maven.plugin.contentgenerator.bo.UserBO;
+import org.jahia.utils.maven.plugin.contentgenerator.bo.*;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.w3c.dom.DOMException;
+
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 public class ContentGeneratorService {
 
@@ -75,8 +64,7 @@ public class ContentGeneratorService {
 	public static int currentFileIndex = 0;
 	
 	private static ContentGeneratorService instance;
-	
-	private static final String EXPORT_FORMAT_VERSION = "7.0";
+
 	private static final Log LOGGER = new SystemStreamLog();
 
 	private ContentGeneratorService() {
@@ -260,18 +248,8 @@ public class ContentGeneratorService {
 				File tagsFile = new File(export.getOutputDir(), "tags.xml");
 				os.writeJdomDocumentToFile(tagsDoc, tagsFile);
 
-				// Mounts
-				File mountsFile = null;
-				if (!export.isDisableExternalFileReference()) {
-					LOGGER.info("Generating mount point");
-					MountPointBO mountPoint = new MountPointBO(ContentGeneratorCst.MOUNT_POINT_CMIS, export.getCmisRepositoryId(), export.getCmisUrl(), export.getCmisUser(), export.getCmisPassword());
-					Document mountsDoc = new Document(mountPoint.getElement());
-					mountsFile = new File(export.getOutputDir(), "mounts.xml");
-					os.writeJdomDocumentToFile(mountsDoc, mountsFile);
-				}
-
 				// Copy pages => repository.xml
-				File repositoryFile = siteService.createAndPopulateRepositoryFile(tempOutputDir, site, export.getOutputFile(), filesFile, groupsFile, tagsFile, mountsFile);
+				File repositoryFile = siteService.createAndPopulateRepositoryFile(tempOutputDir, site, export.getOutputFile(), filesFile, groupsFile, tagsFile);
 
 				filesToZip.add(repositoryFile);
 
@@ -299,12 +277,40 @@ public class ContentGeneratorService {
 			File systemSiteArchive = os.createSiteArchive("systemsite.zip", export.getOutputDir(), filesToZip);
 			globalFilesToZip.add(systemSiteArchive);
 			LOGGER.info("System site archive created");
-			
+
+            // Mount points
+            if (!export.isDisableExternalFileReference()) {
+                LOGGER.info("Generating mount points");
+                filesToZip.clear();
+
+                //creating temporary files with all the mount points
+                MountPointBO mountPointCmis = new MountPointBO(ContentGeneratorCst.CMIS_MOUNT_POINT_NAME, ContentGeneratorCst.MOUNT_POINT_CMIS, export.getCmisRepositoryId(),
+                        export.getCmisUrl(), export.getCmisUser(), export.getCmisPassword(), export.getCmisServerType());
+                Document cmisMountDoc = new Document(mountPointCmis.getElement());
+
+                File mountsFile = new File(export.getOutputDir(), "mounts.xml");
+                os.writeJdomDocumentToFile(cmisMountDoc, mountsFile);
+
+                // create temporary dir in output dir to generate the repository.xml contained the mounts.zip file
+                // we need a temporary dir because the system site repository.xml is already created in export.getOutputDir()
+                File tempOutputDir = new File(export.getOutputDir(), "mounts");
+                tempOutputDir.mkdir();
+
+                MountPointService mountPointService = new MountPointService();
+                File mountPointsRepository = mountPointService.createAndPopulateRepositoryFile(tempOutputDir, mountsFile);
+
+                //zip mount points
+                filesToZip.add(mountPointsRepository);
+                File mountPointsArchive = os.createSiteArchive("mounts.zip", export.getOutputDir(), filesToZip);
+                globalFilesToZip.add(mountPointsArchive);
+                LOGGER.info("Mount point archive created");
+            }
+
 			// export.properties
 			Properties exportProperties = new Properties();
-			exportProperties.put("JahiaRelease", EXPORT_FORMAT_VERSION);
+			exportProperties.put("JahiaRelease", export.getJahiaRelease());
+            exportProperties.put("BuildNumber", export.getBuildNumber());
 			File exportPropertiesFile = new File(export.getOutputDir(), "export.properties");
-			exportPropertiesFile.delete();
 			os.writePropertiesToFile(exportProperties, exportPropertiesFile);
 			globalFilesToZip.add(exportPropertiesFile);
 

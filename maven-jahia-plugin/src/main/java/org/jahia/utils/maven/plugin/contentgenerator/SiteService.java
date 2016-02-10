@@ -43,14 +43,6 @@
  */
 package org.jahia.utils.maven.plugin.contentgenerator;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.List;
-import java.util.Properties;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugin.logging.Log;
@@ -60,6 +52,10 @@ import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGenerator
 import org.jdom.Document;
 import org.jdom.Element;
 
+import java.io.*;
+import java.util.List;
+import java.util.Properties;
+
 public class SiteService {
 	private Log logger = new SystemStreamLog();
 	private String sep;
@@ -68,16 +64,12 @@ public class SiteService {
 		sep = System.getProperty("file.separator");
 	}
 
-	public File createAndPopulateRepositoryFile(File tempOutputDir, SiteBO site, File pagesFile, File filesFile, File groupsFile, File tagsFile, File mountsFile)
+	public File createAndPopulateRepositoryFile(File tempOutputDir, SiteBO site, File pagesFile, File filesFile, File groupsFile, File tagsFile)
 			throws IOException {
 		File repositoryFile = new File(tempOutputDir, "repository.xml");
 
 		FileOutputStream output = new FileOutputStream(repositoryFile, true);
 		IOUtils.write(site.getHeader(), output);
-		
-		if (mountsFile != null) {
-			IOUtils.copy(new FileInputStream(mountsFile), output);
-		}
 
 		// there is an XML files for attachments only if we requested some
 		if (filesFile != null) {

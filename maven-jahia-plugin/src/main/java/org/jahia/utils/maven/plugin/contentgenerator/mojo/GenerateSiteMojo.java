@@ -43,16 +43,15 @@
  */
 package org.jahia.utils.maven.plugin.contentgenerator.mojo;
 
-import java.util.Arrays;
-
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.plexus.util.StringUtils;
 import org.jahia.utils.maven.plugin.contentgenerator.ContentGeneratorService;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
+
+import javax.xml.parsers.ParserConfigurationException;
+import java.util.Arrays;
 
 /**
  * Generate a Jahia site (ZIP file) ready to be imported
@@ -62,6 +61,10 @@ import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGenerator
  *
  */
 public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
+
+    // Default values if properties don't exist
+    private static final String EXPORT_JAHIA_RELEASE = "7.1";
+    private static final String EXPORT_BUILD_NUMBER = "53717";
 
     /**
      * Number of big text container per page
@@ -188,6 +191,12 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
     protected String cmisRepositoryId;
 
     /**
+     * CMIS Repository ID on the CMIS server
+     * @parameter expression="${jahia.cg.cmis.type}"
+     */
+    protected String cmisRepositoryType;
+
+    /**
      * Site name on the CMIS server
      * @parameter expression="${jahia.cg.cmis.siteName}"
      */
@@ -230,6 +239,18 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
      */
     protected Integer maxPersonalizationVariants;
 
+    /**
+     * Jahia/Dx target version of the export (used in export.properties)
+     * @parameter expression="${jahia.cg.jahiaRelease}"
+     */
+    protected String jahiaRelease;
+
+    /**
+     * Jahia/Dx target build number of the export (used in export.properties)
+     * @parameter expression="${jahia.cg.buildNumber}"
+     */
+    protected String buildNumber;
+
     @Override
     protected ExportBO initExport() throws MojoExecutionException {
 
@@ -253,11 +274,23 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
         export.setCmisPassword(cmisPassword);
         export.setCmisRepositoryId(cmisRepositoryId);
         export.setCmisSiteName(cmisSiteName);
+        export.setCmisServerType(cmisRepositoryType);
         export.setDisableExternalFileReference(disableExternalFileReference);
         export.setDisableInternalFileReference(disableInternalFileReference);
 
         String[] aLanguages = StringUtils.split(siteLanguages, ",");
         export.setSiteLanguages(Arrays.asList(aLanguages));
+
+        if (jahiaRelease == null) {
+            jahiaRelease = EXPORT_JAHIA_RELEASE;
+        }
+
+        if (buildNumber == null) {
+            buildNumber = EXPORT_BUILD_NUMBER;
+        }
+
+        export.setJahiaRelease(jahiaRelease);
+        export.setBuildNumber(buildNumber);
 
         if (visibilityEnabled == null) {
             visibilityEnabled = Boolean.FALSE;

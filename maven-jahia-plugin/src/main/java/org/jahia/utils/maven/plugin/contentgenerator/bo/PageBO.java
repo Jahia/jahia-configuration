@@ -43,18 +43,13 @@
  */
 package org.jahia.utils.maven.plugin.contentgenerator.bo;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
-
 import org.apache.commons.lang.StringUtils;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jdom.Attribute;
 import org.jdom.Element;
+
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class PageBO {
 
@@ -236,7 +231,7 @@ public class PageBO {
             for (int i = 0; i < externalFilePaths.size(); i++) {
                 String externalFilePath = externalFilePaths.get(i);
                 Element externalFileReference = new Element("external-file-reference-" + i);
-                externalFileReference.setAttribute("node", "/mounts/" + ContentGeneratorCst.MOUNT_POINT_NAME + "/Sites/" + cmisSite + externalFilePath, ContentGeneratorCst.NS_J);
+                externalFileReference.setAttribute("node", "/mounts/" + ContentGeneratorCst.CMIS_MOUNT_POINT_NAME + "/Sites/" + cmisSite + externalFilePath, ContentGeneratorCst.NS_J);
                 externalFileReference.setAttribute("primaryType", "jnt:fileReference", ContentGeneratorCst.NS_JCR);
                 listNode.addContent(externalFileReference);
                 personalizableElements.add(externalFileReference);

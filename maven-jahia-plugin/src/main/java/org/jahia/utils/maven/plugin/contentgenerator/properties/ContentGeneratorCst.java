@@ -128,7 +128,7 @@ public final class ContentGeneratorCst {
      */
     public static final String MOUNT_POINT_CMIS = "cmis";
     public static final String MOUNT_POINT_VFS = "vfs";
-    public static final String MOUNT_POINT_NAME = "cmisMountPoint";
+    public static final String CMIS_MOUNT_POINT_NAME = "cmisMountPoint";
     public static final String CMIS_PICTURES_DIR = "pictures";
     public static final String CMIS_TEXT_DIR = "text";
 

@@ -43,12 +43,12 @@
  */
 package org.jahia.utils.maven.plugin.contentgenerator.bo;
 
+import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
 
 /**
  * Contains all the parameters used to configure the export
@@ -113,11 +113,30 @@ public class ExportBO {
     private String cmisPassword;
     private String cmisRepositoryId;
     private String cmisSiteName;
+    private String cmisServerType;
     private boolean disableInternalFileReference;
     private boolean disableExternalFileReference;
     private int pcPersonalizedPages;
     private int minPersonalizationVariants;
     private int maxPersonalizationVariants;
+    private String jahiaRelease;
+    private String buildNumber;
+
+    public String getJahiaRelease() {
+        return jahiaRelease;
+    }
+
+    public void setJahiaRelease(String jahiaRelease) {
+        this.jahiaRelease = jahiaRelease;
+    }
+
+    public String getBuildNumber() {
+        return buildNumber;
+    }
+
+    public void setBuildNumber(String buildNumber) {
+        this.buildNumber = buildNumber;
+    }
 
     public String getCmisUrl() {
         return cmisUrl;
@@ -141,6 +160,14 @@ public class ExportBO {
 
     public void setCmisPassword(String cmisPassword) {
         this.cmisPassword = cmisPassword;
+    }
+
+    public String getCmisServerType() {
+        return cmisServerType;
+    }
+
+    public void setCmisServerType(String cmisServerType) {
+        this.cmisServerType = cmisServerType;
     }
 
     public String getCmisRepositoryId() {

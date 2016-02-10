@@ -43,17 +43,6 @@
  */
 package org.jahia.utils.maven.plugin.contentgenerator;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ArticleBO;
@@ -62,6 +51,9 @@ import org.jahia.utils.maven.plugin.contentgenerator.bo.PageBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jahia.utils.maven.plugin.support.RandomUtils;
 import org.jdom.Document;
+
+import java.io.IOException;
+import java.util.*;
 
 public class PageService {
 
@@ -416,7 +408,7 @@ public class PageService {
         private int nbFiles;
 
         private CmisDirectoryPath(String directoryPath, String fileSuffix, int nbFiles) {
-            this.directoryPath = directoryPath;
+            this.directoryPath = "/documentLibrary" + directoryPath;
             this.fileSuffix = fileSuffix;
             this.nbFiles = nbFiles;
         }

@@ -41,49 +41,55 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.utils.maven.plugin.contentgenerator.bo;
+package org.jahia.utils.maven.plugin.contentgenerator;
 
-import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
-import org.jdom.Element;
+import org.apache.commons.io.IOUtils;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugin.logging.SystemStreamLog;
 
-public class MountPointBO {
-	
-	private String mountPointType;
-	
-	private String mountPointRepositoryId;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
-    private String mountPointServerType;
-	
-	private String mountPointUrl;
-	
-	private String mountPointUser;
-	
-	private String mountPointPassword;
-	
-	private String mountPointName;
+public class MountPointService {
+	private Log logger = new SystemStreamLog();
+	private String sep;
 
-	public MountPointBO(String mountPointName, String mountPointType, String mountPointRepositoryId, String mountPointUrl,
-                        String mountPointUser, String mountPointPassword, String mountPointServerType) {
-        this.mountPointName = mountPointName;
-		this.mountPointType = mountPointType;		
-		this.mountPointRepositoryId = mountPointRepositoryId;		
-		this.mountPointUrl = mountPointUrl;
-		this.mountPointUser = mountPointUser;		
-		this.mountPointPassword = mountPointPassword;
-        this.mountPointServerType = mountPointServerType;
+	public MountPointService() {
+		sep = System.getProperty("file.separator");
 	}
-	
-	public Element getElement() {
-        Element mountPointElement = new Element(this.mountPointName + "-mount");
 
-        if (this.mountPointType.equals(ContentGeneratorCst.MOUNT_POINT_CMIS)) {
-            mountPointElement.setAttribute("primaryType", "cmis:cmisMountPoint", ContentGeneratorCst.NS_JCR);
-            mountPointElement.setAttribute("user", mountPointUser);
-            mountPointElement.setAttribute("password", mountPointPassword);
-            mountPointElement.setAttribute("url", mountPointUrl);
-            mountPointElement.setAttribute("repositoryId", mountPointRepositoryId);
-            mountPointElement.setAttribute("type", mountPointServerType);
-        }
-        return mountPointElement;
+	public File createAndPopulateRepositoryFile(File tempOutputDir, File mountPointFile)
+			throws IOException {
+		File repositoryFile = new File(tempOutputDir, "repository.xml");
+
+		FileOutputStream output = new FileOutputStream(repositoryFile, true);
+		IOUtils.write(getHeader(), output);
+
+		// there is an XML files for attachments only if we requested some
+		if (mountPointFile != null) {
+			IOUtils.copy(new FileInputStream(mountPointFile), output);
+		}
+		
+		IOUtils.write(getFooter(), output);
+
+		return repositoryFile;
 	}
+
+    public String getHeader() {
+        StringBuffer sb = new StringBuffer();
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \n");
+        sb.append("<content xmlns:jcr=\"http://www.jcp.org/jcr/1.0\" xmlns:j=\"http://www.jahia.org/jahia/1.0\">\n");
+        sb.append("<mounts jcr:primaryType=\"jnt:mounts\">\n");
+        return sb.toString();
+    }
+
+    public String getFooter() {
+        StringBuffer sb = new StringBuffer();
+        sb.append("</mounts>\n");
+        sb.append("</content>\n");
+        return sb.toString();
+    }
+
 }
