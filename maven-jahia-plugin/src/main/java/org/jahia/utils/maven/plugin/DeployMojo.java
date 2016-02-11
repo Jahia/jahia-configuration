@@ -243,22 +243,50 @@ public class DeployMojo extends AbstractManagementMojo {
                     && JAHIA_SYSTEM_BUNDLES.contains(project.getArtifactId()) || isJahiaTaglib) {
                 String fileName = project.getArtifactId() + "-" + project.getVersion() + "." + "jar";
                 File srcFile = new File(output, fileName);
-                File destDir = new File(getWebappDeploymentDir(), "WEB-INF/bundles");
+                File destDir = null;
+                File karafDir = new File(getWebappDeploymentDir(), "WEB-INF/karaf/system");
+                boolean karafDeployment = karafDir.isDirectory(); 
+                if (karafDeployment) {
+                    destDir = new File(new File(karafDir, StringUtils.join(StringUtils.split(project.getGroupId(), '.'), File.separatorChar)), project.getArtifactId() + File.separatorChar + project.getVersion());
+                } else {
+                    destDir = new File(getWebappDeploymentDir(), "WEB-INF/bundles");
+                }
                 FileUtils.copyFileToDirectory(srcFile, destDir);
                 getLog().info("Copied " + srcFile + " to " + destDir);
-                removeCachedBundle(fileName, new File(getDataDir(), "bundles-deployed"));
+                if (karafDeployment) {
+                    forceKarafFeatureInstall("dx-core", project.getVersion());
+                } else {
+                    removeCachedBundle(fileName, new File(getDataDir(), "bundles-deployed"));
+                }
             } else {
                 boolean isStandardModule = project.getGroupId().equals("org.jahia.module") || project.getGroupId().endsWith(".jahia.modules");
                 if (isStandardModule || isJahiaModuleBundle(new File(output, project.getArtifactId() + "-" + project.getVersion() + "." + "jar"))) {
                     deployModuleProject();
                 } else {
                     File srcFile = new File(output, project.getArtifactId() + "-" + project.getVersion() + "." + "jar");
-                    File destDir = new File(getDataDir(), "bundles");
+                    File destDir = null;
+                    File karafDir = new File(getWebappDeploymentDir(), "WEB-INF/karaf/system");
+                    boolean karafDeployment = karafDir.isDirectory();
+                    if (karafDeployment) {
+                        destDir = new File(getDataDir(), "karaf/deploy");
+                    } else {
+                        destDir = new File(getDataDir(), "bundles");
+                    }
                     FileUtils.copyFileToDirectory(srcFile, destDir);
                     getLog().info("Copied " + srcFile + " to " + destDir);
                 }
             }
         }
+    }
+
+    private void forceKarafFeatureInstall(String featureArtifactId, String version) throws IOException {
+        File deployDir = new File(getDataDir(), "karaf/deploy");
+        File srcFile = new File(getWebappDeploymentDir(), "WEB-INF/karaf/system/org/jahia/features/" + featureArtifactId
+                + "/" + version + "/" + featureArtifactId + "-" + version + "-features.xml");
+        getLog().info(
+                "Copying features file " + srcFile.getCanonicalPath() + " into folder " + deployDir.getCanonicalPath());
+        FileUtils.copyFileToDirectory(srcFile, deployDir, false);
+        getLog().info("...done");
     }
 
     private void removeCachedBundle(String fileName, File deployedBundeDir) {
