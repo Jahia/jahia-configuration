@@ -59,6 +59,8 @@ public interface JahiaConfigInterface {
 
     String getCluster_node_serverId();
 
+    String getCluster_node_hazelcast_port();
+
     String getClusterTCPBindAddress();
     
     String getClusterTCPBindPort();

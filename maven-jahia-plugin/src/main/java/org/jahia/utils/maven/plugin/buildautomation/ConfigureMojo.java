@@ -93,6 +93,14 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      * @parameter expression="${jahia.configure.cluster_node_serverId}"
      */
     protected String cluster_node_serverId;
+
+    /**
+     * properties file path
+     *
+     * @parameter expression="${jahia.configure.cluster_node_hazelcast_port}"
+     */
+    protected String cluster_node_hazelcast_port;
+
     /**
      * @parameter expression="${jahia.configure.jahiaRootUsername}" default-value="root"
      */
@@ -347,6 +355,7 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      */
     private String licenseFile;
 
+
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
             new JahiaGlobalConfigurator(new MojoLogger(getLog()), this).execute();
@@ -361,6 +370,10 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public String getCluster_node_serverId() {
         return cluster_node_serverId;
+    }
+
+    public String getCluster_node_hazelcast_port() {
+        return cluster_node_hazelcast_port;
     }
 
     public String getClusterTCPBindAddress() {

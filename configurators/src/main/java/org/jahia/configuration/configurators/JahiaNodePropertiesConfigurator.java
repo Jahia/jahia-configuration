@@ -88,6 +88,11 @@ public class JahiaNodePropertiesConfigurator extends AbstractConfigurator {
                 && StringUtils.isNotBlank(cfg.getClusterTCPBindPort())) {
             properties.setProperty("cluster.tcp.bindPort", cfg.getClusterTCPBindPort());
         }
+
+        if (properties.getProperty("cluster.node.hazelcast.port") != null
+                && StringUtils.isNotBlank(cfg.getCluster_node_hazelcast_port())) {
+            properties.setProperty("cluster.node.hazelcast.port", cfg.getCluster_node_hazelcast_port());
+        }
     }
 
     public void updateConfiguration(ConfigFile sourceJahiaPath, String targetJahiaPath) throws IOException {
