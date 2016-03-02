@@ -61,6 +61,7 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String jahiaWebAppsDeployerBaseURL = "http://127.0.0.1:8080/manager/html/";
     private String cluster_activated = "false";
     private String cluster_node_serverId;
+    private String cluster_node_hazelcast_port;
     private String processingServer = "true";
     private String jahiaImportsDiskPath = "${jahia.data.dir}/imports/";
     private String clusterTCPBindAddress = null;
@@ -173,6 +174,8 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     public String getCluster_node_serverId() {
         return cluster_node_serverId;
     }
+
+    public String getCluster_node_hazelcast_port() {return cluster_node_hazelcast_port;}
 
     public void setCluster_node_serverId(String cluster_node_serverId) {
         this.cluster_node_serverId = cluster_node_serverId;
