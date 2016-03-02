@@ -45,7 +45,6 @@ package org.jahia.configuration.configurators;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -89,9 +88,9 @@ public class JahiaNodePropertiesConfigurator extends AbstractConfigurator {
             properties.setProperty("cluster.tcp.bindPort", cfg.getClusterTCPBindPort());
         }
 
-        if (properties.getProperty("cluster.node.hazelcast.port") != null
-                && StringUtils.isNotBlank(cfg.getCluster_node_hazelcast_port())) {
-            properties.setProperty("cluster.node.hazelcast.port", cfg.getCluster_node_hazelcast_port());
+        if (properties.getProperty("cluster.hazelcast.port") != null
+                && StringUtils.isNotBlank(cfg.getClusterHazelcastBindPort())) {
+            properties.setProperty("cluster.hazelcast.port", cfg.getClusterHazelcastBindPort());
         }
     }
 
