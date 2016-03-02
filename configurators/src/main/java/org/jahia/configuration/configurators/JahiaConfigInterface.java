@@ -59,8 +59,6 @@ public interface JahiaConfigInterface {
 
     String getCluster_node_serverId();
 
-    String getCluster_node_hazelcast_port();
-
     String getClusterTCPBindAddress();
     
     String getClusterTCPBindPort();
@@ -261,5 +259,11 @@ public interface JahiaConfigInterface {
      * @return a path to an existing license file to be used. If not provided a trial license will be used
      */
     String getLicenseFile();
+
+    /**
+     * Return the Hazelcast bind port
+     * @return the Hazelcast bind port
+     */
+    String getClusterHazelcastBindPort();
 
 }

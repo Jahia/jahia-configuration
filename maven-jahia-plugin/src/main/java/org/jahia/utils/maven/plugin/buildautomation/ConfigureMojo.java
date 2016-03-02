@@ -97,9 +97,9 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     /**
      * properties file path
      *
-     * @parameter expression="${jahia.configure.cluster_node_hazelcast_port}"
+     * @parameter expression="${jahia.configure.clusterHazelcastBindPort}"
      */
-    protected String cluster_node_hazelcast_port;
+    protected String clusterHazelcastBindPort;
 
     /**
      * @parameter expression="${jahia.configure.jahiaRootUsername}" default-value="root"
@@ -372,8 +372,8 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return cluster_node_serverId;
     }
 
-    public String getCluster_node_hazelcast_port() {
-        return cluster_node_hazelcast_port;
+    public String getClusterHazelcastBindPort() {
+        return clusterHazelcastBindPort;
     }
 
     public String getClusterTCPBindAddress() {
