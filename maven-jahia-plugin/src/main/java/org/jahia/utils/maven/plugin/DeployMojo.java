@@ -405,12 +405,13 @@ public class DeployMojo extends AbstractManagementMojo {
                 getLog().error("Error while deploying WAR project", e);
             }
         }
-        File dataPackage = getAetherHelper().resolveArtifactFile(project.getGroupId() + ":" + project.getArtifactId() + ":zip:data-package:" + project.getArtifact().getVersion());
-        if (dataPackage != null) {
-            deployPackageFile(dataPackage);
+        
+        if (project.getArtifactId().equals("jahia-war") || project.getArtifactId().equals("jahia-ee-war")) {
+            File dataPackage = getAetherHelper().resolveArtifactFile(project.getGroupId() + ":" + project.getArtifactId() + ":zip:data-package:" + project.getArtifact().getVersion());
+            if (dataPackage != null) {
+                deployPackageFile(dataPackage);
+            }
         }
-
-
     }
 
     /**
