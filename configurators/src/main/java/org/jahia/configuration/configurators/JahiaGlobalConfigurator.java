@@ -310,25 +310,6 @@ public class JahiaGlobalConfigurator {
                     new VFSConfigFile(fsManager, jeeApplicationLocation + "/META-INF/application.xml"),
                     jeeApplicationLocation + "/META-INF/application.xml");
         }
-
-        updateKarafUser(jahiaConfigInterface);
-    }
-
-    private void updateKarafUser(JahiaConfigInterface jahiaConfigInterface) throws IOException, NoSuchAlgorithmException {
-        File karafUsers = new File(getDataDir(),"karaf-etc/users.properties");
-        if (karafUsers.exists()) {
-            List<String> lines = FileUtils.readLines(karafUsers);
-            List<String> newLines = new ArrayList<String>();
-            for (String line : lines) {
-                if (line.startsWith("karaf =")) {
-                    MessageDigest md = MessageDigest.getInstance("SHA-512");
-                    String p = DatatypeConverter.printBase64Binary(md.digest(jahiaConfigInterface.getJahiaToolManagerPassword().getBytes()));
-                    line = jahiaConfigInterface.getJahiaToolManagerUsername() + " = {CRYPT}" + p + "{CRYPT},_g_:admingroup";
-                }
-                newLines.add(line);
-            }
-            FileUtils.writeLines(karafUsers, newLines);
-        }
     }
 
     private ConfigFile readJahiaNodeProperties(String sourceWebAppPath, FileSystemManager fsManager)
