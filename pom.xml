@@ -143,7 +143,7 @@
         </dependency>
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
-            <artifactId>sqljdbc42</artifactId>
+            <artifactId>sqljdbc41</artifactId>
             <version>4.2.6420.100</version>
         </dependency>
         <dependency>
