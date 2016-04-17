@@ -86,7 +86,7 @@ import java.util.jar.Manifest;
  * any missing packages that weren't found in any dependency export.
  *
  * @goal check-dependencies
- * @phase verify
+ * @phase package
  * @requiresDependencyResolution test
  * @requiresDependencyCollection test
  */
