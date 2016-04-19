@@ -65,14 +65,11 @@ import org.jahia.configuration.logging.AbstractLogger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -689,9 +686,10 @@ public class JahiaGlobalConfigurator {
         deleteDirectory(new File(getDataDir(), "compiledRules"));
         deleteDirectory(new File(getDataDir(), "content"));
         deleteDirectory(new File(getDataDir(), "generated-resources"));
-        cleanDirectory(new File(getDataDir(), "karaf/tmp"));
         cleanDirectory(new File(getDataDir(), "karaf/deploy"));
         cleanDirectory(new File(getDataDir(), "karaf/generated-bundles"));
+        cleanDirectory(new File(getDataDir(), "karaf/instances"));
+        cleanDirectory(new File(getDataDir(), "karaf/tmp"));
         FileUtils.deleteQuietly(new File(getDataDir(), "karaf/history.txt"));
 
         getLogger().info("Finished deleting content of the data and cache related folders");
