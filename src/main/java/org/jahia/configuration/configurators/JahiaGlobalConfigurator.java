@@ -687,8 +687,8 @@ public class JahiaGlobalConfigurator {
         deleteDirectory(new File(getDataDir(), "content"));
         deleteDirectory(new File(getDataDir(), "generated-resources"));
         cleanDirectory(new File(getDataDir(), "karaf/deploy"));
-        cleanDirectory(new File(getDataDir(), "karaf/generated-bundles"));
-        cleanDirectory(new File(getDataDir(), "karaf/instances"));
+        deleteDirectory(new File(getDataDir(), "karaf/generated-bundles"));
+        deleteDirectory(new File(getDataDir(), "karaf/instances"));
         cleanDirectory(new File(getDataDir(), "karaf/tmp"));
         FileUtils.deleteQuietly(new File(getDataDir(), "karaf/history.txt"));
 
