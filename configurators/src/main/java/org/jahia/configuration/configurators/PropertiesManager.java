@@ -45,9 +45,6 @@ package org.jahia.configuration.configurators;
 
 import java.io.*;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.StringUtils;
@@ -61,8 +58,6 @@ import org.codehaus.plexus.util.StringUtils;
  * method keep your base properties file design (not like the store() method
  * from java properties object)!
  * <p/>
- * Copyright:    Copyright (c) 2002
- * Company:      Jahia Ltd
  *
  * @author Alexandre Kraft
  * @version 1.0
@@ -76,6 +71,8 @@ public class PropertiesManager {
     private String additionalPropertiesMessage = "The following properties were added.";
     private Map<String,PropertyLayout> propertyLayouts = new LinkedHashMap<String,PropertyLayout>();
     boolean additionalMessageAdded = false;
+    private boolean replaceTabsWithSpaces = true;
+    private boolean sanitizeValue = true;
 
     public class PropertyLayout {
         List<String> comments = new ArrayList<String>();
@@ -177,7 +174,6 @@ public class PropertiesManager {
 
         // parse the file...
         String currentLine = null;
-        int lineNo = 0;
         boolean inMultilineValue = false;
         PropertyLayout currentPropertyLayout = new PropertyLayout();
         while ((currentLine = reader.readLine()) != null) {
@@ -200,7 +196,6 @@ public class PropertiesManager {
                     currentLine.trim().startsWith("!")) {
                 // empty natural line or comment line, we just skip it
                 currentPropertyLayout.getComments().add(currentLine);
-                lineNo++;
                 continue;
             }
             if (valueSeparatorPos >= 0) {
@@ -252,12 +247,11 @@ public class PropertiesManager {
                     currentPropertyLayout = new PropertyLayout();
                 }
             }
-            lineNo++;
         }
 
         IOUtils.closeQuietly(reader);
         loadedFromInputStream = true;
-    } // end loadProperties
+    }
 
 
     /**
@@ -361,7 +355,6 @@ public class PropertiesManager {
             throw new UnsupportedOperationException("If loaded from an input stream, it must be provided when storing the file");
         }
         List<String> outputLineList = new ArrayList<String>();
-        String currentLine = null;
 
         File propertiesFileObject = new File(destPropertiesFilePath);
         File propertiesFileFolder = propertiesFileObject.getParentFile();
@@ -372,107 +365,35 @@ public class PropertiesManager {
             propertiesFileFolder = null;
         }
 
-        // try to create a file object via the propertiesFilePath...
-
-
         if (loadedFromInputStream) {
-            for (Map.Entry<String,PropertyLayout> propertyLayoutEntry : propertyLayouts.entrySet()) {
-                for (String comment : propertyLayoutEntry.getValue().getComments()) {
-                    outputLineList.add(comment);
+            for (Map.Entry<String, PropertyLayout> propertyLayoutEntry : propertyLayouts.entrySet()) {
+                PropertyLayout value = propertyLayoutEntry.getValue();
+                for (String comment : value.getComments()) {
+                    outputLineList.add(replaceTabsWithSpaces(comment));
                 }
-                int i=0;
-                if (propertyLayoutEntry.getValue().getValueLines().size() == 0) {
-                    outputLineList.add(propertyLayoutEntry.getValue().getNameLine());
+                int i = 0;
+                List<String> valueLines = value.getValueLines();
+                int size = valueLines.size();
+                if (size == 0) {
+                    outputLineList.add(value.getNameLine());
                 }
-                for (String valueLine : propertyLayoutEntry.getValue().getValueLines()) {
+                for (String valueLine : valueLines) {
                     StringBuilder lineBuilder = new StringBuilder();
                     if (unmodifiedCommentingActivated && !modifiedProperties.contains(propertyLayoutEntry.getKey())) {
                         lineBuilder.append("#");
                     }
-                    if (i==0) {
-                        lineBuilder.append(escapeNonASCII(propertyLayoutEntry.getValue().getNameLine(), true));
-                        lineBuilder.append(propertyLayoutEntry.getValue().getSeparator());
+                    if (i == 0) {
+                        lineBuilder.append(escapeNonASCII(value.getNameLine(), true));
+                        lineBuilder.append(value.getSeparator());
                     }
-                    lineBuilder.append(escapeNonASCII(valueLine, false));
-                    if (propertyLayoutEntry.getValue().getValueLines().size() > 1 && i < propertyLayoutEntry.getValue().getValueLines().size() -1) {
+                    lineBuilder.append(escapeNonASCII(i == 0 ? sanitizeValue(valueLine) : valueLine, false));
+                    if (size > 1 && i < size - 1) {
                         lineBuilder.append("\\");
                     }
-                    outputLineList.add(lineBuilder.toString());
+                    outputLineList.add(replaceTabsWithSpaces(lineBuilder.toString()));
                     i++;
                 }
             }
-
-            /*
-            BufferedReader buffered = new BufferedReader(new InputStreamReader(sourcePropertiesInputStream));
-            int lineNo = 0;
-
-            Set<String> remainingPropertyNames = new HashSet<String>(properties.keySet());
-            boolean inMultiLine = false;
-            String currentPropertyName = null;
-
-            // parse the file...
-            while ((currentLine = buffered.readLine()) != null) {
-                lineNo++;
-                try {
-                    int valueSeperatorPos = -1;
-                    if (!inMultiLine) {
-                        valueSeperatorPos = getValueSeparatorPos(currentLine);
-                    }
-                    if (!currentLine.trim().equals("") &&
-                            !currentLine.trim().startsWith("#") &&
-                            !currentLine.trim().startsWith("!") &&
-                            (valueSeperatorPos >= 0)) {
-                        currentPropertyName = currentLine.substring(0, valueSeperatorPos).trim();
-                        if (currentLine.trim().endsWith("\\")) {
-                            inMultiLine = true;
-                        }
-                        outputProperty(outputLineList, currentLine, remainingPropertyNames, currentPropertyName, valueSeperatorPos);
-                    } else {
-                        if (inMultiLine) {
-                            if (currentLine.trim().endsWith("\\")) {
-                                // multiline is continuing, we ignore the line
-                                if (!modifiedProperties.contains(currentPropertyName) && !unmodifiedCommentingActivated) {
-                                    outputLineList.add(currentLine);
-                                }
-                            } else {
-                                // multiline ended here.
-                                outputProperty(outputLineList, currentLine, remainingPropertyNames, currentPropertyName, valueSeperatorPos);
-                                inMultiLine = false;
-                            }
-                        } else {
-                            // this is a special line only for layout, like a comment or a blank line...
-                            outputLineList.add(currentLine);
-                            inMultiLine = false;
-                        }
-                    }
-                } catch (IndexOutOfBoundsException ioobe) {
-                } catch (PatternSyntaxException ex1) {
-                    ex1.printStackTrace();
-                } catch (IllegalArgumentException ex2) {
-                    ex2.printStackTrace();
-                }
-            }
-
-            // add not found properties at the end of the file (and the jahia.properties layout is kept)...
-            if ((remainingPropertyNames.size() > 0) && (additionalPropertiesMessage != null)) {
-                outputLineList.add("# " + additionalPropertiesMessage);
-            }
-            Iterator remainingPropNameIterator = remainingPropertyNames.iterator();
-            while (remainingPropNameIterator.hasNext()) {
-                String remainingPropertyName = (String) remainingPropNameIterator.next();
-                StringBuffer specialLineBuffer = new StringBuffer();
-                specialLineBuffer.append(escapeNonASCII(remainingPropertyName, true));
-                for (int i = 0; i < 55 - remainingPropertyName.length(); i++) {
-                    specialLineBuffer.append(" ");
-                }
-                specialLineBuffer.append("=   ");
-                specialLineBuffer.append(escapeValue(remainingPropertyName, properties.get(remainingPropertyName)));
-                outputLineList.add(specialLineBuffer.toString());
-            }
-
-            // close the buffered filereader...
-            buffered.close();
-            */
 
             // write the file...
             writeTheFile(destPropertiesFilePath, outputLineList);
@@ -481,7 +402,7 @@ public class PropertiesManager {
             getPropertiesObject().store(outputStream, "This file has been written by Jahia.");
             outputStream.close();
         }
-    } // end storeProperties
+    }
 
     public void outputProperty(List<String> outputLineList, String currentLine, Set<String> remainingPropertyNames, String currentPropertyName, int equalPosition) {
         if (remainingPropertyNames.contains(currentPropertyName)) {
@@ -519,7 +440,7 @@ public class PropertiesManager {
      * @author Alexandre Kraft
      */
     private void writeTheFile(String propertiesFilePath,
-                              List bufferList) {
+                              List<String> bufferList) {
 
         File thisFile = null;
         FileWriter fileWriter = null;
@@ -848,5 +769,40 @@ public class PropertiesManager {
             }
         }
         return -1;
+    }
+
+
+    public void setReplaceTabsWithSpaces(boolean replaceTabsWithSpaces) {
+        this.replaceTabsWithSpaces = replaceTabsWithSpaces;
+    }
+
+
+    public boolean isReplaceTabsWithSpaces() {
+        return replaceTabsWithSpaces;
+    }
+    
+    private String replaceTabsWithSpaces(String source) {
+        return source != null && isReplaceTabsWithSpaces() ? StringUtils.replace(source, "\t", "    ") : source;
+    }
+
+
+    public boolean isSanitizeValue() {
+        return sanitizeValue;
+    }
+
+
+    public void setSanitizeValue(boolean sanitizeValue) {
+        this.sanitizeValue = sanitizeValue;
+    }
+    
+    /**
+     * Trims all the leading whitespaces from the value and just inserts one single space.
+     * 
+     * @param source
+     *            the value to be sanitized
+     * @return the sanitized value
+     */
+    private String sanitizeValue(String source) {
+        return source != null && isSanitizeValue() ? (' ' + StringUtils.stripStart(source, null)) : source;
     }
 }
