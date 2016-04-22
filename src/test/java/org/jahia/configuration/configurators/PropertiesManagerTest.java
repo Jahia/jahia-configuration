@@ -56,6 +56,8 @@ import java.util.Properties;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.apache.commons.io.FileUtils;
+
 /**
  * Test case for Properties Manager
  */
@@ -89,6 +91,8 @@ public class PropertiesManagerTest extends TestCase {
 
     public void testLoadBasicCase() throws IOException {
         PropertiesManager propertiesManager = new PropertiesManager(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry));
+        propertiesManager.setReplaceTabsWithSpaces(false);
+        propertiesManager.setSanitizeValue(false);
 
         propertiesManager.setProperty("jahiaToolManagerUsername", "toolmgr");
         propertiesManager.setProperty("testPropertyName\u2126", "testPropertyValue\u2126");
@@ -120,6 +124,8 @@ public class PropertiesManagerTest extends TestCase {
     public void testCommentingCase() throws IOException {
 
         PropertiesManager propertiesManager = new PropertiesManager(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry));
+        propertiesManager.setReplaceTabsWithSpaces(false);
+        propertiesManager.setSanitizeValue(false);
         propertiesManager.setUnmodifiedCommentingActivated(true);
 
         propertiesManager.setProperty("server", "testServerValue");
@@ -155,6 +161,8 @@ public class PropertiesManagerTest extends TestCase {
 
     public void testAdditionalProperties() throws IOException {
         PropertiesManager propertiesManager = new PropertiesManager(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry));
+        propertiesManager.setReplaceTabsWithSpaces(false);
+        propertiesManager.setSanitizeValue(false);
         propertiesManager.setAdditionalPropertiesMessage("###ADDITIONALPROPERTIES###");
         propertiesManager.setProperty("testPropertyName", "testPropertyValue");
         propertiesManager.storeProperties(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile.getPath());
@@ -172,6 +180,8 @@ public class PropertiesManagerTest extends TestCase {
 
     public void testRemoveProperty() throws IOException {
         PropertiesManager propertiesManager = new PropertiesManager(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry));
+        propertiesManager.setReplaceTabsWithSpaces(false);
+        propertiesManager.setSanitizeValue(false);
         propertiesManager.removeProperty("operatingMode");
         propertiesManager.storeProperties(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile.getPath());
 
@@ -185,6 +195,8 @@ public class PropertiesManagerTest extends TestCase {
 
     public void testMultiValuedProperties() throws IOException {
         PropertiesManager propertiesManager = new PropertiesManager(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry));
+        propertiesManager.setReplaceTabsWithSpaces(false);
+        propertiesManager.setSanitizeValue(false);
         propertiesManager.setProperty("multiValuedProperty", new String[] { "value1", "value2"} );
         Object multilinePropertyValue = propertiesManager.getRawProperty("multilineProperty");
         assertTrue("Multi line property is not of correct type", multilinePropertyValue instanceof String);
@@ -198,6 +210,16 @@ public class PropertiesManagerTest extends TestCase {
         testProperties.load(new FileInputStream(jahiaTargetPropertiesFile));
         assertEquals("Multi-valued property not saved properly", "value1value2", testProperties.getProperty("multiValuedProperty"));
         propertiesManager = new PropertiesManager(new FileInputStream(jahiaTargetPropertiesFile));
+    }
+    
+    public void testSanitize() throws IOException {
+        PropertiesManager propertiesManager = new PropertiesManager(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry));
+        propertiesManager.storeProperties(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile.getPath());
+        
+        String out = FileUtils.readFileToString(jahiaTargetPropertiesFile);
+        
+        assertFalse("Tabs were not replaced with spaces", out.contains("\t"));
+        assertFalse("Values were not sanitized", out.contains("=  "));
     }
 
     private List<String> getFileContents(File inputFile) throws IOException {
