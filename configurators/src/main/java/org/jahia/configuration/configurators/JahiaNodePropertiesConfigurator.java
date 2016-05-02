@@ -68,7 +68,7 @@ public class JahiaNodePropertiesConfigurator extends AbstractConfigurator {
 
     private String getServerId(String id) {
         if (id == null || id.length() == 0 || "<auto>".equalsIgnoreCase(id)) {
-            id = "df-" + UUID.randomUUID();
+            id = "dx-" + UUID.randomUUID();
         }
         return id;
     }
