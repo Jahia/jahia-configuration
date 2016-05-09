@@ -578,4 +578,8 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.externalizedConfigExploded = externalizedConfigExploded;
     }
 
+    public void setClusterHazelcastBindPort(String clusterHazelcastBindPort) {
+        this.clusterHazelcastBindPort = clusterHazelcastBindPort;
+    }
+
 }
