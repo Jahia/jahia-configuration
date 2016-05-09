@@ -88,9 +88,9 @@ public class JahiaNodePropertiesConfigurator extends AbstractConfigurator {
             properties.setProperty("cluster.tcp.bindPort", cfg.getClusterTCPBindPort());
         }
 
-        if (properties.getProperty("cluster.hazelcast.port") != null
+        if (properties.getProperty("cluster.hazelcast.bindPort") != null
                 && StringUtils.isNotBlank(cfg.getClusterHazelcastBindPort())) {
-            properties.setProperty("cluster.hazelcast.port", cfg.getClusterHazelcastBindPort());
+            properties.setProperty("cluster.hazelcast.bindPort", cfg.getClusterHazelcastBindPort());
         }
     }
 
