@@ -175,7 +175,12 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         return cluster_node_serverId;
     }
 
-    public String getClusterHazelcastBindPort() {return clusterHazelcastBindPort;}
+    /**
+     * Returns the port number for module manager cluster communication (based on Karaf Cellar + Hazelcast).
+     */
+    public String getClusterHazelcastBindPort() {
+        return clusterHazelcastBindPort;
+    }
 
     public void setCluster_node_serverId(String cluster_node_serverId) {
         this.cluster_node_serverId = cluster_node_serverId;
