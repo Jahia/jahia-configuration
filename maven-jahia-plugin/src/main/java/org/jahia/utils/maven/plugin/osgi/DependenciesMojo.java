@@ -100,6 +100,10 @@ import java.util.regex.Pattern;
  */
 public class DependenciesMojo extends BundlePlugin {
 
+    private static final String OSGI_CAPABILITY_MODULE_DEPENDENCIES_KEY = "moduleIdentifier";
+
+    private static final String OSGI_CAPABILITY_MODULE_DEPENDENCIES = "com.jahia.modules.dependencies";
+
     protected static final Set<String> SUPPORTED_FILE_EXTENSIONS_TO_SCAN = new HashSet<String>(Arrays.asList("jsp",
             "jspf", "tag", "tagf", "cnd", "drl", "xml", "groovy"));
     
@@ -447,7 +451,7 @@ public class DependenciesMojo extends BundlePlugin {
                         String[] jahiaDependsArray = jahiaDependsValue.split(",");
                         int counter = 0;
                         for (String jahiaDependsEntry : jahiaDependsArray) {
-                            jahiaDependsRequireCapabilities.append("com.jahia.modules.dependencies; filter:=\"(moduleIdentifier=").append(jahiaDependsEntry.trim()).append(")\"");
+                            jahiaDependsRequireCapabilities.append(OSGI_CAPABILITY_MODULE_DEPENDENCIES + "; filter:=\"(" + OSGI_CAPABILITY_MODULE_DEPENDENCIES_KEY + "=").append(jahiaDependsEntry.trim()).append(")\"");
                             if (counter < jahiaDependsArray.length - 1) {
                                 jahiaDependsRequireCapabilities.append(",");
                             }
@@ -456,7 +460,15 @@ public class DependenciesMojo extends BundlePlugin {
                         project.getProperties().put("jahia.plugin.requiredModulesCapabilities", jahiaDependsRequireCapabilities.toString());
                     }
                 }
-                project.getProperties().put("jahia.plugin.providedModulesCapabilities", jahiaDependsCapabilitiesPrefix + "com.jahia.modules.dependencies; moduleIdentifier=\"" + project.getArtifactId() + "\"");
+                StringBuilder cap = new StringBuilder();
+                cap.append(jahiaDependsCapabilitiesPrefix).append(
+                        OSGI_CAPABILITY_MODULE_DEPENDENCIES + "; " + OSGI_CAPABILITY_MODULE_DEPENDENCIES_KEY + "=\"")
+                        .append(project.getArtifactId()).append("\"");
+                if (project.getName() != null) {
+                    cap.append(", " + OSGI_CAPABILITY_MODULE_DEPENDENCIES + "; "
+                            + OSGI_CAPABILITY_MODULE_DEPENDENCIES_KEY + "=\"").append(project.getName()).append("\"");
+                }
+                project.getProperties().put("jahia.plugin.providedModulesCapabilities", cap.toString());
             } catch (Exception e) {
                 getLog().error("Error generating capabilities from Jahia-Depends", e);
             }
