@@ -56,7 +56,7 @@ import org.apache.maven.plugin.MojoFailureException;
 
 /**
  * Mojo that adds the value for a property in the properties file.
- * 
+ *
  * @goal update-properties-file
  * @phase process-resources
  * @author Sergiy Shyrkov
@@ -66,49 +66,49 @@ public class UpdatePropertiesFileMojo extends AbstractMojo {
     /**
      * Should the value be rather appended (in case of <code>true</code>) to the existing one or overwrite it completely (in case of
      * <code>false</code>).
-     * 
+     *
      * @parameter
      */
     protected boolean append;
 
     /**
      * The target file to write properties file into. If not specified the source file will be modified "in-place".
-     * 
+     *
      * @parameter
      */
     protected File dest;
 
     /**
      * If set to <code>true</code> the multiline value will be formatted.
-     * 
+     *
      * @parameter
      */
     protected boolean formatMultilineValue;
 
     /**
      * The key for the entry in the properties file.
-     * 
+     *
      * @parameter
      */
     protected String key;
 
     /**
      * If set to <code>true</code> the multiline value formatting will use pretty print (space indentation).
-     * 
+     *
      * @parameter
      */
     protected boolean prettyPrint;
 
     /**
      * The properties file as a source of modifications.
-     * 
+     *
      * @parameter
      */
     protected File src;
 
     /**
      * Should we perform value interpolation in the properties?
-     * 
+     *
      * @parameter
      */
     protected boolean substitute;
@@ -116,23 +116,24 @@ public class UpdatePropertiesFileMojo extends AbstractMojo {
     /**
      * The value to be added into property file. In case the value is not provided the entry with the specified key will be removed from the
      * properties file.
-     * 
+     *
      * @parameter
      */
     protected String value;
 
     /**
      * Value separator in case the value will be appended.
-     * 
+     *
      * @parameter
      */
     protected String valueSeparator = ",";
 
+    @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+
         if (src == null || !src.isFile()) {
             throw new MojoFailureException("Unable to find the source file " + src);
         }
-
         if (StringUtils.isEmpty(key)) {
             throw new MojoFailureException("Key should not be null or empty");
         }
@@ -173,7 +174,6 @@ public class UpdatePropertiesFileMojo extends AbstractMojo {
             getLog().error(e.getMessage(), e);
             throw new MojoExecutionException(e.getMessage(), e);
         }
-
     }
 
     private List<String> formatValue(String toFormat) {
@@ -194,7 +194,6 @@ public class UpdatePropertiesFileMojo extends AbstractMojo {
             }
             newValues.add(line.toString());
         }
-
         return newValues;
     }
 
