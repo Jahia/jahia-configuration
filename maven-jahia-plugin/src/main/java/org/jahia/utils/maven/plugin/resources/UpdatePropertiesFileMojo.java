@@ -79,11 +79,11 @@ public class UpdatePropertiesFileMojo extends AbstractMojo {
     protected File dest;
 
     /**
-     * If set to <code>true</code> the multiline value will be formatted.
+     * If set to <code>true</code> the multivalue entries will be formatted into multiline.
      *
      * @parameter
      */
-    protected boolean formatMultilineValue;
+    protected boolean formatMultiValues;
 
     /**
      * The key for the entry in the properties file.
@@ -122,7 +122,7 @@ public class UpdatePropertiesFileMojo extends AbstractMojo {
     protected String value;
 
     /**
-     * Value separator in case the value will be appended.
+     * Value separator.
      *
      * @parameter
      */
@@ -142,13 +142,11 @@ public class UpdatePropertiesFileMojo extends AbstractMojo {
             Properties p = new Properties(substitute);
             p.load(src);
             String existingValue = p.getProperty(key);
-            boolean modified = true;
             if (value == null) {
                 if (existingValue != null) {
                     getLog().info("Removing entry with the key " + key);
                     p.remove(key);
                 } else {
-                    modified = false;
                     getLog().info("No entry with the key " + key + " exist. No modification will be done.");
                 }
             } else {
@@ -165,11 +163,9 @@ public class UpdatePropertiesFileMojo extends AbstractMojo {
                     }
                 }
             }
-            if (modified) {
-                File target = dest != null ? dest : src;
-                getLog().info("Storing updated properties into file: " + target);
-                p.save(target);
-            }
+            File target = dest != null ? dest : src;
+            getLog().info("Storing updated properties into file: " + target);
+            p.save(target);
         } catch (IOException e) {
             getLog().error(e.getMessage(), e);
             throw new MojoExecutionException(e.getMessage(), e);
@@ -198,10 +194,10 @@ public class UpdatePropertiesFileMojo extends AbstractMojo {
     }
 
     private void setValue(Properties p, String targetValue) {
-        if (formatMultilineValue) {
+        if (formatMultiValues) {
             p.put(key, p.getComments(key), formatValue(targetValue));
         } else {
-            p.setProperty(key, targetValue);
+            p.put(key, p.getComments(key), targetValue);
         }
     }
 }
