@@ -111,7 +111,8 @@ public class DeployMojo extends AbstractManagementMojo {
             "org.jahia.bundles.url.jahiawar", "org.jahia.bundles.extender.jahiamodules",
             "org.jahia.bundles.blueprint.extender.config", "org.jahia.bundles.http.bridge",
             "org.jahia.bundles.webconsole.config", "org.jahia.bundles.jspapiusage.repackaging",
-            "org.jahia.bundles.configadmin.persistence"));
+            "org.jahia.bundles.configadmin.persistence",
+            "org.jahia.bundles.clustering", "org.jahia.bundles.clustering.enabler", "org.jahia.bundles.hazelcast.discovery"));
 
 	private static final Set<String> JAHIA_PACKAGE_PROJECTS = new HashSet<String>(
 			Arrays.asList("jahia-data", "jahia-core-modules",
