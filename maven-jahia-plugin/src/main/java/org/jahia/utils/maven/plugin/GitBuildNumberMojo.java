@@ -32,6 +32,16 @@ public class GitBuildNumberMojo extends AbstractMojo {
     protected MavenProject project;
 
     /**
+     * @parameter expression="${maven.buildNumber.allBranches}" default-value="false"
+     */
+    protected boolean allBranches = false;
+
+    /**
+     * @parameter expression="${maven.buildNumber.baseBuildNumber}" default-value="0"
+     */
+    protected int baseBuildNumber = 0;
+
+    /**
      * You can rename the buildNumber property name to another property name if desired.
      *
      * @parameter expression="${maven.buildNumber.buildNumberPropertyName}" default-value="buildNumber"
@@ -51,30 +61,88 @@ public class GitBuildNumberMojo extends AbstractMojo {
         CommandLineUtils.StringStreamConsumer stderr = new CommandLineUtils.StringStreamConsumer();
 
         Commandline cli = GitCommandLineUtils.getBaseGitCommandLine(scmFileSet.getBasedir(), "rev-list");
-        cli.createArg().setValue("HEAD");
+        if (allBranches) {
+            cli.createArg().setValue("--all");
+
+            String currentRevision = getCurrentRevision(logger, stderr, scmFileSet.getBasedir());
+            consumer.setStartCountFrom(currentRevision);
+        } else {
+            cli.createArg().setValue("HEAD");
+        }
 
         try {
             int exitCode = GitCommandLineUtils.execute(cli, consumer, stderr, logger);
             if (exitCode == 0) {
-                String currentBranch = GitBranchCommand.getCurrentBranch(logger, null, scmFileSet);
-                String revision = currentBranch + "-" + consumer.getCount();
-                project.getProperties().put( buildNumberPropertyName, revision );
+                if (allBranches) {
+                    String revision = Integer.toString(consumer.getCount() + baseBuildNumber);
+                    project.getProperties().put(buildNumberPropertyName, revision);
+                } else {
+                    String currentBranch = GitBranchCommand.getCurrentBranch(logger, null, scmFileSet);
+                    String revision = currentBranch + "-" + (consumer.getCount() + baseBuildNumber);
+                    project.getProperties().put(buildNumberPropertyName, revision);
+                }
             }
         } catch (ScmException e) {
-            logger.error(e.getMessage(), e);
+            throw new MojoExecutionException(e.getMessage(), e);
+        }
+    }
+
+    private String getCurrentRevision(ScmLogger logger, CommandLineUtils.StringStreamConsumer stderr, File basedir) throws MojoExecutionException {
+        try {
+            Commandline cli = GitCommandLineUtils.getBaseGitCommandLine(basedir, "rev-parse");
+            cli.createArg().setValue("HEAD");
+            LineConsumer lineConsumer = new LineConsumer(logger);
+            int exitCode = GitCommandLineUtils.execute(cli, lineConsumer, stderr, logger);
+            if (exitCode == 0) {
+                return lineConsumer.getResult();
+            }
+        } catch (ScmException e) {
+            throw new MojoExecutionException(e.getMessage(), e);
+        }
+        throw new MojoExecutionException("Cannot get current revision");
+    }
+
+    private static class LineConsumer extends AbstractConsumer {
+        private String result;
+
+        public LineConsumer(ScmLogger logger) {
+            super(logger);
+        }
+
+        @Override
+        public void consumeLine(String s) {
+            result = s;
+        }
+
+        public String getResult() {
+            return result;
         }
     }
 
     private static class RevisionCountConsumer extends AbstractConsumer {
         private int count;
+        private String startCountFrom;
 
         public RevisionCountConsumer(ScmLogger logger) {
             super(logger);
             count = 0;
+            startCountFrom = null;
+        }
+
+        public void setStartCountFrom(String startCountFrom) {
+            this.startCountFrom = startCountFrom;
         }
 
         @Override
         public void consumeLine(String s) {
+            if (startCountFrom != null) {
+                if (!s.equals(startCountFrom)) {
+                    return;
+                } else {
+                    startCountFrom = null;
+                }
+            }
+
             count ++;
         }
 
