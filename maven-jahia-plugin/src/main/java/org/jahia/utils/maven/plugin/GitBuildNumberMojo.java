@@ -99,7 +99,7 @@ public class GitBuildNumberMojo extends AbstractMojo {
         } catch (ScmException e) {
             throw new MojoExecutionException(e.getMessage(), e);
         }
-        throw new MojoExecutionException("Cannot get current revision");
+        return null;
     }
 
     private static class LineConsumer extends AbstractConsumer {
