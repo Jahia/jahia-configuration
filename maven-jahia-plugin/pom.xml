@@ -62,12 +62,6 @@
 		<maven.plugin.plugin.version>2.9</maven.plugin.plugin.version>
 	</properties>
 
-	<scm>
-		<connection>scm:svn:https://devtools.jahia.com/svn/maven-jahia-plugin/trunk/maven-jahia-plugin</connection>
-		<developerConnection>scm:svn:https://devtools.jahia.com/svn/maven-jahia-plugin/trunk/maven-jahia-plugin</developerConnection>
-		<url>https://devtools.jahia.com/svn/maven-jahia-plugin/trunk/maven-jahia-plugin</url>
-	</scm>
-	
 	<description>Jahia Maven plugin</description>
   
 	<repositories>
