@@ -15,6 +15,7 @@ import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Creates a build number from number of git revisions
@@ -30,6 +31,14 @@ public class GitBuildNumberMojo extends AbstractMojo {
      * @required
      */
     protected MavenProject project;
+
+    /**
+     * Contains the full list of projects in the reactor.
+     * @parameter default-value="${reactorProjects}"
+     * @readonly
+     * @required
+     */
+    private List<MavenProject> reactorProjects;
 
     /**
      * @parameter expression="${maven.buildNumber.allBranches}" default-value="false"
@@ -54,12 +63,23 @@ public class GitBuildNumberMojo extends AbstractMojo {
     private String buildNumberPropertyName;
 
     /**
+     * If set to true, will get the scm revision once for all modules of a multi-module project instead of fetching once
+     * for each module.
+     *
+     * @parameter expression="${maven.buildNumber.getRevisionOnlyOnce}" default-value="false"
+     */
+    private boolean getRevisionOnlyOnce;
+
+    /**
      * @parameter expression="${maven.buildNumber.scmDirectory}" default-value="${basedir}"
      */
     protected File scmDirectory;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        if (project.getProperties().get("maven.gitBuildNumber.alreadySet") != null) {
+            return;
+        }
         ScmLogger logger = new DefaultLog();
         ScmFileSet scmFileSet = new ScmFileSet(scmDirectory);
         RevisionCountConsumer consumer = new RevisionCountConsumer(logger);
@@ -90,6 +110,14 @@ public class GitBuildNumberMojo extends AbstractMojo {
                 }
                 getLog().info("Setting build number property " + buildNumberPropertyName + " to revision " + revision);
                 project.getProperties().put(buildNumberPropertyName, revision);
+
+                if (getRevisionOnlyOnce && reactorProjects != null) {
+                    for (MavenProject mavenProject : reactorProjects) {
+                        mavenProject.getProperties().put( this.buildNumberPropertyName, revision );
+                        mavenProject.getProperties().put( "maven.gitBuildNumber.alreadySet", true );
+                    }
+                }
+
             }
         } catch (ScmException e) {
             throw new MojoExecutionException(e.getMessage(), e);
