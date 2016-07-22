@@ -114,7 +114,7 @@ public class GitBuildNumberMojo extends AbstractMojo {
                 if (getRevisionOnlyOnce && reactorProjects != null) {
                     for (MavenProject mavenProject : reactorProjects) {
                         mavenProject.getProperties().put( this.buildNumberPropertyName, revision );
-                        mavenProject.getProperties().put( "maven.gitBuildNumber.alreadySet", true );
+                        mavenProject.getProperties().put( "maven.gitBuildNumber.alreadySet", "true" );
                     }
                 }
 
