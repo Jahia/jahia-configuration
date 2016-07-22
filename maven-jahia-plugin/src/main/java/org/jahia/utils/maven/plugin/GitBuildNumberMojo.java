@@ -42,6 +42,11 @@ public class GitBuildNumberMojo extends AbstractMojo {
     protected int baseBuildNumber = 0;
 
     /**
+     * @parameter expression="${maven.buildNumber.baseGitRevision}" default-value=""
+     */
+    protected String baseGitRevision = "";
+
+    /**
      * You can rename the buildNumber property name to another property name if desired.
      *
      * @parameter expression="${maven.buildNumber.buildNumberPropertyName}" default-value="buildNumber"
@@ -66,6 +71,9 @@ public class GitBuildNumberMojo extends AbstractMojo {
 
             String currentRevision = getCurrentRevision(logger, stderr, scmFileSet.getBasedir());
             consumer.setStartCountFrom(currentRevision);
+            if (baseGitRevision != null && !"".equals(baseGitRevision)) {
+                consumer.setStopCountAt(baseGitRevision);
+            }
         } else {
             cli.createArg().setValue("HEAD");
         }
@@ -123,15 +131,21 @@ public class GitBuildNumberMojo extends AbstractMojo {
     private static class RevisionCountConsumer extends AbstractConsumer {
         private int count;
         private String startCountFrom;
+        private String stopCountAt;
 
         public RevisionCountConsumer(ScmLogger logger) {
             super(logger);
             count = 0;
             startCountFrom = null;
+            stopCountAt = null;
         }
 
         public void setStartCountFrom(String startCountFrom) {
             this.startCountFrom = startCountFrom;
+        }
+
+        public void setStopCountAt(String stopCountAt) {
+            this.stopCountAt = stopCountAt;
         }
 
         @Override
@@ -143,7 +157,12 @@ public class GitBuildNumberMojo extends AbstractMojo {
                     startCountFrom = null;
                 }
             }
-
+            if (stopCountAt != null) {
+                if (s.equals(stopCountAt) || "stopped".equals(stopCountAt)) {
+                    stopCountAt = "stopped";
+                    return;
+                }
+            }
             count ++;
         }
 
