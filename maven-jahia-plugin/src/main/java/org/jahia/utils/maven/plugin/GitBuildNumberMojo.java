@@ -73,14 +73,15 @@ public class GitBuildNumberMojo extends AbstractMojo {
         try {
             int exitCode = GitCommandLineUtils.execute(cli, consumer, stderr, logger);
             if (exitCode == 0) {
+                String revision = null;
                 if (allBranches) {
-                    String revision = Integer.toString(consumer.getCount() + baseBuildNumber);
-                    project.getProperties().put(buildNumberPropertyName, revision);
+                    revision = Integer.toString(consumer.getCount() + baseBuildNumber);
                 } else {
                     String currentBranch = GitBranchCommand.getCurrentBranch(logger, null, scmFileSet);
-                    String revision = currentBranch + "-" + (consumer.getCount() + baseBuildNumber);
-                    project.getProperties().put(buildNumberPropertyName, revision);
+                    revision = currentBranch + "-" + (consumer.getCount() + baseBuildNumber);
                 }
+                getLog().info("Setting build number property " + buildNumberPropertyName + " to revision " + revision);
+                project.getProperties().put(buildNumberPropertyName, revision);
             }
         } catch (ScmException e) {
             throw new MojoExecutionException(e.getMessage(), e);
