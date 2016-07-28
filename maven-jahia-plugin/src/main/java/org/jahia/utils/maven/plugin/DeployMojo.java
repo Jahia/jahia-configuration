@@ -255,7 +255,7 @@ public class DeployMojo extends AbstractManagementMojo {
                 FileUtils.copyFileToDirectory(srcFile, destDir);
                 getLog().info("Copied " + srcFile + " to " + destDir);
                 if (karafDeployment) {
-                    forceKarafFeatureInstall("dx-core", project.getVersion());
+                    copyToKarafDeploy(srcFile);
                 } else {
                     removeCachedBundle(fileName, new File(getDataDir(), "bundles-deployed"));
                 }
@@ -280,12 +280,10 @@ public class DeployMojo extends AbstractManagementMojo {
         }
     }
 
-    private void forceKarafFeatureInstall(String featureArtifactId, String version) throws IOException {
+    private void copyToKarafDeploy(File srcFile) throws IOException {
         File deployDir = new File(getDataDir(), "karaf/deploy");
-        File srcFile = new File(getWebappDeploymentDir(), "WEB-INF/karaf/system/org/jahia/features/" + featureArtifactId
-                + "/" + version + "/" + featureArtifactId + "-" + version + "-features.xml");
         getLog().info(
-                "Copying features file " + srcFile.getCanonicalPath() + " into folder " + deployDir.getCanonicalPath());
+                "Copying file " + srcFile.getCanonicalPath() + " into folder " + deployDir.getCanonicalPath());
         FileUtils.copyFileToDirectory(srcFile, deployDir, false);
         getLog().info("...done");
     }
