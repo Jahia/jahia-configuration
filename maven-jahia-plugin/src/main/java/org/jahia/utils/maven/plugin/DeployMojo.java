@@ -485,10 +485,11 @@ public class DeployMojo extends AbstractManagementMojo {
             File libDir = new File(new File(getWebappDeploymentDir(), "WEB-INF"), "lib");
             getLog().info("Deploying jar file "+artifact.getFile().getName() + " to "+ libDir);
             File deployedJar = new File(libDir, artifact.getFile().getName());
-            if (deployedJar.exists()) {
+            boolean needHotSwap = deployedJar.exists(); 
+            FileUtils.copyFileToDirectory(artifact.getFile(), libDir);
+            if (needHotSwap) {
                 hotSwap(deployedJar);
             }
-            FileUtils.copyFileToDirectory(artifact.getFile(), libDir);
         } catch (Exception e) {
             getLog().error("Error while deploying JAR project", e);
         }
