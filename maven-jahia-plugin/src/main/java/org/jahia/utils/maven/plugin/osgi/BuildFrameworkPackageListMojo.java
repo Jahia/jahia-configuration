@@ -55,7 +55,6 @@ import org.jahia.utils.maven.plugin.SLF4JLoggerToMojoLogBridge;
 import org.jahia.utils.osgi.ManifestValueClause;
 import org.jahia.utils.osgi.ManifestValueParser;
 import org.jahia.utils.osgi.PropertyFileUtils;
-import org.osgi.framework.BundleException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -85,7 +84,7 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
 
     public static final String VERSION_NUMBER_PATTERN_STRING = "([\\d\\.]*\\d)(.*)";
     //private static final Pattern VERSION_NUMBER_PATTERN = Pattern.compile(VERSION_NUMBER_PATTERN_STRING);
-
+    
     /**
      * Clean up version parameters. Other builders use more fuzzy definitions of
      * the version syntax. This method cleans up such a version to match an OSGi
@@ -229,7 +228,7 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
 
         buildPackageExcludes();
 
-        Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts = new TreeMap<String, Map<String, Map<String,VersionLocation>>>();
+        Map<String, Map<String, VersionLocation>> packageVersionCounts = new TreeMap<String, Map<String, VersionLocation>>();
         Map<String, Set<String>> packageVersions = new TreeMap<String, Set<String>>();
         String generatedPackageList = null;
 
@@ -398,7 +397,7 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         return false;
     }
 
-    private void scanExistingExports(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts) {
+    private void scanExistingExports(Map<String, Map<String, VersionLocation>> packageVersionCounts) {
         if (!propertiesInputFile.exists()) {
             return;
         }
@@ -432,7 +431,7 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         }
     }
 
-    private void scanExistingManifest(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts) throws IOException, Exception {
+    private void scanExistingManifest(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException, Exception {
         FileInputStream in = null;
         try {
             if (inputManifestFile.exists()) {
@@ -471,41 +470,54 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         }
     }
 
-    private void resolveSplitPackages(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts, Map<String, Set<String>> packageVersions) {
-        for (Map.Entry<String, Map<String, Map<String,VersionLocation>>> resolvedPackageVersion : packageVersionCounts.entrySet()) {
+    private void resolveSplitPackages(Map<String, Map<String, VersionLocation>> packageVersionCounts, Map<String, Set<String>> packageVersions) {
+        for (Map.Entry<String, Map<String, VersionLocation>> resolvedPackageVersion : packageVersionCounts.entrySet()) {
+            VersionLocation highestVersionLocation = null;
             boolean allVersionsEqual = true;
-            Set<String> previousVersions = null;
-            for (Map.Entry<String, Map<String,VersionLocation>> versionLocationEntry : resolvedPackageVersion.getValue().entrySet()) {
-                if (previousVersions != null && !previousVersions.equals(versionLocationEntry.getValue().keySet())) {
+            String previousVersion = null;
+            for (Map.Entry<String, VersionLocation> versionLocationEntry : resolvedPackageVersion.getValue().entrySet()) {
+                if (previousVersion != null && !previousVersion.equals(versionLocationEntry.getValue().getVersion())) {
                     allVersionsEqual = false;
                     break;
                 }
-                previousVersions = versionLocationEntry.getValue().keySet();
+                previousVersion = versionLocationEntry.getValue().getVersion();
             }
             if (resolvedPackageVersion.getValue().size() > 1 && !allVersionsEqual) {
                 getLog().warn("Split-package with different versions detected for package " + resolvedPackageVersion.getKey() + ":");
             }
             Set<String> versions = new HashSet<String>();
-            for (Map.Entry<String, Map<String,VersionLocation>> versionLocationEntry : resolvedPackageVersion.getValue().entrySet()) {
+            for (Map.Entry<String, VersionLocation> versionLocationEntry : resolvedPackageVersion.getValue().entrySet()) {
                 if (resolvedPackageVersion.getValue().size() > 1 && !allVersionsEqual) {
-                    for (Map.Entry<String,VersionLocation> versionLocationsEntry : versionLocationEntry.getValue().entrySet()) {
-                        getLog().warn("  - " + versionLocationEntry.getKey() + " v" + versionLocationsEntry.getValue().getVersion() + " count=" + versionLocationsEntry.getValue().getCounter() + " Specification-Version=" + versionLocationsEntry.getValue().getSpecificationVersion());
-                    }
+                    getLog().warn("  - " + versionLocationEntry.getKey() + " v" + versionLocationEntry.getValue().getVersion() + " count=" + versionLocationEntry.getValue().getCounter() + " Specification-Version=" + versionLocationEntry.getValue().getSpecificationVersion());
                 }
                 if (versionLocationEntry.getValue() == null) {
                     continue;
                 }
-                for (String version : versionLocationEntry.getValue().keySet()) {
-                    if (!versions.contains(version)) {
-                        versions.add(version);
+                if (highestVersionLocation == null) {
+                    highestVersionLocation = versionLocationEntry.getValue();
+                } else {
+                    if (highestVersionLocation.getCounter() < versionLocationEntry.getValue().getCounter()) {
+                        highestVersionLocation = versionLocationEntry.getValue();
                     }
                 }
+                if (!versions.contains(versionLocationEntry.getValue().getVersion())) {
+                    versions.add(versionLocationEntry.getValue().getVersion());
+                }
             }
-            packageVersions.put(resolvedPackageVersion.getKey(), versions);
+            if (exportEachPackageOnce) {
+                versions.clear();
+                versions.add(highestVersionLocation.getVersion());
+                packageVersions.put(resolvedPackageVersion.getKey(), versions);
+                if (resolvedPackageVersion.getValue().size() > 1 && !allVersionsEqual) {
+                    getLog().warn("--> " + resolvedPackageVersion.getKey() + " v" + highestVersionLocation.getVersion());
+                }
+            } else {
+                packageVersions.put(resolvedPackageVersion.getKey(), versions);
+            }
         }
     }
 
-    private void scanClassesBuildDirectory(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts) throws IOException {
+    private void scanClassesBuildDirectory(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException {
         File outputDirectoryFile = new File(project.getBuild().getOutputDirectory());
         getLog().info("Scanning project build directory " + outputDirectoryFile.getCanonicalPath());
         DirectoryScanner ds = new DirectoryScanner();
@@ -534,7 +546,7 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         }
     }
 
-    private void scanDependencies(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts) throws IOException {
+    private void scanDependencies(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException {
         getLog().info("Scanning project dependencies...");
         for (Artifact artifact : project.getArtifacts()) {
             String exclusionMatched = null;
@@ -563,7 +575,7 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         }
     }
 
-    private void scanJar(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts, File jarFile, String defaultVersion) throws IOException {
+    private void scanJar(Map<String, Map<String, VersionLocation>> packageVersionCounts, File jarFile, String defaultVersion) throws IOException {
         JarInputStream jarInputStream = new JarInputStream(new FileInputStream(jarFile));
         Manifest jarManifest = jarInputStream.getManifest();
         // Map<String, String> manifestVersions = new HashMap<String,String>();
@@ -581,22 +593,6 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
                         defaultVersion = specificationVersion;
                     } else {
                         defaultVersion = jarManifest.getMainAttributes().getValue("Implementation-Version");
-                    }
-                }
-                String exportPackageHeaderValue = jarManifest.getMainAttributes().getValue("Export-Package");
-                if (exportPackageHeaderValue != null) {
-                    ManifestElement[] manifestElements = new ManifestElement[0];
-                    try {
-                        manifestElements = ManifestElement.parseHeader("Export-Package", exportPackageHeaderValue);
-                    } catch (BundleException e) {
-                        getLog().warn("Error while parsing Export-Package header value for jar " + jarFile, e);
-                    }
-                    for (ManifestElement manifestElement : manifestElements) {
-                        String[] packageNames = manifestElement.getValueComponents();
-                        String version = manifestElement.getAttribute("version");
-                        for (String packageName : packageNames) {
-                            updateVersionLocationCounts(packageVersionCounts, jarFile.getCanonicalPath(), version, version, packageName);
-                        }
                     }
                 }
                 for (Map.Entry<String, Attributes> manifestEntries : jarManifest.getEntries().entrySet()) {
@@ -666,7 +662,7 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         jarInputStream.close();
     }
 
-    private void excludePackages(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts, String propertyFileExclusionPropertyName) throws IOException, MojoExecutionException {
+    private void excludePackages(Map<String, Map<String, VersionLocation>> packageVersionCounts, String propertyFileExclusionPropertyName) throws IOException, MojoExecutionException {
         if (!propertiesInputFile.exists()) {
             return;
         }
@@ -705,40 +701,34 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         }
     }
 
-    private void excludeSystemPackages(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts) throws IOException, MojoExecutionException {
+    private void excludeSystemPackages(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException, MojoExecutionException {
         excludePackages(packageVersionCounts, propertyFileSystemPackagesPropertyName);
     }
 
-    private void updateVersionLocationCounts(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts,
+    private void updateVersionLocationCounts(Map<String, Map<String, VersionLocation>> packageVersionCounts,
                                              String originLocation,
                                              String newVersion,
                                              String specificationVersion,
                                              String packageName) throws IOException {
         // first check if we've already processed this package
-        Map<String, Map<String,VersionLocation>> versionLocations = packageVersionCounts.get(packageName);
+        Map<String, VersionLocation> versionLocations = packageVersionCounts.get(packageName);
         if (versionLocations == null) {
-            versionLocations = new HashMap<String, Map<String,VersionLocation>>();
+            versionLocations = new HashMap<String, VersionLocation>();
         }
 
-        Map<String,VersionLocation> existingVersionLocations = versionLocations.get(originLocation);
-        if (existingVersionLocations != null && existingVersionLocations.containsKey(newVersion)) {
-            VersionLocation existingVersionLocation = existingVersionLocations.get(newVersion);
+        VersionLocation existingVersionLocation = versionLocations.get(originLocation);
+        if (existingVersionLocation != null) {
             existingVersionLocation.incrementCounter();
-            existingVersionLocations.put(newVersion, existingVersionLocation);
         } else {
-            if (existingVersionLocations == null) {
-                existingVersionLocations = new HashMap<String,VersionLocation>();
-            }
-            VersionLocation existingVersionLocation = new VersionLocation(originLocation, cleanupVersion(newVersion), specificationVersion);
+            existingVersionLocation = new VersionLocation(originLocation, cleanupVersion(newVersion), specificationVersion);
             existingVersionLocation.incrementCounter();
-            existingVersionLocations.put(newVersion, existingVersionLocation);
         }
-        versionLocations.put(originLocation, existingVersionLocations);
+        versionLocations.put(originLocation, existingVersionLocation);
 
         packageVersionCounts.put(packageName, versionLocations);
     }
 
-    private void scanJarDirectories(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts) throws IOException, MojoExecutionException {
+    private void scanJarDirectories(Map<String, Map<String, VersionLocation>> packageVersionCounts) throws IOException, MojoExecutionException {
         if (jarDirectories == null || jarDirectories.size() == 0) {
             return;
         }
