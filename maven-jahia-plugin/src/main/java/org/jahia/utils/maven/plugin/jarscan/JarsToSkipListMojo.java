@@ -105,6 +105,13 @@ public class JarsToSkipListMojo extends AbstractMojo {
     }
 
     /**
+     * Should we merge entries with the entries in the existing <code>dest</code> file?.
+     * 
+     * @parameter default-value="false"
+     */
+    protected boolean append;
+
+    /**
      * The file to output the list of JARs into.
      * 
      * @parameter default-value="${project.build.directory}/generated-resources/jar-scanner.conf"
@@ -146,6 +153,14 @@ public class JarsToSkipListMojo extends AbstractMojo {
             @SuppressWarnings("unchecked")
             List<String> skipByDefault = Arrays.asList(StringUtils.split(defaultJarsToSkip, ", "));
             toSkip.addAll(skipByDefault);
+        }
+
+        try {
+            if (append && dest.isFile()) {
+                toSkip.addAll(FileUtils.readLines(dest));
+            }
+        } catch (IOException e) {
+            getLog().error("Unable to read entries from existing file " + dest, e);
         }
 
         for (Artifact artifact : project.getArtifacts()) {
