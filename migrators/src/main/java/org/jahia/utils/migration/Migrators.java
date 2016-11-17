@@ -54,6 +54,10 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,6 +77,8 @@ public class Migrators {
             migrationsConfig = unmarshal(Migrations.class, migrationConfigInputStream);
         } catch (JAXBException e) {
             e.printStackTrace();
+        } catch (XMLStreamException e) {
+            e.printStackTrace();
         }
     }
 
@@ -80,10 +86,14 @@ public class Migrators {
         return instance;
     }
 
-    private <T> T unmarshal(Class<T> docClass, InputStream inputStream) throws JAXBException {
+    private <T> T unmarshal(Class<T> docClass, InputStream inputStream) throws JAXBException, XMLStreamException {
         JAXBContext jc = JAXBContext.newInstance(docClass);
         Unmarshaller u = jc.createUnmarshaller();
-        T doc = (T) u.unmarshal(inputStream);
+
+        XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(inputStream);        
+
+        T doc = (T) u.unmarshal(xmlStreamReader);
         return doc;
     }
 
