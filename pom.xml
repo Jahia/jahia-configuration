@@ -57,9 +57,9 @@
     <url>http://www.jahia.com</url>
 
     <scm>
-        <connection>scm:svn:https://devtools.jahia.com/svn/maven-jahia-plugin/tags/4.9</connection>
-        <developerConnection>scm:svn:https://devtools.jahia.com/svn/maven-jahia-plugin/tags/4.9</developerConnection>
-        <url>https://devtools.jahia.com/svn/maven-jahia-plugin/tags/4.9</url>
+        <connection>scm:git:git@github.com:Jahia/jahia-configuration.git</connection>
+        <url>scm:git:git@github.com:Jahia/jahia-configuration.git</url>
+        <developerConnection>scm:git:git@github.com:Jahia/jahia-configuration.git</developerConnection>
 		<tag>4_9_x</tag>
     </scm>
     
