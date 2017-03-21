@@ -6,7 +6,7 @@
 
                                     http://www.jahia.com
 
-        Copyright (C) 2002-2016 Jahia Solutions Group SA. All rights reserved.
+        Copyright (C) 2002-2017 Jahia Solutions Group SA. All rights reserved.
 
         THIS FILE IS AVAILABLE UNDER TWO DIFFERENT LICENSES:
         1/GPL OR 2/JSEL
@@ -27,7 +27,7 @@
         GNU General Public License for more details.
 
         You should have received a copy of the GNU General Public License
-        along with this program. If not, see <http://www.gnu.org/licenses />.
+        along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
         2/ JSEL - Commercial and Supported Versions of the program
@@ -67,6 +67,8 @@
         <!-- general encoding -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <jahia.license.header>header.txt</jahia.license.header>
+        <jahia.license.style>style.xml</jahia.license.style>
 	</properties>
     
     <modules>
@@ -223,4 +225,63 @@
 		</plugins>
 	</build>
 
+    <profiles>
+        <profile>
+            <id>license</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.mycila</groupId>
+                        <artifactId>license-maven-plugin</artifactId>
+                        <version>2.6</version>
+                        <configuration>
+                            <basedir>${basedir}</basedir>
+                            <header>${jahia.license.header}</header>
+                            <quiet>false</quiet>
+                            <failIfMissing>true</failIfMissing>
+                            <aggregate>true</aggregate>
+                            <includes>
+                                <include>src/**/*.java</include>
+                                <include>pom.xml</include>
+                                <!--
+                                <include>src/**/*.tag</include>
+                                <include>src/**/*.jsp</include>
+                                <include>src/**/*.jspf</include>
+                                <include>src/**/*.inc</include>
+                                <include>src/main/webapp/WEB-INF/web.xml</include>
+                                 -->
+                            </includes>
+                            <excludes>
+                                <exclude>src/main/java/name/fraser/**</exclude>
+                                <exclude>src/main/java/org/apache/catalina/**</exclude>
+                                <exclude>src/main/java/org/springframework/core/serializer/**</exclude>
+                            </excludes>
+                            <useDefaultExcludes>true</useDefaultExcludes>
+                            <mapping>
+                                <tag>DYNASCRIPT_STYLE</tag>
+                                <inc>DYNASCRIPT_STYLE</inc>
+                                <jspf>DYNASCRIPT_STYLE</jspf>
+                            </mapping>
+                            <useDefaultMapping>true</useDefaultMapping>
+                            <encoding>UTF-8</encoding>
+                            <headerDefinitions>
+                                <headerDefinition>${jahia.license.style}</headerDefinition>
+                            </headerDefinitions>
+                            <properties>
+                                <year>${year}</year>
+                            </properties>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>format</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
