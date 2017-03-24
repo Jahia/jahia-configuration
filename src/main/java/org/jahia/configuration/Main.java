@@ -55,7 +55,7 @@ public class Main {
     public static void main(String[] args) {
         AbstractLogger logger = new ConsoleLogger(ConsoleLogger.LEVEL_INFO);
         logger.info("\nDigital Experience Manager 7.2 Configuration Tool");
-        logger.info("Copyright 2002-2016 - Jahia Solutions Group SA http://www.jahia.com - All Rights Reserved\n");
+        logger.info("Copyright 2002-2017 - Jahia Solutions Group SA http://www.jahia.com - All Rights Reserved\n");
         if (args.length > 0) {
             if ((args[0].equals("--deploy-module") || args[0].equals("-dm")) && args.length > 2) {
                 try {
