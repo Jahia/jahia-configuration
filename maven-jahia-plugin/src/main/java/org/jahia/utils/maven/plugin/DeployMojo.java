@@ -519,7 +519,8 @@ public class DeployMojo extends AbstractManagementMojo {
 	                if (artifact.getGroupId().equals("org.jahia.server")) {
 	                    String artifactId = artifact.getArtifactId();
 						if ((artifactId.equals("jahia-war")
-								|| artifactId.equals("jahia-ee-war")) && !StringUtils.equals(artifact.getClassifier(), "data-package")) {
+								|| artifactId.equals("jahia-ee-war")
+								|| artifactId.equals("jahia-gwt") && artifact.getType().equals("war")) && !StringUtils.equals(artifact.getClassifier(), "data-package")) {
 	                        deployWarDependency(dependencyNode);
 						} else if (artifactId.equals("shared-libraries")
 	                            || artifactId.startsWith("jdbc-drivers")) {
@@ -672,12 +673,15 @@ public class DeployMojo extends AbstractManagementMojo {
 
         getLog().info(
                 "Deploying artifact " + artifact.getGroupId() + ":" + artifact.getArtifactId() + ":"
-                        + artifact.getVersion());
+                        + artifact.getVersion() + "(file: " + artifact.getFile() + ")");
         getLog().info("Updating " + artifact.getType() +
                 " resources for " + getDeployer().getName() +
                 " in directory " + webappDir);
         
         String[] excludes = getDeployer().getWarExcludes() != null ? StringUtils.split(getDeployer().getWarExcludes(), ",") : null;
+        
+        // if we are dealing with WAR overlay, we want to overwrite the target
+        boolean overwrite = StringUtils.isNotEmpty(artifact.getClassifier());
         
         try {
             ZipInputStream z = new ZipInputStream(
@@ -700,7 +704,7 @@ public class DeployMojo extends AbstractManagementMojo {
                     }
                     File target = new File(webappDir, entry
                             .getName());
-                    if (entry.getTime() > target.lastModified()) {
+                    if (overwrite || entry.getTime() > target.lastModified()) {
 
                         target.getParentFile().mkdirs();
                         FileOutputStream fileOutputStream = new FileOutputStream(
