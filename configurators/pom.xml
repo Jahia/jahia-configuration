@@ -134,12 +134,12 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.39</version>
+            <version>5.1.42</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>9.4.1211.jre7</version>
+            <version>42.1.1.jre7</version>
         </dependency>
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
@@ -160,12 +160,12 @@
         <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derbyclient</artifactId>
-            <version>10.12.1.1</version>
+            <version>10.13.1.1</version>
         </dependency>
         <dependency>
            <groupId>org.apache.derby</groupId>
            <artifactId>derby</artifactId>
-           <version>10.12.1.1</version>
+           <version>10.13.1.1</version>
         </dependency>        
 
         <dependency>
