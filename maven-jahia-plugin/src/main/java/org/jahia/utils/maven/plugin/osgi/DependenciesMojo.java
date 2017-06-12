@@ -449,9 +449,18 @@ public class DependenciesMojo extends BundlePlugin {
                     String jahiaDependsValue = originalInstructions.get("Jahia-Depends");
                     if (StringUtils.isNotEmpty(jahiaDependsValue)) {
                         String[] jahiaDependsArray = jahiaDependsValue.split(",");
+                        String skipRequireCapabilityValue = originalInstructions.get("Jahia-Depends-Skip-Require-Capability");
+                        Set<String> jahiaDependenciesToSkip = StringUtils.isNotEmpty(skipRequireCapabilityValue)
+                                ? new HashSet<String>(
+                                        Arrays.asList(StringUtils.split(skipRequireCapabilityValue, ", \n")))
+                                : Collections.<String> emptySet();
                         int counter = 0;
                         for (String jahiaDependsEntry : jahiaDependsArray) {
-                            jahiaDependsRequireCapabilities.append(OSGI_CAPABILITY_MODULE_DEPENDENCIES + "; filter:=\"(" + OSGI_CAPABILITY_MODULE_DEPENDENCIES_KEY + "=").append(jahiaDependsEntry.trim()).append(")\"");
+                            jahiaDependsEntry = jahiaDependsEntry.trim();
+                            if (jahiaDependsEntry.length() == 0 || jahiaDependenciesToSkip.contains(jahiaDependsEntry)) {
+                                continue;
+                            }
+                            jahiaDependsRequireCapabilities.append(OSGI_CAPABILITY_MODULE_DEPENDENCIES + "; filter:=\"(" + OSGI_CAPABILITY_MODULE_DEPENDENCIES_KEY + "=").append(jahiaDependsEntry).append(")\"");
                             if (counter < jahiaDependsArray.length - 1) {
                                 jahiaDependsRequireCapabilities.append(",");
                             }
