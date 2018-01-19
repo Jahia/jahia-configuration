@@ -88,14 +88,6 @@ public class ExternalToolsPanelAction implements PanelAction {
                         ffmpegExecutable.getAbsolutePath());
             }
         }
-        String pdf2swfPath = adata.getVariable("dmConfig.pdf2swfPath");
-        if (pdf2swfPath == null || pdf2swfPath.length() == 0) {
-            File swftoolsExecutable = getDefaultPDF2SWFExecutable();
-            if (swftoolsExecutable != null) {
-                adata.setVariable("dmConfig.pdf2swfPath",
-                        swftoolsExecutable.getAbsolutePath());
-            }
-        }
 
     }
 
@@ -180,28 +172,6 @@ public class ExternalToolsPanelAction implements PanelAction {
         } else {
             // Linux or other *nix variants
             return findToolHome(new String[] { "ffmpeg" }, null, true,
-                    "/usr/bin", "/usr/local/bin", "/usr/bin/X11", "/opt/local/bin");
-        }
-    }
-
-    public static File getDefaultPDF2SWFExecutable() {
-        if (System.getProperty("pdf2swf.executable") != null) {
-            return new File(System.getProperty("pdf2swf.executable"));
-        }
-        if (OsUtils.isWindows()) {
-            return findToolHome(new String[] { "pdf2swf.exe" },
-                    new FilenameFilter() {
-                        public boolean accept(File dir, String name) {
-                            return name.toLowerCase().startsWith("swftools");
-                        }
-                    }, true, System.getenv("ProgramFiles(x86)"),
-                    System.getenv("ProgramFiles"));
-        } else if (OsUtils.isMac()) {
-            return findToolHome(new String[] { "pdf2swf" }, null, true,
-                    "/opt/local/bin");
-        } else {
-            // Linux or other *nix variants
-            return findToolHome(new String[] { "pdf2swf" }, null, true,
                     "/usr/bin", "/usr/local/bin", "/usr/bin/X11", "/opt/local/bin");
         }
     }
