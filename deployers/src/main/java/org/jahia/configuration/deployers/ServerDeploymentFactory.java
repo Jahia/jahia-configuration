@@ -67,7 +67,7 @@ public final class ServerDeploymentFactory {
 
 		if (serverType.startsWith("tomcat")) {
 			deployer = new TomcatServerDeploymentImpl("tomcat",
-					"Apache Tomcat 8.x", targetServerDir);
+					"Apache Tomcat 9.x", targetServerDir);
 		} else if (serverType.startsWith("jboss")) {
 			deployer = new JBossServerDeploymentImpl("jboss",
 					"Red Hat JBoss EAP 6.x", targetServerDir);
