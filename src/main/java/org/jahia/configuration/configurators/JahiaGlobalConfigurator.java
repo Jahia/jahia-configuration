@@ -441,6 +441,7 @@ public class JahiaGlobalConfigurator {
 
         webappDir = getWebappDeploymentDir();
         String sourceWebappPath = webappDir.toString();
+        String databaseType = jahiaConfig.getDatabaseType();
 
         if (jahiaConfig.getCluster_activated().equals("true")) {
             getLogger().info(" Deploying in cluster for server in " + webappDir);
@@ -450,7 +451,7 @@ public class JahiaGlobalConfigurator {
         }
         
         String dbUrl = jahiaConfig.getDatabaseUrl();
-        boolean isEmbeddedDerby = jahiaConfig.getDatabaseType().equals("derby_embedded");
+        boolean isEmbeddedDerby = databaseType.equals("derby_embedded");
         if (isEmbeddedDerby) {
             if (jahiaConfig.getDatabaseUrl().contains("$context")) {
                 dbUrl = StringUtils.replace(dbUrl, "$context",
@@ -464,7 +465,7 @@ public class JahiaGlobalConfigurator {
 
         dbProps = new Properties();
         //database script always ends with a .script
-        databaseScript = new File(getDataDir(), "db/" + jahiaConfig.getDatabaseType() + ".script");
+        databaseScript = new File(getDataDir(), "db/" + databaseType + ".script");
         FileInputStream is = null;
         try {
             is = new FileInputStream(databaseScript);
@@ -495,20 +496,20 @@ public class JahiaGlobalConfigurator {
             copyLicense(existingLicense != null && existingLicense.length() > 0 ? existingLicense : sourceWebappPath
                     + "/WEB-INF/etc/config/licenses/license-free.xml", targetConfigPath + "/license.xml");
             if (jahiaConfig.getOverwritedb().equals("true")) {
-                getLogger().info("Creating database tables for " + jahiaConfig.getDatabaseType() + "...");
+                getLogger().info("Creating database tables for " + databaseType + "...");
                 getLogger().info("driver: " + dbProps.getProperty("jahia.database.driver"));
                 getLogger().info("url: " + jahiaConfig.getDatabaseUrl());
                 getLogger().info("user: " + jahiaConfig.getDatabaseUsername());
                 if (!databaseScript.exists()) {
                     getLogger().info("cannot find script in " + databaseScript.getPath());
-                    throw new Exception("Cannot find script for database " + jahiaConfig.getDatabaseType());
+                    throw new Exception("Cannot find script for database " + databaseType);
                 }
-                if (jahiaConfig.getDatabaseType().contains("derby") && !dbUrl.contains("create=true")) {
+                if (databaseType.contains("derby") && !dbUrl.contains("create=true")) {
                     dbUrl = dbUrl + ";create=true";
                 }
                 db.databaseOpen(dbProps.getProperty("jahia.database.driver"), dbUrl, jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
-                if (jahiaConfig.getDatabaseType().equals("mysql")) {
-                    getLogger().info("database is mysql trying to drop it and create a new one");
+                if (databaseType.equals("mysql") || databaseType.equals("mariadb")) {
+                    getLogger().info("database is " + databaseType + " trying to drop it and create a new one");
                     cleanDatabase();
                     //you have to reopen the database connection as before you just dropped the database
                     db.databaseOpen(dbProps.getProperty("jahia.database.driver"), jahiaConfig.getDatabaseUrl(), jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
