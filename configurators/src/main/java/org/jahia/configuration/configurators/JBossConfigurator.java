@@ -93,6 +93,7 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
 
         EXCEPTION_SORTERS.put("derby", "org.jboss.jca.adapters.jdbc.extensions.novendor.NullExceptionSorter");
         EXCEPTION_SORTERS.put("derby_embedded", "org.jboss.jca.adapters.jdbc.extensions.novendor.NullExceptionSorter");
+        EXCEPTION_SORTERS.put("mariadb", "org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLExceptionSorter");
         EXCEPTION_SORTERS.put("mssql", "org.jboss.jca.adapters.jdbc.extensions.mssql.MSSQLValidConnectionChecker");
         EXCEPTION_SORTERS.put("mysql", "org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLExceptionSorter");
         EXCEPTION_SORTERS.put("oracle", "org.jboss.jca.adapters.jdbc.extensions.oracle.OracleExceptionSorter");
