@@ -72,6 +72,7 @@ final class DriverDeploymentHelper {
         DBMS_TYPES.put("postgresql", "postgresql");
         DBMS_TYPES.put("sqljdbc4", "mssql");
         DBMS_TYPES.put("sqljdbc41", "mssql");
+        DBMS_TYPES.put("mssql", "mssql");
     }
 
     public static boolean deploy(File targetServerDirectory, File driverJar) throws IOException {
