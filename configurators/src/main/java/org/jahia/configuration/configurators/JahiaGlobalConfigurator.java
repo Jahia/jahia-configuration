@@ -215,11 +215,9 @@ public class JahiaGlobalConfigurator {
 
     private void cleanDatabase() {
         //if it is a mysql, try to drop the database and create a new one  your user must have full rights on this database
-        int begindatabasename = jahiaConfig.getDatabaseUrl().indexOf("/", 13);
-        int enddatabaseName = jahiaConfig.getDatabaseUrl().indexOf("?", begindatabasename);
-        String databaseName = "`" + jahiaConfig.getDatabaseUrl().substring(begindatabasename + 1, enddatabaseName) + "`";  //because of the last '/' we added +1
+        URI dbURI = URI.create(jahiaConfig.getDatabaseUrl().substring(5)); // strip "jdbc:"
+        String databaseName = dbURI.getPath().substring(1); // strip starting "/"
         try {
-
             db.query("drop  database if exists " + databaseName);
             db.query("create database " + databaseName);
             db.query("alter database " + databaseName + " charset utf8");
