@@ -58,6 +58,11 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+
 import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
 
 /**
@@ -68,10 +73,17 @@ import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
  * @author Sergiy Shyrkov
  */
 public class Properties2JsonMojo extends AbstractMojo {
-
-    protected static String toJson(File src) throws FileNotFoundException, IOException {
+    
+    protected static String toJson(File src, boolean prettyPrinting) throws FileNotFoundException, IOException {
         try (FileInputStream is = new FileInputStream(src)) {
-            return new PropertiesToJsonConverter().convertToJson(is);
+            String json = new PropertiesToJsonConverter().convertToJson(is);
+            if (!prettyPrinting) {
+                Gson gson = new GsonBuilder().serializeNulls().create();
+                JsonParser jp = new JsonParser();
+                JsonElement je = jp.parse(json);
+                json = gson.toJson(je);
+            }
+            return json;
         }
     }
 
@@ -81,6 +93,13 @@ public class Properties2JsonMojo extends AbstractMojo {
      * @parameter default-value="true"
      */
     protected boolean addToProjectResources;
+
+    /**
+     * Should result JSON be prettified?
+     * 
+     * @parameter default-value="false"
+     */
+    protected boolean prettyPrinting;
 
     /**
      * The directory to output file to
@@ -132,7 +151,7 @@ public class Properties2JsonMojo extends AbstractMojo {
         for (String f : ds.getIncludedFiles()) {
             File file = new File(src, f);
             try {
-                String json = toJson(file);
+                String json = toJson(file, prettyPrinting);
                 File outputFile = getOutputFile(f);
                 FileUtils.writeStringToFile(outputFile, json);
                 getLog().info("Converted file " + file + " into " + outputFile); 
