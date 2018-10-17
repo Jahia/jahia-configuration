@@ -43,13 +43,8 @@
  */
 package org.jahia.configuration.configurators;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -267,6 +262,41 @@ public class DatabaseConnection {
         theConnection = DriverManager.getConnection(url, username, password);
         theStatement = theConnection.createStatement();
     } // end databaseOpen
+
+    /**
+     * Sometimes JDBC drivers are able to handle multiple protocols,
+     * For example mariadb driver is able to handle "jdbc:mysql://.." urls
+     * In that case the DriverManager will take the first driver able to handle this urls, so it can be mariadb driver or mysql
+     * Even Mysql is now providing 2 different drivers in is own connector, one for MySQL Fabric and one  for MySQL.
+     * To avoid such conflict this function will deregister unwanted drivers from DriverManager to only keep the wanted driver at the end.
+     *
+     * @param driverClass the wanted driver class
+     * @throws SQLException
+     */
+    public void resolveJDBCDriver(String driverClass) throws SQLException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+        Enumeration<Driver> drivers = DriverManager.getDrivers();
+
+        while (drivers.hasMoreElements()) {
+            Driver driver = drivers.nextElement();
+            if (!driver.getClass().getName().equals(driverClass)) {
+                DriverManager.deregisterDriver(driver);
+            }
+        }
+
+        // try to load driver
+        if (!DriverManager.getDrivers().hasMoreElements()) {
+            Class.forName(driverClass);
+        }
+
+        // last try to load driver (Embedded derby is in this case)
+        if (!DriverManager.getDrivers().hasMoreElements()) {
+            DriverManager.registerDriver((Driver) Class.forName(driverClass).newInstance());
+        }
+
+        if (!DriverManager.getDrivers().hasMoreElements()) {
+            throw new RuntimeException("Unable to resolve JDBC driver: [" + driverClass + "]");
+        }
+    }
 
     /**
      * Execute a SQL query. Be careful, this method don't return an ResultSet.
