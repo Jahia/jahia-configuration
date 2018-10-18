@@ -47,6 +47,9 @@ import java.sql.*;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
+
+import org.jahia.configuration.logging.AbstractLogger;
 
 /**
  * desc:  It's a class used only by JahiaInstallation and
@@ -67,13 +70,11 @@ public class DatabaseConnection {
 
     private Statement theStatement;
     private Connection theConnection;
+    private AbstractLogger logger;
 
-    /**
-     * Default constructor.
-     */
-    public DatabaseConnection () {
-        // do nothing :o)
-    } // end constructor
+    public DatabaseConnection(AbstractLogger logger) {
+        this.logger = logger;
+    }
 
     /**
      * Test a database connection, using settings defined by the user via
@@ -257,45 +258,58 @@ public class DatabaseConnection {
         // always close a possibly old connection before open a new...
         databaseClose();
 
-        // try to open a database connection...
-        Class.forName(driver);
-        theConnection = DriverManager.getConnection(url, username, password);
+        Driver driverInstance = getMatchingDriver(driver);
+        if (driverInstance != null) {
+            theConnection = driverInstance.connect(url, getDriverProperties(username, password));
+        } else {
+            logger.info("Driver instance is not found. Will rely on DriverManager.getConnection()");
+            // try to open a database connection...
+            theConnection = DriverManager.getConnection(url, username, password);
+        }
         theStatement = theConnection.createStatement();
     } // end databaseOpen
 
-    /**
-     * Sometimes JDBC drivers are able to handle multiple protocols,
-     * For example mariadb driver is able to handle "jdbc:mysql://.." urls
-     * In that case the DriverManager will take the first driver able to handle this urls, so it can be mariadb driver or mysql
-     * Even Mysql is now providing 2 different drivers in is own connector, one for MySQL Fabric and one  for MySQL.
-     * To avoid such conflict this function will deregister unwanted drivers from DriverManager to only keep the wanted driver at the end.
-     *
-     * @param driverClass the wanted driver class
-     * @throws SQLException
-     */
-    public void resolveJDBCDriver(String driverClass) throws SQLException, ClassNotFoundException, IllegalAccessException, InstantiationException {
-        Enumeration<Driver> drivers = DriverManager.getDrivers();
+    protected Properties getDriverProperties(String username, String password) {
+        Properties info = new Properties();
+        if (username != null) {
+            info.put("user", username);
+        }
+        if (password != null) {
+            info.put("password", password);
+        }
+        return info;
+    }
 
-        while (drivers.hasMoreElements()) {
-            Driver driver = drivers.nextElement();
-            if (!driver.getClass().getName().equals(driverClass)) {
-                DriverManager.deregisterDriver(driver);
+    /**
+     * Retrieves the driver for the specified class name. FIrst tries to instantiate the specified class. If fails, look through the
+     * drivers, registered in DriverManager.
+     * 
+     * @param driverClass
+     *            the class name of the driver to look for
+     * @return the matching driver instance or <code>null</code> if the driver cannot be found directly for the specified class
+     */
+    protected Driver getMatchingDriver(String driverClass) {
+        logger.info("Looking up driver for class " + driverClass);
+        try {
+            Driver driver = (Driver) Class.forName(driverClass).newInstance();
+            logger.info("Driver " + driverClass + " instantiated directly");
+            return driver;
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            logger.info("Driver " + driverClass
+                    + " cannot be instantiated directly. Will look it up through DriverManager.");
+
+            Enumeration<Driver> drivers = DriverManager.getDrivers();
+
+            while (drivers.hasMoreElements()) {
+                Driver driver = drivers.nextElement();
+                if (driver.getClass().getName().equals(driverClass)) {
+                    logger.info("Found matching driver for class " + driverClass + " via DriverManager");
+                    return driver;
+                }
             }
         }
 
-        // try to load driver
-        if (!DriverManager.getDrivers().hasMoreElements()) {
-            Class.forName(driverClass);
-        }
-
-        // last try to load driver (Embedded derby is in this case)
-        if (!DriverManager.getDrivers().hasMoreElements()) {
-            DriverManager.registerDriver((Driver) Class.forName(driverClass).newInstance());
-        }
-
-        if (!DriverManager.getDrivers().hasMoreElements()) {
-            throw new RuntimeException("Unable to resolve JDBC driver: [" + driverClass + "]");
-        }
+        return null;
     }
 
     /**

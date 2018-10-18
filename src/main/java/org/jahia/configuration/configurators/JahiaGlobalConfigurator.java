@@ -197,7 +197,7 @@ public class JahiaGlobalConfigurator {
             externalizedConfigTempPath = jahiaConfigConfigDir.getPath();
         }
 
-        db = new DatabaseConnection();
+        db = new DatabaseConnection(logger);
 
         getLogger().info ("Configuring for server " + jahiaConfig.getTargetServerType() + (StringUtils.isNotEmpty(jahiaConfig.getTargetServerVersion()) ? (" version " + jahiaConfig.getTargetServerVersion()) : "") + " with database type " + jahiaConfig.getDatabaseType());
 
@@ -505,7 +505,6 @@ public class JahiaGlobalConfigurator {
                 if (databaseType.contains("derby") && !dbUrl.contains("create=true")) {
                     dbUrl = dbUrl + ";create=true";
                 }
-                db.resolveJDBCDriver(dbProps.getProperty("jahia.database.driver"));
                 db.databaseOpen(dbProps.getProperty("jahia.database.driver"), dbUrl, jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
                 if (databaseType.equals("mysql") || databaseType.equals("mariadb")) {
                     getLogger().info("database is " + databaseType + " trying to drop it and create a new one");
