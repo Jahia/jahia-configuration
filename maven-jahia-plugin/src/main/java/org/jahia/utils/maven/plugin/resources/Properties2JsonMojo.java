@@ -63,6 +63,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
+import pl.jalokim.propertiestojson.resolvers.primitives.PrimitiveJsonTypeResolver;
 import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
 
 /**
@@ -76,7 +77,7 @@ public class Properties2JsonMojo extends AbstractMojo {
     
     protected static String toJson(File src, boolean prettyPrinting) throws FileNotFoundException, IOException {
         try (FileInputStream is = new FileInputStream(src)) {
-            String json = new PropertiesToJsonConverter().convertToJson(is);
+            String json = new PropertiesToJsonConverter(new PrimitiveJsonTypeResolver[] {}).convertToJson(is);
             if (!prettyPrinting) {
                 Gson gson = new GsonBuilder().serializeNulls().create();
                 JsonParser jp = new JsonParser();
