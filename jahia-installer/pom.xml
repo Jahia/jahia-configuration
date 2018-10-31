@@ -49,7 +49,7 @@
     <parent>
         <groupId>org.jahia.configuration</groupId>
         <artifactId>jahia-configuration-root</artifactId>
-        <version>5.5-SNAPSHOT</version>
+        <version>5.4.1</version>
     </parent>
     
     <modelVersion>4.0.0</modelVersion>
