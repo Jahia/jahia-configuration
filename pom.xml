@@ -123,6 +123,16 @@
         </snapshotRepository>
     </distributionManagement>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.jahia.commons</groupId>
+                <artifactId>jahia-commons</artifactId>
+                <version>1.0.8-SNAPSHOT</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 	<build>
 		<pluginManagement>
 			<plugins>

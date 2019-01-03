@@ -177,7 +177,6 @@
         <dependency>
             <groupId>org.jahia.commons</groupId>
             <artifactId>jahia-commons</artifactId>
-            <version>1.0.6</version>
         </dependency>
 
         <dependency>
