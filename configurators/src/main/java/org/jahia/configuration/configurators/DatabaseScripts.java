@@ -140,6 +140,10 @@ public final class DatabaseScripts {
         if (schemaFiles == null) {
             return result;
         }
+
+        // sort found files in alphabetical order
+        Arrays.sort(schemaFiles);
+
         List<File> indexFiles = new ArrayList<File>();
         for (int i=0; i < schemaFiles.length; i++) {
             File sqlFile = schemaFiles[i];
