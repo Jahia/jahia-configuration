@@ -54,8 +54,8 @@ import java.io.IOException;
 public class Main {
     public static void main(String[] args) {
         AbstractLogger logger = new ConsoleLogger(ConsoleLogger.LEVEL_INFO);
-        logger.info("\nDigital Experience Manager 7.2 Configuration Tool");
-        logger.info("Copyright 2002-2018 - Jahia Solutions Group SA http://www.jahia.com - All Rights Reserved\n");
+        logger.info("\nDigital Experience Manager 7.3 Configuration Tool");
+        logger.info("Copyright 2002-2019 - Jahia Solutions Group SA http://www.jahia.com - All Rights Reserved\n");
         if (args.length > 0) {
             if ((args[0].equals("--deploy-module") || args[0].equals("-dm")) && args.length > 2) {
                 try {
