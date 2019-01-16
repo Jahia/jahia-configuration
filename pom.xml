@@ -128,7 +128,7 @@
             <dependency>
                 <groupId>org.jahia.commons</groupId>
                 <artifactId>jahia-commons</artifactId>
-                <version>1.0.8-SNAPSHOT</version>
+                <version>1.0.8</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
