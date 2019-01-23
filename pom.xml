@@ -69,6 +69,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <jahia.license.header>header.txt</jahia.license.header>
         <jahia.license.style>style.xml</jahia.license.style>
+        <jackson.version>2.9.8</jackson.version>
 	</properties>
     
     <modules>
