@@ -70,6 +70,7 @@
         <jahia.license.header>header.txt</jahia.license.header>
         <jahia.license.style>style.xml</jahia.license.style>
         <jackson.version>2.9.8</jackson.version>
+        <bndlib.version>2.4.0</bndlib.version> <!-- Using version 2.4.0 as recommended in https://issues.apache.org/jira/browse/FELIX-4556?focusedCommentId=14213575&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-14213575 -->
 	</properties>
     
     <modules>
