@@ -162,6 +162,11 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
     private static final String PACKAGE_EXCLUDE_DEFAULT_VALUE = "org.jahia.taglibs*,org.apache.taglibs.standard*,javax.servlet.jsp*,org.codehaus.groovy.ast*,javax.el*,de.odysseus.el*";
 
     /**
+     * @parameter
+     */
+    protected List<String> extraPackageExcludes;
+
+    /**
      * @parameter default-value="true"
      */
     protected boolean outputPackagesWithNoVersions = true;
@@ -379,6 +384,9 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
             // We put the default value here because of bug http://jira.codehaus.org/browse/MNG-5440
             String[] packageExcludesArray = PACKAGE_EXCLUDE_DEFAULT_VALUE.split(",");
             packageExcludes = new ArrayList<String>(Arrays.asList(packageExcludesArray));
+        }
+        if (extraPackageExcludes != null && !extraPackageExcludes.isEmpty()) {
+            packageExcludes.addAll(extraPackageExcludes);
         }
         for (String packageExclude : packageExcludes) {
             String packageExcludePattern = packageExclude;
