@@ -234,7 +234,7 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
 
         buildPackageExcludes();
 
-        Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts = new TreeMap<String, Map<String, Map<String,VersionLocation>>>();
+        Map<String, Map<String, Map<String, VersionLocation>>> packageVersionCounts = new TreeMap<String, Map<String, Map<String, VersionLocation>>>();
         Map<String, Set<String>> packageVersions = new TreeMap<String, Set<String>>();
         String generatedPackageList = null;
 
@@ -316,13 +316,13 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
             }
             if (manualPackageList != null) {
                 for (String manualPackage : manualPackageList) {
-                    if (!packageList.contains(manualPackage+",") && !isPackageExcluded(manualPackage)) {
+                    if (!packageList.contains(manualPackage + ",") && !isPackageExcluded(manualPackage)) {
                         /*
                         if (manualPackage.contains("=")) {
                             manualPackage = manualPackage.replaceAll("=", "\\=");
                         }
                         */
-                        packageList.add(manualPackage +",");
+                        packageList.add(manualPackage + ",");
                         generatedPackageBuffer.append(manualPackage);
                         generatedPackageBuffer.append(",");
                     } else if (isPackageExcluded(manualPackage)) {
@@ -332,10 +332,9 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
             }
             generatedPackageList = generatedPackageBuffer.toString();
             generatedPackageList = generatedPackageList.substring(0, generatedPackageList.length() - 1); // remove the last comma
-            String lastPackage = packageList.remove(packageList.size()-1);
-            packageList.add(lastPackage.substring(0,lastPackage.length()-1)); // remove the last comma
+            String lastPackage = packageList.remove(packageList.size() - 1);
+            packageList.add(lastPackage.substring(0, lastPackage.length() - 1)); // remove the last comma
             getLog().info("Found " + packageVersions.size() + " packages in dependencies.");
-            // getLog().debug("org.osgi.framework.system.packages.extra="+ generatedPackageList);
             if (generatedPackageList != null && project != null) {
                 project.getProperties().put("jahiaGeneratedFrameworkPackageList", generatedPackageList);
             }
@@ -406,7 +405,7 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         return false;
     }
 
-    private void scanExistingExports(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts) {
+    private void scanExistingExports(Map<String, Map<String, Map<String, VersionLocation>>> packageVersionCounts) {
         if (!propertiesInputFile.exists()) {
             return;
         }
@@ -440,7 +439,7 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         }
     }
 
-    private void scanExistingManifest(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts) throws IOException, Exception {
+    private void scanExistingManifest(Map<String, Map<String, Map<String, VersionLocation>>> packageVersionCounts) throws IOException, Exception {
         FileInputStream in = null;
         try {
             if (inputManifestFile.exists()) {
@@ -479,11 +478,11 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         }
     }
 
-    private void resolveSplitPackages(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts, Map<String, Set<String>> packageVersions) {
-        for (Map.Entry<String, Map<String, Map<String,VersionLocation>>> resolvedPackageVersion : packageVersionCounts.entrySet()) {
+    private void resolveSplitPackages(Map<String, Map<String, Map<String, VersionLocation>>> packageVersionCounts, Map<String, Set<String>> packageVersions) {
+        for (Map.Entry<String, Map<String, Map<String, VersionLocation>>> resolvedPackageVersion : packageVersionCounts.entrySet()) {
             boolean allVersionsEqual = true;
             Set<String> previousVersions = null;
-            for (Map.Entry<String, Map<String,VersionLocation>> versionLocationEntry : resolvedPackageVersion.getValue().entrySet()) {
+            for (Map.Entry<String, Map<String, VersionLocation>> versionLocationEntry : resolvedPackageVersion.getValue().entrySet()) {
                 if (previousVersions != null && !previousVersions.equals(versionLocationEntry.getValue().keySet())) {
                     allVersionsEqual = false;
                     break;
@@ -494,9 +493,9 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
                 getLog().warn("Split-package with different versions detected for package " + resolvedPackageVersion.getKey() + ":");
             }
             Set<String> versions = new HashSet<String>();
-            for (Map.Entry<String, Map<String,VersionLocation>> versionLocationEntry : resolvedPackageVersion.getValue().entrySet()) {
+            for (Map.Entry<String, Map<String, VersionLocation>> versionLocationEntry : resolvedPackageVersion.getValue().entrySet()) {
                 if (resolvedPackageVersion.getValue().size() > 1 && !allVersionsEqual) {
-                    for (Map.Entry<String,VersionLocation> versionLocationsEntry : versionLocationEntry.getValue().entrySet()) {
+                    for (Map.Entry<String, VersionLocation> versionLocationsEntry : versionLocationEntry.getValue().entrySet()) {
                         getLog().warn("  - " + versionLocationEntry.getKey() + " v" + versionLocationsEntry.getValue().getVersion() + " count=" + versionLocationsEntry.getValue().getCounter() + " Specification-Version=" + versionLocationsEntry.getValue().getSpecificationVersion());
                     }
                 }
@@ -513,7 +512,7 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         }
     }
 
-    private void scanClassesBuildDirectory(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts) throws IOException {
+    private void scanClassesBuildDirectory(Map<String, Map<String, Map<String, VersionLocation>>> packageVersionCounts) throws IOException {
         File outputDirectoryFile = new File(project.getBuild().getOutputDirectory());
         getLog().info("Scanning project build directory " + outputDirectoryFile.getCanonicalPath());
         DirectoryScanner ds = new DirectoryScanner();
@@ -542,7 +541,7 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         }
     }
 
-    private void scanDependencies(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts) throws IOException {
+    private void scanDependencies(Map<String, Map<String, Map<String, VersionLocation>>> packageVersionCounts) throws IOException {
         getLog().info("Scanning project dependencies...");
         for (Artifact artifact : project.getArtifacts()) {
             String exclusionMatched = null;
@@ -571,10 +570,9 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         }
     }
 
-    private void scanJar(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts, File jarFile, String defaultVersion) throws IOException {
+    private void scanJar(Map<String, Map<String, Map<String, VersionLocation>>> packageVersionCounts, File jarFile, String defaultVersion) throws IOException {
         JarInputStream jarInputStream = new JarInputStream(new FileInputStream(jarFile));
         Manifest jarManifest = jarInputStream.getManifest();
-        // Map<String, String> manifestVersions = new HashMap<String,String>();
         String specificationVersion = null;
         if (jarManifest == null) {
             getLog().warn("No MANIFEST.MF file found for dependency " + jarFile);
@@ -645,7 +643,6 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
                     if (packageVersion != null) {
                         getLog().info("Found package version in " + jarFile.getName() + " MANIFEST : " + packageName + " v" + packageVersion);
                         updateVersionLocationCounts(packageVersionCounts, jarFile.getCanonicalPath(), packageVersion, specificationVersion, packageName);
-                        // manifestVersions.put(packageName, packageVersion);
                     }
                 }
             }
@@ -674,7 +671,7 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         jarInputStream.close();
     }
 
-    private void excludePackages(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts, String propertyFileExclusionPropertyName) throws IOException, MojoExecutionException {
+    private void excludePackages(Map<String, Map<String, Map<String, VersionLocation>>> packageVersionCounts, String propertyFileExclusionPropertyName) throws IOException, MojoExecutionException {
         if (!propertiesInputFile.exists()) {
             return;
         }
@@ -713,29 +710,29 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         }
     }
 
-    private void excludeSystemPackages(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts) throws IOException, MojoExecutionException {
+    private void excludeSystemPackages(Map<String, Map<String, Map<String, VersionLocation>>> packageVersionCounts) throws IOException, MojoExecutionException {
         excludePackages(packageVersionCounts, propertyFileSystemPackagesPropertyName);
     }
 
-    private void updateVersionLocationCounts(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts,
+    private void updateVersionLocationCounts(Map<String, Map<String, Map<String, VersionLocation>>> packageVersionCounts,
                                              String originLocation,
                                              String newVersion,
                                              String specificationVersion,
                                              String packageName) throws IOException {
         // first check if we've already processed this package
-        Map<String, Map<String,VersionLocation>> versionLocations = packageVersionCounts.get(packageName);
+        Map<String, Map<String, VersionLocation>> versionLocations = packageVersionCounts.get(packageName);
         if (versionLocations == null) {
-            versionLocations = new HashMap<String, Map<String,VersionLocation>>();
+            versionLocations = new HashMap<String, Map<String, VersionLocation>>();
         }
 
-        Map<String,VersionLocation> existingVersionLocations = versionLocations.get(originLocation);
+        Map<String, VersionLocation> existingVersionLocations = versionLocations.get(originLocation);
         if (existingVersionLocations != null && existingVersionLocations.containsKey(newVersion)) {
             VersionLocation existingVersionLocation = existingVersionLocations.get(newVersion);
             existingVersionLocation.incrementCounter();
             existingVersionLocations.put(newVersion, existingVersionLocation);
         } else {
             if (existingVersionLocations == null) {
-                existingVersionLocations = new HashMap<String,VersionLocation>();
+                existingVersionLocations = new HashMap<String, VersionLocation>();
             }
             VersionLocation existingVersionLocation = new VersionLocation(originLocation, cleanupVersion(newVersion), specificationVersion);
             existingVersionLocation.incrementCounter();
@@ -746,7 +743,7 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         packageVersionCounts.put(packageName, versionLocations);
     }
 
-    private void scanJarDirectories(Map<String, Map<String, Map<String,VersionLocation>>> packageVersionCounts) throws IOException, MojoExecutionException {
+    private void scanJarDirectories(Map<String, Map<String, Map<String, VersionLocation>>> packageVersionCounts) throws IOException, MojoExecutionException {
         if (jarDirectories == null || jarDirectories.size() == 0) {
             return;
         }
@@ -769,7 +766,7 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
                 File includedFileFile = new File(jarDirectoryFile, includeFile);
                 String artifactFileName = includedFileFile.getName();
                 List<String> versions = getAetherHelper().getDependencyVersion(project, artifactFileName);
-                
+
                 if (versions.size() > 1) {
                     getLog().warn("multiple matching dependencies found for artifactId " + artifactFileName);
                 } else if (versions.size() == 1) {
@@ -784,9 +781,9 @@ public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
         }
     }
 
-    
 
-    
+
+
 
     // The following code was copied from the Maven Bundle Plugin code.
 /*
