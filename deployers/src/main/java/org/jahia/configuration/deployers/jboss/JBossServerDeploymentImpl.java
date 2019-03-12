@@ -49,7 +49,7 @@ import java.io.IOException;
 import org.jahia.configuration.deployers.AbstractServerDeploymentImpl;
 
 /**
- * JBoss common server deployer implementation, supporting JBoss AS 7.x / JBoss EAP 6.x.
+ * JBoss common server deployer implementation, supporting JBoss JBoss EAP 7.x.
  * 
  * @author Serge Huber
  * @author Sergiy Shyrkov

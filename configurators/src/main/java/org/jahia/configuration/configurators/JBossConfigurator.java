@@ -55,7 +55,6 @@ import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.jahia.configuration.deployers.ServerDeploymentInterface;
 import org.jahia.configuration.logging.AbstractLogger;
-import org.jdom.Attribute;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.Namespace;
@@ -73,9 +72,6 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
 
     private static final String BACKGROUND_VALIDATION_MILLIS = "600000";
 
-    private static final Namespace DS_NS_62 = Namespace.getNamespace("urn:jboss:domain:datasources:1.1");
-    private static final Namespace DS_NS_63 = Namespace.getNamespace("urn:jboss:domain:datasources:1.2");
-
     private static final Map<String, String> EXCEPTION_SORTERS;
 
     private static final String IDLE_TIMEOUT_MINUTES = "30";
@@ -83,10 +79,6 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
     private static final String MAX_POOL_SIZE = "200";
 
     private static final String MIN_POOL_SIZE = "10";
-
-    private static final Namespace WEB_NS_62 = Namespace.getNamespace("urn:jboss:domain:web:1.5");
-    private static final Namespace WEB_NS_63 = Namespace.getNamespace("urn:jboss:domain:web:2.1");
-    private static final Namespace WEB_NS_64 = Namespace.getNamespace("urn:jboss:domain:web:2.2");
 
     static {
         EXCEPTION_SORTERS = new HashMap<String, String>(6);
@@ -106,10 +98,6 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
 
     private ServerDeploymentInterface deployer;
     
-    private boolean isJBoss63;
-    
-    private boolean isJBoss64;
-    
     private Namespace datasourceNs;
     
     private Namespace webNs;
@@ -119,28 +107,6 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         super(dbProperties, jahiaConfigInterface, logger);
         dbType = jahiaConfigInterface.getDatabaseType();
         this.deployer = deployer;
-    }
-
-    private void configureConnector(Element profile) {
-        Namespace ns = WEB_NS_62;
-        Element web = profile.getChild("subsystem", ns);
-        if (web == null) {
-            ns = WEB_NS_63;
-            web = profile.getChild("subsystem", ns);
-        }
-        if (web == null) {
-            ns = WEB_NS_64;
-            web = profile.getChild("subsystem", ns);
-        }
-        if (web != null) {
-            for (Object child : web.getChildren("connector", ns)) {
-                Element connector = (Element) child;
-                Attribute name = connector.getAttribute("name");
-                if (name != null && "http".equals(name.getValue())) {
-                    connector.setAttribute("protocol", "org.apache.coyote.http11.Http11NioProtocol");
-                }
-            }
-        }
     }
 
     private void configureDatasource(Element datasources) throws JDOMException {
@@ -187,12 +153,14 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
     }
 
     private void disableDefaultWelcomeWebApp(Element profile) {
-        Element web = profile.getChild("subsystem", webNs);
-        if (web != null) {
-            Element virtualServer = web.getChild("virtual-server", webNs);
-            if (virtualServer != null) {
-                virtualServer.setAttribute("enable-welcome-root", "false");
+        try {
+            Element location = profile.getChild("subsystem", webNs).getChild("server", webNs).getChild("host", webNs)
+                    .getChild("location", webNs);
+            if ("/".equals(location.getAttributeValue("name"))) {
+                location.getParent().removeContent(location);
             }
+        } catch (NullPointerException e) {
+            // element not present: ignore
         }
     }
 
@@ -252,11 +220,7 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
             org.jdom.Document jdomDocument = saxBuilder.build(fileReader);
 
             Element root = jdomDocument.getRootElement();
-            isJBoss63 = root.getNamespace().getURI().equals("urn:jboss:domain:1.6");
-            isJBoss64 = root.getNamespace().getURI().equals("urn:jboss:domain:1.7");
-            getLogger().info("Detected JBoss EAP version " + (isJBoss63 ? "6.3.x" : (isJBoss64 ? "6.4.x" : "6.2.x")));
-            datasourceNs = isJBoss63 || isJBoss64 ? DS_NS_63 : DS_NS_62;
-            webNs = isJBoss63 ? WEB_NS_63 : (isJBoss64 ? WEB_NS_64 : WEB_NS_62);
+            detectNamespaces(root);
             Element profile = getProfile(root, sourceConfigFile);
             Element datasources = getChildCreate(getChildCreate(profile, "subsystem"), "datasources");
 
@@ -268,8 +232,6 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
                 disableDefaultWelcomeWebApp(profile);
             }
             
-            configureConnector(profile);
-
             out = new FileWriter(destFileName);
             getLogger().info("Writing output to " + destFileName);
             new XMLOutputter(getOutputFormat()).output(jdomDocument, out);
@@ -278,6 +240,27 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
             throw new Exception("Error while updating configuration file " + sourceConfigFile, jdome);
         } finally {
             IOUtils.closeQuietly(out);
+        }
+    }
+
+    private void detectNamespaces(Element root) {
+        Element profile = root.getChild("profile", root.getNamespace());
+        for (Object child : profile.getChildren()) {
+            if (!(child instanceof Element)) {
+                continue;
+            }
+            Element subsystem = (Element) child;
+            if (!"subsystem".equals(subsystem.getName())) {
+                continue;
+            }
+
+            Namespace ns = subsystem.getNamespace();
+            String uri = ns.getURI();
+            if (uri.startsWith("urn:jboss:domain:datasources:")) {
+                datasourceNs = ns;
+            } else if (uri.startsWith("urn:jboss:domain:undertow:")) {
+                webNs = ns;
+            }
         }
     }
 
@@ -358,15 +341,9 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         cli.append("\n");
 
         if (isRootContext()) {
-            cli.append(profilePath);
-            cli.append("/subsystem=web/virtual-server=default-host:write-attribute(name=enable-welcome-root,value=false)\n");
-            cli.append("\n");
+            cli.append(profilePath).append("/subsystem=undertow/server=default-server/host=default-host/location=\\/:remove()\n\n");
         }
         
-        // enable HTTP NIO connector
-        cli.append(profilePath);
-        cli.append("/subsystem=web/connector=http:write-attribute(name=protocol,value=org.apache.coyote.http11.Http11NioProtocol)\n\n");
-
         if (profile == null) {
         	cli.append("reload\n");
         }

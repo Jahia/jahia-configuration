@@ -79,7 +79,7 @@ public class JBossConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         assertTrue(content.contains("<datasource jndi-name=\"java:/jahiaDS\""));
         assertTrue(content.contains("<connection-url>jdbc:oracle"));
         
-        assertTrue(content.contains("enable-welcome-root=\"false\""));
+        assertFalse(content.contains("<location name=\"/\""));
 
         String unchangedDestFileName = sourceCfgFile.getParent() + "/standalone-modified-unchanged.xml";
         configurator.updateConfiguration(new VFSConfigFile(fsManager, destFileName), unchangedDestFileName);
@@ -97,7 +97,6 @@ public class JBossConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         assertTrue(content.contains("<driver-class>com.mysql.jdbc.Driver</driver-class>"));
         assertTrue(content.contains("<connection-url>jdbc:mysql"));
         assertFalse(content.contains("<connection-url>jdbc:oracle"));
-        assertTrue(content.contains("<connector name=\"http\" protocol=\"org.apache.coyote.http11.Http11NioProtocol\" scheme=\"http\" socket-binding=\"http\" />"));
     }
 
 }
