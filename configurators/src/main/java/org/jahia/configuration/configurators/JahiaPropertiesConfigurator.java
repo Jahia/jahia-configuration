@@ -129,19 +129,19 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
     private void configureScheduler() {
         String delegate = (String) dbProperties.get("jahia.quartz.jdbcDelegate");
         if (delegate == null || delegate.length() == 0) {
-            delegate = "org.quartz.impl.jdbcjobstore.StdJDBCDelegate";
+            delegate = "org.jahia.services.scheduler.driver.DxStdJDBCDelegate";
         }
 
         if (jahiaConfigInterface.getTargetServerType().startsWith("weblogic")) {
-            delegate = "org.quartz.impl.jdbcjobstore.WebLogicDelegate";
+            delegate = "org.jahia.services.scheduler.driver.DxWebLogicDelegate";
             if (jahiaConfigInterface.getDatabaseType().equals("oracle")) {
-                delegate = "org.quartz.impl.jdbcjobstore.oracle.weblogic.WebLogicOracleDelegate";
+                delegate = "org.jahia.services.scheduler.driver.DxWebLogicOracleDelegate";
             }
         }
         
         if (jahiaConfigInterface.getTargetServerType().startsWith("was")
                 && jahiaConfigInterface.getDatabaseType().equals("oracle")) {
-            delegate = "org.quartz.impl.jdbcjobstore.StdJDBCDelegate";
+            delegate = "org.jahia.services.scheduler.driver.DxStdJDBCDelegate";
         }
 
         properties.setProperty("org.quartz.driverDelegateClass", delegate);
