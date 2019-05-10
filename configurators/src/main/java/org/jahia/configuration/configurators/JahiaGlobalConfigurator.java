@@ -287,7 +287,7 @@ public class JahiaGlobalConfigurator {
             IOUtils.closeQuietly(os);
         }
 
-        String ldapTargetFile = new File(getDataDir(), "modules").getAbsolutePath();
+        String ldapTargetFile = new File(getDataDir(), "karaf/etc").getAbsolutePath();
         new LDAPConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager,sourceWebAppPath), ldapTargetFile);
 
         String jeeApplicationLocation = jahiaConfigInterface.getJeeApplicationLocation();
