@@ -43,19 +43,27 @@
  */
 package org.jahia.utils.maven.plugin.contentgenerator;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ArticleBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
-import org.jahia.utils.maven.plugin.contentgenerator.bo.PageBO;
+import org.jahia.utils.maven.plugin.contentgenerator.bo.FolderBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jahia.utils.maven.plugin.support.RandomUtils;
 import org.jdom.Document;
 
-import java.io.IOException;
-import java.util.*;
-
-public class PageService {
+public class FolderService {
 
     private int nbOftenKeywordsAlreadyAssigned;
     private int nbSeldomKeywordsAlreadyAssigned;
@@ -66,7 +74,7 @@ public class PageService {
     private static final List<String> SELDOM_USED_DESCRIPTION_WORDS = Arrays.asList(ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS.split("\\s*,\\s*"));
     private static final Log LOGGER = new SystemStreamLog();
 
-    public PageService() {
+    public FolderService() {
         initCmisFilePath();
     }
 
@@ -84,47 +92,47 @@ public class PageService {
      * @throws IOException
      *             Error while writing generated XML to the output file
      */
-    public void createTopPages(ExportBO export, List<ArticleBO> articles) throws IOException {
+    public void createTopFolders(ExportBO export, List<ArticleBO> articles) throws IOException {
 
         OutputService os = new OutputService();
         ArticleService articleService = ArticleService.getInstance();
 
-        LOGGER.info("Creating top pages");
-        PageBO pageTopLevel = null;
+        LOGGER.info("Creating top folders");
+        FolderBO folderTopLevel = null;
 
-        Map<String,ArticleBO> articlesMap = new HashMap<String, ArticleBO>();
+        Map<String,ArticleBO> articlesMap = new HashMap<>();
         for (String language : export.getSiteLanguages()) {
             articlesMap.put(language,articleService.getArticle(articles));
         }
 
-        String rootPageName = export.getRootPageName();
+        String rootFolderName = export.getRootFolderName();
 
         OutputService outService = new OutputService();
         outService.initOutputFile(export.getOutputFile());
         outService.appendStringToFile(export.getOutputFile(), export.toString());
 
-        List<PageBO> listeTopPages = new ArrayList<PageBO>();
+        List<FolderBO> listeTopFolders = new ArrayList<>();
         for (int i = 1; i <= export.getNbPagesTopLevel().intValue(); i++) {
             for (String language : export.getSiteLanguages()) {
                 articlesMap.put(language, articleService.getArticle(articles));
             }
 
-            pageTopLevel = createNewPage(export, null, articlesMap, export.getNbSubLevels() + 1,
-                    createSubPages(export, articles, export.getNbSubLevels(), export.getMaxArticleIndex()));
+            folderTopLevel = createNewFolder(export, null, articlesMap, export.getNbSubLevels() + 1,
+                    createSubFolders(export, articles, export.getNbSubLevels(), export.getMaxArticleIndex()));
 
-            outService.appendPageToFile(export.getOutputFile(), pageTopLevel);
+            outService.appendFolderToFile(export.getOutputFile(), folderTopLevel);
 
             // path
-            listeTopPages.add(pageTopLevel);
+            listeTopFolders.add(folderTopLevel);
         }
 
-        LOGGER.info("Pages path are being written to the map file");
-        PageBO rootPage = createNewPage(export, rootPageName, articlesMap, export.getNbSubLevels() + 1, listeTopPages);
-        List<String> pagesPath = getPagesPath(listeTopPages, "/sites/" + export.getSiteKey() + "/" + rootPage.getName());
+        LOGGER.info("Folders path are being written to the map file");
+        FolderBO rootFolder = createNewFolder(export, rootFolderName, articlesMap, export.getNbSubLevels() + 1, listeTopFolders);
+        List<String> pagesPath = getFoldersPath(listeTopFolders, "/sites/" + export.getSiteKey() + "/" + rootFolder.getName());
         outService.appendPathToFile(export.getMapFile(), pagesPath);
-        outService.appendStringToFile(export.getOutputFile(), rootPage.getJcrXml());
-        Document pagesDocument = new Document(rootPage.getElement());
-        os.writeJdomDocumentToFile(pagesDocument, export.getOutputFile());
+        outService.appendStringToFile(export.getOutputFile(), rootFolder.getJcrXml());
+        Document foldersDocument = new Document(rootFolder.getElement());
+        os.writeJdomDocumentToFile(foldersDocument, export.getOutputFile());
     }
 
     /**
@@ -143,27 +151,27 @@ public class PageService {
      *            Index of the last article
      * @return A list of Page BO, containing their sub pages (if they have some)
      */
-    public List<PageBO> createSubPages(ExportBO export, List<ArticleBO> articles, Integer level, Integer maxArticleIndex) {
+    public List<FolderBO> createSubFolders(ExportBO export, List<ArticleBO> articles, Integer level, Integer maxArticleIndex) {
 
         ArticleService articleService = ArticleService.getInstance();
-        List<PageBO> listePages = new ArrayList<PageBO>();
+        List<FolderBO> listeFolders = new ArrayList<>();
         Map<String,ArticleBO> articlesMap;
 
-        int nbPagesPerLevel = export.getNbPagesPerLevel();
+        int nbFoldersPerLevel = export.getNbPagesPerLevel();
 
-        listePages.clear();
+        listeFolders.clear();
         if (level.intValue() > 0) {
-            for (int i = 0; i < nbPagesPerLevel; i++) {
-                articlesMap = new HashMap<String, ArticleBO>();
+            for (int i = 0; i < nbFoldersPerLevel; i++) {
+                articlesMap = new HashMap<>();
                 for (String language : export.getSiteLanguages()) {
                     articlesMap.put(language,articleService.getArticle(articles));
                 }
-                PageBO page = createNewPage(export, null, articlesMap, level,
-                        createSubPages(export, articles, level.intValue() - 1, maxArticleIndex + 1));
-                listePages.add(page);
+                FolderBO folder = createNewFolder(export, null, articlesMap, level,
+                        createSubFolders(export, articles, level.intValue() - 1, maxArticleIndex + 1));
+                listeFolders.add(folder);
             }
         }
-        return listePages;
+        return listeFolders;
     }
 
     /**
@@ -182,7 +190,8 @@ public class PageService {
      *            List of sub pages related
      * @return
      */
-    public PageBO createNewPage(ExportBO export, String pageName, Map<String, ArticleBO> articlesMap, int level, List<PageBO> subPages) {
+    public FolderBO createNewFolder(ExportBO export, String folderName, Map<String, ArticleBO> articlesMap, int level,
+            List<FolderBO> subFolders) {
 
         ContentGeneratorService.currentPageIndex = ContentGeneratorService.currentPageIndex + 1;
 
@@ -211,27 +220,27 @@ public class PageService {
             template = ContentGeneratorCst.PAGE_TPL_QAQUERY;
         }
 
-        List<String> externalFilePaths = new ArrayList<String>();
+        List<String> externalFilePaths = new ArrayList<>();
         if (ContentGeneratorService.currentPageIndex > indexPagesWithQuery && ContentGeneratorService.currentPageIndex <= indexPagesWithExternalFileReference) {
-            pageName = ContentGeneratorCst.PAGE_TPL_QAEXTERNAL + ContentGeneratorService.currentPageIndex;
+            folderName = ContentGeneratorCst.PAGE_TPL_QAEXTERNAL + ContentGeneratorService.currentPageIndex;
             externalFilePaths.add(getRandomCmisFilePath(ContentGeneratorCst.CMIS_PICTURES_DIR));
             externalFilePaths.add(getRandomCmisFilePath(ContentGeneratorCst.CMIS_TEXT_DIR));
         }
 
         String fileName = null;
         if (ContentGeneratorService.currentPageIndex > indexPagesWithExternalFileReference && ContentGeneratorService.currentPageIndex <= indexPagesWithInternalFileReference) {
-            pageName = ContentGeneratorCst.PAGE_TPL_QAINTERNAL + ContentGeneratorService.currentPageIndex;
+            folderName = ContentGeneratorCst.PAGE_TPL_QAINTERNAL + ContentGeneratorService.currentPageIndex;
             FileService fileService = new FileService();
             fileName = fileService.getFileName(export.getFileNames());
         }
 
-        if (pageName == null) {
-            pageName = template + ContentGeneratorService.currentPageIndex;
+        if (folderName == null) {
+            folderName = template + ContentGeneratorService.currentPageIndex;
         }
 
-        LOGGER.debug("Creating new page level " + level + ": " + pageName);
+        LOGGER.debug("Creating new folder level " + level + ": " + folderName);
 
-        HashMap<String, List<String>> acls = new HashMap<String, List<String>>();
+        HashMap<String, List<String>> acls = new HashMap<>();
         if (random.nextFloat() < export.getGroupAclRatio() && export.getNumberOfGroups() > 0) {
             acls.put("g:group"+random.nextInt(export.getNumberOfGroups()), Arrays.asList("editor"));
         }
@@ -244,13 +253,13 @@ public class PageService {
         float firstThird = export.getTotalPages() / 3;
         if (ContentGeneratorService.currentPageIndex <= firstThird && export.getNumberOfCategories() > 0) {
             idCategory = random.nextInt(export.getNumberOfCategories());
-            LOGGER.debug("Add " + pageName + " to category " +idCategory);
+            LOGGER.debug("Add " + folderName + " to category " + idCategory);
         }
 
         Integer idTag = null;
         if (ContentGeneratorService.currentPageIndex <= firstThird && export.getNumberOfTags() > 0) {
             idTag = random.nextInt(export.getNumberOfTags());
-            LOGGER.debug("Tag " + pageName + " with tag " + idTag);
+            LOGGER.debug("Tag " + folderName + " with tag " + idTag);
         }
 
         // visibility
@@ -265,11 +274,13 @@ public class PageService {
         String seldomKeywords = getSeldomKeywords(export.getTotalPages());
         String description = oftenKeywords + " " + seldomKeywords;
 
-        PageBO page = new PageBO(pageName, articlesMap, subPages, export.getPagesHaveVanity(), export.getSiteKey(), fileName, export.getNumberOfBigTextPerPage(), acls, idCategory, idTag, visibilityOnPage,
-                export.getVisibilityStartDate(), export.getVisibilityEndDate(), description, template, export.getCmisSiteName(), externalFilePaths,  RandomUtils.isRandomOccurrence(export.getPcPersonalizedPages()),
+        FolderBO folder = new FolderBO(folderName, articlesMap, subFolders, export.getSiteKey(), fileName,
+                export.getNumberOfBigTextPerPage(), acls, idCategory, idTag, visibilityOnPage, export.getVisibilityStartDate(),
+                export.getVisibilityEndDate(), description, export.getCmisSiteName(), externalFilePaths,
+                RandomUtils.isRandomOccurrence(export.getPcPersonalizedPages()),
                 export.getMinPersonalizationVariants(), export.getMaxPersonalizationVariants());
 
-        return page;
+        return folder;
     }
 
     /**
@@ -284,19 +295,19 @@ public class PageService {
      *            pages above
      * @return String containing all the generated paths, one per line
      */
-    public static List<String> getPagesPath(List<PageBO> pages, String path) {
+    public static List<String> getFoldersPath(List<FolderBO> folders, String path) {
 
-        List<String> siteMap = new ArrayList<String>();
+        List<String> siteMap = new ArrayList<>();
 
         if (path == null) {
             path = "";
         }
-        for (Iterator<PageBO> iterator = pages.iterator(); iterator.hasNext();) {
-            PageBO page = iterator.next();
-            String newPath = path + ContentGeneratorCst.PAGE_PATH_SEPARATOR + page.getName();
+        for (Iterator<FolderBO> iterator = folders.iterator(); iterator.hasNext();) {
+            FolderBO folder = iterator.next();
+            String newPath = path + ContentGeneratorCst.PAGE_PATH_SEPARATOR + folder.getName();
             siteMap.add(newPath);
-            if (page.getSubPages() != null) {
-                siteMap.addAll(getPagesPath(page.getSubPages(), newPath));
+            if (folder.getSubFolders() != null) {
+                siteMap.addAll(getFoldersPath(folder.getSubFolders(), newPath));
             }
         }
 
@@ -306,15 +317,15 @@ public class PageService {
     private String getOftenKeywords(int nbOfPagesToCreate) {
 
         Integer nbKeywordsAvailable = OFTEN_USED_DESCRIPTION_WORDS.size();
-        double ratio =  ((double) (ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS_COUNTER * (double) nbKeywordsAvailable) / (double) nbOfPagesToCreate);
+        double ratio =  (ContentGeneratorCst.OFTEN_USED_DESCRIPTION_WORDS_COUNTER * (double) nbKeywordsAvailable / nbOfPagesToCreate);
 
         double nbKeywordsToGet = ((ContentGeneratorService.currentPageIndex + 1) * ratio) - nbOftenKeywordsAlreadyAssigned;
         nbKeywordsToGet = Math.floor(nbKeywordsToGet);
 
 
-        Set<String> keywords = new HashSet<String>();
+        Set<String> keywords = new HashSet<>();
         if (nbKeywordsAvailable <= nbKeywordsToGet) {
-            keywords = new HashSet<String>(OFTEN_USED_DESCRIPTION_WORDS);
+            keywords = new HashSet<>(OFTEN_USED_DESCRIPTION_WORDS);
         } else {
             int i = 1;
             while (i <= nbKeywordsToGet) {
@@ -337,13 +348,13 @@ public class PageService {
     private String getSeldomKeywords(int nbOfPagesToCreate) {
 
         Integer nbKeywordsAvailable = SELDOM_USED_DESCRIPTION_WORDS.size();
-        double ratio =  ((double) (ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS_COUNTER * (double) nbKeywordsAvailable) / (double) nbOfPagesToCreate);
+        double ratio =  (ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS_COUNTER * (double) nbKeywordsAvailable / nbOfPagesToCreate);
 
         double nbKeywordsToGet = ((ContentGeneratorService.currentPageIndex + 1) * ratio) - nbSeldomKeywordsAlreadyAssigned;
         nbKeywordsToGet = Math.floor(nbKeywordsToGet);
 
-        Set<String> keywords = new HashSet<String>();if (nbKeywordsAvailable <= nbKeywordsToGet) {
-            keywords = new HashSet<String>(SELDOM_USED_DESCRIPTION_WORDS);
+        Set<String> keywords = new HashSet<>();if (nbKeywordsAvailable <= nbKeywordsToGet) {
+            keywords = new HashSet<>(SELDOM_USED_DESCRIPTION_WORDS);
         } else {
             int i = 1;
             while (i <= nbKeywordsToGet) {
@@ -369,7 +380,7 @@ public class PageService {
         String randomFilePath;
         List<CmisDirectoryPath> pathsList = cmisFilePaths.get(type);
         int randomPathIndex = random.nextInt(pathsList.size() - 1);
-        CmisDirectoryPath pathObject = (CmisDirectoryPath) pathsList.get(randomPathIndex);
+        CmisDirectoryPath pathObject = pathsList.get(randomPathIndex);
 
         int randomFileId = random.nextInt(pathObject.getNbFiles() - 1);
         String randomFileName = randomFileId + pathObject.getFileSuffix();
@@ -379,8 +390,8 @@ public class PageService {
 
     private void initCmisFilePath() {
 
-        List<CmisDirectoryPath> textPaths = new ArrayList<CmisDirectoryPath>();
-        List<CmisDirectoryPath> picturesPaths = new ArrayList<CmisDirectoryPath>();
+        List<CmisDirectoryPath> textPaths = new ArrayList<>();
+        List<CmisDirectoryPath> picturesPaths = new ArrayList<>();
 
         int nbFiles = 100;
         for (int i = 0; i < 10; i++) {
@@ -396,7 +407,7 @@ public class PageService {
         textPaths.add(new CmisDirectoryPath("/" + ContentGeneratorCst.CMIS_TEXT_DIR + "/directory-" + nbFiles + "-0", ".sample.txt", nbFiles));
         picturesPaths.add(new CmisDirectoryPath("/" + ContentGeneratorCst.CMIS_PICTURES_DIR + "/directory-" + nbFiles + "-0", ".sample.png", nbFiles));
 
-        cmisFilePaths = new HashMap<String, List<CmisDirectoryPath>>();
+        cmisFilePaths = new HashMap<>();
         cmisFilePaths.put(ContentGeneratorCst.CMIS_PICTURES_DIR, textPaths);
         cmisFilePaths.put(ContentGeneratorCst.CMIS_TEXT_DIR, picturesPaths);
     }

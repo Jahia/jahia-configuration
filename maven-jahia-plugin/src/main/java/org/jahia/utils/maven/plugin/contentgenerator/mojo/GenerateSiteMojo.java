@@ -43,15 +43,16 @@
  */
 package org.jahia.utils.maven.plugin.contentgenerator.mojo;
 
+import java.util.Arrays;
+
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.plexus.util.StringUtils;
 import org.jahia.utils.maven.plugin.contentgenerator.ContentGeneratorService;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
-
-import javax.xml.parsers.ParserConfigurationException;
-import java.util.Arrays;
 
 /**
  * Generate a Jahia site (ZIP file) ready to be imported
@@ -136,6 +137,13 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
      * @parameter expression="${jahia.cg.nbPagesOnTopLevel}" default-value="1"
      */
     protected Integer nbPagesOnTopLevel;
+
+    /**
+     * Site type (Regular or Headless)
+     *
+     * @parameter expression="${jahia.cg.siteType}" default-value="Regular"
+     */
+    protected String siteType;
 
     /**
      * Pages depth
@@ -253,9 +261,10 @@ public class GenerateSiteMojo extends AbstractJahiaSiteMojo {
         ContentGeneratorService contentGeneratorService = ContentGeneratorService.getInstance();
         ExportBO export = super.initExport();
 
+        export.setSiteType(siteType);
         export.setNbPagesTopLevel(nbPagesOnTopLevel);
         export.setNbSubLevels(nbSubLevels);
-        export.setNbSubPagesPerPage(nbPagesPerLevel);
+        export.setNbPagesPerLevel(nbPagesPerLevel);
         export.setNumberOfBigTextPerPage(numberOfBigTextPerPage);
         export.setNumberOfGroups(numberOfGroups);
         export.setNumberOfUsersPerGroup(numberOfUsersPerGroup);

@@ -43,12 +43,12 @@
  */
 package org.jahia.utils.maven.plugin.contentgenerator.bo;
 
-import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
 
 /**
  * Contains all the parameters used to configure the export
@@ -62,11 +62,14 @@ public class ExportBO {
 
     protected File outputFile;
     protected String outputDir;
+    protected String siteType;
     protected Integer nbPagesTopLevel;
     protected Integer nbSubLevels;
-    protected Integer nbSubPagesPerPage;
+    protected Integer nbPagesPerLevel;
     protected Integer totalPages;
+    protected Integer nbFoldersPerLevel;
     protected String rootPageName;
+    protected String rootFolderName;
     protected Integer maxArticleIndex;
     protected File mapFile;
     protected Boolean pagesHaveVanity;
@@ -74,7 +77,7 @@ public class ExportBO {
     protected List<String> siteLanguages;
     protected File filesDirectory;
     protected List<String> fileNames;
-    protected List<FileBO> files =new ArrayList<FileBO>();
+    protected List<FileBO> files =new ArrayList<>();
     protected Integer numberOfFilesToGenerate;
     protected Integer numberOfBigTextPerPage;
     protected Integer numberOfUsers;
@@ -97,7 +100,6 @@ public class ExportBO {
     protected Integer nbTasks;
     protected Integer nbNotes;
     protected Integer nbDocspaces;
-    protected Integer nbFoldersPerLevel;
     protected Integer foldersDepth;
     protected Integer nbFilesPerFolder;
     protected Integer nbCollectionsPerUser;
@@ -234,6 +236,14 @@ public class ExportBO {
         this.outputDir = outputDir;
     }
 
+    public void setSiteType(String siteType) {
+        this.siteType = siteType;
+    }
+
+    public String getSiteType() {
+        return siteType;
+    }
+
     public Integer getNbPagesTopLevel() {
         return nbPagesTopLevel;
     }
@@ -250,12 +260,12 @@ public class ExportBO {
         this.nbSubLevels = nbSubLevels;
     }
 
-    public Integer getNbSubPagesPerPage() {
-        return nbSubPagesPerPage;
+    public Integer getNbPagesPerLevel() {
+        return nbPagesPerLevel;
     }
 
-    public void setNbSubPagesPerPage(Integer nbSubPagesPerPage) {
-        this.nbSubPagesPerPage = nbSubPagesPerPage;
+    public void setNbPagesPerLevel(Integer nbPagesPerLevel) {
+        this.nbPagesPerLevel = nbPagesPerLevel;
     }
 
     public Integer getTotalPages() {
@@ -272,6 +282,14 @@ public class ExportBO {
 
     public void setRootPageName(String rootPageName) {
         this.rootPageName = rootPageName;
+    }
+
+    public String getRootFolderName() {
+        return rootFolderName;
+    }
+
+    public void setRootFolderName(String rootFolderName) {
+        this.rootFolderName = rootFolderName;
     }
 
     public Integer getMaxArticleIndex() {
@@ -616,10 +634,11 @@ public class ExportBO {
         sb.append("<!-- export information -->\n");
         sb.append("<!-- top level pages: " + this.getNbPagesTopLevel() + " -->\n");
         sb.append("<!-- sub levels: " + this.getNbSubLevels() + " -->\n");
-        sb.append("<!-- sub pages per page: " + this.getNbSubPagesPerPage() + " -->\n");
+        sb.append("<!-- sub pages per page: " + this.getNbPagesPerLevel() + " -->\n");
         sb.append("<!-- total pages: " + this.getTotalPages() + " -->\n");
         sb.append("<!-- site key: " + this.getSiteKey() + " -->\n");
         sb.append("<!-- big text per page: " + this.getNumberOfBigTextPerPage() + " -->\n");
         return sb.toString();
     }
+
 }
