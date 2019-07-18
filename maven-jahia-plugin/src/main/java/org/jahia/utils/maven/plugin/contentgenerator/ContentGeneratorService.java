@@ -93,30 +93,17 @@ public class ContentGeneratorService {
      *
      * @param export
      */
-    public void generatePages(ExportBO export, List<ArticleBO> articles) throws MojoExecutionException, IOException {
+    public void generateContents(ExportBO export, List<ArticleBO> articles) throws MojoExecutionException, IOException {
         if (!export.isDisableInternalFileReference() && export.getFileNames().isEmpty()) {
             throw new MojoExecutionException("Directory containing files to include is empty, use jahia:generate-files first");
         }
         ContentGeneratorService.currentPageIndex = 0;
-        // TODO: Create a generic NodeService for both Page and Folder as code is 90% similar
-        PageService pageService = new PageService();
-        pageService.createTopPages(export, articles);
+
+        ContentService contentService = new ContentService();
+        contentService.createTopContents(export, articles);
+        LOGGER.debug("Contents generated, now site");
     }
 
-    /**
-     * Generates an XML files containing the folders tree and that can be imported into a Jahia website
-     *
-     * @param export
-     */
-    public void generateFolders(ExportBO export, List<ArticleBO> articles) throws MojoExecutionException, IOException {
-        if (!export.isDisableInternalFileReference() && export.getFileNames().isEmpty()) {
-            throw new MojoExecutionException("Directory containing files to include is empty, use jahia:generate-files first");
-        }
-        ContentGeneratorService.currentPageIndex = 0;
-        // TODO: Create a generic NodeService for both Page and Folder as code is 90% similar
-        FolderService folderService = new FolderService();
-        folderService.createTopFolders(export, articles);
-    }
 
     /**
      * Generates text files that can be used as attachments, with random content from the articles database
@@ -222,15 +209,9 @@ public class ContentGeneratorService {
                 site.setSiteKey(siteKey);
 
                 // as we create a full site we will need a home page or a top folder
-                if (export.getSiteType().equals("Headless")) {
-                    export.setRootFolderName(ContentGeneratorCst.ROOT_FOLDER_NAME);
-                    generateFolders(export, articles);
-                    LOGGER.debug("Folders generated, now site");
-                } else {
-                    export.setRootPageName(ContentGeneratorCst.ROOT_PAGE_NAME);
-                    generatePages(export, articles);
-                    LOGGER.debug("Pages generated, now site");
-                }
+                export.setRootFolderName(ContentGeneratorCst.ROOT_FOLDER_NAME);
+                export.setRootPageName(ContentGeneratorCst.ROOT_PAGE_NAME);
+                generateContents(export, articles);
 
                 filesToZip = new ArrayList<>();
 

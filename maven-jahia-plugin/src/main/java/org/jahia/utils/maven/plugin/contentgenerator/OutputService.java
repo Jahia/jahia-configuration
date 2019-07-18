@@ -61,6 +61,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
+import org.jahia.utils.maven.plugin.contentgenerator.bo.ContentBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.FolderBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.PageBO;
 import org.jdom.Document;
@@ -106,6 +107,10 @@ public class OutputService {
 
     public void appendFolderToFile(File f, FolderBO folder) throws IOException {
         appendStringToFile(f, folder.toString());
+    }
+
+    public void appendContentToFile(File f, ContentBO content) throws IOException {
+        appendStringToFile(f, content.toString());
     }
 
     public void appendPathToFile(File f, List<String> paths) throws IOException {

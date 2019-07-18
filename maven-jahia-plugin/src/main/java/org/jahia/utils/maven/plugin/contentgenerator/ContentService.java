@@ -57,13 +57,15 @@ import java.util.Set;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ArticleBO;
+import org.jahia.utils.maven.plugin.contentgenerator.bo.ContentBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.FolderBO;
+import org.jahia.utils.maven.plugin.contentgenerator.bo.PageBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jahia.utils.maven.plugin.support.RandomUtils;
 import org.jdom.Document;
 
-public class FolderService {
+public class ContentService {
 
     private int nbOftenKeywordsAlreadyAssigned;
     private int nbSeldomKeywordsAlreadyAssigned;
@@ -74,124 +76,122 @@ public class FolderService {
     private static final List<String> SELDOM_USED_DESCRIPTION_WORDS = Arrays.asList(ContentGeneratorCst.SELDOM_USED_DESCRIPTION_WORDS.split("\\s*,\\s*"));
     private static final Log LOGGER = new SystemStreamLog();
 
-    public FolderService() {
+    public ContentService() {
         initCmisFilePath();
     }
 
     /**
-     * Main method, create top pages and for each calls the sub pages
-     * generation. Each time a top page and its sub pages have been generated,
-     * they are sent to the writer to avoid out of memory error with a big
-     * number of pages.
+     * Main method, create top pages and for each calls the sub pages generation. Each time a top page and its sub pages have been
+     * generated, they are sent to the writer to avoid out of memory error with a big number of pages.
      *
      * @param export
-     *            Export BO contains all the parameters chose by the user to
-     *            configure his/her content generation
+     *            Export BO contains all the parameters chose by the user to configure his/her content generation
      * @param articles
      *            List of articles selected from database
      * @throws IOException
      *             Error while writing generated XML to the output file
      */
-    public void createTopFolders(ExportBO export, List<ArticleBO> articles) throws IOException {
+    public void createTopContents(ExportBO export, List<ArticleBO> articles) throws IOException {
 
         OutputService os = new OutputService();
         ArticleService articleService = ArticleService.getInstance();
-
-        LOGGER.info("Creating top folders");
-        FolderBO folderTopLevel = null;
-
-        Map<String,ArticleBO> articlesMap = new HashMap<>();
-        for (String language : export.getSiteLanguages()) {
-            articlesMap.put(language,articleService.getArticle(articles));
+        String rootContentName;
+        if (export.getSiteType().equals("Headless")) {
+            rootContentName = export.getRootFolderName();
         }
+        else {
+            rootContentName = export.getRootPageName();
+        }
+        LOGGER.info("Creating top contents");
 
-        String rootFolderName = export.getRootFolderName();
+
+        Map<String, ArticleBO> articlesMap = new HashMap<>();
+        for (String language : export.getSiteLanguages()) {
+            articlesMap.put(language, articleService.getArticle(articles));
+        }
 
         OutputService outService = new OutputService();
         outService.initOutputFile(export.getOutputFile());
         outService.appendStringToFile(export.getOutputFile(), export.toString());
 
-        List<FolderBO> listeTopFolders = new ArrayList<>();
+        List<ContentBO> listeTopContents = new ArrayList<>();
         for (int i = 1; i <= export.getNbPagesTopLevel().intValue(); i++) {
             for (String language : export.getSiteLanguages()) {
                 articlesMap.put(language, articleService.getArticle(articles));
             }
+            ContentBO contentTopLevel = null;
 
-            folderTopLevel = createNewFolder(export, null, articlesMap, export.getNbSubLevels() + 1,
-                    createSubFolders(export, articles, export.getNbSubLevels(), export.getMaxArticleIndex()));
+            contentTopLevel = createNewContent(export, null, articlesMap, export.getNbSubLevels() + 1,
+                    createSubContents(export, articles, export.getNbSubLevels(), export.getMaxArticleIndex()));
 
-            outService.appendFolderToFile(export.getOutputFile(), folderTopLevel);
+            outService.appendContentToFile(export.getOutputFile(), contentTopLevel);
 
-            // path
-            listeTopFolders.add(folderTopLevel);
+            listeTopContents.add(contentTopLevel);
         }
 
-        LOGGER.info("Folders path are being written to the map file");
-        FolderBO rootFolder = createNewFolder(export, rootFolderName, articlesMap, export.getNbSubLevels() + 1, listeTopFolders);
-        List<String> pagesPath = getFoldersPath(listeTopFolders, "/sites/" + export.getSiteKey() + "/" + rootFolder.getName());
-        outService.appendPathToFile(export.getMapFile(), pagesPath);
-        outService.appendStringToFile(export.getOutputFile(), rootFolder.getJcrXml());
-        Document foldersDocument = new Document(rootFolder.getElement());
-        os.writeJdomDocumentToFile(foldersDocument, export.getOutputFile());
+        LOGGER.info("Contents path are being written to the map file");
+        ContentBO rootContent = createNewContent(export, rootContentName, articlesMap, export.getNbSubLevels() + 1, listeTopContents);
+        List<String> contentsPath = getContentsPath(listeTopContents, "/sites/" + export.getSiteKey() + "/" + rootContent.getName());
+        outService.appendPathToFile(export.getMapFile(), contentsPath);
+        outService.appendStringToFile(export.getOutputFile(), rootContent.getJcrXml());
+        Document document = new Document(rootContent.getElement());
+        os.writeJdomDocumentToFile(document, export.getOutputFile());
     }
 
     /**
-     * Recursive method that will generate all sub pages of a page, and call
-     * itself as much as necessary to reach the number of levels requested
+     * Recursive method that will generate all sub contents of a content, and call itself as much as necessary to reach the number of levels
+     * requested
      *
      * @param export
-     *            Export BO contains all the parameters chose by the user to
-     *            configure his/her content generation
+     *            Export BO contains all the parameters chose by the user to configure his/her content generation
      * @param articles
      *            List of articles selected from database
      * @param level
-     *            Current level in the tree decrease each time, top level ==
-     *            number of levels requested by the user)
+     *            Current level in the tree decrease each time, top level == number of levels requested by the user)
      * @param maxArticleIndex
      *            Index of the last article
-     * @return A list of Page BO, containing their sub pages (if they have some)
+     * @return A list of Content BO, containing their sub pages (if they have some)
      */
-    public List<FolderBO> createSubFolders(ExportBO export, List<ArticleBO> articles, Integer level, Integer maxArticleIndex) {
+    public List<ContentBO> createSubContents(ExportBO export, List<ArticleBO> articles, Integer level, Integer maxArticleIndex) {
 
         ArticleService articleService = ArticleService.getInstance();
-        List<FolderBO> listeFolders = new ArrayList<>();
-        Map<String,ArticleBO> articlesMap;
+        List<ContentBO> listeContents = new ArrayList<>();
+        Map<String, ArticleBO> articlesMap;
 
         int nbFoldersPerLevel = export.getNbPagesPerLevel();
 
-        listeFolders.clear();
+        listeContents.clear();
         if (level.intValue() > 0) {
             for (int i = 0; i < nbFoldersPerLevel; i++) {
                 articlesMap = new HashMap<>();
                 for (String language : export.getSiteLanguages()) {
-                    articlesMap.put(language,articleService.getArticle(articles));
+                    articlesMap.put(language, articleService.getArticle(articles));
                 }
-                FolderBO folder = createNewFolder(export, null, articlesMap, level,
-                        createSubFolders(export, articles, level.intValue() - 1, maxArticleIndex + 1));
-                listeFolders.add(folder);
+                ContentBO content = createNewContent(export, null, articlesMap, level,
+                        createSubContents(export, articles, level.intValue() - 1, maxArticleIndex + 1));
+                listeContents.add(content);
             }
         }
-        return listeFolders;
+        return listeContents;
     }
 
     /**
-     * Create a new page object
+     * Create a new page or folder object
+     *
      * @param export
-     *            Export BO contains all the parameters chose by the user to
-     *            configure his/her content generation
-     * @param pageName
-     *            Used only for root page, or to specify a page name If null,
-     *            creates a unique page name from concatenation of page name
+     *            Export BO contains all the parameters chose by the user to configure his/her content generation
+     * @param contentName
+     *            Used only for root page, or to specify a page name If null, creates a unique page name from concatenation of page name
      *            prefix and unique ID
      * @param articlesMap
      * @param level
      *            Current level in the tree
-     * @param subPages
-     *            List of sub pages related
+     * @param subContents
+     *            List of sub contents related
      * @return
      */
-    public FolderBO createNewFolder(ExportBO export, String folderName, Map<String, ArticleBO> articlesMap, int level,
-            List<FolderBO> subFolders) {
+    public ContentBO createNewContent(ExportBO export, String contentName, Map<String, ArticleBO> articlesMap, int level,
+            List<ContentBO> subContents) {
 
         ContentGeneratorService.currentPageIndex = ContentGeneratorService.currentPageIndex + 1;
 
@@ -204,10 +204,12 @@ public class FolderService {
         // the remaining is distributed between pages with external file references, internal file references and just text
         int remainingNbPages = export.getTotalPages() - (export.getNbPagesWithTplList() + export.getNbPagesWithTplQuery());
 
-        int nbPagesWithExternalFileReference = (export.isDisableExternalFileReference() ? 0 : Math.round(remainingNbPages * ContentGeneratorCst.PERCENTAGE_PAGES_WITH_EXTERNAL_FILE_REF));
+        int nbPagesWithExternalFileReference = (export.isDisableExternalFileReference() ? 0
+                : Math.round(remainingNbPages * ContentGeneratorCst.PERCENTAGE_PAGES_WITH_EXTERNAL_FILE_REF));
         int indexPagesWithExternalFileReference = indexPagesWithQuery + nbPagesWithExternalFileReference;
 
-        int nbPagesWithInternalFileReference = (export.isDisableInternalFileReference() ? 0 : Math.round(remainingNbPages * ContentGeneratorCst.PERCENTAGE_PAGES_WITH_INTERNAL_FILE_REF));
+        int nbPagesWithInternalFileReference = (export.isDisableInternalFileReference() ? 0
+                : Math.round(remainingNbPages * ContentGeneratorCst.PERCENTAGE_PAGES_WITH_INTERNAL_FILE_REF));
         int indexPagesWithInternalFileReference = indexPagesWithExternalFileReference + nbPagesWithInternalFileReference;
 
         // pages with qa-list template
@@ -216,36 +218,39 @@ public class FolderService {
         }
 
         // pages with qa-query template
-        if (ContentGeneratorService.currentPageIndex > indexPagesWithList && ContentGeneratorService.currentPageIndex <= indexPagesWithQuery) {
+        if (ContentGeneratorService.currentPageIndex > indexPagesWithList
+                && ContentGeneratorService.currentPageIndex <= indexPagesWithQuery) {
             template = ContentGeneratorCst.PAGE_TPL_QAQUERY;
         }
 
         List<String> externalFilePaths = new ArrayList<>();
-        if (ContentGeneratorService.currentPageIndex > indexPagesWithQuery && ContentGeneratorService.currentPageIndex <= indexPagesWithExternalFileReference) {
-            folderName = ContentGeneratorCst.PAGE_TPL_QAEXTERNAL + ContentGeneratorService.currentPageIndex;
+        if (ContentGeneratorService.currentPageIndex > indexPagesWithQuery
+                && ContentGeneratorService.currentPageIndex <= indexPagesWithExternalFileReference) {
+            contentName = ContentGeneratorCst.PAGE_TPL_QAEXTERNAL + ContentGeneratorService.currentPageIndex;
             externalFilePaths.add(getRandomCmisFilePath(ContentGeneratorCst.CMIS_PICTURES_DIR));
             externalFilePaths.add(getRandomCmisFilePath(ContentGeneratorCst.CMIS_TEXT_DIR));
         }
 
         String fileName = null;
-        if (ContentGeneratorService.currentPageIndex > indexPagesWithExternalFileReference && ContentGeneratorService.currentPageIndex <= indexPagesWithInternalFileReference) {
-            folderName = ContentGeneratorCst.PAGE_TPL_QAINTERNAL + ContentGeneratorService.currentPageIndex;
+        if (ContentGeneratorService.currentPageIndex > indexPagesWithExternalFileReference
+                && ContentGeneratorService.currentPageIndex <= indexPagesWithInternalFileReference) {
+            contentName = ContentGeneratorCst.PAGE_TPL_QAINTERNAL + ContentGeneratorService.currentPageIndex;
             FileService fileService = new FileService();
             fileName = fileService.getFileName(export.getFileNames());
         }
 
-        if (folderName == null) {
-            folderName = template + ContentGeneratorService.currentPageIndex;
+        if (contentName == null) {
+            contentName = template + ContentGeneratorService.currentPageIndex;
         }
 
-        LOGGER.debug("Creating new folder level " + level + ": " + folderName);
+        LOGGER.debug("Creating new content level " + level + ": " + contentName);
 
         HashMap<String, List<String>> acls = new HashMap<>();
         if (random.nextFloat() < export.getGroupAclRatio() && export.getNumberOfGroups() > 0) {
-            acls.put("g:group"+random.nextInt(export.getNumberOfGroups()), Arrays.asList("editor"));
+            acls.put("g:group" + random.nextInt(export.getNumberOfGroups()), Arrays.asList("editor"));
         }
         if (random.nextFloat() < export.getUsersAclRatio() && export.getNumberOfUsers() > 0) {
-            acls.put("u:user"+random.nextInt(export.getNumberOfUsers()), Arrays.asList("editor"));
+            acls.put("u:user" + random.nextInt(export.getNumberOfUsers()), Arrays.asList("editor"));
         }
 
         // mapping to category
@@ -253,13 +258,13 @@ public class FolderService {
         float firstThird = export.getTotalPages() / 3;
         if (ContentGeneratorService.currentPageIndex <= firstThird && export.getNumberOfCategories() > 0) {
             idCategory = random.nextInt(export.getNumberOfCategories());
-            LOGGER.debug("Add " + folderName + " to category " + idCategory);
+            LOGGER.debug("Add " + contentName + " to category " + idCategory);
         }
 
         Integer idTag = null;
         if (ContentGeneratorService.currentPageIndex <= firstThird && export.getNumberOfTags() > 0) {
             idTag = random.nextInt(export.getNumberOfTags());
-            LOGGER.debug("Tag " + folderName + " with tag " + idTag);
+            LOGGER.debug("Tag " + contentName + " with tag " + idTag);
         }
 
         // visibility
@@ -274,45 +279,56 @@ public class FolderService {
         String seldomKeywords = getSeldomKeywords(export.getTotalPages());
         String description = oftenKeywords + " " + seldomKeywords;
 
-        FolderBO folder = new FolderBO(folderName, articlesMap, subFolders, export.getSiteKey(), fileName,
-                export.getNumberOfBigTextPerPage(), acls, idCategory, idTag, visibilityOnPage, export.getVisibilityStartDate(),
-                export.getVisibilityEndDate(), description, export.getCmisSiteName(), externalFilePaths,
-                RandomUtils.isRandomOccurrence(export.getPcPersonalizedPages()),
-                export.getMinPersonalizationVariants(), export.getMaxPersonalizationVariants());
+        ContentBO content = null;
+        if (export.getSiteType().equals("Headless")) {
+            content = new FolderBO(contentName, articlesMap, subContents, export.getSiteKey(), fileName,
+                    export.getNumberOfBigTextPerPage(), acls, idCategory, idTag, visibilityOnPage, export.getVisibilityStartDate(),
+                    export.getVisibilityEndDate(), description, export.getCmisSiteName(), externalFilePaths,
+                    RandomUtils.isRandomOccurrence(export.getPcPersonalizedPages()), export.getMinPersonalizationVariants(),
+                    export.getMaxPersonalizationVariants());
+        }
+        else {
+            content = new PageBO(contentName, articlesMap, subContents, export.getPagesHaveVanity(), export.getSiteKey(),
+                    fileName,
+                    export.getNumberOfBigTextPerPage(), acls, idCategory, idTag, visibilityOnPage, export.getVisibilityStartDate(),
+                    export.getVisibilityEndDate(), description, template, export.getCmisSiteName(), externalFilePaths,
+                    RandomUtils.isRandomOccurrence(export.getPcPersonalizedPages()), export.getMinPersonalizationVariants(),
+                    export.getMaxPersonalizationVariants());
+        }
 
-        return folder;
+        return content;
     }
 
+
     /**
-     * getPagesPathrecursively retrieves absolute paths for each page, from the
-     * top page. If choosen by the user, a map of this path will be generated.
-     * It can be used to run performance tests.
+     * getPagesPathrecursively retrieves absolute paths for each page, from the top page. If choosen by the user, a map of this path will be
+     * generated. It can be used to run performance tests.
      *
      * @param pages
      *            list of the top pages
      * @param path
-     *            this method is recursive, this is the path generated for the
-     *            pages above
+     *            this method is recursive, this is the path generated for the pages above
      * @return String containing all the generated paths, one per line
      */
-    public static List<String> getFoldersPath(List<FolderBO> folders, String path) {
+    public static List<String> getContentsPath(List<ContentBO> contents, String path) {
 
         List<String> siteMap = new ArrayList<>();
 
         if (path == null) {
             path = "";
         }
-        for (Iterator<FolderBO> iterator = folders.iterator(); iterator.hasNext();) {
-            FolderBO folder = iterator.next();
-            String newPath = path + ContentGeneratorCst.PAGE_PATH_SEPARATOR + folder.getName();
+        for (Iterator<ContentBO> iterator = contents.iterator(); iterator.hasNext();) {
+            ContentBO content = iterator.next();
+            String newPath = path + ContentGeneratorCst.PAGE_PATH_SEPARATOR + content.getName();
             siteMap.add(newPath);
-            if (folder.getSubFolders() != null) {
-                siteMap.addAll(getFoldersPath(folder.getSubFolders(), newPath));
+
+            if (content.getSubContents() != null) {
+                siteMap.addAll(getContentsPath(content.getSubContents(), newPath));
             }
         }
-
         return siteMap;
     }
+
 
     private String getOftenKeywords(int nbOfPagesToCreate) {
 

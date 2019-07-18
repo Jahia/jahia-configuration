@@ -45,7 +45,7 @@ package org.jahia.tools.contentgenerator.junit;
 
 import static org.junit.Assert.assertEquals;
 
-import org.jahia.utils.maven.plugin.contentgenerator.PageService;
+import org.jahia.utils.maven.plugin.contentgenerator.ContentService;
 import org.jahia.utils.maven.plugin.contentgenerator.UserGroupService;
 import org.junit.Before;
 import org.junit.Test;

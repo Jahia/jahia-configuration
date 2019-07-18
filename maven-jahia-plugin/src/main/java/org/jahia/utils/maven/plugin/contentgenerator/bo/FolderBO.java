@@ -43,306 +43,34 @@
  */
 package org.jahia.utils.maven.plugin.contentgenerator.bo;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 
-import org.apache.commons.lang.StringUtils;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
-import org.jdom.Attribute;
-import org.jdom.Element;
 
-public class FolderBO implements java.io.Serializable, Comparable<FolderBO> {
-    /**
-     *
-     */
-    private static final long serialVersionUID = 1L;
+public class FolderBO extends ContentBO {
 
-    private Element folderElement;
-    private String namePrefix;
-    private Map<String, ArticleBO> articles;
-    private List<FolderBO> subFolders;
-    private String siteKey;
-    private String fileName;
-    private Integer numberBigText;
-    private Map<String, List<String>> acls;
-    private Integer idCategory;
-    private Integer idTag;
-    private Boolean visibilityEnabled;
-    private String visibilityStartDate;
-    private String visibilityEndDate;
-    private String description;
-    private String cmisSite;
-    private List<String> externalFilePaths;
-    private boolean personalized;
-    private int minPersonalizationVariants;
-    private int maxPersonalizationVariants;
-
-    public FolderBO(final String namePrefix, Map<String, ArticleBO> articles, final List<FolderBO> subFolders, String siteKey,
+    public FolderBO(final String namePrefix, Map<String, ArticleBO> articles, final List<ContentBO> subFolders, String siteKey,
             String fileName, Integer numberBigText, Map<String, List<String>> acls, Integer idCategory, Integer idTag,
             Boolean visibilityEnabled, String visibilityStartDate, String visibilityEndDate, String description,
             String cmisSite, List<String> externalFilePaths, boolean personalized,
             int minPersonalizationVariants, int maxPersonalizationVariants) {
-        this.namePrefix = namePrefix;
-        this.subFolders = subFolders;
-        this.articles = articles;
-        this.siteKey = siteKey;
-        this.fileName = fileName;
-        this.numberBigText = numberBigText;
-        this.acls = acls;
-        this.idCategory = idCategory;
-        this.idTag = idTag;
-        this.visibilityEnabled = visibilityEnabled;
-        this.visibilityStartDate = visibilityStartDate;
-        this.visibilityEndDate = visibilityEndDate;
-        this.description = description;
-        this.cmisSite = cmisSite;
-        this.externalFilePaths = externalFilePaths;
-        this.personalized = personalized;
-        this.minPersonalizationVariants = minPersonalizationVariants;
-        this.maxPersonalizationVariants = maxPersonalizationVariants;
+
+        super(namePrefix, articles, subFolders, siteKey, fileName, numberBigText, acls, idCategory, idTag, visibilityEnabled,
+                visibilityStartDate,
+                visibilityEndDate, description, cmisSite, externalFilePaths, personalized, minPersonalizationVariants,
+                maxPersonalizationVariants);
         buildFolderElement();
     }
 
     private void buildFolderElement() {
-        folderElement = new Element(getName());
-        folderElement.setAttribute("primaryType", "jnt:contentFolder", ContentGeneratorCst.NS_JCR);
-
-        if (subFolders != null) {
-            for (Iterator<FolderBO> iterator = subFolders.iterator(); iterator.hasNext();) {
-                FolderBO subFolder = iterator.next();
-                folderElement.addContent(subFolder.getElement());
-            }
-        }
-
-        if (idCategory != null) {
-            folderElement.setAttribute("jcategorized", StringUtils.EMPTY, ContentGeneratorCst.NS_JMIX);
-            folderElement.setAttribute("defaultCategory", "/sites/systemsite/categories/category" + idCategory, ContentGeneratorCst.NS_J);
-        }
-
-        if (idTag != null) {
-            folderElement.setAttribute("tags", "/sites/" + siteKey + "/tags/tag" + idTag, ContentGeneratorCst.NS_J);
-        }
-
-        // articles
-        for (Map.Entry<String, ArticleBO> entry : articles.entrySet()) {
-            Element translationNode = new Element("translation_" + entry.getKey(), ContentGeneratorCst.NS_J);
-            translationNode.setAttribute("language", entry.getKey(), ContentGeneratorCst.NS_JCR);
-            translationNode.setAttribute("mixinTypes", "mix:title", ContentGeneratorCst.NS_JCR);
-            translationNode.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
-            translationNode.setAttribute("title", entry.getValue().getTitle(), ContentGeneratorCst.NS_JCR);
-
-            if (StringUtils.isNotEmpty(description)) {
-                translationNode.setAttribute("description", description, ContentGeneratorCst.NS_JCR);
-            }
-            folderElement.addContent(translationNode);
-        }
-
-        if (!acls.isEmpty()) {
-            Element aclNode = new Element("acl", ContentGeneratorCst.NS_J);
-            aclNode.setAttribute("inherit", "true", ContentGeneratorCst.NS_J);
-            aclNode.setAttribute("primaryType", "jnt:acl", ContentGeneratorCst.NS_JCR);
-
-            for (Map.Entry<String, List<String>> entry : acls.entrySet()) {
-                String roles = "";
-                for (String s : entry.getValue()) {
-                    roles += s + " ";
-                }
-                Element aceNode = new Element("GRANT_" + entry.getKey().replace(":", "_"));
-                aceNode.setAttribute("aceType", "GRANT", ContentGeneratorCst.NS_J);
-                aceNode.setAttribute("principal", entry.getKey(), ContentGeneratorCst.NS_J);
-                aceNode.setAttribute("protected", "false", ContentGeneratorCst.NS_J);
-                aceNode.setAttribute("roles", roles.trim(), ContentGeneratorCst.NS_J);
-                aceNode.setAttribute("primaryType", "jnt:ace", ContentGeneratorCst.NS_JCR);
-
-                aclNode.addContent(aceNode);
-            }
-            folderElement.addContent(aclNode);
-        }
-
-        // begin folder content (equivalent to content list in Pages)
-        LinkedList<Element> personalizableElements = new LinkedList<>();
-
-        if (StringUtils.startsWith(namePrefix, ContentGeneratorCst.PAGE_TPL_QALIST)) {
-
-            List<String> languages = new ArrayList<>();
-            for (Map.Entry<String, ArticleBO> entry : articles.entrySet()) {
-                languages.add(entry.getKey());
-            }
-            for (int i = 1; i <= ContentGeneratorCst.NB_NEWS_IN_QALIST; i++) {
-                Element newsNode = new NewsBO(namePrefix + "-" + "news" + i, languages).getElement();
-                folderElement.addContent(newsNode);
-                if (i <= ContentGeneratorCst.NB_NEWS_PER_PAGE_IN_QALIST) {
-                    // News are split to multiple pages by Jahia at runtime, so only personalize items present on the first page.
-                    personalizableElements.add(newsNode);
-                }
-            }
-        } else if (StringUtils.startsWith(namePrefix, ContentGeneratorCst.PAGE_TPL_DEFAULT)) {
-            for (int i = 1; i <= numberBigText.intValue(); i++) {
-                Element bigTextNode = new Element("bigText_" + i);
-                bigTextNode.setAttribute("primaryType", "jnt:bigText", ContentGeneratorCst.NS_JCR);
-                bigTextNode.setAttribute("mixinTypes", "jmix:renderable", ContentGeneratorCst.NS_JCR);
-                for (Map.Entry<String, ArticleBO> entry : articles.entrySet()) {
-                    Element translationNode = new Element("translation_" + entry.getKey(), ContentGeneratorCst.NS_J);
-                    translationNode.setAttribute("language", entry.getKey(), ContentGeneratorCst.NS_JCR);
-                    translationNode.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
-                    translationNode.setAttribute("text", entry.getValue().getContent());
-                    bigTextNode.addContent(translationNode);
-                }
-                folderElement.addContent(bigTextNode);
-                personalizableElements.add(bigTextNode);
-            }
-        }
-
-        // for pages with external/internal file reference, we check the page name
-        if (StringUtils.startsWith(namePrefix, ContentGeneratorCst.PAGE_TPL_QAEXTERNAL)) {
-            for (int i = 0; i < externalFilePaths.size(); i++) {
-                String externalFilePath = externalFilePaths.get(i);
-                Element externalFileReference = new Element("external-file-reference-" + i);
-                externalFileReference.setAttribute("node",
-                        "/mounts/" + ContentGeneratorCst.CMIS_MOUNT_POINT_NAME + "/Sites/" + cmisSite + externalFilePath,
-                        ContentGeneratorCst.NS_J);
-                externalFileReference.setAttribute("primaryType", "jnt:fileReference", ContentGeneratorCst.NS_JCR);
-                folderElement.addContent(externalFileReference);
-                personalizableElements.add(externalFileReference);
-            }
-        }
-
-        if (StringUtils.startsWith(namePrefix, ContentGeneratorCst.PAGE_TPL_QAINTERNAL) && fileName != null) {
-
-            Element randomFileNode = new Element("rand-file");
-            randomFileNode.setAttribute("primaryType", "jnt:fileReference", ContentGeneratorCst.NS_JCR);
-
-            Element fileTranslationNode = new Element("translation_en", ContentGeneratorCst.NS_J);
-            fileTranslationNode.setAttribute("language", "en", ContentGeneratorCst.NS_JCR);
-            fileTranslationNode.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
-            fileTranslationNode.setAttribute("title", "My file", ContentGeneratorCst.NS_JCR);
-
-            randomFileNode.addContent(fileTranslationNode);
-
-            Element publicationNode = new Element("publication");
-            publicationNode.setAttribute("primaryType", "jnt:publication", ContentGeneratorCst.NS_JCR);
-
-            Element publicationTranslationNode = new Element("translation_en", ContentGeneratorCst.NS_J);
-            publicationTranslationNode.setAttribute("author", "Jahia Content Generator");
-            publicationTranslationNode.setAttribute("body", "&lt;p&gt;  Random publication&lt;/p&gt;");
-            publicationTranslationNode.setAttribute("title", "Random publication", ContentGeneratorCst.NS_JCR);
-            publicationTranslationNode.setAttribute("file",
-                    "/sites/" + siteKey + "/files/contributed/" + org.apache.jackrabbit.util.ISO9075.encode(fileName));
-            publicationTranslationNode.setAttribute("language", "en", ContentGeneratorCst.NS_JCR);
-            publicationTranslationNode.setAttribute("primaryType", "jnt:translation", ContentGeneratorCst.NS_JCR);
-            publicationTranslationNode.setAttribute("source", "Jahia");
-
-            publicationNode.addContent(publicationTranslationNode);
-
-            folderElement.addContent(publicationNode);
-        }
-
-        if (personalized) {
-            if (personalizableElements.isEmpty()) {
-                personalized = false;
-                folderElement.setName(getName()); // Re-set the root element name: it must change according to page personalization change.
-            } else {
-                Element element = personalizableElements.get(ThreadLocalRandom.current().nextInt(personalizableElements.size()));
-                int elementIndex = folderElement.indexOf(element);
-                folderElement.removeContent(element);
-                element = getPersonalizedElement(element);
-                folderElement.addContent(elementIndex, element);
-            }
-        }
-
-        // end folder content
-
-        if (visibilityEnabled) {
-
-            Element visibilityNode = new Element("conditionalVisibility", ContentGeneratorCst.NS_J);
-            visibilityNode.setAttribute("conditionalVisibility", null, ContentGeneratorCst.NS_J);
-            visibilityNode.setAttribute("forceMatchAllConditions", "true", ContentGeneratorCst.NS_J);
-            visibilityNode.setAttribute("primaryType", "jnt:conditionalVisibility", ContentGeneratorCst.NS_JCR);
-
-            Element visibilityConditionNode = new Element("startEndDateCondition0", ContentGeneratorCst.NS_JNT);
-            visibilityConditionNode.setAttribute("primaryType", "jnt:startEndDateCondition", ContentGeneratorCst.NS_JCR);
-            visibilityConditionNode.setAttribute("start", visibilityStartDate);
-            visibilityConditionNode.setAttribute("end", visibilityEndDate);
-
-            visibilityNode.addContent(visibilityConditionNode);
-            folderElement.addContent(visibilityNode);
-        }
+        element.setAttribute("primaryType", "jnt:contentFolder", ContentGeneratorCst.NS_JCR);
+        buildPersonalizedElements(element);
     }
 
     public String getNamePrefix() {
         return namePrefix;
     }
 
-    public List<FolderBO> getSubFolders() {
-        return subFolders;
-    }
 
-    public Element getElement() {
-        return folderElement;
-    }
-
-    private Element getPersonalizedElement(Element element) {
-
-        Random random = ThreadLocalRandom.current();
-
-        Element personalizationElement = new Element("experience-" + element.getName());
-        personalizationElement.setAttribute("primaryType", "wemnt:personalizedContent", ContentGeneratorCst.NS_JCR);
-        personalizationElement.setAttribute("active", "true", ContentGeneratorCst.NS_WEM);
-        personalizationElement.setAttribute("personalizationStrategy", "priority", ContentGeneratorCst.NS_WEM);
-        String[] segments = ContentGeneratorCst.SEGMENTS[random.nextInt(ContentGeneratorCst.SEGMENTS.length)];
-        int nbPersonalizationVariants = minPersonalizationVariants
-                + random.nextInt(maxPersonalizationVariants - minPersonalizationVariants + 1);
-        if (nbPersonalizationVariants > segments.length) {
-            nbPersonalizationVariants = segments.length;
-        }
-        for (int i = 0; i < nbPersonalizationVariants; i++) {
-
-            Element variantElement = (Element) element.clone();
-            variantElement.setName(variantElement.getName() + "-" + (i + 1));
-
-            Attribute mixinTypesAttribute = variantElement.getAttribute("mixinTypes", ContentGeneratorCst.NS_JCR);
-            String mixinTypes;
-            if (mixinTypesAttribute == null) {
-                mixinTypes = StringUtils.EMPTY;
-            } else {
-                mixinTypes = mixinTypesAttribute.getValue() + " ";
-            }
-            variantElement.setAttribute("mixinTypes", mixinTypes + "wemmix:editItem", ContentGeneratorCst.NS_JCR);
-
-            String jsonFilter = "{\"parameterValues\":{\"subConditions\":[{\"type\":\"profileSegmentCondition\",\"parameterValues\":{\"segments\":[\""
-                    + segments[i] + "\"]}}],\"operator\":\"and\"},\"type\":\"booleanCondition\"}";
-            variantElement.setAttribute("jsonFilter", jsonFilter, ContentGeneratorCst.NS_WEM);
-            personalizationElement.addContent(variantElement);
-        }
-
-        return personalizationElement;
-    }
-
-    public String getName() {
-        if (personalized) {
-            return namePrefix + "-personalized";
-        } else {
-            return namePrefix;
-
-        }
-    }
-
-    public String getJcrXml() {
-        return getElement().getText();
-    }
-
-    @Override
-    public int compareTo(FolderBO f) throws NullPointerException {
-        return getName().compareTo(f.getName());
-    }
-
-    @Override
-    public String toString() {
-        return getName();
-    }
 }
