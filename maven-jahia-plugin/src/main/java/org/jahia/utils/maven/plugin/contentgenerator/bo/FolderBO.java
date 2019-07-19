@@ -41,52 +41,36 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.tools.contentgenerator.junit;
+package org.jahia.utils.maven.plugin.contentgenerator.bo;
 
-import static org.junit.Assert.assertEquals;
+import java.util.List;
+import java.util.Map;
 
-import org.jahia.utils.maven.plugin.contentgenerator.ContentService;
-import org.jahia.utils.maven.plugin.contentgenerator.UserGroupService;
-import org.junit.Before;
-import org.junit.Test;
+import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 
-public class UserGroupServiceTest extends ContentGeneratorTestCase{
+public class FolderBO extends ContentBO {
 
-	private static UserGroupService userService;
+    public FolderBO(final String namePrefix, Map<String, ArticleBO> articles, final List<ContentBO> subFolders, String siteKey,
+            String fileName, Integer numberBigText, Map<String, List<String>> acls, Integer idCategory, Integer idTag,
+            Boolean visibilityEnabled, String visibilityStartDate, String visibilityEndDate, String description,
+            String cmisSite, List<String> externalFilePaths, boolean personalized,
+            int minPersonalizationVariants, int maxPersonalizationVariants) {
 
-	@Before
-	public void setUp() throws Exception {
-		super.setUp();
-		userService = new UserGroupService();
-	}
+        super(namePrefix, articles, subFolders, siteKey, fileName, numberBigText, acls, idCategory, idTag, visibilityEnabled,
+                visibilityStartDate,
+                visibilityEndDate, description, cmisSite, externalFilePaths, personalized, minPersonalizationVariants,
+                maxPersonalizationVariants);
+        buildFolderElement();
+    }
 
-	@Test
-	public void testGetNbUsersPerGroup() {
-		Integer nbGroups = new Integer(10);
-		Integer nbUsers = new Integer(550);
-		
-		Integer nbUsersPerGroup = userService.getNbUsersPerGroup(nbUsers, nbGroups);
-		assertEquals(Integer.valueOf(55), nbUsersPerGroup);
-		
-		nbGroups = new Integer(10);
-		nbUsers = new Integer(558);
-		
-		nbUsersPerGroup = userService.getNbUsersPerGroup(nbUsers, nbGroups);
-		assertEquals(Integer.valueOf(55), nbUsersPerGroup);
-	}
+    private void buildFolderElement() {
+        element.setAttribute("primaryType", "jnt:contentFolder", ContentGeneratorCst.NS_JCR);
+        buildPersonalizedElements(element);
+    }
 
-	@Test
-	public void testGetNbUsersRemaining() {
-		Integer nbGroups = new Integer(10);
-		Integer nbUsers = new Integer(550);
-		
-		Integer nbUsersLastGroup = userService.getNbUsersRemaining(nbUsers, nbGroups);
-		assertEquals(Integer.valueOf(0), nbUsersLastGroup);
-		
-		nbGroups = new Integer(10);
-		nbUsers = new Integer(558);
-		
-		nbUsersLastGroup = userService.getNbUsersRemaining(nbUsers, nbGroups);
-		assertEquals(Integer.valueOf(8), nbUsersLastGroup);
-	}
+    public String getNamePrefix() {
+        return namePrefix;
+    }
+
+
 }

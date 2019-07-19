@@ -49,6 +49,7 @@ import java.util.List;
 
 import org.jahia.utils.maven.plugin.contentgenerator.ContentGeneratorService;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ArticleBO;
+import org.jahia.utils.maven.plugin.contentgenerator.bo.ContentBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.PageBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
@@ -59,7 +60,7 @@ public abstract class ContentGeneratorTestCase {
     protected ContentGeneratorService contentGeneratorService;
     protected ExportBO export_default;
     protected List<ArticleBO> articles;
-    protected List<PageBO> pages;
+    protected List<ContentBO> pages;
     protected Integer total_pages = 7;
     protected ArticleBO articleEn;
     protected ArticleBO articleFr;
@@ -79,20 +80,22 @@ public abstract class ContentGeneratorTestCase {
         createExport();
     }
 
-    private PageBO createPage(int pageID, List<PageBO> subPages) {
+    private PageBO createPage(int pageID, List<ContentBO> subPages) {
         boolean hasVanity = true;
-        HashMap<String, ArticleBO> articleBOHashMap = new HashMap<String, ArticleBO>();
+        HashMap<String, ArticleBO> articleBOHashMap = new HashMap<>();
         articleBOHashMap.put("en", new ArticleBO(0,"Title " + pageID, "Content " + pageID));
         articleBOHashMap.put("fr", new ArticleBO(0,"Titre " + pageID, "Contenu " + pageID));
-        PageBO page = new PageBO("page" + pageID, articleBOHashMap, subPages, hasVanity, SITE_KEY, null, 2, new HashMap<String, List<String>>(), 1, 1, Boolean.FALSE, null, null, null, ContentGeneratorCst.PAGE_TPL_DEFAULT, null, null, false, 2, 3);
+        PageBO page = new PageBO("page" + pageID, articleBOHashMap, subPages, hasVanity, SITE_KEY, null, 2,
+                new HashMap<String, List<String>>(), 1, 1, Boolean.FALSE, null, null, null, ContentGeneratorCst.PAGE_TPL_DEFAULT, null,
+                null, false, 2, 3);
         return page;
     }
 
     private void createPages() {
 
-        pages = new ArrayList<PageBO>();
+        pages = new ArrayList<>();
 
-        List<PageBO> subPages = new ArrayList<PageBO>();
+        List<ContentBO> subPages = new ArrayList<>();
 
         int pageID = 111;
         PageBO page111 = createPage(pageID, null) ;
@@ -107,7 +110,7 @@ public abstract class ContentGeneratorTestCase {
         pageID=12;
         PageBO page12 = createPage(pageID, null);
 
-        subPages = new ArrayList<PageBO>();
+        subPages = new ArrayList<>();
         subPages.add(page11);
         subPages.add(page12);
 
