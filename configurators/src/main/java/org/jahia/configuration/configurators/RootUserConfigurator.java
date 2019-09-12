@@ -47,10 +47,8 @@ import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.Namespace;
 import org.jdom.input.SAXBuilder;
-import org.jdom.output.Format;
-import org.jdom.output.XMLOutputter;
 
-import java.io.FileWriter;
+import java.io.File;
 import java.util.Map;
 
 /**
@@ -111,10 +109,6 @@ public class RootUserConfigurator extends AbstractXMLConfigurator {
             }
         }
 
-        Format customFormat = Format.getPrettyFormat();
-        customFormat.setLineSeparator(System.getProperty("line.separator"));
-        XMLOutputter xmlOutputter = new XMLOutputter(customFormat);
-        xmlOutputter.output(jdomDocument, new FileWriter(destFileName));
-
+        write(jdomDocument, new File(destFileName));
     }
 }
