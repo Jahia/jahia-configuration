@@ -47,8 +47,11 @@ import org.jahia.configuration.logging.AbstractLogger;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
+import org.jdom.output.Format;
+import org.jdom.output.XMLOutputter;
 import org.jdom.xpath.XPath;
 
+import java.io.*;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.List;
@@ -190,4 +193,38 @@ public abstract class AbstractXMLConfigurator extends AbstractConfigurator {
             el.getParent().removeContent(el);
         }
     }
+
+    /**
+     * Write a JDom document to a file.
+     *
+     * <p>Characters will be encoded using UTF-8
+     *
+     * @param document the document to write
+     * @param destination the file to write to
+     * @throws IOException if an error occurs while writing the document
+     */
+    protected final void write(Document document, File destination) throws IOException {
+        String lineSeparator = System.getProperty("line.separator");
+        Format format = Format.getPrettyFormat().setLineSeparator(lineSeparator);
+
+        write(document, destination, format);
+    }
+
+    /**
+     * Write a JDom document to a file.
+     *
+     * <P>Characters will be encoded using {@link Format#getEncoding()}
+     *
+     * @param document the document to write
+     * @param destination the file to write to
+     * @param format the format to apply
+     * @throws IOException if an error occurs while writing the document
+     */
+    protected final void write(Document document, File destination, Format format) throws IOException {
+        XMLOutputter outputter = new XMLOutputter(format);
+        try (OutputStream out = new FileOutputStream(destination)) {
+            outputter.output(document, out);
+        }
+    }
+
 }

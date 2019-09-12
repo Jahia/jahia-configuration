@@ -61,8 +61,6 @@ import org.jdom.JDOMException;
 import org.jdom.Namespace;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
-import org.jdom.output.Format.TextMode;
-import org.jdom.output.XMLOutputter;
 
 /**
  * JBoss DB datasource configurator.
@@ -209,14 +207,6 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         return StringUtils.replace(getValue(dbProperties, prop), "=", "\\=");
     }
 
-    private Format getOutputFormat() {
-        Format customFormat = Format.getRawFormat();
-        customFormat.setTextMode(TextMode.TRIM);
-        customFormat.setIndent("    ");
-        customFormat.setLineSeparator(System.getProperty("line.separator"));
-        return customFormat;
-    }
-
     private Element getProfile(Element root, ConfigFile sourceConfigFile) {
         Element profile = root.getChild("profile", root.getNamespace());
         if (profile == null) {
@@ -270,9 +260,11 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
             
             configureConnector(profile);
 
-            out = new FileWriter(destFileName);
             getLogger().info("Writing output to " + destFileName);
-            new XMLOutputter(getOutputFormat()).output(jdomDocument, out);
+            write(jdomDocument, new File(destFileName), Format.getPrettyFormat()
+                    .setIndent("    ")
+                    .setLineSeparator(System.getProperty("line.separator"))
+            );
 
         } catch (JDOMException jdome) {
             throw new Exception("Error while updating configuration file " + sourceConfigFile, jdome);
