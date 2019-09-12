@@ -46,11 +46,9 @@ package org.jahia.configuration.configurators;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
-import org.jdom.output.Format;
-import org.jdom.output.XMLOutputter;
 import org.jdom.xpath.XPath;
 
-import java.io.FileWriter;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.util.Map;
 
@@ -98,10 +96,7 @@ public class TomcatContextXmlConfigurator extends AbstractXMLConfigurator {
             	resource.setAttribute("validationQuery", getValue(dbProperties, "jahia.database.validationQuery"));
             }
 
-            Format customFormat = Format.getPrettyFormat();
-            customFormat.setLineSeparator(System.getProperty("line.separator"));
-            XMLOutputter xmlOutputter = new XMLOutputter(customFormat);
-            xmlOutputter.output(jdomDocument, new FileWriter(destFileName));
+            write(jdomDocument, new File(destFileName));
 
         } catch (JDOMException jdome) {
             throw new Exception("Error while updating configuration file " + sourceConfigFile, jdome);

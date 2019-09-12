@@ -46,12 +46,10 @@ package org.jahia.configuration.configurators;
 import org.codehaus.plexus.util.StringUtils;
 import org.jahia.configuration.logging.AbstractLogger;
 import org.jdom.*;
-import org.jdom.output.XMLOutputter;
-import org.jdom.output.Format;
 import org.jdom.xpath.XPath;
 import org.jdom.input.SAXBuilder;
 
-import java.io.FileWriter;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.List;
@@ -123,11 +121,8 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             	removeElementIfExists(repositoryElement, "//Versioning/FileSystem/param[@name=\"schemaCheckEnabled\"]");
             	fs.addContent(new Element("param", namespace).setAttribute("name", "path").setAttribute("value", "${rep.home}/version"));
             }
-            
-            Format customFormat = Format.getPrettyFormat();
-            customFormat.setLineSeparator(System.getProperty("line.separator"));
-            XMLOutputter xmlOutputter = new XMLOutputter(customFormat);
-            xmlOutputter.output(jdomDocument, new FileWriter(destFileName));
+
+            write(jdomDocument, new File(destFileName));
 
         } catch (JDOMException jdome) {
             throw new Exception("Error while updating configuration file " + sourceConfigFile, jdome);
