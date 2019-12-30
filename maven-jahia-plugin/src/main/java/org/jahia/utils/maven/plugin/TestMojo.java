@@ -47,6 +47,9 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.project.MavenProject;
+
+import com.google.common.util.concurrent.Uninterruptibles;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -54,6 +57,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.io.*;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.ArrayList;
 
 /**
@@ -128,29 +132,15 @@ public class TestMojo extends AbstractMojo {
     private void executeAllTests() {
         try {
             List<String> targets = new ArrayList<String>();
-            String url1 = testURL + "/test" + (StringUtils.isNotEmpty(test) ? "/" + test : "");
+            String url1 = testURL + "/test" + (StringUtils.isNotEmpty(test) ? "/" + test + "?run=true" : "");
             if (skipCoreTests) {
-                url1 += "?skipCoreTests=true";
+                url1 += (StringUtils.isNotEmpty(test) ? "&" : "?") + "skipCoreTests=true";
             }
             getLog().info("Get tests from : "+url1);
             URLConnection conn = null;
 
             if (startupWait) {
-                getLog().info("Waiting for jahia startup");
-                for (int i=startupTimeout; i>0; i--) {
-                    try {
-                        conn = new URL(url1).openConnection();
-                        conn.connect();
-                        break;
-                    } catch (IOException e) {
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e1) {
-                            e1.printStackTrace();
-                        }
-                        System.out.print(".");
-                    }
-                }
+                conn = waitForStartupAndConnect(url1);
             } else {
                 conn = new URL(url1).openConnection();
             }
@@ -181,6 +171,21 @@ public class TestMojo extends AbstractMojo {
             getLog().error(e);
         }
     }
+    
+    private URLConnection waitForStartupAndConnect(String url) {
+        getLog().info("Waiting for jahia startup");
+        for (int i=startupTimeout; i>0; i--) {
+            try {
+                URLConnection conn = new URL(url).openConnection();
+                conn.connect();
+                return conn;
+            } catch (IOException e) {
+                Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+                System.out.print(".");
+            }
+        }
+        return null;
+    }
 
     private void executeTest(String test, boolean isXmlSuite) {
         long timer = System.currentTimeMillis();
@@ -188,7 +193,7 @@ public class TestMojo extends AbstractMojo {
             URLConnection conn;
             InputStream is;
             
-            StringBuffer sbParameters = new StringBuffer(); 
+            StringBuilder sbParameters = new StringBuilder(); 
             // dummy param to not have to test if each following parameter is the first one 
             // and then if you have to use ? or &
             sbParameters.append("?dummyParam=null");
