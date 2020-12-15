@@ -309,18 +309,30 @@ public class JahiaGlobalConfigurator {
 
     private ConfigFile readJahiaNodeProperties(String sourceWebAppPath, FileSystemManager fsManager)
             throws FileSystemException {
-        URL jarUrl = null;
+        VFSConfigFile file = null;
+        FileObject jahiaImplFileObject = findVFSFile(sourceWebAppPath + "/WEB-INF/lib", "jahia\\-impl\\-.*\\.jar");
         FileObject jahiaEEImplFileObject = findVFSFile(sourceWebAppPath + "/WEB-INF/lib", "jahia\\-ee\\-impl.*\\.jar");
         if (jahiaEEImplFileObject != null) {
-            jarUrl = jahiaEEImplFileObject.getURL();
-        } else {
-            jarUrl = this.getClass().getClassLoader().getResource("jahia-default-config.jar");
+            file = getFileInJar(fsManager, jahiaEEImplFileObject.getURL(), "org/jahia/defaults/config/properties/jahia.node.properties");
         }
-        if (jarUrl != null) {
-            return new VFSConfigFile(fsManager.resolveFile("jar:" + jarUrl.toExternalForm()),
-                    "org/jahia/defaults/config/properties/jahia.node.properties");
+        if (jahiaImplFileObject != null && file == null) {
+            file = getFileInJar(fsManager, jahiaImplFileObject.getURL(), "org/jahia/defaults/config/properties/jahia.node.properties");
         }
-        return null;
+        if (file == null) {
+            file = getFileInJar(fsManager, this.getClass().getClassLoader().getResource("jahia-default-config.jar"), "org/jahia/defaults/config/properties/jahia.node.properties");
+        }
+
+        return file;
+    }
+
+    private VFSConfigFile getFileInJar(FileSystemManager fsManager, URL jarUrl, String path) {
+        try {
+            VFSConfigFile vfsConfigFile = new VFSConfigFile(fsManager.resolveFile("jar:" + jarUrl.toExternalForm()), path);
+            vfsConfigFile.getInputStream();
+            return vfsConfigFile;
+        } catch (FileSystemException e) {
+            return null;
+        }
     }
 
     private ConfigFile readJahiaProperties(String sourceWebAppPath, FileSystemManager fsManager) throws IOException {
