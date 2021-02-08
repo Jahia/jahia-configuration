@@ -23,7 +23,11 @@
  */
 package org.jahia.utils.maven.plugin.osgi.models;
 
+import aQute.bnd.version.Version;
+import aQute.bnd.version.VersionRange;
 import org.apache.commons.lang.StringUtils;
+
+import static org.jahia.utils.maven.plugin.osgi.utils.Constants.*;
 
 /**
  * Parser for jahia-depends value
@@ -31,58 +35,76 @@ import org.apache.commons.lang.StringUtils;
 public class JahiaDepends {
 
     private String moduleName = "";
-    private String minVersion = null;
-    private String maxVersion = null;
+    private VersionRange range = null;
+    private String parsedString = null;
 
 
     public JahiaDepends(String dependency) {
+        this.parsedString = dependency;
         String[] deps = dependency.split("=");
         this.moduleName = StringUtils.isNotBlank(deps[0]) ? deps[0].trim() : "";
 
-        // parse version
-        if (deps.length > 1 && StringUtils.isNotEmpty(deps[1])) {
-            String[] version = deps[1].split(",");
-            if (isMinVersion(version[0])) {
-                String min = version[0].trim().substring(1);
-                this.minVersion = (StringUtils.isNotBlank(min)) ? min.trim() : null;
-            }
-            if (isMaxVersion(version[1])) {
-                String max = StringUtils.chop(version[1].trim());
-                this.maxVersion = (StringUtils.isNotBlank(max)) ? max.trim() : null;
-            }
+        if (deps.length > 1 && StringUtils.isNotBlank(deps[1])) {
+            range = new VersionRange(deps[1]);
         }
     }
 
     public boolean hasVersion() {
-        return hasMaxVersion() || hasMinVersion();
+        return StringUtils.isNotEmpty(getMinVersion())
+                && StringUtils.isNotEmpty(getMaxVersion());
     }
 
-    public boolean hasMaxVersion() {
-        return maxVersion != null;
-    }
-
-    public boolean hasMinVersion() {
-        return minVersion != null;
-    }
 
     public String getModuleName() {
         return moduleName;
     }
 
     public String getMinVersion() {
-        return minVersion;
+        return (range != null && range.getLow() != null) ? range.getLow().toString() : "";
     }
 
     public String getMaxVersion() {
-        return maxVersion;
+        return (range != null && range.getHigh() != null) ? range.getHigh().toString() : "";
     }
 
-    public static boolean isMinVersion(String version) {
-        return (StringUtils.isNotBlank(version)) && version.trim().startsWith("[");
+    public VersionRange getVersionRange() {
+        return range;
     }
 
-    public static boolean isMaxVersion(String version) {
-        return (StringUtils.isNotBlank(version)) && version.trim().endsWith("]");
+    public boolean inRange(String version) {
+        Version v = new Version(toOsgiVersion(version));
+        return range == null || range.includes(v);
     }
 
+    public String toFilterString() {
+        String verFilter = (range != null) ? range.toFilter() : "";
+        verFilter = verFilter.replace("version", OSGI_CAPABILITY_MODULE_DEPENDENCIES_VERSION_KEY);
+        String filter = String.format("(%s=%s)", OSGI_CAPABILITY_MODULE_DEPENDENCIES_KEY, moduleName);
+        if (!verFilter.isEmpty()) {
+            filter = verFilter.startsWith("(&") ?
+                    verFilter.replace("&", "&" + filter) :
+                    String.format("(&%s%s)", filter, verFilter);
+        }
+        return filter;
+    }
+
+    public static JahiaDepends parse(String dependency) {
+        return new JahiaDepends(dependency);
+    }
+
+    /** Workaround to convert maven project version to OSGI-compatible version */
+    public static String toOsgiVersion(String version) {
+        return org.apache.felix.utils.version.VersionCleaner.clean(version);
+    }
+
+    /** @return if clause starts with VersionRange.LEFT_OPEN or VersionRange.LEFT_CLOSED */
+    public static boolean isOpenClause(String clause) {
+        return StringUtils.isNotBlank(clause) && (
+                clause.trim().startsWith("[") ||
+                        clause.trim().startsWith("(") );
+    }
+
+    @Override public String toString() {
+        return parsedString;
+    }
 }

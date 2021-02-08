@@ -24,7 +24,6 @@
 package org.jahia.utils.maven.plugin.osgi.utils;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.felix.utils.version.VersionRange;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.jahia.utils.maven.plugin.osgi.models.JahiaDepends;
@@ -52,7 +51,7 @@ public class CapabilityUtils {
             jahiaDependsValue = replaceDependsDelimiter(jahiaDependsValue);
             String requireCapabilities = Arrays.stream(jahiaDependsValue.split(DELIMITER))
                     .map(moduleId -> buildRequireCapabilities(moduleId, skipRequireDependencies))
-                    .filter(dep -> StringUtils.isNotEmpty(dep))
+                    .filter(StringUtils::isNotEmpty)
                     .collect(Collectors.joining(","));
             if (!requireCapabilities.isEmpty()) {
                 projectProp.put(REQUIRE_CAPABILITY_PROJECT_PROP_KEY, prefix + requireCapabilities);
@@ -60,7 +59,7 @@ public class CapabilityUtils {
         }
 
         /* Build provide capabilities */
-        String version = toOsgiVersion(project.getVersion());
+        String version = JahiaDepends.toOsgiVersion(project.getVersion());
         String provideArtifactId = buildProvideCapabilities(project.getArtifactId(), version);
         String provideProjectName = buildProvideCapabilities(project.getName(), version);
         StringBuilder provideCapabilities = new StringBuilder(prefix).append(provideArtifactId);
@@ -76,25 +75,8 @@ public class CapabilityUtils {
         JahiaDepends depends = new JahiaDepends(dependency);
         if (skipRequireDependencies.contains(depends.getModuleName())) return "";
 
-        StringBuilder strBuilder = new StringBuilder(OSGI_CAPABILITY_MODULE_DEPENDENCIES).append(";filter:=\"(");
-        String nameFilter = String.format("%s=%s", OSGI_CAPABILITY_MODULE_DEPENDENCIES_KEY, depends.getModuleName());
-        if (!depends.hasVersion()) {
-            // e.g. com.jahia.modules.dependencies;filter:="(moduleIdentifier=<moduleName>)"
-            strBuilder.append(nameFilter);
-        } else {
-            // e.g. com.jahia.modules.dependencies;filter:="(&(moduleIdentifier=<moduleName>)(moduleVersion>=<minVersion>)
-            // (moduleVersion<=<maxVersion>))"
-            strBuilder.append(String.format("&(%s)", nameFilter));
-            if (depends.hasMinVersion()) {
-                strBuilder.append('(').append(OSGI_CAPABILITY_MODULE_DEPENDENCIES_VERSION_KEY)
-                        .append(">=").append(depends.getMinVersion()).append(')');
-            }
-            if (depends.hasMaxVersion()) {
-                strBuilder.append('(').append(OSGI_CAPABILITY_MODULE_DEPENDENCIES_VERSION_KEY)
-                        .append("<=").append(depends.getMaxVersion()).append(')');
-            }
-        }
-        return strBuilder.append(")\"").toString();
+        return new StringBuilder(OSGI_CAPABILITY_MODULE_DEPENDENCIES)
+                .append(";filter:=\"").append(depends.toFilterString()).append("\"").toString();
     }
 
     public static String buildProvideCapabilities(String dependency, String version) {
@@ -113,38 +95,35 @@ public class CapabilityUtils {
 
     /**
      *
-     * @return intermediary string for easy parsing of module and version ranges
+     * @return Replace dependency separator with DEPENDENCY_DELIMITER instead of comma
+     * so it doesn't conflict with version range separator
      *
-     * e.g. 'module1=[1.2,2],module2,module3=[,4.0]'
-     * to 'module1=[1.2,2];module2;module3=[,4.0]'
+     * e.g. 'module1=[1.2,2),module2,module3=4'
+     * to 'module1=[1.2,2);module2;module3=4'
      */
-    public static String replaceDependsDelimiter(String dependsValue) throws MojoExecutionException {
+    public static String replaceDependsDelimiter(String dependsValue) {
         List<String> result = new ArrayList<>();
         StringTokenizer tokens = new StringTokenizer(dependsValue, ",");
         String nextToken = null;
         while (nextToken != null || tokens.hasMoreTokens()) {
-            String token = (nextToken != null) ? nextToken : tokens.nextToken().trim();
-            nextToken = (tokens.hasMoreTokens()) ? tokens.nextToken().trim() : null;
-            String[] dep = token.split("=", 2);
-
-            if (dep.length > 1) {
-                if (JahiaDepends.isMinVersion(dep[1]) && JahiaDepends.isMaxVersion(nextToken)) {
-                    result.add(String.format("%s=%s,%s", dep[0].trim(), dep[1].trim(), nextToken));
-                    nextToken = null;
-                } else {
-                    throw new MojoExecutionException("Error while parsing Jahia-depends version clause: " + token);
-                }
-            } else {
+            String token = (nextToken != null) ? nextToken : tokens.nextToken();
+            nextToken = (tokens.hasMoreTokens()) ? tokens.nextToken() : null;
+            if (!token.contains("=")) {
                 result.add(token);
+                continue;
             }
+
+            String dependency = token;
+            String[] deps = token.split("=");
+            if (JahiaDepends.isOpenClause(deps[1])) {
+                String nextTokenStr = (nextToken != null) ? nextToken : "";
+                dependency = String.format("%s,%s", token, nextTokenStr);
+                nextToken = null;
+            }
+            JahiaDepends.parse(dependency); // try to parse; will throw error if invalid format
+            result.add(dependency);
         }
         return String.join(DELIMITER, result);
-    }
-
-    /** Workaround to convert maven project version to OSGI-compatible version */
-    public static String toOsgiVersion(String version) {
-        VersionRange range = VersionRange.parseVersionRange(String.format("(,%s)", version));
-        return range.getCeiling().toString();
     }
 
 }
