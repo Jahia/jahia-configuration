@@ -61,6 +61,7 @@ import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.jahia.utils.maven.plugin.SLF4JLoggerToMojoLogBridge;
+import org.jahia.utils.maven.plugin.osgi.utils.CapabilityUtils;
 import org.jahia.utils.maven.plugin.support.AetherHelper;
 import org.jahia.utils.maven.plugin.support.AetherHelperFactory;
 import org.jahia.utils.maven.plugin.support.ArtifactProcessor;
@@ -79,6 +80,7 @@ import java.util.*;
 import java.util.jar.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * A maven goal to scan the project for package dependencies, useful for building OSGi Import-Package
@@ -99,10 +101,6 @@ import java.util.regex.Pattern;
  * @todo add support for JSP tag files, more...
  */
 public class DependenciesMojo extends BundlePlugin {
-
-    private static final String OSGI_CAPABILITY_MODULE_DEPENDENCIES_KEY = "moduleIdentifier";
-
-    private static final String OSGI_CAPABILITY_MODULE_DEPENDENCIES = "com.jahia.modules.dependencies";
 
     protected static final Set<String> SUPPORTED_FILE_EXTENSIONS_TO_SCAN = new HashSet<String>(Arrays.asList("jsp",
             "jspf", "tag", "tagf", "cnd", "drl", "xml", "groovy"));
@@ -436,51 +434,28 @@ public class DependenciesMojo extends BundlePlugin {
             project.getProperties().put("jahia.plugin.requiredNodeTypes", "");
         }
 
-        project.getProperties().put("jahia.plugin.requiredModulesCapabilities", "");
-        project.getProperties().put("jahia.plugin.providedModulesCapabilities", "");
-
 
         if (jahiaDependsCapabilitiesActivated) {
+            getLog().info("Building OSGi capabilities for Jahia module dependencies...");
+
+            String[] skipValues = StringUtils.split(originalInstructions.get("Jahia-Depends-Skip-Require-Capability"), ", \n");
+            Set<String> skipRequireDependencies = (skipValues == null) ? new HashSet<>() : new HashSet<>(Arrays.asList(skipValues));
+
+            String[] removeHeaders = StringUtils.split(originalInstructions.get("_removeheaders"),", \n");
+            boolean skipJahiaDepends = ArrayUtils.contains(removeHeaders, "Jahia-Depends");
+            String jahiaDependsValue = (skipJahiaDepends) ? "" : originalInstructions.get("Jahia-Depends");
+
             try {
-                if (originalInstructions.containsKey("Jahia-Depends") && !ArrayUtils.contains(StringUtils.split(originalInstructions.get("_removeheaders"),", \n"), "Jahia-Depends")) {
-                    getLog().info("Building OSGi capabilities for Jahia module dependencies...");
-                    StringBuilder jahiaDependsRequireCapabilities = new StringBuilder();
-                    jahiaDependsRequireCapabilities.append(jahiaDependsCapabilitiesPrefix);
-                    String jahiaDependsValue = originalInstructions.get("Jahia-Depends");
-                    if (StringUtils.isNotEmpty(jahiaDependsValue)) {
-                        String[] jahiaDependsArray = jahiaDependsValue.split(",");
-                        String skipRequireCapabilityValue = originalInstructions.get("Jahia-Depends-Skip-Require-Capability");
-                        Set<String> jahiaDependenciesToSkip = StringUtils.isNotEmpty(skipRequireCapabilityValue)
-                                ? new HashSet<String>(
-                                        Arrays.asList(StringUtils.split(skipRequireCapabilityValue, ", \n")))
-                                : Collections.<String> emptySet();
-                        int counter = 0;
-                        for (String jahiaDependsEntry : jahiaDependsArray) {
-                            jahiaDependsEntry = jahiaDependsEntry.trim();
-                            if (jahiaDependsEntry.length() == 0 || jahiaDependenciesToSkip.contains(jahiaDependsEntry)) {
-                                continue;
-                            }
-                            jahiaDependsRequireCapabilities.append(OSGI_CAPABILITY_MODULE_DEPENDENCIES + "; filter:=\"(" + OSGI_CAPABILITY_MODULE_DEPENDENCIES_KEY + "=").append(jahiaDependsEntry).append(")\"");
-                            if (counter < jahiaDependsArray.length - 1) {
-                                jahiaDependsRequireCapabilities.append(",");
-                            }
-                            counter++;
-                        }
-                        project.getProperties().put("jahia.plugin.requiredModulesCapabilities", jahiaDependsRequireCapabilities.toString());
-                    }
-                }
-                StringBuilder cap = new StringBuilder();
-                cap.append(jahiaDependsCapabilitiesPrefix).append(
-                        OSGI_CAPABILITY_MODULE_DEPENDENCIES + "; " + OSGI_CAPABILITY_MODULE_DEPENDENCIES_KEY + "=\"")
-                        .append(project.getArtifactId()).append("\"");
-                if (project.getName() != null) {
-                    cap.append(", " + OSGI_CAPABILITY_MODULE_DEPENDENCIES + "; "
-                            + OSGI_CAPABILITY_MODULE_DEPENDENCIES_KEY + "=\"").append(project.getName()).append("\"");
-                }
-                project.getProperties().put("jahia.plugin.providedModulesCapabilities", cap.toString());
+                CapabilityUtils.buildJahiaDependencies(project, jahiaDependsValue,
+                        skipRequireDependencies, jahiaDependsCapabilitiesPrefix);
             } catch (Exception e) {
                 getLog().error("Error generating capabilities from Jahia-Depends", e);
             }
+
+            getLog().debug("Jahia-Depends Requires: " + project.getProperties().getProperty(
+                    org.jahia.utils.maven.plugin.osgi.utils.Constants.REQUIRE_CAPABILITY_PROJECT_PROP_KEY));
+            getLog().debug("Jahia-Depends Provides: " + project.getProperties().getProperty(
+                    org.jahia.utils.maven.plugin.osgi.utils.Constants.PROVIDE_CAPABILITY_PROJECT_PROP_KEY));
         }
 
         String generatedPackageList = generatedPackageBuffer.toString();
