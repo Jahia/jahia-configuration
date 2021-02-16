@@ -71,6 +71,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -211,20 +212,6 @@ public class JahiaGlobalConfigurator {
     private void deployOnCluster() {
         //jahiaPropertiesBean.setClusterNodes(clusterNodes);
         //jahiaPropertiesBean.setProcessingServer(processingServer);
-    }
-
-    private void cleanDatabase() {
-        //if it is a mysql, try to drop the database and create a new one  your user must have full rights on this database
-        URI dbURI = URI.create(jahiaConfig.getDatabaseUrl().substring(5)); // strip "jdbc:"
-        try {
-            String databaseName = dbURI.getPath().substring(1); // strip starting "/"
-            db.query("drop  database if exists " + databaseName);
-            db.query("create database " + databaseName);
-            db.query("alter database " + databaseName + " charset utf8");
-        } catch (Throwable t) {
-            // ignore because if this fails it's ok
-            getLogger().info("error when recreating db" + t);
-        }
     }
 
     private void updateConfigurationFiles(String sourceWebAppPath, String webappPath, Properties dbProps, JahiaConfigInterface jahiaConfigInterface) throws Exception {
@@ -505,8 +492,7 @@ public class JahiaGlobalConfigurator {
             String existingLicense = jahiaConfig.getLicenseFile();
             copyLicense(existingLicense != null && existingLicense.length() > 0 ? existingLicense : sourceWebappPath
                     + "/WEB-INF/etc/config/licenses/license-free.xml", targetConfigPath + "/license.xml");
-            if (jahiaConfig.getOverwritedb().equals("true")) {
-                getLogger().info("Creating database tables for " + databaseType + "...");
+            if (jahiaConfig.getOverwritedb().equals("true") || jahiaConfig.getOverwritedb().equals("createOnly")) {
                 getLogger().info("driver: " + dbProps.getProperty("jahia.database.driver"));
                 getLogger().info("url: " + jahiaConfig.getDatabaseUrl());
                 getLogger().info("user: " + jahiaConfig.getDatabaseUsername());
@@ -514,24 +500,17 @@ public class JahiaGlobalConfigurator {
                     getLogger().info("cannot find script in " + databaseScript.getPath());
                     throw new Exception("Cannot find script for database " + databaseType);
                 }
-                if (databaseType.contains("derby") && !dbUrl.contains("create=true")) {
-                    dbUrl = dbUrl + ";create=true";
+
+                if (cleanDatabase(databaseType, dbUrl)) {
+                    db.databaseOpen(dbProps.getProperty("jahia.database.driver"), dbUrl, jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
+                    createDBTables(databaseScript);
                 }
-                db.databaseOpen(dbProps.getProperty("jahia.database.driver"), dbUrl, jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
-                if (databaseType.equals("mysql") || databaseType.equals("mariadb")) {
-                    getLogger().info("database is " + databaseType + " trying to drop it and create a new one");
-                    cleanDatabase();
-                    //you have to reopen the database connection as before you just dropped the database
-                    db.databaseOpen(dbProps.getProperty("jahia.database.driver"), jahiaConfig.getDatabaseUrl(), jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
-                }
-                createDBTables(databaseScript);
-                
+
                 if (isEmbeddedDerby) {
                     // shutdown embedded Derby
                     getLogger().info("Shutting down embedded Derby...");
                     try {
-                        DriverManager.getConnection("jdbc:derby:;shutdown=true",
-                                jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
+                        DriverManager.getConnection("jdbc:derby:;shutdown=true", jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
                     } catch (Exception e) {
                         if (!(e instanceof SQLException) || e.getMessage() == null
                                 || !e.getMessage().contains("Derby system shutdown")) {
@@ -565,10 +544,79 @@ public class JahiaGlobalConfigurator {
         }
     }
 
+    private boolean cleanDatabase(String databaseType, String dbUrl) throws ClassNotFoundException, SQLException {
+        if (databaseType.contains("derby") && !dbUrl.contains("create=true")) {
+            if (jahiaConfig.getOverwritedb().equals("createOnly")) {
+                try {
+                    db.databaseOpen(dbProps.getProperty("jahia.database.driver"), dbUrl, jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
+                    return false;
+                } catch (SQLException sqlException) {
+                }
+            }
+            dbUrl = dbUrl + ";create=true";
+            db.databaseOpen(dbProps.getProperty("jahia.database.driver"), dbUrl, jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
+        } else if (databaseType.equals("mysql") || databaseType.equals("mariadb") || databaseType.equals("postgresql")) {
+            getLogger().info("database is " + databaseType + " trying to drop it and create a new one");
+            //if it is a mysql, try to drop the database and create a new one  your user must have full rights on this database
+            URI dbSubURI = URI.create(dbUrl.substring(5)); // strip "jdbc:"
+            try {
+                String databaseName = dbSubURI.getPath().substring(1); // strip starting "/"
+                String emptyUrl = new URI(dbSubURI.getScheme(), dbSubURI.getHost(), "/", dbSubURI.getFragment()).toString();
+
+                db.databaseOpen(dbProps.getProperty("jahia.database.driver"), "jdbc:" + emptyUrl, jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
+                if (jahiaConfig.getOverwritedb().equals("createOnly") && exists(databaseName)) {
+                    return false;
+                } else {
+                    cleanDatabase(databaseName);
+                }
+            } catch (Throwable t) {
+                // ignore because if this fails it's ok
+                getLogger().info("error when recreating db" + t);
+            }
+        }
+        db.databaseClose();
+        return true;
+    }
+
+    private boolean exists(String dbName) throws Exception {
+        ResultSet rs;
+        switch (jahiaConfig.getDatabaseType()) {
+            case "mysql":
+            case "mariadb":
+                rs = db.getConnection().getMetaData().getCatalogs();
+                break;
+            case "postgresql":
+                rs = db.getStatement().executeQuery("SELECT datname FROM pg_catalog.pg_database");
+                break;
+            default:
+                return false;
+        }
+        while (rs.next()) {
+            if (dbName.equals(rs.getString(1))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void cleanDatabase(String databaseName) throws Exception {
+        db.query("drop database if exists " + databaseName);
+        db.query("create database " + databaseName);
+        switch (jahiaConfig.getDatabaseType()) {
+            case "mysql":
+            case "mariadb":
+                db.query("alter database " + databaseName + " charset utf8");
+                break;
+            case "postgresql":
+        }
+    }
+
+
     private void copyExternalizedConfig() throws IOException, ArchiverException {
         if (jahiaConfig.isExternalizedConfigExploded()) {
             // we copy configuration to folder without archiving it
-            
+
             File target = new File(jahiaConfig.getExternalizedConfigTargetPath());
             final File targetCfgDir = new File(target, "jahia");
             final File srcDir = new File(jahiaConfigDir, "jahia");
@@ -605,7 +653,7 @@ public class JahiaGlobalConfigurator {
                 archiver.enableLogging(new org.codehaus.plexus.logging.console.ConsoleLogger(Logger.LEVEL_DEBUG,
                         "console"));
             }
-   
+
             String jarFileName = "jahia-config.jar";
             if (!StringUtils.isBlank(jahiaConfig.getExternalizedConfigFinalName())) {
                 jarFileName = jahiaConfig.getExternalizedConfigFinalName();
@@ -614,13 +662,13 @@ public class JahiaGlobalConfigurator {
                 }
                 jarFileName += ".jar";
             }
-   
+
             // let's generate the WAR file
             File targetFile = new File(jahiaConfig.getExternalizedConfigTargetPath(), jarFileName);
             // archiver.setManifest(targetManifestFile);
             archiver.setDestFile(targetFile);
             String excludes = null;
-   
+
             archiver.addDirectory(jahiaConfigDir, null,
                     excludes != null ? excludes.split(",") : null);
             archiver.createArchive();
@@ -805,9 +853,9 @@ public class JahiaGlobalConfigurator {
         } catch (Exception e) {
             throw e;
         }
-        
+
         org.jahia.commons.DatabaseScripts.executeStatements(sqlStatements, db.getConnection());
-        
+
 //// drop each tables (if present) and (re-)create it after...
 //        for (String line : sqlStatements) {
 //            final String lowerCaseLine = line.toLowerCase();
@@ -913,7 +961,7 @@ public class JahiaGlobalConfigurator {
         }
         return config;
     }
-    
+
     private File getDataDir() {
         if (dataDir == null) {
             dataDir = resolveDataDir(jahiaConfig.getJahiaVarDiskPath(),
@@ -923,5 +971,5 @@ public class JahiaGlobalConfigurator {
 
         return dataDir;
     }
-    
+
 }
