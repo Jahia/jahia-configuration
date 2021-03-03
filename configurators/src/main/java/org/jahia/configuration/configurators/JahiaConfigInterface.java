@@ -148,6 +148,8 @@ public interface JahiaConfigInterface {
 
     String getOverwritedb();
 
+    String getDeleteFiles();
+
     String getProcessingServer();
     
     List<String> getSiteImportLocation();

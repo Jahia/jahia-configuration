@@ -502,6 +502,7 @@ public class JahiaGlobalConfigurator {
                 }
 
                 if (cleanDatabase(databaseType, dbUrl)) {
+                    getLogger().info("Creating tables");
                     db.databaseOpen(dbProps.getProperty("jahia.database.driver"), dbUrl, jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
                     createDBTables(databaseScript);
                 }
@@ -522,9 +523,11 @@ public class JahiaGlobalConfigurator {
                 }
             }
 
-            deleteRepositoryAndIndexes();
-            if ("tomcat".equals(jahiaConfig.getTargetServerType())) {
-                deleteTomcatFiles();
+            if (jahiaConfig.getDeleteFiles().equals("true")) {
+                deleteRepositoryAndIndexes();
+                if ("tomcat".equals(jahiaConfig.getTargetServerType())) {
+                    deleteTomcatFiles();
+                }
             }
             if (jahiaConfig.getSiteImportLocation() != null) {
                 File importsFolder = new File(getDataDir(), "imports");
@@ -556,7 +559,6 @@ public class JahiaGlobalConfigurator {
             dbUrl = dbUrl + ";create=true";
             db.databaseOpen(dbProps.getProperty("jahia.database.driver"), dbUrl, jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
         } else if (databaseType.equals("mysql") || databaseType.equals("mariadb") || databaseType.equals("postgresql")) {
-            getLogger().info("database is " + databaseType + " trying to drop it and create a new one");
             //if it is a mysql, try to drop the database and create a new one  your user must have full rights on this database
             URI dbSubURI = URI.create(dbUrl.substring(5)); // strip "jdbc:"
             try {
@@ -565,8 +567,10 @@ public class JahiaGlobalConfigurator {
 
                 db.databaseOpen(dbProps.getProperty("jahia.database.driver"), "jdbc:" + emptyUrl, jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
                 if (jahiaConfig.getOverwritedb().equals("createOnly") && exists(databaseName)) {
+                    getLogger().info("Database already exist");
                     return false;
                 } else {
+                    getLogger().info("Database is " + databaseType + " trying to drop it and create a new one");
                     cleanDatabase(databaseName);
                 }
             } catch (Throwable t) {
@@ -757,6 +761,10 @@ public class JahiaGlobalConfigurator {
             throws IOException {
         File fromFile = new File(fromFileName);
         File toFile = new File(toFileName);
+
+        if (toFile.exists() && !jahiaConfig.getDeleteFiles().equals("true")) {
+            return;
+        }
 
         if (!fromFile.exists())
             return;
