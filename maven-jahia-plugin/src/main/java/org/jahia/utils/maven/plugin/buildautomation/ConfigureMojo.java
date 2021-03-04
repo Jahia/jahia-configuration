@@ -196,6 +196,13 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     protected String overwritedb;
 
     /**
+     * @parameter expression="${jahia.configure.deleteFiles}" default-value="true"
+     *
+     * Should we delete existing files
+     */
+    protected String deleteFiles;
+
+    /**
      * properties storeFilesInDB
      *
      * @parameter expression="${jahia.configure.storeFilesInDB}" default-value="false"
@@ -434,6 +441,10 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public String getOverwritedb() {
         return overwritedb;
+    }
+
+    public String getDeleteFiles() {
+        return deleteFiles;
     }
 
     public String getProcessingServer() {
