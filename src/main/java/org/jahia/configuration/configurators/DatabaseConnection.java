@@ -336,10 +336,9 @@ public class DatabaseConnection {
      *
      * @param   sqlCode     The sql query you want to execute.
      *
-     * @throws  Exception   Propagate any exceptions
+     * @throws  SQLException   Propagate any exceptions
      */
-    public void query (String sqlCode)
-        throws Exception {
+    public void query (String sqlCode) throws SQLException {
         theStatement.execute(sqlCode);
     } // end query
 

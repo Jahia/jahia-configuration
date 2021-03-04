@@ -94,6 +94,7 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
      * executed for every node
      */
     private String overwritedb = "true";
+    private String deleteFiles = "true";
     private String storeFilesInDB = "false";
     private String fileDataStorePath = "";
     private String targetConfigurationDirectory = "";
@@ -272,6 +273,14 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public void setOverwritedb(String overwritedb) {
         this.overwritedb = overwritedb;
+    }
+
+    public String getDeleteFiles() {
+        return deleteFiles;
+    }
+
+    public void setDeleteFiles(String deleteFiles) {
+        this.deleteFiles = deleteFiles;
     }
 
     public List<String> getSiteImportLocation() {
