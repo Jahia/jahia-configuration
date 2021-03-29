@@ -195,12 +195,11 @@ public class DeployMojo extends AbstractManagementMojo {
                     File source = new File(output, filename);
                     String dockerDatadir = "/data/digital-factory-data";
                     if (isStandardModule || isJahiaModuleBundle(new File(output, filename))) {
-                        copyFileToContainer(filename, source, dockerDatadir +"/modules");
+                        copyFileToContainer(filename, source, dockerDatadir + "/modules");
                     } else {
-                        copyFileToContainer(filename,source,dockerDatadir+"/karaf/deploy");
+                        copyFileToContainer(filename, source, dockerDatadir + "/karaf/deploy");
                     }
-                }
-                else {
+                } else {
                     throw new MojoFailureException("Only bundle can be deployed to a target container, either a Jahia module or an OSGI bundle");
                 }
             }
@@ -898,7 +897,7 @@ public class DeployMojo extends AbstractManagementMojo {
 
 
     private DockerClient initDockerClient() throws MojoExecutionException {
-        if(dockerClient == null) {
+        if (dockerClient == null) {
             DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
             DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
                     .dockerHost(config.getDockerHost())
@@ -908,7 +907,7 @@ public class DeployMojo extends AbstractManagementMojo {
             dockerClient = DockerClientImpl.getInstance(config, httpClient);
             getLog().info("Docker client connected: " + dockerClient);
         }
-        if(dockerClient == null) {
+        if (dockerClient == null) {
             throw new MojoExecutionException("Impossible to initialize docker client");
         }
         return dockerClient;
