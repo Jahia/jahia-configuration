@@ -44,7 +44,7 @@
 package org.jahia.configuration.configurators;
 
 import junit.framework.TestCase;
-import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs2.FileObject;
 import org.jahia.configuration.logging.SLF4JLogger;
 import org.jdom.*;
 import org.jdom.input.SAXBuilder;
@@ -139,7 +139,7 @@ public class JahiaGlobalConfiguratorTest extends TestCase {
             assertNotNull("Missing jahia.jahiaServer1.properties file in jahia-externalized-config-jahiaServer1.jar file!", jahiaPropertiesJarEntry);
             JarEntry jahiaAdvancedPropertiesJarEntry = configJarFile.getJarEntry("jahia/jahia.node.jahiaServer1.properties");
             assertNotNull("Missing jahia.node.jahiaServer1.properties file in jahia-externalized-config-jahiaServer1.jar file!", jahiaAdvancedPropertiesJarEntry);
-    
+
             InputStream jahiaPropsInputStream = configJarFile.getInputStream(jahiaPropertiesJarEntry);
             Properties jahiaProperties = new Properties();
             jahiaProperties.load(jahiaPropsInputStream);

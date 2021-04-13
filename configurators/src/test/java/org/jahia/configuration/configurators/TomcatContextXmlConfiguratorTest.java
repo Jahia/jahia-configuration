@@ -43,8 +43,8 @@
  */
 package org.jahia.configuration.configurators;
 
-import org.apache.commons.vfs.FileSystemManager;
-import org.apache.commons.vfs.VFS;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.VFS;
 import org.jdom.Document;
 import org.jdom.input.SAXBuilder;
 
@@ -59,7 +59,7 @@ import java.net.URL;
  *         Time: 2:59:53 PM
  */
 public class TomcatContextXmlConfiguratorTest extends AbstractXMLConfiguratorTestCase {
-    
+
     public void testUpdateConfiguration() throws Exception {
         FileSystemManager fsManager = VFS.getManager();
         URL contextXmlUrl = this.getClass().getClassLoader().getResource("configurators/META-INF/context.xml");
