@@ -196,7 +196,7 @@ public class DeployMojo extends AbstractManagementMojo {
                     String dockerDatadir = "/var/jahia";
                     String[] env = dockerClient.inspectContainerCmd(targetContainerName).exec().getConfig().getEnv();
                     for (String s : env) {
-                        if(s.startsWith("DATA_FOLDER")) {
+                        if(s.startsWith("DATA_FOLDER=")) {
                             getLog().info("Found DATA_FOLDER env variable in container " + targetContainerName + ", using it for deployment: " + s);
                             dockerDatadir = s.split("=")[1];
                         }
