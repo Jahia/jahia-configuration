@@ -21,8 +21,7 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 /**
- * A goal that checks the dependencies of a generated OSGi bundle JAR against the project dependencies, and reports
- * any missing packages that weren't found in any dependency export.
+ * A goal that update Jahia Sources Folder manifest entry to a docker path.
  *
  * @goal update-jahia-source-folder
  * @phase package
