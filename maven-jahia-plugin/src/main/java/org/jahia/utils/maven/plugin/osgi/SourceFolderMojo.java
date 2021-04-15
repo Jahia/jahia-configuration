@@ -79,7 +79,7 @@ public class SourceFolderMojo extends AbstractMojo {
             String groupId = project.getGroupId();
             boolean isModule = groupId.equals("org.jahia.module") || groupId.endsWith(".jahia.modules") || manifest.getMainAttributes().containsKey(new Attributes.Name("Jahia-Module-Type"));
             if (isModule) {
-                String sourceFolder = "/data/digital-factory-data/sources/" + project.getBasedir().getName();
+                String sourceFolder = "/var/jahia/sources/" + project.getBasedir().getName();
                 getLog().info("Updating Jahia-Source-Folders to " + sourceFolder);
                 manifest.getMainAttributes().putValue("Jahia-Source-Folders", sourceFolder);
                 File expandedJarDirectory = unpackBundle(artifactFile);
