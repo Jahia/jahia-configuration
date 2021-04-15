@@ -43,8 +43,8 @@
  */
 package org.jahia.configuration.configurators;
 
-import org.apache.commons.vfs.FileSystemManager;
-import org.apache.commons.vfs.VFS;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.VFS;
 import org.jahia.configuration.logging.AbstractLogger;
 import org.jahia.configuration.logging.ConsoleLogger;
 import org.jdom.Document;
@@ -110,7 +110,7 @@ public class JackrabbitConfiguratorTest extends AbstractXMLConfiguratorTestCase 
         jdomDocument = saxBuilder.build(repositoryFileParentPath + "repository-modified-store.xml");
         assertTrue(XPath.selectNodes(jdomDocument, "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.db.DbDataStore\"]").isEmpty());
         assertNotNull(XPath.selectSingleNode(jdomDocument, "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.FileDataStore\"]"));
-        
+
         mysqlDBProperties.setProperty("storeFilesInDB", "true");
         new JackrabbitConfigurator(mysqlDBProperties, tomcatMySQLConfigBean, logger).updateConfiguration(new VFSConfigFile(fsManager, repositoryFileParentPath + "repository-modified-store.xml"), repositoryFileParentPath + "repository-modified-store-db.xml");
         saxBuilder = new SAXBuilder();

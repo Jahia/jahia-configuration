@@ -43,8 +43,8 @@
  */
 package org.jahia.configuration.configurators;
 
-import org.apache.commons.vfs.FileSystemManager;
-import org.apache.commons.vfs.VFS;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.VFS;
 import org.jdom.Attribute;
 import org.jdom.Document;
 import org.jdom.Element;

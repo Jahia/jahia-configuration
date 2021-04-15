@@ -47,14 +47,14 @@ import java.io.File;
 import java.net.URL;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.vfs.FileSystemManager;
-import org.apache.commons.vfs.VFS;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.VFS;
 import org.jahia.configuration.logging.AbstractLogger;
 import org.jahia.configuration.logging.ConsoleLogger;
 
 /**
  * Unit test for the database configuration in JBoss.
- * 
+ *
  * @author Sergiy Shyrkov
  */
 public class JBossConfiguratorTest extends AbstractXMLConfiguratorTestCase {
@@ -78,7 +78,7 @@ public class JBossConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         assertTrue(content.contains("<driver-class>oracle.jdbc.OracleDriver</driver-class>"));
         assertTrue(content.contains("<datasource jndi-name=\"java:/jahiaDS\""));
         assertTrue(content.contains("<connection-url>jdbc:oracle"));
-        
+
         assertTrue(content.contains("enable-welcome-root=\"false\""));
 
         String unchangedDestFileName = sourceCfgFile.getParent() + "/standalone-modified-unchanged.xml";
@@ -91,7 +91,7 @@ public class JBossConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         configurator.updateConfiguration(new VFSConfigFile(fsManager, unchangedDestFileName), updatedDestFileName);
 
         assertFalse(FileUtils.contentEquals(new File(unchangedDestFileName), new File(updatedDestFileName)));
-        
+
         content = FileUtils.readFileToString(new File(updatedDestFileName));
         assertTrue(content.contains("<driver name=\"jahia.mysql\" module=\"org.jahia.jdbc.mysql\">"));
         assertTrue(content.contains("<driver-class>com.mysql.jdbc.Driver</driver-class>"));
