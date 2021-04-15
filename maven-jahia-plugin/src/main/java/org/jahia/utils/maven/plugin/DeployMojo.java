@@ -193,7 +193,14 @@ public class DeployMojo extends AbstractManagementMojo {
                     boolean isStandardModule = project.getGroupId().equals("org.jahia.module") || project.getGroupId().endsWith(".jahia.modules");
                     String filename = project.getArtifactId() + "-" + project.getVersion() + "." + "jar";
                     File source = new File(output, filename);
-                    String dockerDatadir = "/data/digital-factory-data";
+                    String dockerDatadir = "/var/jahia";
+                    String[] env = dockerClient.inspectContainerCmd(targetContainerName).exec().getConfig().getEnv();
+                    for (String s : env) {
+                        if(s.startsWith("DATA_FOLDER=")) {
+                            getLog().info("Found DATA_FOLDER env variable in container " + targetContainerName + ", using it for deployment: " + s);
+                            dockerDatadir = s.split("=")[1];
+                        }
+                    }
                     if (isStandardModule || isJahiaModuleBundle(new File(output, filename))) {
                         copyFileToContainer(filename, source, dockerDatadir + "/modules");
                     } else {

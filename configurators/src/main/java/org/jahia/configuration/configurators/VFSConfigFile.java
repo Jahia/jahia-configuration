@@ -43,9 +43,9 @@
  */
 package org.jahia.configuration.configurators;
 
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.FileSystemManager;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemManager;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -60,9 +60,9 @@ import java.util.Set;
  * Implementation of the ConfigFile interface that uses Common VFS to provide the internal functionality.
  */
 public class VFSConfigFile implements ConfigFile, Closeable {
-    
+
     private static Set<Closeable> OPENED = new HashSet<Closeable>();
-    
+
     public static synchronized void closeAllOpened() {
         for (Iterator<Closeable> iterator = OPENED.iterator(); iterator.hasNext();) {
             try {
@@ -98,7 +98,7 @@ public class VFSConfigFile implements ConfigFile, Closeable {
     }
 
     public InputStream getInputStream() throws FileSystemException {
-        synchronized (OPENED) { 
+        synchronized (OPENED) {
             OPENED.add(this);
         }
         return fileObject.getContent().getInputStream();

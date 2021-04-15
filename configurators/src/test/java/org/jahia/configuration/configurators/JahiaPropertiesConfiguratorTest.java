@@ -50,8 +50,8 @@ import java.io.FileInputStream;
 import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.vfs.FileSystemManager;
-import org.apache.commons.vfs.VFS;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.VFS;
 import org.jahia.configuration.configurators.JahiaPropertiesConfigurator;
 import org.jahia.configuration.logging.SLF4JLogger;
 import org.slf4j.LoggerFactory;
@@ -92,7 +92,7 @@ public class JahiaPropertiesConfiguratorTest extends AbstractConfiguratorTestCas
         } finally {
             IOUtils.closeQuietly(inStream);
         }
-        
+
         // test for the additional properties
         assertEquals("true", websphereOracleProperties.getProperty("jahia.dm.viewer.enabled"));
         assertEquals("c:\\Program Files (x86)\\SWFTools\\pdf2swf.exe", websphereOracleProperties.getProperty("jahia.dm.viewer.pdf2swf"));
