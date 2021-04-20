@@ -48,7 +48,7 @@
     <parent>
         <groupId>org.jahia.configuration</groupId>
         <artifactId>jahia-configuration-root</artifactId>
-        <version>5.13-SNAPSHOT</version>
+        <version>5.13</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
