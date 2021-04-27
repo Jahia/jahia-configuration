@@ -45,9 +45,9 @@ package org.jahia.utils.maven.plugin.osgi;
 
 import junit.framework.Assert;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.poi.util.IOUtils;
 import org.eclipse.osgi.util.ManifestElement;
 import org.junit.Test;
 
