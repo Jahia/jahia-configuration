@@ -44,9 +44,11 @@
 package org.jahia.utils.maven.plugin;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
+import com.github.dockerjava.core.command.ExecStartResultCallback;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import com.sun.jdi.Bootstrap;
@@ -933,7 +935,20 @@ public class DeployMojo extends AbstractManagementMojo {
             tarArchiveOutputStream.closeArchiveEntry();
             tarArchiveOutputStream.finish();
         }
-        dockerClient.copyArchiveToContainerCmd(targetContainerName).withRemotePath(remotePath).withTarInputStream(new FileInputStream(tempFile)).withNoOverwriteDirNonDir(false).exec();
+        try {
+            dockerClient.copyArchiveToContainerCmd(targetContainerName).withRemotePath(remotePath).withTarInputStream(new FileInputStream(tempFile)).withNoOverwriteDirNonDir(false).exec();
+            dockerClient
+                    .execStartCmd(dockerClient.execCreateCmd(targetContainerName)
+                            .withUser("root")
+                            .withAttachStdout(true)
+                            .withCmd("chown", "999:999", remotePath + "/" + source.getName()).exec().getId())
+                    .exec(new ResultCallback.Adapter<>())
+                    .awaitCompletion();
+        } catch (InterruptedException e) {
+            getLog().error("Interrupted", e);
+            Thread.currentThread().interrupt();
+        }
+
         Files.delete(tempFile.toPath());
     }
 }
