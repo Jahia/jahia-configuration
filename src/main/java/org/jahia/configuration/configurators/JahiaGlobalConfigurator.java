@@ -561,7 +561,7 @@ public class JahiaGlobalConfigurator {
             }
         } catch (Exception t) {
             // ignore because if this fails it's ok
-            getLogger().info("error when recreating db" + t);
+            getLogger().info("error when recreating db", t);
         }
         db.databaseClose();
         return shouldCreateTables;
