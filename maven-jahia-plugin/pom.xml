@@ -92,12 +92,12 @@
     	<dependency>
 			<groupId>org.jahia.configuration</groupId>
 			<artifactId>deployers</artifactId>
-			<version>5.17-SNAPSHOT</version>
+			<version>5.18-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jahia.configuration</groupId>
 			<artifactId>configurators</artifactId>
-			<version>5.17-SNAPSHOT</version>
+			<version>5.18-SNAPSHOT</version>
 			<classifier>build</classifier>
 		</dependency>
         <dependency>
