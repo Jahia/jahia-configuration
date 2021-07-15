@@ -80,7 +80,6 @@ import java.util.*;
 import java.util.jar.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * A maven goal to scan the project for package dependencies, useful for building OSGi Import-Package
@@ -104,7 +103,7 @@ public class DependenciesMojo extends BundlePlugin {
 
     protected static final Set<String> SUPPORTED_FILE_EXTENSIONS_TO_SCAN = new HashSet<String>(Arrays.asList("jsp",
             "jspf", "tag", "tagf", "cnd", "drl", "xml", "groovy"));
-    
+
     protected static final Set<String> DEPENDENCIES_SCAN_PACKAGING = new HashSet<String>(Arrays.asList("jar", "war"));
 
     protected static final Set<String> DEPENDENCIES_SCAN_SCOPES = new HashSet<String>(Arrays.asList(
@@ -259,9 +258,8 @@ public class DependenciesMojo extends BundlePlugin {
                 // no overrides
             }
 
-            Properties properties = new Properties();
             try {
-                Builder builder = getOSGiBuilder(project, originalInstructions, properties, getClasspath(project));
+                Builder builder = getOSGiBuilder(project, originalInstructions, getClasspath(project));
                 resolveEmbeddedDependencies(project, builder);
             } catch (Exception e) {
                 throw new MojoExecutionException("Error trying to process bundle plugin instructions", e);
@@ -285,18 +283,18 @@ public class DependenciesMojo extends BundlePlugin {
         buildExclusionPatterns();
 
         long timer = System.currentTimeMillis();
-        
+
         try {
             scanClassesBuildDirectory(projectParsingContext);
-            
+
             getLog().info(
                     "Scanned classes directory in " + (System.currentTimeMillis() - timer) + " ms. Found "
                             + projectParsingContext.getLocalPackages().size() + " project packages.");
 
             timer = System.currentTimeMillis();
-            
+
             int scanned = scanDependencies(projectParsingContext);
-            
+
             getLog().info(
                     "Scanned " + scanned + " project dependencies in " + (System.currentTimeMillis() - timer)
                             + " ms. Currently we have " + projectParsingContext.getLocalPackages().size() + " project packages.");
@@ -776,7 +774,7 @@ public class DependenciesMojo extends BundlePlugin {
             }
             parsingContext.clearAdditionalFilesToParse();
         }
-        
+
         return scanned;
     }
 

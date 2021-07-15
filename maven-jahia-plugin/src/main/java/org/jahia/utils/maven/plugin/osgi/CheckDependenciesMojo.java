@@ -289,9 +289,8 @@ public class CheckDependenciesMojo extends DependenciesMojo {
             getLog().info("No maven-bundle-plugin found, will not use dependency exclude or deal with explicit Import-Package configurations. (" + e.getMessage() +")");
         }
 
-        Properties properties = new Properties();
         try {
-            Builder builder = getOSGiBuilder(project, originalInstructions, properties, getClasspath(project));
+            Builder builder = getOSGiBuilder(project, originalInstructions, getClasspath(project));
             resolveEmbeddedDependencies(project, builder);
         } catch (Exception e) {
             throw new MojoExecutionException("Error trying to process bundle plugin instructions", e);
