@@ -48,7 +48,7 @@
     <parent>
         <groupId>org.jahia.configuration</groupId>
         <artifactId>jahia-configuration-root</artifactId>
-        <version>5.17-SNAPSHOT</version>
+        <version>5.18-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -114,7 +114,7 @@
 
         <dependency>
             <groupId>biz.aQute.bnd</groupId>
-            <artifactId>bndlib</artifactId>
+            <artifactId>biz.aQute.bndlib</artifactId>
             <version>${bndlib.version}</version>
         </dependency>
 
@@ -187,7 +187,7 @@
                         	org.jahia.utils.osgi.parsers,
                         	org.jahia.utils.osgi.parsers.cnd
                         </Export-Package>
-                        <Embed-Dependency>*; scope=compile; type=!pom; inline=true;artifactId=!jdom|bndlib|slf4j-api|log4j
+                        <Embed-Dependency>*; scope=compile; type=!pom; inline=true;artifactId=!jdom|biz.aQute.bndlib|slf4j-api|log4j
                         </Embed-Dependency>
                         <Embed-Transitive>true</Embed-Transitive>
                         <_removeheaders>

@@ -47,7 +47,7 @@
     <groupId>org.jahia.configuration</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jahia-configuration-root</artifactId>
-    <version>5.17-SNAPSHOT</version>
+    <version>5.18-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Jahia Configuration Root</name>
     <organization>
@@ -62,7 +62,7 @@
         <developerConnection>scm:git:git@github.com:Jahia/jahia-configuration.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
-    
+
     <properties>
         <!-- general encoding -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -78,9 +78,9 @@
         <jaxen.version>1.2.0</jaxen.version>
         <jdom2.version>2.0.6</jdom2.version>
         <commons-io.version>2.11.0</commons-io.version>
-        <bndlib.version>2.4.0</bndlib.version> <!-- Using version 2.4.0 as recommended in https://issues.apache.org/jira/browse/FELIX-4556?focusedCommentId=14213575&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-14213575 -->
+        <bndlib.version>5.1.1</bndlib.version> <!-- Using version 2.4.0 as recommended in https://issues.apache.org/jira/browse/FELIX-4556?focusedCommentId=14213575&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-14213575 -->
 	</properties>
-    
+
     <modules>
         <module>deployers</module>
         <module>configurators</module>
@@ -91,7 +91,7 @@
         <module>jahia-installer</module>
         <module>jahia-hibernate-maven-plugin</module>
     </modules>
-    
+
     <repositories>
         <repository>
             <id>jahia-public</id>
@@ -182,7 +182,7 @@
 				<plugin>
 	                <groupId>org.apache.felix</groupId>
 	                <artifactId>maven-bundle-plugin</artifactId>
-	                <version>2.4.0</version>
+	                <version>5.1.2</version>
 				</plugin>
 	            <plugin>
 	                <artifactId>maven-release-plugin</artifactId>
