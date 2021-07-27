@@ -48,6 +48,7 @@ import org.jdom2.Element;
 import org.jdom2.Namespace;
 import org.jdom2.input.SAXBuilder;
 
+import javax.xml.XMLConstants;
 import java.io.File;
 import java.io.InputStreamReader;
 
@@ -72,7 +73,8 @@ public class ApplicationXmlConfigurator extends AbstractXMLConfigurator {
         String[] moduleConfigList = jeeApplicationModuleList.split(",");
 
         SAXBuilder saxBuilder = new SAXBuilder();
-        saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        saxBuilder.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+        saxBuilder.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
         InputStreamReader fileReader = new InputStreamReader(sourceConfigFile.getInputStream());
         org.jdom2.Document jdomDocument = saxBuilder.build(fileReader);
         Element root = jdomDocument.getRootElement();
@@ -80,7 +82,7 @@ public class ApplicationXmlConfigurator extends AbstractXMLConfigurator {
 
         for (String moduleConfig : moduleConfigList) {
             String[] moduleParams = moduleConfig.split(":");
-            Element moduleElement = getElement(root, "//xp:module[@id=\"" + moduleParams[0] + "\"]");
+            Element moduleElement = getElement(root, "//module[@id=\"" + moduleParams[0] + "\"]");
             Element moduleType = null;
             if (moduleElement != null) {
                 moduleType = moduleElement.getChild(moduleParams[1], ns);
