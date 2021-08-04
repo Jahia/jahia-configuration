@@ -367,25 +367,24 @@ public class CheckDependenciesMojo extends DependenciesMojo {
                 boolean modifiedImportPackageClauses = false;
                 for (ManifestValueClause importPackageClause : importPackageClauses) {
                     for (String importPackagePath : importPackageClause.getPaths()) {
-                        String clauseVersion = importPackageClause.getAttributes().get("version");
-                        String clauseResolution = importPackageClause.getDirectives().get("resolution");
-                        boolean optionalClause = false;
-                        if ("optional".equals(clauseResolution)) {
-                            optionalClause = true;
-                        } else if ("mandatory".equals(clauseResolution)) {
-                            // the resolution directive is explicitely specified as mandatory, we won't modify it
-                            optionalClause = false;
-                        } else {
-                            if (containsPackage(existingPackageImports, importPackagePath) ||
-                                    containsPackage(bundlePluginExplicitPackages, importPackagePath)) {
-                                // the package was explicitely configured either through Maven properties or through
-                                // explicit configuration in the bundle plugin, in this case we will not touch the
-                                // package's resolution directive
-                                getLog().info("Explicit package configuration found for " + importPackagePath + ", will not mark as optional.");
-                            } else {
-                                importPackageClause.getDirectives().put("resolution", "optional");
-                                modifiedImportPackageClauses = true;
+                        PackageInfo info = getPackageInfo(existingPackageImports, importPackagePath);
+                        if (info == null) {
+                            info = getPackageInfo(bundlePluginExplicitPackages, importPackagePath);
+                        }
+                        if (info != null) {
+                            // the package was explicitely configured either through Maven properties or through
+                            // explicit configuration in the bundle plugin, in this case we will not touch the
+                            // package's resolution directive
+                            getLog().info("Explicit package configuration found for " + importPackagePath + ".");
+                            if (info.getVersion() != null) {
+                                importPackageClause.getAttributes().put("version", info.getVersion());
                             }
+                            for (Map.Entry<Object, Object> entry : info.getOtherDirectives().entrySet()) {
+                                importPackageClause.getDirectives().put((String) entry.getKey(), (String) entry.getValue());
+                            }
+                        } else if (!"mandatory".equals(importPackageClause.getDirectives().get("resolution"))) {
+                            importPackageClause.getDirectives().put("resolution", "optional");
+                            modifiedImportPackageClauses = true;
                         }
                         if (visitedPackageImports.contains(importPackagePath)) {
                             getLog().warn("Duplicate import detected on package " + importPackagePath + ", will remove duplicate. To remove this warning remove the duplicate import (possibly coming from a explicit import in the maven-bundle-plugin instructions)");
@@ -526,13 +525,13 @@ public class CheckDependenciesMojo extends DependenciesMojo {
         }
     }
 
-    private boolean containsPackage(List<PackageInfo> packages, String packageName) {
+    private PackageInfo getPackageInfo(List<PackageInfo> packages, String packageName) {
         for (PackageInfo packageInfo : packages) {
             if (packageInfo.getName().equals(packageName)) {
-                return true;
+                return packageInfo;
             }
         }
-        return false;
+        return null;
     }
 
     private void updateBundle(Manifest manifest, List<ManifestValueClause> importPackageClauses, File artifactFile, String buildDirectory) {

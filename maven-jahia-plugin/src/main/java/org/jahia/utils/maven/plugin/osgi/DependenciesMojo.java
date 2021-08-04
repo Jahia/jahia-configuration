@@ -191,9 +191,14 @@ public class DependenciesMojo extends BundlePlugin {
     protected boolean contentDefinitionCapabilitiesActivated = true;
 
     /**
-     * @parameter default-value="" expression="${jahia.modules.importPackage}"
+     * @parameter default-value="" expression="${import-package}"
      */
     protected String existingImports = "";
+
+    /**
+     * @parameter default-value="" expression="${jahia.modules.importPackage}"
+     */
+    protected String existingImportsLegacy = "";
 
     /**
      * @parameter expression="${user.home}/.m2/dependency-cache";
@@ -483,7 +488,10 @@ public class DependenciesMojo extends BundlePlugin {
 
     public List<PackageInfo> getExistingImportPackages(ParsingContext projectParsingContext) throws MojoExecutionException {
         List<PackageInfo> existingPackageImports = new ArrayList<PackageInfo>();
-        if (existingImports != null) {
+        if (StringUtils.isEmpty(existingImports)) {
+            existingImports = existingImportsLegacy;
+        }
+        if (!StringUtils.isEmpty(existingImports)) {
             try {
                 List<ManifestValueClause> existingImportValueClauses = BundleUtils.getHeaderClauses("Import-Package", existingImports);
                 for (ManifestValueClause existingImportValueClause : existingImportValueClauses) {
