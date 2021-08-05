@@ -488,8 +488,12 @@ public class DependenciesMojo extends BundlePlugin {
 
     public List<PackageInfo> getExistingImportPackages(ParsingContext projectParsingContext) throws MojoExecutionException {
         List<PackageInfo> existingPackageImports = new ArrayList<PackageInfo>();
-        if (StringUtils.isEmpty(existingImports)) {
-            existingImports = existingImportsLegacy;
+        if (!StringUtils.isEmpty(existingImportsLegacy)) {
+            if (StringUtils.isEmpty(existingImports)) {
+                existingImports = existingImportsLegacy;
+            } else {
+                existingImports += "," + existingImportsLegacy;
+            }
         }
         if (!StringUtils.isEmpty(existingImports)) {
             try {
