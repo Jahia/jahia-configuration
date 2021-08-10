@@ -63,7 +63,7 @@ import org.jahia.utils.maven.plugin.contentgenerator.bo.FolderBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.PageBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jahia.utils.maven.plugin.support.RandomUtils;
-import org.jdom.Document;
+import org.jdom2.Document;
 
 public class ContentService {
 

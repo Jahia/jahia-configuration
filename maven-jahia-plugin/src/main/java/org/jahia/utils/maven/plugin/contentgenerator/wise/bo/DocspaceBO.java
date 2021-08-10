@@ -52,7 +52,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.AceBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.AclBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
-import org.jdom.Element;
+import org.jdom2.Element;
 
 public class DocspaceBO {
 	private Element docspaceElement;

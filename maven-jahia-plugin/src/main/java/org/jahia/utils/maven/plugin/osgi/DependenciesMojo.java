@@ -264,9 +264,8 @@ public class DependenciesMojo extends BundlePlugin {
                 // no overrides
             }
 
-            Properties properties = new Properties();
             try {
-                Builder builder = getOSGiBuilder(project, originalInstructions, properties, getClasspath(project));
+                Builder builder = getOSGiBuilder(project, originalInstructions, getClasspath(project));
                 resolveEmbeddedDependencies(project, builder);
             } catch (Exception e) {
                 throw new MojoExecutionException("Error trying to process bundle plugin instructions", e);

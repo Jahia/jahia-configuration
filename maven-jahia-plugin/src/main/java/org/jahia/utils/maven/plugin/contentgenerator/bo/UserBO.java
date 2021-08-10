@@ -51,7 +51,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.CollectionBO;
-import org.jdom.Element;
+import org.jdom2.Element;
 
 public class UserBO {
 	private String name;

@@ -45,10 +45,10 @@ package org.jahia.configuration.configurators;
 
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.VFS;
-import org.jdom.Attribute;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.input.SAXBuilder;
+import org.jdom2.Attribute;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.input.SAXBuilder;
 
 import java.io.File;
 import java.net.URL;
@@ -78,13 +78,13 @@ public class RootUserConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         Element el = (Element) getNode(jdomDocument, "/content/users/*", prefix);
         assertEquals(websphereOracleConfigBean.getJahiaRootUsername(), el.getName());
         assertEquals("password", ((Attribute) getNode(jdomDocument, "/content/users/"
-                + websphereOracleConfigBean.getJahiaRootUsername() + "/@j:password", prefix)).getValue());
+                + websphereOracleConfigBean.getJahiaRootUsername() + "/@*[name()='j:password']", prefix)).getValue());
         assertEquals(websphereOracleConfigBean.getJahiaRootFirstname(), ((Attribute) getNode(jdomDocument, "/content/users/"
-                + websphereOracleConfigBean.getJahiaRootUsername() + "/@j:firstName", prefix)).getValue());
+                + websphereOracleConfigBean.getJahiaRootUsername() + "/@*[name()='j:firstName']", prefix)).getValue());
         assertEquals(websphereOracleConfigBean.getJahiaRootLastname(), ((Attribute) getNode(jdomDocument, "/content/users/"
-                + websphereOracleConfigBean.getJahiaRootUsername() + "/@j:lastName", prefix)).getValue());
+                + websphereOracleConfigBean.getJahiaRootUsername() + "/@*[name()='j:lastName']", prefix)).getValue());
         assertEquals(websphereOracleConfigBean.getJahiaRootEmail(), ((Attribute) getNode(jdomDocument, "/content/users/"
-                + websphereOracleConfigBean.getJahiaRootUsername() + "/@j:email", prefix)).getValue());
+                + websphereOracleConfigBean.getJahiaRootUsername() + "/@*[name()='j:email']", prefix)).getValue());
         assertEquals("de", ((Attribute) getNode(jdomDocument, "/content/users/"
                 + websphereOracleConfigBean.getJahiaRootUsername() + "/@preferredLanguage", prefix)).getValue());
 
@@ -94,7 +94,7 @@ public class RootUserConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         jdomDocument = saxBuilder.build(rootXmlFileParentPath + "root-modified2.xml");
 
         assertEquals("root", ((Element) getNode(jdomDocument, "/content/users/*", prefix)).getName());
-        assertEquals("1234root", ((Attribute) getNode(jdomDocument, "/content/users/root/@j:password", prefix)).getValue());
+        assertEquals("1234root", ((Attribute) getNode(jdomDocument, "/content/users/root/@*[name()='j:password']", prefix)).getValue());
 
     }
 }

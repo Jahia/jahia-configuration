@@ -58,8 +58,8 @@ import org.jahia.utils.maven.plugin.contentgenerator.bo.UserBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.CollectionService;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.CollectionBO;
-import org.jdom.Document;
-import org.jdom.Element;
+import org.jdom2.Document;
+import org.jdom2.Element;
 
 public class UserGroupService {
 

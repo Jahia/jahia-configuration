@@ -43,7 +43,7 @@
  */
 package org.jahia.utils.maven.plugin.contentgenerator.properties;
 
-import org.jdom.Namespace;
+import org.jdom2.Namespace;
 
 
 public final class ContentGeneratorCst {

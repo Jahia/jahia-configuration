@@ -44,9 +44,9 @@
 package org.jahia.configuration.configurators;
 
 import org.codehaus.plexus.util.StringUtils;
-import org.jdom.Element;
-import org.jdom.Namespace;
-import org.jdom.input.SAXBuilder;
+import org.jdom2.Element;
+import org.jdom2.Namespace;
+import org.jdom2.input.SAXBuilder;
 
 import java.io.File;
 import java.io.InputStreamReader;
@@ -74,7 +74,7 @@ public class ApplicationXmlConfigurator extends AbstractXMLConfigurator {
         SAXBuilder saxBuilder = new SAXBuilder();
         saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         InputStreamReader fileReader = new InputStreamReader(sourceConfigFile.getInputStream());
-        org.jdom.Document jdomDocument = saxBuilder.build(fileReader);
+        org.jdom2.Document jdomDocument = saxBuilder.build(fileReader);
         Element root = jdomDocument.getRootElement();
         Namespace ns = root.getNamespace();
 

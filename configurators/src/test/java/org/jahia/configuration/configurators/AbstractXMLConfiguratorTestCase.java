@@ -44,8 +44,8 @@
 package org.jahia.configuration.configurators;
 
 import junit.framework.TestCase;
-import org.jdom.*;
-import org.jdom.xpath.XPath;
+import org.jdom2.*;
+import org.jdom2.xpath.XPath;
 
 import java.util.List;
 

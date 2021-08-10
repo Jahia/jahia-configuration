@@ -49,8 +49,8 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.SiteBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
-import org.jdom.Document;
-import org.jdom.Element;
+import org.jdom2.Document;
+import org.jdom2.Element;
 
 import java.io.*;
 import java.util.List;

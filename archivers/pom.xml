@@ -48,7 +48,7 @@
     <parent>
         <groupId>org.jahia.configuration</groupId>
         <artifactId>jahia-configuration-root</artifactId>
-        <version>5.17-SNAPSHOT</version>
+        <version>5.20-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -59,12 +59,18 @@
         <dependency>
             <groupId>org.jahia.configuration</groupId>
             <artifactId>deployers</artifactId>
-            <version>5.17-SNAPSHOT</version>
+            <version>5.20-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-archiver</artifactId>
-            <version>1.0-alpha-12</version>
+            <version>${plexus-archivers.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.sonatype.sisu/sisu-inject-plexus -->
+        <dependency>
+            <groupId>org.sonatype.sisu</groupId>
+            <artifactId>sisu-inject-plexus</artifactId>
+            <version>2.6.0</version>
         </dependency>
     </dependencies>
 

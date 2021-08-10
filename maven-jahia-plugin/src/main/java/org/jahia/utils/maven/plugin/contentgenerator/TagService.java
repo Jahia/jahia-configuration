@@ -50,7 +50,7 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.TagBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
-import org.jdom.Element;
+import org.jdom2.Element;
 
 /**
  * Tags service

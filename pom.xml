@@ -47,7 +47,7 @@
     <groupId>org.jahia.configuration</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jahia-configuration-root</artifactId>
-    <version>5.17-SNAPSHOT</version>
+    <version>5.20-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Jahia Configuration Root</name>
     <organization>
@@ -69,8 +69,14 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <jahia.license.header>header.txt</jahia.license.header>
         <jahia.license.style>style.xml</jahia.license.style>
-        <jackson.version>2.9.10</jackson.version>
-        <jackson-databind.version>2.9.10.8</jackson-databind.version>
+        <jackson.version>2.12.4</jackson.version>
+        <jackson-databind.version>2.12.4</jackson-databind.version>
+        <plexus-archivers.version>4.2.5</plexus-archivers.version>
+        <plexus-utils.version>3.4.0</plexus-utils.version>
+        <mven-scm.version>1.11.2</mven-scm.version>
+        <junit.version>4.13.2</junit.version>
+        <jaxen.version>1.2.0</jaxen.version>
+        <jdom2.version>2.0.6</jdom2.version>
         <bndlib.version>2.4.0</bndlib.version> <!-- Using version 2.4.0 as recommended in https://issues.apache.org/jira/browse/FELIX-4556?focusedCommentId=14213575&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-14213575 -->
 	</properties>
     

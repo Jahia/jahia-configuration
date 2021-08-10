@@ -55,8 +55,6 @@ import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.components.io.fileselectors.FileInfo;
 import org.codehaus.plexus.components.io.fileselectors.FileSelector;
-import org.codehaus.plexus.logging.Logger;
-import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.jahia.configuration.modules.ModuleDeployer;
 
 /**
@@ -153,8 +151,6 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
 
     private void deployPackageFile(File file, ModuleDeployer deployer) throws ArchiverException, IOException {
         ZipUnArchiver unzip = new ZipUnArchiver(file);
-        unzip.enableLogging(new ConsoleLogger(getLog().isDebugEnabled() ? Logger.LEVEL_DEBUG : Logger.LEVEL_INFO,
-                "console"));
         File target = new File(FileUtils.getTempDirectory(), CopyTemplatesMojo.class.getSimpleName());
         FileUtils.deleteQuietly(target);
         target.mkdir();
