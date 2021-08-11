@@ -146,7 +146,9 @@ public class Migrators {
                             byteArrayOutputStream.reset();
                         }
                         try {
-                            IOUtils.copyLarge(byteArrayInputStream, outputStream);
+                            if(outputStream!=null) {
+                                IOUtils.copyLarge(byteArrayInputStream, outputStream);
+                            }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

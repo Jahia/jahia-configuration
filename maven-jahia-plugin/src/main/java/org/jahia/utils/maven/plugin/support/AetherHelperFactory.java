@@ -52,7 +52,7 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.eclipse.aether.RepositorySystemSession;
-import org.sonatype.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystem;
 
 /**
  * Factory for obtaining an instance of the proper artifact and dependency resolver, depending on the Maven execution environment.
@@ -75,7 +75,7 @@ public final class AetherHelperFactory {
     public static AetherHelper create(PlexusContainer container, MavenProject project, MavenSession session, Log log)
             throws MojoExecutionException {
         try {
-            if (container.hasComponent("org.sonatype.aether.RepositorySystem")) {
+            if (container.hasComponent("org.eclipse.aether.RepositorySystem")) {
                 log.info("Using Aether helper for Maven 3.0.x");
                 
                 warnMavenVersion(log);

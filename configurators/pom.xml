@@ -54,7 +54,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>configurators</artifactId>
     <name>Jahia Server Configuration</name>
-
+    <packaging>jar</packaging>
     <dependencies>
         <dependency>
             <groupId>org.jahia.configuration</groupId>
@@ -85,7 +85,7 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.8.0</version>
+            <version>${commons-io.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
@@ -115,13 +115,13 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.5.8</version>
+            <version>1.7.31</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>1.5.8</version>
+            <version>1.7.31</version>
             <type>jar</type>
             <scope>test</scope>
         </dependency>
@@ -227,6 +227,7 @@
 					<finalName>jahia-default-config</finalName>
 					<outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
 					<appendAssemblyId>false</appendAssemblyId>
+                    <updateOnly>true</updateOnly>
 					<descriptors>
 						<descriptor>src/test/assembly/src.xml</descriptor>
 					</descriptors>
@@ -242,21 +243,12 @@
 				</executions>
 			</plugin>
             <plugin>
-                <groupId>org.dstovall</groupId>
-                <artifactId>onejar-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>one-jar</goal>
-                        </goals>
-                        <configuration>
-                            <mainClass>org.jahia.configuration.Main</mainClass>
-                            <attachToBuild>true</attachToBuild>
-                            <filename>${project.build.finalName}-standalone.jar</filename>
-                            <classifier>standalone</classifier>
-                        </configuration>
-                    </execution>
-                </executions>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <classifier>build</classifier>
+                </configuration>
             </plugin>
         </plugins>
     </build>
