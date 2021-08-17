@@ -43,7 +43,6 @@
  */
 package org.jahia.configuration.configurators;
 
-import difflib.Delta;
 import difflib.DiffUtils;
 import difflib.Patch;
 import junit.framework.TestCase;
@@ -282,7 +281,8 @@ public class PropertiesManagerTest extends TestCase {
         Patch patch = DiffUtils.diff(original, revised);
 
         System.out.println("File comparison between original and modified file:");
-        for (Delta delta: patch.getDeltas()) {
+        List deltas = patch.getDeltas();
+        for (Object delta : deltas) {
             System.out.println(delta);
         }
         return patch;

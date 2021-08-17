@@ -45,10 +45,7 @@ package org.jahia.utils.maven.plugin.jarscan;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -59,8 +56,6 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-
-import edu.emory.mathcs.backport.java.util.Arrays;
 
 /**
  * Creates a list of JARs that do not contain any TLD files and can be skipped by the JAR scanner (Jasper compiler in the Pax Web JSP
