@@ -55,7 +55,6 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.VFS;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
-import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.PropertyUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.jahia.commons.encryption.EncryptionUtils;
@@ -629,7 +628,6 @@ public class JahiaGlobalConfigurator {
             }
         } else {
             JarArchiver archiver = new JarArchiver();
-            archiver.enableLogging(new org.codehaus.plexus.logging.console.ConsoleLogger(Logger.LEVEL_DEBUG, "console"));
 
             String jarFileName = "jahia-config.jar";
             if (!StringUtils.isBlank(jahiaConfig.getExternalizedConfigFinalName())) {

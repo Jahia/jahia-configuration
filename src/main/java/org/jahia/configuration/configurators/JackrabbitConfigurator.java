@@ -45,9 +45,9 @@ package org.jahia.configuration.configurators;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.jahia.configuration.logging.AbstractLogger;
-import org.jdom.*;
-import org.jdom.xpath.XPath;
-import org.jdom.input.SAXBuilder;
+import org.jdom2.*;
+import org.jdom2.xpath.XPath;
+import org.jdom2.input.SAXBuilder;
 
 import java.io.File;
 import java.io.InputStreamReader;
@@ -78,7 +78,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
                     "http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
 
             InputStreamReader fileReader = new InputStreamReader(sourceConfigFile.getInputStream());
-            org.jdom.Document jdomDocument = saxBuilder.build(fileReader);
+            org.jdom2.Document jdomDocument = saxBuilder.build(fileReader);
             Element repositoryElement = jdomDocument.getRootElement();
             Namespace namespace = repositoryElement.getNamespace();
 

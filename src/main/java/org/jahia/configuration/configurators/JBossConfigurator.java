@@ -55,12 +55,12 @@ import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.jahia.configuration.deployers.ServerDeploymentInterface;
 import org.jahia.configuration.logging.AbstractLogger;
-import org.jdom.Attribute;
-import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.Namespace;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.Format;
+import org.jdom2.Attribute;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.Namespace;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.Format;
 
 /**
  * JBoss DB datasource configurator.
@@ -239,7 +239,7 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
             SAXBuilder saxBuilder = new SAXBuilder();
             saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
             InputStreamReader fileReader = new InputStreamReader(sourceConfigFile.getInputStream());
-            org.jdom.Document jdomDocument = saxBuilder.build(fileReader);
+            org.jdom2.Document jdomDocument = saxBuilder.build(fileReader);
 
             Element root = jdomDocument.getRootElement();
             isJBoss63 = root.getNamespace().getURI().equals("urn:jboss:domain:1.6");

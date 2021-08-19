@@ -43,10 +43,10 @@
  */
 package org.jahia.configuration.configurators;
 
-import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.input.SAXBuilder;
-import org.jdom.xpath.XPath;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.xpath.XPath;
 
 import java.io.File;
 import java.io.InputStreamReader;
@@ -68,7 +68,7 @@ public class TomcatContextXmlConfigurator extends AbstractXMLConfigurator {
             SAXBuilder saxBuilder = new SAXBuilder();
             saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
             InputStreamReader fileReader = new InputStreamReader(sourceConfigFile.getInputStream());
-            org.jdom.Document jdomDocument = saxBuilder.build(fileReader);
+            org.jdom2.Document jdomDocument = saxBuilder.build(fileReader);
             Element root = jdomDocument.getRootElement();
 
             setElementAttribute(root, "/Context/Resource", "password", getValue(dbProperties, "jahia.database.pass"));
