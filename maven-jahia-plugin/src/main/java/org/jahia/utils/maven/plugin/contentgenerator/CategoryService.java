@@ -49,8 +49,8 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.CategoryBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ExportBO;
-import org.jdom.Document;
-import org.jdom.Element;
+import org.jdom2.Document;
+import org.jdom2.Element;
 
 public class CategoryService {
 

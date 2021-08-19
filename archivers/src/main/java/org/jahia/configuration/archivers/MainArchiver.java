@@ -47,8 +47,6 @@ import org.codehaus.plexus.archiver.AbstractArchiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.dir.DirectoryArchiver;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
-import org.codehaus.plexus.logging.Logger;
-import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.codehaus.plexus.util.FileUtils;
 import org.jahia.configuration.deployers.ServerDeploymentFactory;
 
@@ -66,9 +64,6 @@ public class MainArchiver {
     private static void execute(File source, File target, String excludes, boolean archive, boolean verbose)
             throws IOException, ArchiverException {
         AbstractArchiver archiver = archive ? new ZipArchiver() : new DirectoryArchiver();
-        if (verbose) {
-            archiver.enableLogging(new ConsoleLogger(Logger.LEVEL_DEBUG, "console"));
-        }
         File absoluteDestFile = new File(target.getAbsolutePath());
         archiver.setDestFile(absoluteDestFile);
         archiver.addDirectory(source, null, excludes != null ? excludes.split(",") : null);

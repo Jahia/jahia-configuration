@@ -44,7 +44,7 @@
 package org.jahia.utils.maven.plugin.contentgenerator.bo;
 
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
-import org.jdom.Element;
+import org.jdom2.Element;
 
 /**
  * Object that represent a tag and its XML code

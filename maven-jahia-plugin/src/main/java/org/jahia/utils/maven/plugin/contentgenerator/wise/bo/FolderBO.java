@@ -48,7 +48,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
-import org.jdom.Element;
+import org.jdom2.Element;
 
 public class FolderBO implements java.io.Serializable, Comparable<FolderBO> {
 	/**

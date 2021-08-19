@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
-import org.jdom.Element;
+import org.jdom2.Element;
 
 public class NewsBO {
 	private Element newsElement;

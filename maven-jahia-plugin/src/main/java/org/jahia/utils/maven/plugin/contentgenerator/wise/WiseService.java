@@ -66,8 +66,8 @@ import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.DocspaceBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FileBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.FolderBO;
 import org.jahia.utils.maven.plugin.contentgenerator.wise.bo.WiseBO;
-import org.jdom.Document;
-import org.jdom.Element;
+import org.jdom2.Document;
+import org.jdom2.Element;
 
 public class WiseService {
 

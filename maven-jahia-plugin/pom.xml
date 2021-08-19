@@ -58,8 +58,10 @@
 	<name>Maven Jahia Installer Plugin</name>
 
 	<properties>
-		<maven.version>3.0.5</maven.version>
-		<maven.plugin.plugin.version>2.9</maven.plugin.plugin.version>
+		<maven.version>3.8.1</maven.version>
+		<maven.plugin.plugin.version>3.6.1</maven.plugin.plugin.version>
+		<doxiaVersion>1.10</doxiaVersion>
+		<doxiaSitetoolsVersion>1.10</doxiaSitetoolsVersion>
 	</properties>
 
 	<description>Jahia Maven plugin</description>
@@ -96,6 +98,7 @@
 			<groupId>org.jahia.configuration</groupId>
 			<artifactId>configurators</artifactId>
 			<version>5.17-SNAPSHOT</version>
+			<classifier>build</classifier>
 		</dependency>
         <dependency>
             <groupId>org.jahia.configuration</groupId>
@@ -106,7 +109,7 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.8.0</version>
+			<version>${commons-io.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
@@ -120,13 +123,6 @@
 			<scope>compile</scope>
 		</dependency>
 
-		<!--
-		<dependency>
-			<groupId>org.apache.maven</groupId>
-			<artifactId>maven-core</artifactId>
-			<version>${maven.version}</version>
-		</dependency>
-		-->
 		<dependency>
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-plugin-api</artifactId>
@@ -140,36 +136,45 @@
 		<dependency>
 			<groupId>org.apache.maven.shared</groupId>
 			<artifactId>maven-dependency-tree</artifactId>
-			<version>2.0</version>
+			<version>2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.maven.resolver</groupId>
+			<artifactId>maven-resolver-api</artifactId>
+			<version>1.7.1</version>
+		</dependency>
+
+		<!-- Doxia -->
+		<dependency>
+			<groupId>org.apache.maven.doxia</groupId>
+			<artifactId>doxia-sink-api</artifactId>
+			<version>${doxiaVersion}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.maven.doxia</groupId>
+			<artifactId>doxia-decoration-model</artifactId>
+			<version>${doxiaSitetoolsVersion}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.maven.doxia</groupId>
+			<artifactId>doxia-core</artifactId>
+			<version>${doxiaVersion}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.maven.doxia</groupId>
+			<artifactId>doxia-site-renderer</artifactId>
+			<version>${doxiaSitetoolsVersion}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.maven.reporting</groupId>
 			<artifactId>maven-reporting-impl</artifactId>
-			<version>2.2</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.sonatype.aether</groupId>
-			<artifactId>aether-api</artifactId>
-			<version>1.13.1</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.eclipse.aether</groupId>
-			<artifactId>aether-api</artifactId>
-			<version>1.0.0.v20140518</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.eclipse.aether</groupId>
-			<artifactId>aether-util</artifactId>
-			<version>1.0.0.v20140518</version>
+			<version>3.0.0</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.codehaus.plexus</groupId>
 			<artifactId>plexus-utils</artifactId>
-			<version>3.0.1</version>
+			<version>${plexus-utils.version}</version>
 		</dependency>
 
 		<dependency>
@@ -186,38 +191,38 @@
 		<dependency>
 			<groupId>xalan</groupId>
 			<artifactId>xalan</artifactId>
-			<version>2.7.1</version>
+			<version>2.7.2</version>
 		</dependency>
 
 
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.7.2</version>
+			<version>1.7.32</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
-			<version>1.7.2</version>
+			<version>1.7.32</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.ant</groupId>
-			<artifactId>ant-nodeps</artifactId>
-			<version>1.8.1</version>
+			<artifactId>ant</artifactId>
+			<version>1.10.11</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.codehaus.plexus</groupId>
 			<artifactId>plexus-archiver</artifactId>
-			<version>1.0-alpha-12</version>
+			<version>${plexus-archivers.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.8.2</version>
+			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -238,19 +243,30 @@
 		<dependency>
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parsers</artifactId>
-			<version>1.2</version>
+			<version>1.27</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-compress</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
+			<version>1.21</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.maven.plugin-tools</groupId>
 			<artifactId>maven-plugin-annotations</artifactId>
-			<version>3.1</version>
+			<version>3.6.1</version>
 		</dependency>
 
         <dependency>
             <groupId>org.eclipse.tycho</groupId>
             <artifactId>org.eclipse.osgi</artifactId>
-            <version>3.8.1.v20120830-144521</version>
+            <version>3.13.0.v20180226-1711</version>
         </dependency>
 
         <dependency>
@@ -267,22 +283,22 @@
         <dependency>
             <groupId>org.apache.maven.scm</groupId>
             <artifactId>maven-scm-api</artifactId>
-            <version>1.9</version>
+            <version>${maven-scm.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.scm</groupId>
             <artifactId>maven-scm-provider-svnexe</artifactId>
-            <version>1.9</version>
+			<version>${maven-scm.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.scm</groupId>
             <artifactId>maven-scm-provider-git-commons</artifactId>
-            <version>1.9</version>
+			<version>${maven-scm.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.scm</groupId>
             <artifactId>maven-scm-provider-gitexe</artifactId>
-            <version>1.9</version>
+			<version>${maven-scm.version}</version>
         </dependency>
 
 		<dependency>
@@ -311,14 +327,7 @@
 		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>maven-bundle-plugin</artifactId>
-			<version>2.5.3</version>
-			<!-- QA-10988 We didn't manage to upgrade to 2.5.4 because of bugs https://issues.apache.org/jira/browse/FELIX-4556 and https://issues.apache.org/jira/browse/FELIX-4882 -->
-			<exclusions>
-				<exclusion>
-					<groupId>biz.aQute.bnd</groupId>
-					<artifactId>bndlib</artifactId>
-				</exclusion>
-			</exclusions>
+			<version>5.1.2</version>
 		</dependency>
 
 		<dependency>
@@ -337,13 +346,13 @@
 		<dependency>
 			<groupId>com.github.docker-java</groupId>
 			<artifactId>docker-java</artifactId>
-			<version>3.2.7</version>
+			<version>3.2.11</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.github.docker-java</groupId>
 			<artifactId>docker-java-core</artifactId>
-			<version>3.2.7</version>
+			<version>3.2.11</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-io</groupId>
@@ -356,7 +365,19 @@
 		<dependency>
 			<groupId>com.github.docker-java</groupId>
 			<artifactId>docker-java-transport-httpclient5</artifactId>
-			<version>3.2.7</version>
+			<version>3.2.11</version>
+		</dependency>
+		<dependency>
+			<groupId>org.dom4j</groupId>
+			<artifactId>dom4j</artifactId>
+			<version>2.1.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jasypt</groupId>
+			<artifactId>jasypt</artifactId>
+			<version>1.9.3</version>
+			<classifier>lite</classifier>
+			<scope>compile</scope>
 		</dependency>
 
 
@@ -416,20 +437,13 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.9.1</version>
+				<version>3.3.0</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jxr-plugin</artifactId>
-				<version>2.3</version>
+				<version>3.1.1</version>
 			</plugin>
-            <!--
-			<plugin>
-        		<groupId>org.apache.maven.plugins</groupId>
-        		<artifactId>maven-plugin-plugin</artifactId>
-        		<version>${maven.plugin.plugin.version}</version>
-      		</plugin>
-            -->
 		</plugins>
 	</reporting>
 

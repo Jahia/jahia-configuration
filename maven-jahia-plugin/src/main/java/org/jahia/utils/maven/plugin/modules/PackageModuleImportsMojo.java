@@ -51,8 +51,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
-import org.codehaus.plexus.logging.Logger;
-import org.codehaus.plexus.logging.console.ConsoleLogger;
 
 /**
  * Used to automatically package module's import resources (as a ZIP file) into the target module bundle file.<br>
@@ -136,10 +134,6 @@ public class PackageModuleImportsMojo extends AbstractMojo {
         }
 
         ZipArchiver archiver = new ZipArchiver();
-        if (verbose) {
-            archiver.enableLogging(new ConsoleLogger(Logger.LEVEL_DEBUG,
-                    "console"));
-        }
         if (!dest.exists()) {
             dest.mkdirs();
         }

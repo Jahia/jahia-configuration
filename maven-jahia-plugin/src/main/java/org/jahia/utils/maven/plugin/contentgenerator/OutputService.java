@@ -64,9 +64,9 @@ import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.ContentBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.FolderBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.PageBO;
-import org.jdom.Document;
-import org.jdom.output.Format;
-import org.jdom.output.XMLOutputter;
+import org.jdom2.Document;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 
 /**
  * Class used to write data into output files/directories

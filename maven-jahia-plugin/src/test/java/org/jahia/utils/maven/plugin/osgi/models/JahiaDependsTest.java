@@ -48,7 +48,7 @@ public class JahiaDependsTest {
         testParser("module-name1=[1.4, 2.0)", "module-name1", "1.4.0", "2.0.0",
                 "(&(moduleIdentifier=module-name1)(moduleVersion>=1.4.0)(!(moduleVersion>=2.0.0)))");
         testParser("module-name1=1.4", "module-name1", "1.4.0", "1.4.0",
-                "(&(moduleIdentifier=module-name1)(moduleVersion>=1.4.0))");
+                "(&(moduleIdentifier=module-name1)(moduleVersion>=1.4.0)(moduleVersion<=1.4.0))");
     }
 
     @Test

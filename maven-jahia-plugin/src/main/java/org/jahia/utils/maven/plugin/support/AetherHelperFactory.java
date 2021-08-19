@@ -52,7 +52,7 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.eclipse.aether.RepositorySystemSession;
-import org.sonatype.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystem;
 
 /**
  * Factory for obtaining an instance of the proper artifact and dependency resolver, depending on the Maven execution environment.
@@ -75,14 +75,7 @@ public final class AetherHelperFactory {
     public static AetherHelper create(PlexusContainer container, MavenProject project, MavenSession session, Log log)
             throws MojoExecutionException {
         try {
-            if (container.hasComponent("org.sonatype.aether.RepositorySystem")) {
-                log.info("Using Aether helper for Maven 3.0.x");
-                
-                warnMavenVersion(log);
-                
-                return new Maven30AetherHelper(container.lookup(RepositorySystem.class),
-                        session.getRepositorySession(), project.getRemoteProjectRepositories(), log);
-            } else if (container.hasComponent(org.eclipse.aether.RepositorySystem.class)) {
+            if (container.hasComponent(org.eclipse.aether.RepositorySystem.class)) {
                 Object repoSession;
                 try {
                     repoSession = MavenSession.class.getMethod("getRepositorySession").invoke(session);
@@ -98,18 +91,6 @@ public final class AetherHelperFactory {
         } catch (ComponentLookupException e) {
             throw new MojoExecutionException(e.getMessage(), e);
         }
-        throw new MojoExecutionException("Unable to find either Sonatype's Aether nor Eclipse's Aether implementations");
+        throw new MojoExecutionException("Unable to find Eclipse's Aether implementations");
     }
-
-    private static void warnMavenVersion(Log log) {
-        log.warn("");
-        log.warn("************************* DEPRECATION *************************");
-        log.warn("*                                                             *");
-        log.warn("* The version of Maven (3.0.x), you are using, is deprecated. *");
-        log.warn("* Please, switch to a more recent one (e.g. 3.3.x).           *");
-        log.warn("*                                                             *");
-        log.warn("***************************************************************");
-        log.warn("");
-    }
-
 }

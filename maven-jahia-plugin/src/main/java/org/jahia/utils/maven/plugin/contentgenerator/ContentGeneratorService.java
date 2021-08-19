@@ -65,8 +65,8 @@ import org.jahia.utils.maven.plugin.contentgenerator.bo.MountPointBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.SiteBO;
 import org.jahia.utils.maven.plugin.contentgenerator.bo.UserBO;
 import org.jahia.utils.maven.plugin.contentgenerator.properties.ContentGeneratorCst;
-import org.jdom.Document;
-import org.jdom.Element;
+import org.jdom2.Document;
+import org.jdom2.Element;
 import org.w3c.dom.DOMException;
 
 public class ContentGeneratorService {

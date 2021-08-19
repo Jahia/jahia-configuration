@@ -47,9 +47,9 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.VFS;
 import org.jahia.configuration.logging.AbstractLogger;
 import org.jahia.configuration.logging.ConsoleLogger;
-import org.jdom.Document;
-import org.jdom.input.SAXBuilder;
-import org.jdom.xpath.XPath;
+import org.jdom2.Document;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.xpath.XPath;
 
 import java.io.File;
 import java.net.URL;

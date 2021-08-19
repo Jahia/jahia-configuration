@@ -46,9 +46,9 @@ package org.jahia.configuration.configurators;
 import junit.framework.TestCase;
 import org.apache.commons.vfs2.FileObject;
 import org.jahia.configuration.logging.SLF4JLogger;
-import org.jdom.*;
-import org.jdom.input.SAXBuilder;
-import org.jdom.xpath.XPath;
+import org.jdom2.*;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.xpath.XPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

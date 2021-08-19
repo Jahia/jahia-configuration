@@ -214,7 +214,7 @@ public class CapabilityUtilsTest {
             String jahiaDependsValue = String.format("%s=%s", moduleName, minVersion);
             CapabilityUtils.buildJahiaDependencies(project, jahiaDependsValue, skipRequireDependencies, prefix);
             assertEquals(getExpectedProvides(), getProjectProvidesProp());
-            String expected = "," + getExpectedRequire(moduleName, minVersionExpected, ">=", null, null);
+            String expected = "," + getExpectedRequire(moduleName, minVersionExpected, ">=", minVersionExpected, "<=");
             assertEquals(expected, getProjectRequiresProp());
         } catch (Exception e) {
             fail("Unexpected exception: " + e.getMessage());
@@ -231,7 +231,7 @@ public class CapabilityUtilsTest {
             assertEquals(getExpectedProvides(), getProjectProvidesProp());
 
             String[][] requireModules = new String[][] {
-                    new String[] { "module-name1", "3.2.0", ">=", null, null },
+                    new String[] { "module-name1", "3.2.0", ">=", "3.2.0", "<=" },
                     new String[] { "module-name2", null, null, null, null },
                     new String[] { "module-name3", "0.0.0", ">=", "1.4.0", "<" },
                     new String[] { "module with a space", null, null, null, null },
