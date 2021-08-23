@@ -78,7 +78,8 @@
         <jaxen.version>1.2.0</jaxen.version>
         <jdom2.version>2.0.6</jdom2.version>
         <commons-io.version>2.11.0</commons-io.version>
-        <bndlib.version>5.1.1</bndlib.version> <!-- Using version 2.4.0 as recommended in https://issues.apache.org/jira/browse/FELIX-4556?focusedCommentId=14213575&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-14213575 -->
+        <bndlib.version>5.1.1</bndlib.version>
+        <maven.bundle.plugin.version>5.1.2</maven.bundle.plugin.version>
 	</properties>
 
     <modules>
@@ -182,7 +183,7 @@
 				<plugin>
 	                <groupId>org.apache.felix</groupId>
 	                <artifactId>maven-bundle-plugin</artifactId>
-	                <version>5.1.2</version>
+	                <version>${maven.bundle.plugin.version}</version>
 				</plugin>
 	            <plugin>
 	                <artifactId>maven-release-plugin</artifactId>
