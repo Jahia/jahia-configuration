@@ -358,7 +358,6 @@
 			<version>30.1.1-jre</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/com.github.docker-java/docker-java -->
 		<dependency>
 			<groupId>com.github.docker-java</groupId>
 			<artifactId>docker-java-transport-httpclient5</artifactId>
