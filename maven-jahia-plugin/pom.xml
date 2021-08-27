@@ -159,6 +159,16 @@
 			<groupId>org.apache.maven.doxia</groupId>
 			<artifactId>doxia-core</artifactId>
 			<version>${doxiaVersion}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.codehaus.plexus</groupId>
+					<artifactId>plexus-container-default</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.google.collections</groupId>
+					<artifactId>google-collections</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.maven.doxia</groupId>
@@ -342,10 +352,15 @@
             <version>4.0</version>
         </dependency>
 
-		<!-- https://mvnrepository.com/artifact/com.github.docker-java/docker-java -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>30.1.1-jre</version>
+		</dependency>
+
 		<dependency>
 			<groupId>com.github.docker-java</groupId>
-			<artifactId>docker-java</artifactId>
+			<artifactId>docker-java-transport-httpclient5</artifactId>
 			<version>3.2.11</version>
 		</dependency>
 
@@ -358,15 +373,13 @@
 					<groupId>commons-io</groupId>
 					<artifactId>commons-io</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/com.github.docker-java/docker-java-transport-httpclient5 -->
-		<dependency>
-			<groupId>com.github.docker-java</groupId>
-			<artifactId>docker-java-transport-httpclient5</artifactId>
-			<version>3.2.11</version>
-		</dependency>
 		<dependency>
 			<groupId>org.dom4j</groupId>
 			<artifactId>dom4j</artifactId>
