@@ -159,10 +159,6 @@
 					<version>3.3.1</version>
 				</plugin>
 				<plugin>
-					<artifactId>maven-jar-plugin</artifactId>
-					<version>3.2.0</version>
-				</plugin>
-				<plugin>
 					<artifactId>maven-enforcer-plugin</artifactId>
 					<version>1.4.1</version>
 				</plugin>
@@ -173,11 +169,6 @@
 				<plugin>
 					<artifactId>maven-source-plugin</artifactId>
 					<version>3.2.1</version>
-				</plugin>
-				<plugin>
-					<groupId>org.dstovall</groupId>
-					<artifactId>onejar-maven-plugin</artifactId>
-					<version>1.4.1</version>
 				</plugin>
 				<plugin>
 	                <groupId>org.apache.felix</groupId>
