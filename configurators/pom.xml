@@ -226,15 +226,6 @@
         <plugins>
             <plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<finalName>jahia-default-config</finalName>
-					<outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
-					<appendAssemblyId>false</appendAssemblyId>
-                    <updateOnly>true</updateOnly>
-					<descriptors>
-						<descriptor>src/test/assembly/src.xml</descriptor>
-					</descriptors>
-				</configuration>
 				<executions>
 					<execution>
 						<id>make-assembly</id> <!-- this is used for inheritance merges -->
@@ -242,17 +233,37 @@
 						<goals>
 							<goal>single</goal>
 						</goals>
+                        <configuration>
+                            <finalName>jahia-default-config</finalName>
+                            <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <updateOnly>true</updateOnly>
+                            <descriptors>
+                                <descriptor>src/test/assembly/src.xml</descriptor>
+                            </descriptors>
+                        </configuration>
 					</execution>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <appendAssemblyId>true</appendAssemblyId>
+                            <archive>
+                                <manifest>
+                                    <mainClass>
+                                        org.jahia.configuration.Main
+                                    </mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptors>
+                                <descriptor>src/main/assembly/src.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
 				</executions>
 			</plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.0</version>
-                <configuration>
-                    <classifier>build</classifier>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 
