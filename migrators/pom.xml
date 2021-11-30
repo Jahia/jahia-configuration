@@ -142,6 +142,9 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
+                        <Import-Package>
+                            !sun.nio.ch,!sun.misc,*
+                        </Import-Package>
                         <Export-Package>
                             org.jahia.utils.migration,
                             org.jahia.utils.migration.model
