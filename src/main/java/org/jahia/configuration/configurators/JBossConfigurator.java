@@ -47,6 +47,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -64,7 +65,7 @@ import org.jdom2.output.Format;
 
 /**
  * JBoss DB datasource configurator.
- * 
+ *
  * @author Sergiy Shyrkov
  */
 public class JBossConfigurator extends AbstractXMLConfigurator {
@@ -103,17 +104,15 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
     private String dbType;
 
     private ServerDeploymentInterface deployer;
-    
+
     private boolean isJBoss63;
-    
+
     private boolean isJBoss64;
-    
-    private Namespace datasourceNs;
-    
+
     private Namespace webNs;
 
     public JBossConfigurator(Map<?, ?> dbProperties, JahiaConfigInterface jahiaConfigInterface,
-            ServerDeploymentInterface deployer, AbstractLogger logger) {
+                             ServerDeploymentInterface deployer, AbstractLogger logger) {
         super(dbProperties, jahiaConfigInterface, logger);
         dbType = jahiaConfigInterface.getDatabaseType();
         this.deployer = deployer;
@@ -142,9 +141,9 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
     }
 
     private void configureDatasource(Element datasources) throws JDOMException {
-        Element ds = getElement(datasources, "xp:datasource[@jndi-name=\"java:/jahiaDS\"]", datasourceNs.getURI());
+        Element ds = getElement(datasources, "//datasource[@jndi-name=\"java:/jahiaDS\"]", null);
         if (ds == null) {
-            ds = new Element("datasource", datasourceNs).setAttribute("jndi-name", "java:/jahiaDS")
+            ds = new Element("datasource").setAttribute("jndi-name", "java:/jahiaDS")
                     .setAttribute("pool-name", "jahiaDS").setAttribute("enabled", "true")
                     .setAttribute("use-java-context", "true");
             datasources.addContent(0, ds);
@@ -172,13 +171,13 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
 
     private void configureDriver(Element datasources) throws JDOMException {
         Element drivers = getChildCreate(datasources, "drivers");
-        Element driver = getElement(drivers, "xp:driver[@name=\"jahia." + dbType + "\"]", datasourceNs.getURI());
+        Element driver = getElement(drivers, "driver[@name='jahia." + dbType + "']", null);
         if (driver == null) {
-            driver = new Element("driver", datasourceNs).setAttribute("name", "jahia." + dbType).setAttribute("module",
+            driver = new Element("driver").setAttribute("name", "jahia." + dbType).setAttribute("module",
                     "org.jahia.jdbc." + dbType);
-            Element driverClazz = new Element("driver-class", datasourceNs);
+            Element driverClazz = new Element("driver-class");
             driverClazz.addContent(getDBProperty("jahia.database.driver"));
-            
+
             driver.addContent(driverClazz);
             drivers.addContent(driver);
         }
@@ -195,9 +194,9 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
     }
 
     private Element getChildCreate(Element parent, String childName) {
-        Element child = parent.getChild(childName, datasourceNs);
+        Element child = parent.getChild(childName);
         if (child == null) {
-            child = new Element(childName, datasourceNs);
+            child = new Element(childName);
             parent.addContent(child);
         }
         return child;
@@ -244,9 +243,14 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
             Element root = jdomDocument.getRootElement();
             isJBoss63 = root.getNamespace().getURI().equals("urn:jboss:domain:1.6");
             isJBoss64 = root.getNamespace().getURI().equals("urn:jboss:domain:1.7");
-            getLogger().info("Detected JBoss EAP version " + (isJBoss63 ? "6.3.x" : (isJBoss64 ? "6.4.x" : "6.2.x")));
-            datasourceNs = isJBoss63 || isJBoss64 ? DS_NS_63 : DS_NS_62;
-            webNs = isJBoss63 ? WEB_NS_63 : (isJBoss64 ? WEB_NS_64 : WEB_NS_62);
+            if (isJBoss63) getLogger().info("Detected JBoss EAP version " + "6.3.x");
+            else getLogger().info("Detected JBoss EAP version " + (isJBoss64 ? "6.4.x" : "6.2.x"));
+            if (isJBoss63) {
+                webNs = WEB_NS_63;
+            } else {
+                if (isJBoss64) webNs = WEB_NS_64;
+                else webNs = WEB_NS_62;
+            }
             Element profile = getProfile(root, sourceConfigFile);
             Element datasources = getChildCreate(getChildCreate(profile, "subsystem"), "datasources");
 
@@ -257,7 +261,7 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
             if (jahiaConfigInterface.getWebAppDirName().equals("ROOT")) {
                 disableDefaultWelcomeWebApp(profile);
             }
-            
+
             configureConnector(profile);
 
             getLogger().info("Writing output to " + destFileName);
@@ -295,14 +299,14 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
             return;
         }
 
-        for (File driver : FileUtils.listFiles(targetDir, new String[] { "jar" }, false)) {
+        for (File driver : FileUtils.listFiles(targetDir, new String[]{"jar"}, false)) {
             getLogger().info("Deploying JDBC driver " + driver);
             deployer.deployJdbcDriver(driver);
         }
     }
 
     public void writeCLIConfiguration(File dest, String profile) throws Exception {
-    	String profilePath = profile != null ? "/profile=" + profile : "";
+        String profilePath = profile != null ? "/profile=" + profile : "";
         StringBuilder cli = new StringBuilder(512);
 
         // connect
@@ -325,7 +329,7 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
         // add datasource configuration
         cli.append("data-source add");
         if (profile != null) {
-        	cli.append(" --profile=").append(profile);
+            cli.append(" --profile=").append(profile);
         }
         cli.append(" --name=jahiaDS --jndi-name=java:/jahiaDS --enabled=true --use-java-context=true \\\n");
         cli.append("--driver-name=jahia.").append(dbType).append(" \\\n");
@@ -354,17 +358,17 @@ public class JBossConfigurator extends AbstractXMLConfigurator {
             cli.append("/subsystem=web/virtual-server=default-host:write-attribute(name=enable-welcome-root,value=false)\n");
             cli.append("\n");
         }
-        
+
         // enable HTTP NIO connector
         cli.append(profilePath);
         cli.append("/subsystem=web/connector=http:write-attribute(name=protocol,value=org.apache.coyote.http11.Http11NioProtocol)\n\n");
 
         if (profile == null) {
-        	cli.append("reload\n");
+            cli.append("reload\n");
         }
 
         getLogger().info("Writing output to " + dest);
-        FileUtils.writeStringToFile(dest, cli.toString());
+        FileUtils.writeStringToFile(dest, cli.toString(), StandardCharsets.UTF_8);
     }
 
 }

@@ -46,9 +46,13 @@ package org.jahia.configuration.configurators;
 import org.codehaus.plexus.util.StringUtils;
 import org.jahia.configuration.logging.AbstractLogger;
 import org.jdom2.*;
+import org.jdom2.filter.Filters;
 import org.jdom2.xpath.XPath;
 import org.jdom2.input.SAXBuilder;
+import org.jdom2.xpath.XPathExpression;
+import org.jdom2.xpath.XPathFactory;
 
+import javax.xml.XMLConstants;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.util.Map;
@@ -74,8 +78,10 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
     public void updateConfiguration(ConfigFile sourceConfigFile, String destFileName) throws Exception {
         try {
             SAXBuilder saxBuilder = new SAXBuilder();
-            saxBuilder.setFeature(
-                    "http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            saxBuilder.setFeature("http://apache.org/xml/features/disallow-doctype-decl",false);
+            saxBuilder.setFeature("http://xml.org/sax/features/external-general-entities", true);
+            saxBuilder.setFeature("http://xml.org/sax/features/external-parameter-entities", true);
+            saxBuilder.setExpandEntities(false);
 
             InputStreamReader fileReader = new InputStreamReader(sourceConfigFile.getInputStream());
             org.jdom2.Document jdomDocument = saxBuilder.build(fileReader);
@@ -83,14 +89,15 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             Namespace namespace = repositoryElement.getNamespace();
 
             String schema = getValue(dbProperties, "jahia.jackrabbit.schema");
-            XPath databaseTypeXPath = XPath.newInstance("//Repository/DataSources/DataSource/param[@name=\"databaseType\"]");
-            for (Element paramElement : (List<Element>) databaseTypeXPath.selectNodes(jdomDocument)) {
+            XPathFactory xPathFactory = XPathFactory.instance();
+            XPathExpression<Element> databaseTypeXPath = xPathFactory.compile("//Repository/DataSources/DataSource/param[@name=\"databaseType\"]", Filters.element());
+            for (Element paramElement : databaseTypeXPath.evaluate(jdomDocument)) {
                 paramElement.setAttribute("value", schema);
             }
             
             // we must first check if the cluster nodes are present so that they will be configured by the next queries.
-            XPath clusterXPath = XPath.newInstance("//Cluster");
-            Element clusterElement = (Element) clusterXPath.selectSingleNode(jdomDocument);
+            XPathExpression<Element> clusterXPath = xPathFactory.compile("//Cluster",Filters.element());
+            Element clusterElement = (Element) clusterXPath.evaluateFirst(jdomDocument);
             Element journalElement;
             if (clusterElement != null) {
                 journalElement = clusterElement.getChild("Journal");
@@ -113,7 +120,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             }
             
             // backward compatibility for version level FileSystem element
-            fs = (Element) XPath.newInstance("//Versioning/FileSystem").selectSingleNode(jdomDocument);
+            fs = (Element) xPathFactory.compile("//Versioning/FileSystem", Filters.element()).evaluateFirst(jdomDocument);
             if (fs != null && fs.getAttributeValue("class").equals("@FILESYSTEM_CLASS@")) {
             	fs.setAttribute("class", "org.apache.jackrabbit.core.fs.local.LocalFileSystem");
             	removeElementIfExists(repositoryElement, "//Versioning/FileSystem/param[@name=\"dataSourceName\"]");

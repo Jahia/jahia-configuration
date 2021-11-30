@@ -45,6 +45,7 @@ package org.jahia.configuration.configurators;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.vfs2.FileSystemManager;
@@ -72,7 +73,7 @@ public class JBossConfiguratorTest extends AbstractXMLConfiguratorTestCase {
         String destFileName = sourceCfgFile.getParent() + "/standalone-modified.xml";
         configurator.updateConfiguration(new VFSConfigFile(fsManager, cfgFileUrl.toExternalForm()), destFileName);
 
-        String content = FileUtils.readFileToString(new File(destFileName));
+        String content = FileUtils.readFileToString(new File(destFileName), StandardCharsets.UTF_8);
 
         assertTrue(content.contains("<driver name=\"jahia.oracle\" module=\"org.jahia.jdbc.oracle\">"));
         assertTrue(content.contains("<driver-class>oracle.jdbc.OracleDriver</driver-class>"));
@@ -92,7 +93,7 @@ public class JBossConfiguratorTest extends AbstractXMLConfiguratorTestCase {
 
         assertFalse(FileUtils.contentEquals(new File(unchangedDestFileName), new File(updatedDestFileName)));
 
-        content = FileUtils.readFileToString(new File(updatedDestFileName));
+        content = FileUtils.readFileToString(new File(updatedDestFileName), StandardCharsets.UTF_8);
         assertTrue(content.contains("<driver name=\"jahia.mysql\" module=\"org.jahia.jdbc.mysql\">"));
         assertTrue(content.contains("<driver-class>com.mysql.jdbc.Driver</driver-class>"));
         assertTrue(content.contains("<connection-url>jdbc:mysql"));
