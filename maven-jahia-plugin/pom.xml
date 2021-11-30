@@ -48,7 +48,7 @@
 	<parent>
 		<groupId>org.jahia.configuration</groupId>
 		<artifactId>jahia-configuration-root</artifactId>
-		<version>5.19-SNAPSHOT</version>
+		<version>6.0-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.jahia.server</groupId>
@@ -92,12 +92,12 @@
     	<dependency>
 			<groupId>org.jahia.configuration</groupId>
 			<artifactId>deployers</artifactId>
-			<version>5.19-SNAPSHOT</version>
+			<version>6.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jahia.configuration</groupId>
 			<artifactId>configurators</artifactId>
-			<version>5.19-SNAPSHOT</version>
+			<version>6.0-SNAPSHOT</version>
 			<classifier>standalone</classifier>
 		</dependency>
         <dependency>
@@ -337,12 +337,12 @@
 		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>maven-bundle-plugin</artifactId>
-			<version>5.1.2</version>
+			<version>${maven.bundle.plugin.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>biz.aQute.bnd</groupId>
-			<artifactId>bndlib</artifactId>
+			<artifactId>biz.aQute.bndlib</artifactId>
 			<version>${bndlib.version}</version>
 		</dependency>
 

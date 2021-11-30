@@ -48,7 +48,7 @@
     <parent>
         <groupId>org.jahia.configuration</groupId>
         <artifactId>jahia-configuration-root</artifactId>
-        <version>5.19-SNAPSHOT</version>
+        <version>6.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -114,7 +114,7 @@
 
         <dependency>
             <groupId>biz.aQute.bnd</groupId>
-            <artifactId>bndlib</artifactId>
+            <artifactId>biz.aQute.bndlib</artifactId>
             <version>${bndlib.version}</version>
         </dependency>
 
@@ -129,7 +129,7 @@
             <artifactId>jdom2</artifactId>
             <version>${jdom2.version}</version>
         </dependency>
-
+        <!-- https://mvnrepository.com/artifact/jaxen/jaxen -->
         <dependency>
             <groupId>jaxen</groupId>
             <artifactId>jaxen</artifactId>
@@ -149,14 +149,14 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>8</source>
+                    <target>8</target>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <version>5.1.2</version>
+                <version>${maven.bundle.plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
@@ -187,7 +187,7 @@
                         	org.jahia.utils.osgi.parsers,
                         	org.jahia.utils.osgi.parsers.cnd
                         </Export-Package>
-                        <Embed-Dependency>*; scope=compile; type=!pom; inline=true;artifactId=!jdom|bndlib|slf4j-api|log4j
+                        <Embed-Dependency>*; scope=compile; type=!pom; inline=true;artifactId=!jdom|biz.aQute.bndlib|slf4j-api|log4j
                         </Embed-Dependency>
                         <Embed-Transitive>true</Embed-Transitive>
                         <_removeheaders>

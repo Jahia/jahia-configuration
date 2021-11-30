@@ -168,7 +168,7 @@ public class PackageUtils {
 
         if (!versionRange1.isRange() && !versionRange2.isRange()) {
             if (versionRange1.getLow().equals(versionRange2.getLow())) {
-                return new VersionRange(versionRange1.toString());
+                return versionRange1;
             } else {
                 return null;
             }
@@ -240,7 +240,7 @@ public class PackageUtils {
             if (!newVersionRange.includes(highVersionRange.getLow())) {
                 return null;
             } else {
-                return new VersionRange(highVersionRange.toString());
+                return highVersionRange;
             }
         }
 
@@ -252,9 +252,9 @@ public class PackageUtils {
 
     public static VersionRange getVersionRange(boolean includesLow, boolean includesHigh, Version endpointLow, Version endpointHigh) {
         if (endpointLow.equals(endpointHigh)) {
-            return new VersionRange(endpointLow.toString());
+            return new VersionRange(endpointLow, endpointLow);
         } else {
-            return new VersionRange((includesLow ? LEFT_CLOSED : LEFT_OPEN) + endpointLow.toString() + "," + endpointHigh.toString() + (includesHigh ? RIGHT_CLOSED : RIGHT_OPEN));
+            return new VersionRange(includesLow, endpointLow, endpointHigh, includesHigh);
         }
     }
 
