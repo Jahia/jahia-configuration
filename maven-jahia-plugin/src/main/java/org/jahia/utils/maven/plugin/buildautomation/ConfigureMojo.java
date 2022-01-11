@@ -210,6 +210,13 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
     protected String storeFilesInDB;
 
     /**
+     * properties storeFilesInDB
+     *
+     * @parameter expression="${jahia.configure.storeFilesInAWS}" default-value="false"
+     */
+    protected String storeFilesInAWS;
+
+    /**
      * The directory that will be used to store the configured Jahia in if the target server directory has to be overridden.
      * 
      * @parameter expression="${jahia.deploy.targetConfigurationDirectory}"
@@ -457,6 +464,10 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public String getStoreFilesInDB() {
         return storeFilesInDB;
+    }
+
+    public String getStoreFilesInAWS() {
+        return storeFilesInAWS;
     }
 
     public String getTargetConfigurationDirectory() {
