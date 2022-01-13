@@ -96,6 +96,7 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String overwritedb = "true";
     private String deleteFiles = "true";
     private String storeFilesInDB = "false";
+    private String storeFilesInAWS = "false";
     private String fileDataStorePath = "";
     private String targetConfigurationDirectory = "";
     private String jahiaToolManagerPassword = "password";
@@ -297,6 +298,15 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public void setStoreFilesInDB(String storeFilesInDB) {
         this.storeFilesInDB = storeFilesInDB;
+    }
+
+    @Override
+    public String getStoreFilesInAWS() {
+        return storeFilesInAWS;
+    }
+
+    public void setStoreFilesInAWS(String storeFilesInAWS) {
+        this.storeFilesInAWS = storeFilesInAWS;
     }
 
     public String getTargetConfigurationDirectory() {

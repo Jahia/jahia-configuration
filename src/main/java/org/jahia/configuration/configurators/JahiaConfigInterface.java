@@ -162,7 +162,9 @@ public interface JahiaConfigInterface {
      *         (corresponding Jackrabbit property: externalBlobs).
      */
     String getStoreFilesInDB();
-    
+
+    String getStoreFilesInAWS();
+
     /**
      * Returns a filesystem path to the folder, where the FileDataStore will put the binary data.
      * 
