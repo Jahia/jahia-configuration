@@ -70,11 +70,11 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
     public JackrabbitConfigurator(Map dbProperties, JahiaConfigInterface jahiaConfigInterface) {
         super(dbProperties, jahiaConfigInterface);
     }
-   
+
     public JackrabbitConfigurator(Map dbProperties, JahiaConfigInterface jahiaConfigInterface, AbstractLogger logger) {
         super(dbProperties, jahiaConfigInterface, logger);
     }
-   
+
     public void updateConfiguration(ConfigFile sourceConfigFile, String destFileName) throws Exception {
         try {
             SAXBuilder saxBuilder = new SAXBuilder();
@@ -94,7 +94,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             for (Element paramElement : databaseTypeXPath.evaluate(jdomDocument)) {
                 paramElement.setAttribute("value", schema);
             }
-            
+
             // we must first check if the cluster nodes are present so that they will be configured by the next queries.
             XPathExpression<Element> clusterXPath = xPathFactory.compile("//Cluster",Filters.element());
             Element clusterElement = (Element) clusterXPath.evaluateFirst(jdomDocument);
@@ -103,7 +103,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
                 journalElement = clusterElement.getChild("Journal");
                 journalElement.setAttribute("class", getValue(dbProperties, "jahia.jackrabbit.journal"));
             }
-            
+
             configureBinaryStorage(repositoryElement, namespace, dbProperties);
 
             setElementAttribute(repositoryElement, "/Repository/FileSystem", "class", getValue(dbProperties, "jahia.jackrabbit.filesystem"));
@@ -118,7 +118,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             	removeElementIfExists(repositoryElement, "//Workspace/FileSystem/param[@name=\"schemaCheckEnabled\"]");
             	fs.addContent(new Element("param", namespace).setAttribute("name", "path").setAttribute("value", "${wsp.home}"));
             }
-            
+
             // backward compatibility for version level FileSystem element
             fs = (Element) xPathFactory.compile("//Versioning/FileSystem", Filters.element()).evaluateFirst(jdomDocument);
             if (fs != null && fs.getAttributeValue("class").equals("@FILESYSTEM_CLASS@")) {
@@ -140,6 +140,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             throws JDOMException {
 
         boolean storeFilesInDB = Boolean.valueOf(getValue(dbProperties, "storeFilesInDB"));
+        boolean storeFilesInAWS = Boolean.valueOf(getValue(dbProperties, "storeFilesInAWS"));
         String fileDataStorePath = getValue(dbProperties, "fileDataStorePath");
 
         getLogger().info(
@@ -148,59 +149,71 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
                         + storeFilesInDB
                         + "."
                         + (!storeFilesInDB ? " File data store path: "
-                                + (StringUtils.isNotEmpty(fileDataStorePath) ? fileDataStorePath
-                                        : "${jahia.jackrabbit.datastore.path}") + "." : ""));
+                        + (StringUtils.isNotEmpty(fileDataStorePath) ? fileDataStorePath
+                        : "${jahia.jackrabbit.datastore.path}") + "." : ""));
 
-            if (storeFilesInDB) {
-                // We will use the DB-based data store
+        if (storeFilesInAWS) {
+            // We will use the AWS S3 data store
 
-                // remove the FileDataStore if present
-                removeAllElements(repositoryElement,
-                        "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.FileDataStore\"]");
+            removeAllElements(repositoryElement,
+                    "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.FileDataStore\"]");
+            removeAllElements(repositoryElement,
+                    "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.db.DbDataStore\"]");
 
-                // get the DbDataStore element
-                Element store = getElement(repositoryElement,
-                        "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.db.DbDataStore\"]");
-                if (store == null) {
-                    // DbDataStore element not found -> create it
-                    store = new Element("DataStore", namespace);
-                    store.setAttribute("class", "org.apache.jackrabbit.core.data.db.DbDataStore");
-                    store.addContent(new Element("param").setAttribute("name", "dataSourceName")
-                            .setAttribute("value", "jahiaDS"));
-                    store.addContent(new Element("param").setAttribute("name", "schemaObjectPrefix")
-                            .setAttribute("value", "JR_"));
-                    store.addContent(new Element("param").setAttribute("name", "schemaCheckEnabled")
-                            .setAttribute("value", "false"));
-                    store.addContent(new Element("param").setAttribute("name", "copyWhenReading")
-                            .setAttribute("value", "true"));
-                    store.addContent(new Element("param").setAttribute("name", "minRecordLength")
-                            .setAttribute("value", "1024"));
-                    repositoryElement.addContent(store);
-                }
-            } else {
-                // We will use the filesystem-based data store
+        } else if (storeFilesInDB) {
+            // We will use the DB-based data store
 
-                // remove the DbDataStore if present
-                removeAllElements(repositoryElement,
-                        "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.db.DbDataStore\"]");
+            // remove the FileDataStore if present
+            removeAllElements(repositoryElement,
+                    "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.FileDataStore\"]");
+            removeAllElements(repositoryElement,
+                    "//Repository/DataStore[@class=\"org.jahia.services.content.impl.jackrabbit.S3DataStore\"]");
 
-                // get the FileDataStore element
-                Element store = getElement(repositoryElement,
-                        "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.FileDataStore\"]");
-                Element pathParam = null;
-                if (store == null) {
-                    // FileDataStore element not found -> create it
-                    store = new Element("DataStore", namespace);
-                    store.setAttribute("class", "org.apache.jackrabbit.core.data.FileDataStore");
-                    store.addContent(new Element("param").setAttribute("name", "minRecordLength")
-                            .setAttribute("value", "1024"));
-                    pathParam = new Element("param").setAttribute("name", "path").setAttribute("value", "");
-                    store.addContent(pathParam);
-                    repositoryElement.addContent(store);
-                } else {
-                    pathParam = getElement(store, "//DataStore/param[@name=\"path\"]");
-                }
-                pathParam.setAttribute("value", "${jahia.jackrabbit.datastore.path}");
+            // get the DbDataStore element
+            Element store = getElement(repositoryElement,
+                    "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.db.DbDataStore\"]");
+            if (store == null) {
+                // DbDataStore element not found -> create it
+                store = new Element("DataStore", namespace);
+                store.setAttribute("class", "org.apache.jackrabbit.core.data.db.DbDataStore");
+                store.addContent(new Element("param").setAttribute("name", "dataSourceName")
+                        .setAttribute("value", "jahiaDS"));
+                store.addContent(new Element("param").setAttribute("name", "schemaObjectPrefix")
+                        .setAttribute("value", "JR_"));
+                store.addContent(new Element("param").setAttribute("name", "schemaCheckEnabled")
+                        .setAttribute("value", "false"));
+                store.addContent(new Element("param").setAttribute("name", "copyWhenReading")
+                        .setAttribute("value", "true"));
+                store.addContent(new Element("param").setAttribute("name", "minRecordLength")
+                        .setAttribute("value", "1024"));
+                repositoryElement.addContent(store);
             }
+        } else {
+            // We will use the filesystem-based data store
+
+            // remove the DbDataStore if present
+            removeAllElements(repositoryElement,
+                    "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.db.DbDataStore\"]");
+            removeAllElements(repositoryElement,
+                    "//Repository/DataStore[@class=\"org.jahia.services.content.impl.jackrabbit.S3DataStore\"]");
+
+            // get the FileDataStore element
+            Element store = getElement(repositoryElement,
+                    "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.FileDataStore\"]");
+            Element pathParam = null;
+            if (store == null) {
+                // FileDataStore element not found -> create it
+                store = new Element("DataStore", namespace);
+                store.setAttribute("class", "org.apache.jackrabbit.core.data.FileDataStore");
+                store.addContent(new Element("param").setAttribute("name", "minRecordLength")
+                        .setAttribute("value", "1024"));
+                pathParam = new Element("param").setAttribute("name", "path").setAttribute("value", "");
+                store.addContent(pathParam);
+                repositoryElement.addContent(store);
+            } else {
+                pathParam = getElement(store, "//DataStore/param[@name=\"path\"]");
+            }
+            pathParam.setAttribute("value", "${jahia.jackrabbit.datastore.path}");
+        }
     }
 }

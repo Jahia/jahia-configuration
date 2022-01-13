@@ -441,6 +441,7 @@ public class JahiaGlobalConfigurator {
             dbProps.load(is);
             // we override these just as the configuration wizard does
             dbProps.put("storeFilesInDB", jahiaConfig.getStoreFilesInDB());
+            dbProps.put("storeFilesInAWS", jahiaConfig.getStoreFilesInAWS());
             dbProps.put("fileDataStorePath", jahiaConfig.getFileDataStorePath() != null ? jahiaConfig.getFileDataStorePath() : "");
             dbProps.put("jahia.database.url", dbUrl);
             dbProps.put("jahia.database.user", jahiaConfig.getDatabaseUsername());
