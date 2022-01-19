@@ -71,8 +71,8 @@
         <jahia.license.style>style.xml</jahia.license.style>
         <jackson.version>2.12.4</jackson.version>
         <jackson-databind.version>2.12.4</jackson-databind.version>
-        <plexus-archivers.version>4.2.5</plexus-archivers.version>
-        <plexus-utils.version>3.4.0</plexus-utils.version>
+        <plexus-archivers.version>4.2.7</plexus-archivers.version>
+        <plexus-utils.version>3.4.1</plexus-utils.version>
         <maven-scm.version>1.11.2</maven-scm.version>
         <junit.version>4.13.2</junit.version>
         <jaxen.version>1.2.0</jaxen.version>
