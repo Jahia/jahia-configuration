@@ -150,6 +150,13 @@ public class CheckDependenciesMojo extends DependenciesMojo {
     private boolean searchInDependencies = false;
 
     /**
+     * The directory for the generated JAR.
+     *
+     * @parameter default-value="true" expression="${jahia.modules.skipCheckDependencies}"
+     */
+    protected boolean skipCheckDependencies;
+
+    /**
      * This method will use the public REST API at search.maven.org to search for Maven dependencies that contain
      * a package using an URL such as :
      *
@@ -254,6 +261,9 @@ public class CheckDependenciesMojo extends DependenciesMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
+        if (skipCheckDependencies) {
+            return;
+        }
         setBuildDirectory(projectBuildDirectory);
         setOutputDirectory(new File(projectOutputDirectory));
 

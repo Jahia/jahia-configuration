@@ -214,6 +214,13 @@ public class DependenciesMojo extends BundlePlugin {
      */
     protected String jahiaDependsCapabilitiesPrefix = ",";
 
+    /**
+     * The directory for the generated JAR.
+     *
+     * @parameter default-value="false" expression="${jahia.modules.skipDependencies}"
+     */
+    protected boolean skipDependencies;
+
     protected List<Pattern> artifactExclusionPatterns = new ArrayList<Pattern>();
     protected Logger logger = new SLF4JLoggerToMojoLogBridge(getLog());
     protected ParsingContextCache parsingContextCache;
@@ -235,6 +242,9 @@ public class DependenciesMojo extends BundlePlugin {
 
     @Override
     public void execute() throws MojoExecutionException {
+        if (skipDependencies) {
+            return;
+        }
         setBuildDirectory(projectBuildDirectory);
         setOutputDirectory(new File(projectOutputDirectory));
         if (project.getGroupId().equals("org.jahia.modules") && project.getArtifactId().equals("jahia-modules")
@@ -258,7 +268,8 @@ public class DependenciesMojo extends BundlePlugin {
                 for (Xpp3Dom instructionChild : instructionsDom.getChildren()) {
                     originalInstructions.put(instructionChild.getName(), instructionChild.getValue());
                 }
-                excludeDependencies = felixBundlePluginConfiguration.getChild("excludeDependencies").getValue();
+                // **************** This has never been used or documented anywhere , remove
+                //                excludeDependencies = felixBundlePluginConfiguration.getChild("excludeDependencies").getValue();
             } catch (Exception e) {
                 // no overrides
             }
@@ -269,45 +280,51 @@ public class DependenciesMojo extends BundlePlugin {
             } catch (Exception e) {
                 throw new MojoExecutionException("Error trying to process bundle plugin instructions", e);
             }
-        } else {
-            // we are not in a bundle project
-            if (project.getPackaging().equals("war")) {
-                for (Artifact artifact : project.getArtifacts()) {
-                    if (!artifact.getScope().toLowerCase().equals("provided") &&
-                            !artifact.getScope().toLowerCase().equals("test")) {
-                        // artifact will be embedded in WAR
-                        embeddedArtifacts.add(artifact);
-                    }
-                }
-            }
+// ************** Remove this part which looks to be here to support 6.0 modules (war packaging)
+//        } else {
+//            // we are not in a bundle project
+//            if (project.getPackaging().equals("war")) {
+//                for (Artifact artifact : project.getArtifacts()) {
+//                    if (!artifact.getScope().toLowerCase().equals("provided") &&
+//                            !artifact.getScope().toLowerCase().equals("test")) {
+//                        // artifact will be embedded in WAR
+//                        embeddedArtifacts.add(artifact);
+//                    }
+//                }
+//            }
         }
 
         List<PackageInfo> existingPackageImports = getExistingImportPackages(projectParsingContext);
         projectParsingContext.addAllPackageImports(existingPackageImports);
 
-        buildExclusionPatterns();
+// ************ Exclusion patterns is always empty, remove
+//        buildExclusionPatterns();
 
         long timer = System.currentTimeMillis();
 
-        try {
-            scanClassesBuildDirectory(projectParsingContext);
+// ************ Part commented for now - this should already be done by BND
+//        try {
+//            scanClassesBuildDirectory(projectParsingContext);
+//
+//            getLog().info(
+//                    "Scanned classes directory in " + (System.currentTimeMillis() - timer) + " ms. Found "
+//                            + projectParsingContext.getLocalPackages().size() + " project packages.");
+//
+//            timer = System.currentTimeMillis();
+//
+//            int scanned = scanDependencies(projectParsingContext);
+//
+//            getLog().info(
+//                    "Scanned " + scanned + " project dependencies in " + (System.currentTimeMillis() - timer)
+//                            + " ms. Currently we have " + projectParsingContext.getLocalPackages().size() + " project packages.");
+//        } catch (IOException e) {
+//            throw new MojoExecutionException("Error while scanning dependencies", e);
+//        } catch (DependencyResolutionRequiredException e) {
+//            throw new MojoExecutionException("Error while scanning dependencies", e);
+//        }
 
-            getLog().info(
-                    "Scanned classes directory in " + (System.currentTimeMillis() - timer) + " ms. Found "
-                            + projectParsingContext.getLocalPackages().size() + " project packages.");
 
-            timer = System.currentTimeMillis();
-
-            int scanned = scanDependencies(projectParsingContext);
-
-            getLog().info(
-                    "Scanned " + scanned + " project dependencies in " + (System.currentTimeMillis() - timer)
-                            + " ms. Currently we have " + projectParsingContext.getLocalPackages().size() + " project packages.");
-        } catch (IOException e) {
-            throw new MojoExecutionException("Error while scanning dependencies", e);
-        } catch (DependencyResolutionRequiredException e) {
-            throw new MojoExecutionException("Error while scanning dependencies", e);
-        }
+        // Parsing TLD and specific files ( "jsp", "jspf", "tag", "tagf", "cnd", "drl", "xml", "groovy" )
         if (scanDirectories.isEmpty()) {
             scanDirectories.add(project.getBasedir() + "/src/main/resources");
             scanDirectories.add(project.getBasedir() + "/src/main/import");
@@ -339,34 +356,37 @@ public class DependenciesMojo extends BundlePlugin {
         }
 
         projectParsingContext.postProcess();
-
-        SortedSet<PackageInfo> childLocalPackagesToRemoveFromImport = projectParsingContext.getChildrenLocalPackagesToRemoveFromImports();for (PackageInfo childLocalPackageToRemove : childLocalPackagesToRemoveFromImport) {
-                PackageUtils.removeMatchingVersions(projectParsingContext.getPackageImports(), childLocalPackageToRemove);
-        }
-
-        if (projectParsingContext.getUnresolvedTaglibUris().size() > 0 ) {
-            for (Map.Entry<String,Set<String>> unresolvedUrisForJsp : projectParsingContext.getUnresolvedTaglibUris().entrySet()) {
-                for (String unresolvedUriForJsp : unresolvedUrisForJsp.getValue()) {
-                    getLogger().warn("JSP " + unresolvedUrisForJsp.getKey() + " has a reference to taglib " + unresolvedUriForJsp + " that is not in the project's dependencies !");
-                }
-            }
-        }
-
+//
+//        SortedSet<PackageInfo> childLocalPackagesToRemoveFromImport = projectParsingContext.getChildrenLocalPackagesToRemoveFromImports();for (PackageInfo childLocalPackageToRemove : childLocalPackagesToRemoveFromImport) {
+//                PackageUtils.removeMatchingVersions(projectParsingContext.getPackageImports(), childLocalPackageToRemove);
+//        }
+//
+//        if (projectParsingContext.getUnresolvedTaglibUris().size() > 0 ) {
+//            for (Map.Entry<String,Set<String>> unresolvedUrisForJsp : projectParsingContext.getUnresolvedTaglibUris().entrySet()) {
+//                for (String unresolvedUriForJsp : unresolvedUrisForJsp.getValue()) {
+//                    getLogger().warn("JSP " + unresolvedUrisForJsp.getKey() + " has a reference to taglib " + unresolvedUriForJsp + " that is not in the project's dependencies !");
+//                }
+//            }
+//        }
+//
         StringBuilder generatedPackageBuffer = new StringBuilder(256);
         int i = 0;
-        Map<String, String> importOverrides = getPackageImportOverrides();
-        if (importOverrides != null) {
-            getLog().info(
-                    "Considering provided Import-Package-Override: " + StringUtils.join(importOverrides.values(), ", "));
-        }
+
+// **************** Again another unused/undocumented parameter ( Import-Package-Override )
+//        Map<String, String> importOverrides = getPackageImportOverrides();
+//        if (importOverrides != null) {
+//            getLog().info(
+//                    "Considering provided Import-Package-Override: " + StringUtils.join(importOverrides.values(), ", "));
+//        }
         Set<String> uniquePackageImports = new TreeSet<String>();
         for (PackageInfo packageImport : projectParsingContext.getPackageImports()) {
             String packageImportName = null;
-            if (importOverrides != null && importOverrides.containsKey(packageImport.getName())) {
-                packageImportName = importOverrides.get(packageImport.getName());
-            } else {
+// ************** importOverrides removed
+//            if (importOverrides != null && importOverrides.containsKey(packageImport.getName())) {
+//                packageImportName = importOverrides.get(packageImport.getName());
+//            } else {
                 packageImportName = packageImport.toString(false);
-            }
+//            }
             if (uniquePackageImports.contains(packageImport.getName())) {
                 continue;
             }
@@ -393,6 +413,8 @@ public class DependenciesMojo extends BundlePlugin {
             }
             getLog().info("  " + taglibUri + " " + foundMessage);
         }
+
+        // End of import-package things - generates now capabilities
 
         StringBuilder contentTypeDefinitionsBuffer = new StringBuilder(256);
         if (projectParsingContext.getContentTypeDefinitions().size() > 0) {

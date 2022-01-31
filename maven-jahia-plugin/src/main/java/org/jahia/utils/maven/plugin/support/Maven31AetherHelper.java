@@ -74,7 +74,7 @@ import static org.jahia.utils.maven.plugin.support.MavenAetherHelperUtils.*;
 
 /**
  * Artifact and dependency resolution helper which will be used for Maven 3.1.x and above execution environment.
- * 
+ *
  * @author Sergiy Shyrkov
  */
 public class Maven31AetherHelper implements AetherHelper {
@@ -237,7 +237,7 @@ public class Maven31AetherHelper implements AetherHelper {
             if (mavenArtifact.getFile() != null) {
                 boolean external = artifactProcessor.isExternal(mavenArtifact);
                 try {
-                    parsingContext = artifactProcessor.enterArtifact(mavenArtifact, node.getDependency().isOptional(), external, parentParsingContext, trail, depth);
+                    parsingContext = artifactProcessor.enterArtifact(mavenArtifact, false, external, parentParsingContext, trail, depth);
                 } catch (MojoExecutionException e) {
                     e.printStackTrace();
                     visitChildren = false;
