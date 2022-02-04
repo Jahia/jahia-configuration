@@ -259,7 +259,7 @@ public class DependenciesMojo extends BundlePlugin {
 
         parsingContextCache = new ParsingContextCache(new File(dependencyParsingCacheDirectory), null);
 
-        Map<String,String> originalInstructions = new LinkedHashMap<String,String>();
+        Map<String, String> originalInstructions = new LinkedHashMap<String, String>();
         if (project.getPlugin("org.apache.felix:maven-bundle-plugin") != null) {
             try {
                 Xpp3Dom felixBundlePluginConfiguration = (Xpp3Dom) project.getPlugin("org.apache.felix:maven-bundle-plugin")
@@ -385,7 +385,7 @@ public class DependenciesMojo extends BundlePlugin {
 //            if (importOverrides != null && importOverrides.containsKey(packageImport.getName())) {
 //                packageImportName = importOverrides.get(packageImport.getName());
 //            } else {
-                packageImportName = packageImport.toString(false);
+            packageImportName = packageImport.toString(false);
 //            }
             if (uniquePackageImports.contains(packageImport.getName())) {
                 continue;
@@ -466,7 +466,7 @@ public class DependenciesMojo extends BundlePlugin {
             String[] skipValues = StringUtils.split(originalInstructions.get("Jahia-Depends-Skip-Require-Capability"), ", \n");
             Set<String> skipRequireDependencies = (skipValues == null) ? new HashSet<>() : new HashSet<>(Arrays.asList(skipValues));
 
-            String[] removeHeaders = StringUtils.split(originalInstructions.get("_removeheaders"),", \n");
+            String[] removeHeaders = StringUtils.split(originalInstructions.get("_removeheaders"), ", \n");
             boolean skipJahiaDepends = ArrayUtils.contains(removeHeaders, "Jahia-Depends");
             String jahiaDependsValue = (skipJahiaDepends) ? "" : originalInstructions.get("Jahia-Depends");
 
@@ -489,7 +489,7 @@ public class DependenciesMojo extends BundlePlugin {
         getLog().debug(generatedPackageList);
 
         if (propertiesOutputFile != null) {
-            String[] extraCapabilitiesPropertyValue = new String[] {
+            String[] extraCapabilitiesPropertyValue = new String[]{
                     contentTypeDefinitionsBuffer.toString()
             };
             try {
@@ -690,8 +690,8 @@ public class DependenciesMojo extends BundlePlugin {
             if (getLog().isInfoEnabled() && (scannedInJar > 0)) {
                 getLog().info(logPrefix +
                         "Processed " + scannedInJar + ((scanned == 1) ? " entry" : " entries") + " in "
-                                + (externalDependency ? "external" : "") + "dependency " + artifact + " in " + took
-                                + " ms");
+                        + (externalDependency ? "external" : "") + "dependency " + artifact + " in " + took
+                        + " ms");
             }
         }
         if (parentParsingContext != null) {
@@ -712,11 +712,11 @@ public class DependenciesMojo extends BundlePlugin {
 
     protected boolean endProcessingArtifact(ParsingContext projectParsingContext, Artifact artifact, boolean externalDependency, String logPrefix, ParsingContext parsingContext, int depth) {
         if (artifact == null) {
-            getLog().warn(logPrefix + ": Artifact is null, will not put parsed JAR context "+ parsingContext +" in cache !");
+            getLog().warn(logPrefix + ": Artifact is null, will not put parsed JAR context " + parsingContext + " in cache !");
             return false;
         }
         if (!artifact.getFile().getPath().equals(parsingContext.getFilePath())) {
-            getLog().warn(logPrefix + ": Artifact file path ("+artifact.getFile().getPath()+") and jarParsingContext file path ("+ parsingContext.getFilePath()+") do not match, will not put parsed JAR context "+ parsingContext +" in cache !");
+            getLog().warn(logPrefix + ": Artifact file path (" + artifact.getFile().getPath() + ") and jarParsingContext file path (" + parsingContext.getFilePath() + ") do not match, will not put parsed JAR context " + parsingContext + " in cache !");
             return false;
         }
         /*
@@ -993,24 +993,22 @@ public class DependenciesMojo extends BundlePlugin {
         return logger;
     }
 
-    protected void resolveEmbeddedDependencies( MavenProject currentProject, Builder builder ) throws Exception
-    {
-        if ( currentProject.getBasedir() != null )
-        {
+    protected void resolveEmbeddedDependencies(MavenProject currentProject, Builder builder) throws Exception {
+        if (currentProject.getBasedir() != null) {
             // update BND instructions to add included Maven resources
-            includeMavenResources( currentProject, builder, getLog() );
+            includeMavenResources(currentProject, builder, getLog());
 
             // calculate default export/private settings based on sources
-            addLocalPackages( new File(projectOutputDirectory), builder );
+            addLocalPackages(new File(projectOutputDirectory), builder);
 
             // tell BND where the current project source resides
-            addMavenSourcePath( currentProject, builder, getLog() );
+            addMavenSourcePath(currentProject, builder, getLog());
         }
 
         // update BND instructions to embed selected Maven dependencies
-        Collection<Artifact> embeddableArtifacts = getEmbeddableArtifacts( currentProject, builder );
-        DependencyEmbedder dependencyEmbedder = new DependencyEmbedder( getLog(), embeddableArtifacts );
-        dependencyEmbedder.processHeaders( builder );
+        Collection<Artifact> embeddableArtifacts = getEmbeddableArtifacts(currentProject, builder);
+        DependencyEmbedder dependencyEmbedder = new DependencyEmbedder(getLog(), embeddableArtifacts);
+        dependencyEmbedder.processHeaders(builder);
         inlinedPaths = dependencyEmbedder.getInlinedPaths();
         embeddedArtifacts = dependencyEmbedder.getEmbeddedArtifacts();
     }
@@ -1019,99 +1017,79 @@ public class DependenciesMojo extends BundlePlugin {
 
     private static final String LOCAL_PACKAGES = "{local-packages}";
 
-    private static void addLocalPackages( File outputDirectory, Analyzer analyzer ) throws IOException
-    {
+    private static void addLocalPackages(File outputDirectory, Analyzer analyzer) throws IOException {
         Packages packages = new Packages();
 
-        if ( outputDirectory != null && outputDirectory.isDirectory() )
-        {
+        if (outputDirectory != null && outputDirectory.isDirectory()) {
             // scan classes directory for potential packages
             DirectoryScanner scanner = new DirectoryScanner();
-            scanner.setBasedir( outputDirectory );
-            scanner.setIncludes( new String[]
-                    { "**/*.class" } );
+            scanner.setBasedir(outputDirectory);
+            scanner.setIncludes(new String[]
+                    {"**/*.class"});
 
             scanner.addDefaultExcludes();
             scanner.scan();
 
             String[] paths = scanner.getIncludedFiles();
-            for ( int i = 0; i < paths.length; i++ )
-            {
-                packages.put( analyzer.getPackageRef( getPackageName( paths[i] ) ) );
+            for (int i = 0; i < paths.length; i++) {
+                packages.put(analyzer.getPackageRef(getPackageName(paths[i])));
             }
         }
 
         Packages exportedPkgs = new Packages();
         Packages privatePkgs = new Packages();
 
-        boolean noprivatePackages = "!*".equals( analyzer.getProperty( Analyzer.PRIVATE_PACKAGE ) );
+        boolean noprivatePackages = "!*".equals(analyzer.getProperty(Analyzer.PRIVATE_PACKAGE));
 
-        for ( Descriptors.PackageRef pkg : packages.keySet() )
-        {
+        for (Descriptors.PackageRef pkg : packages.keySet()) {
             // mark all source packages as private by default (can be overridden by export list)
-            privatePkgs.put( pkg );
+            privatePkgs.put(pkg);
 
             // we can't export the default package (".") and we shouldn't export internal packages
             String fqn = pkg.getFQN();
-            if ( noprivatePackages || !( ".".equals( fqn ) || fqn.contains( ".internal" ) || fqn.contains( ".impl" ) ) )
-            {
-                exportedPkgs.put( pkg );
+            if (noprivatePackages || !(".".equals(fqn) || fqn.contains(".internal") || fqn.contains(".impl"))) {
+                exportedPkgs.put(pkg);
             }
         }
 
         Properties properties = analyzer.getProperties();
-        String exported = properties.getProperty( Analyzer.EXPORT_PACKAGE );
-        if ( exported == null )
-        {
-            if ( !properties.containsKey( Analyzer.EXPORT_CONTENTS ) )
-            {
+        String exported = properties.getProperty(Analyzer.EXPORT_PACKAGE);
+        if (exported == null) {
+            if (!properties.containsKey(Analyzer.EXPORT_CONTENTS)) {
                 // no -exportcontents overriding the exports, so use our computed list
-                for ( Attrs attrs : exportedPkgs.values() )
-                {
-                    attrs.put( Constants.SPLIT_PACKAGE_DIRECTIVE, "merge-first" );
+                for (Attrs attrs : exportedPkgs.values()) {
+                    attrs.put(Constants.SPLIT_PACKAGE_DIRECTIVE, "merge-first");
                 }
-                properties.setProperty( Analyzer.EXPORT_PACKAGE, Processor.printClauses( exportedPkgs ) );
-            }
-            else
-            {
+                properties.setProperty(Analyzer.EXPORT_PACKAGE, Processor.printClauses(exportedPkgs));
+            } else {
                 // leave Export-Package empty (but non-null) as we have -exportcontents
-                properties.setProperty( Analyzer.EXPORT_PACKAGE, "" );
+                properties.setProperty(Analyzer.EXPORT_PACKAGE, "");
             }
-        }
-        else if ( exported.indexOf( LOCAL_PACKAGES ) >= 0 )
-        {
+        } else if (exported.indexOf(LOCAL_PACKAGES) >= 0) {
             String newExported = org.codehaus.plexus.util.StringUtils.replace(exported, LOCAL_PACKAGES, Processor.printClauses(exportedPkgs));
-            properties.setProperty( Analyzer.EXPORT_PACKAGE, newExported );
+            properties.setProperty(Analyzer.EXPORT_PACKAGE, newExported);
         }
 
-        String internal = properties.getProperty( Analyzer.PRIVATE_PACKAGE );
-        if ( internal == null )
-        {
-            if ( !privatePkgs.isEmpty() )
-            {
-                for ( Attrs attrs : privatePkgs.values() )
-                {
-                    attrs.put( Constants.SPLIT_PACKAGE_DIRECTIVE, "merge-first" );
+        String internal = properties.getProperty(Analyzer.PRIVATE_PACKAGE);
+        if (internal == null) {
+            if (!privatePkgs.isEmpty()) {
+                for (Attrs attrs : privatePkgs.values()) {
+                    attrs.put(Constants.SPLIT_PACKAGE_DIRECTIVE, "merge-first");
                 }
-                properties.setProperty( Analyzer.PRIVATE_PACKAGE, Processor.printClauses( privatePkgs ) );
-            }
-            else
-            {
+                properties.setProperty(Analyzer.PRIVATE_PACKAGE, Processor.printClauses(privatePkgs));
+            } else {
                 // if there are really no private packages then use "!*" as this will keep the Bnd Tool happy
-                properties.setProperty( Analyzer.PRIVATE_PACKAGE, "!*" );
+                properties.setProperty(Analyzer.PRIVATE_PACKAGE, "!*");
             }
-        }
-        else if ( internal.indexOf( LOCAL_PACKAGES ) >= 0 )
-        {
+        } else if (internal.indexOf(LOCAL_PACKAGES) >= 0) {
             String newInternal = org.codehaus.plexus.util.StringUtils.replace(internal, LOCAL_PACKAGES, Processor.printClauses(privatePkgs));
-            properties.setProperty( Analyzer.PRIVATE_PACKAGE, newInternal );
+            properties.setProperty(Analyzer.PRIVATE_PACKAGE, newInternal);
         }
     }
 
-    private static String getPackageName( String filename )
-    {
-        int n = filename.lastIndexOf( File.separatorChar );
-        return n < 0 ? "." : filename.substring( 0, n ).replace( File.separatorChar, '.' );
+    private static String getPackageName(String filename) {
+        int n = filename.lastIndexOf(File.separatorChar);
+        return n < 0 ? "." : filename.substring(0, n).replace(File.separatorChar, '.');
     }
 
 }
