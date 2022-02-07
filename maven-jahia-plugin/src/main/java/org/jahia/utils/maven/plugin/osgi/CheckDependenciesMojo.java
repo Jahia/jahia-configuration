@@ -60,9 +60,7 @@ import org.jahia.utils.osgi.ManifestValueClause;
 import org.jahia.utils.osgi.parsers.PackageInfo;
 import org.jahia.utils.osgi.parsers.ParsingContext;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -348,10 +346,13 @@ public class CheckDependenciesMojo extends DependenciesMojo {
                 continue;
             }
 
+            String directDep = artifact.getDependencyTrail().get(1);
+
             try (Jar jar = new Jar(artifact.getArtifactId(), file)) {
                 Set<String> packages = new HashSet<>(jar.getPackages());
-
-                if ("provided".equals(artifact.getScope())) {
+                if (directDep.startsWith("org.jahia.server:jahia-impl:jar")) {
+                    allPackages.addAll(packages);
+                } else if ("provided".equals(artifact.getScope())) {
                     if (jar.getManifest() != null) {
                         String value = jar.getManifest().getMainAttributes().getValue(Constants.EXPORT_PACKAGE);
                         if (value != null) {
@@ -361,7 +362,7 @@ public class CheckDependenciesMojo extends DependenciesMojo {
                         }
                     }
                 } else {
-                    allPackages.addAll(packages);
+//                    allPackages.addAll(packages);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

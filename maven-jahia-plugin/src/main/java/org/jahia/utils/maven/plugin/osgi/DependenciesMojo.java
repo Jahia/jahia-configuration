@@ -317,13 +317,29 @@ public class DependenciesMojo extends BundlePlugin {
 
         projectParsingContext.addAllPackageImports(existingPackageImports);
 
+        long timer = System.currentTimeMillis();
+        try {
+            scanClassesBuildDirectory(projectParsingContext);
+
+            getLog().info("Scanned classes directory in " + (System.currentTimeMillis() - timer) + " ms. Found " + projectParsingContext.getLocalPackages().size() + " project packages.");
+
+            timer = System.currentTimeMillis();
+
+            int scanned = scanDependencies(projectParsingContext);
+
+            getLog().info("Scanned " + scanned + " project dependencies in " + (System.currentTimeMillis() - timer) + " ms. Currently we have " + projectParsingContext.getLocalPackages().size() + " project packages.");
+        } catch (IOException e) {
+            throw new MojoExecutionException("Error while scanning dependencies", e);
+        } catch (DependencyResolutionRequiredException e) {
+            throw new MojoExecutionException("Error while scanning dependencies", e);
+        }
         // Parsing TLD and specific files ( "jsp", "jspf", "tag", "tagf", "cnd", "drl", "xml", "groovy" )
         if (scanDirectories.isEmpty()) {
             scanDirectories.add(project.getBasedir() + "/src/main/resources");
             scanDirectories.add(project.getBasedir() + "/src/main/import");
             scanDirectories.add(project.getBasedir() + "/src/main/webapp");
         }
-        long timer = System.currentTimeMillis();
+        timer = System.currentTimeMillis();
         for (String scanDirectory : scanDirectories) {
             File scanDirectoryFile = new File(scanDirectory);
             if (!scanDirectoryFile.exists()) {
