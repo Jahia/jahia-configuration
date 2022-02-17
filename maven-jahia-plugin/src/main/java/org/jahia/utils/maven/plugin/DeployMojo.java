@@ -48,7 +48,6 @@ import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
-import com.github.dockerjava.core.command.ExecStartResultCallback;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import com.sun.jdi.Bootstrap;
@@ -662,6 +661,7 @@ public class DeployMojo extends AbstractManagementMojo {
             unarch.enableLogging(getLog().isDebugEnabled() ? new ConsoleLogger(
                     Logger.LEVEL_DEBUG, "console") : new ConsoleLogger());
             unarch.setDestDirectory(getDataDir());
+            unarch.setOverwrite(true);
             unarch.extract();
             getLog().info("...done.");
         } catch (Exception e) {
