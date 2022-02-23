@@ -47,16 +47,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.FileHeader;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.plexus.archiver.ArchiverException;
-import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
-import org.codehaus.plexus.components.io.fileselectors.FileInfo;
-import org.codehaus.plexus.components.io.fileselectors.FileSelector;
-import org.codehaus.plexus.logging.Logger;
-import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.jahia.configuration.modules.ModuleDeployer;
 
 /**
@@ -152,21 +150,20 @@ public class CopyTemplatesMojo extends AbstractManagementMojo {
     }
 
     private void deployPackageFile(File file, ModuleDeployer deployer) throws ArchiverException, IOException {
-        ZipUnArchiver unzip = new ZipUnArchiver(file);
-        unzip.enableLogging(new ConsoleLogger(getLog().isDebugEnabled() ? Logger.LEVEL_DEBUG : Logger.LEVEL_INFO,
-                "console"));
-        File target = new File(FileUtils.getTempDirectory(), CopyTemplatesMojo.class.getSimpleName());
-        FileUtils.deleteQuietly(target);
-        target.mkdir();
-        unzip.setDestDirectory(target);
-        unzip.setFileSelectors(Collections.singletonList(new FileSelector() {
-            @Override
-            public boolean isSelected(FileInfo fileInfo) throws IOException {
-                return fileInfo.isFile() && fileInfo.getName().endsWith(".jar");
-            }
-        }).toArray(new FileSelector[] {}));
-
-        unzip.extract();
+        File target;
+        try (ZipFile zipFile = new ZipFile(file)) {
+            List<FileHeader> fileHeaders = zipFile.getFileHeaders();
+            target = new File(FileUtils.getTempDirectory(), CopyTemplatesMojo.class.getSimpleName());
+            FileUtils.deleteQuietly(target);
+            target.mkdir();
+            fileHeaders.stream().filter(fileHeader -> !fileHeader.isDirectory() && fileHeader.getFileName().endsWith(".jar")).forEach(fileHeader -> {
+                try {
+                    zipFile.extractFile(fileHeader, target.getAbsolutePath());
+                } catch (ZipException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
 
         File[] jars = target.listFiles();
         if (jars == null) {
