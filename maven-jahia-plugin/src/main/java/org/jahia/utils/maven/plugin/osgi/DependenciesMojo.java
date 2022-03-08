@@ -601,7 +601,7 @@ public class DependenciesMojo extends BundlePlugin {
         getLog().info("Scanning project dependencies...");
         int scanned = 0;
 
-        for (Artifact artifact : project.getDependencyArtifacts()) {
+        for (Artifact artifact : project.getArtifacts()) {
             if (artifact.isOptional()) {
                 getLog().info("Scanning optional dependency " + artifact + "...");
             }
