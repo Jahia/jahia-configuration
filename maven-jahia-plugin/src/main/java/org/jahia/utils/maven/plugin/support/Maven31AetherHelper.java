@@ -55,12 +55,12 @@ import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.collection.DependencyCollectionException;
-import org.eclipse.aether.graph.Dependency;
-import org.eclipse.aether.graph.DependencyNode;
-import org.eclipse.aether.graph.DependencyVisitor;
-import org.eclipse.aether.graph.Exclusion;
+import org.eclipse.aether.graph.*;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.*;
+import org.eclipse.aether.util.artifact.JavaScopes;
+import org.eclipse.aether.util.filter.DependencyFilterUtils;
+import org.eclipse.aether.util.filter.ExclusionsDependencyFilter;
 import org.eclipse.aether.util.graph.selector.AndDependencySelector;
 import org.eclipse.aether.util.graph.selector.ExclusionDependencySelector;
 import org.eclipse.aether.util.graph.selector.OptionalDependencySelector;
@@ -403,26 +403,19 @@ public class Maven31AetherHelper implements AetherHelper {
     }
 
     private DependencyNode getDependencyNode(String artifactCoords) {
-        ArtifactRequest request = new ArtifactRequest();
         DefaultArtifact aetherArtifact = new DefaultArtifact(artifactCoords);
-        request.setArtifact(aetherArtifact);
-        request.setRepositories(remoteRepos);
 
-        Dependency dependency = new Dependency(aetherArtifact, "compile");
-
-        CollectRequest collectRequest = new CollectRequest();
-        collectRequest.setRoot(dependency);
-        collectRequest.setRepositories(remoteRepos);
+        Dependency dependency = new Dependency(aetherArtifact, JavaScopes.COMPILE);
+        DependencyFilter classpathFilter = DependencyFilterUtils.classpathFilter( JavaScopes.COMPILE );
 
         DependencyNode dependencyNode = null;
         try {
-            dependencyNode = repoSystem.collectDependencies(moreDependenciesSession, collectRequest).getRoot();
-            DependencyRequest dependencyRequest = new DependencyRequest(dependencyNode, null);
+            //Do not collect dependencies to not scanned the world
+            DependencyRequest dependencyRequest = new DependencyRequest();
+            dependencyRequest.setRoot(new DefaultDependencyNode(dependency));
+            dependencyRequest.setFilter(classpathFilter);
+            dependencyNode = repoSystem.resolveDependencies(moreDependenciesSession, dependencyRequest).getRoot();
 
-            repoSystem.resolveDependencies(moreDependenciesSession, dependencyRequest);
-
-        } catch (DependencyCollectionException e) {
-            log.error("Error collecting dependencies for " + artifactCoords + ": " + e.getMessage());
         } catch (DependencyResolutionException e) {
             log.error("Error resolving dependencies for " + artifactCoords + ": " + e.getMessage());
         }

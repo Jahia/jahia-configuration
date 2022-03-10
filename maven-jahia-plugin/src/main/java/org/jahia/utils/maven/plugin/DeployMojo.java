@@ -48,7 +48,6 @@ import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
-import com.github.dockerjava.core.command.ExecStartResultCallback;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import com.sun.jdi.Bootstrap;
@@ -58,6 +57,8 @@ import com.sun.jdi.connect.AttachingConnector;
 import com.sun.jdi.connect.Connector;
 import com.sun.jdi.connect.Connector.Argument;
 import com.sun.jdi.connect.IllegalConnectorArgumentsException;
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.model.UnzipParameters;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.io.FileUtils;
@@ -118,8 +119,8 @@ public class DeployMojo extends AbstractManagementMojo {
 
     private static final Set<String> JAHIA_PACKAGE_PROJECTS = new HashSet<String>(
             Arrays.asList("jahia-data", "jahia-core-modules",
-                          "jahia-additional-modules", "jahia-ee-data",
-                          "jahia-ee-core-modules", "jahia-ee-additional-modules"));
+                    "jahia-additional-modules", "jahia-ee-data",
+                    "jahia-ee-core-modules", "jahia-ee-additional-modules"));
 
     /**
      * The dependency tree builder to use.
@@ -198,7 +199,7 @@ public class DeployMojo extends AbstractManagementMojo {
                     String dockerDatadir = "/var/jahia";
                     String[] env = dockerClient.inspectContainerCmd(targetContainerName).exec().getConfig().getEnv();
                     for (String s : env) {
-                        if(s.startsWith("DATA_FOLDER=")) {
+                        if (s.startsWith("DATA_FOLDER=")) {
                             getLog().info("Found DATA_FOLDER env variable in container " + targetContainerName + ", using it for deployment: " + s);
                             dockerDatadir = s.split("=")[1];
                         }
@@ -335,7 +336,7 @@ public class DeployMojo extends AbstractManagementMojo {
         }
 
         for (File info : FileUtils.listFiles(deployedBundeDir, new NameFileFilter("bundle.info"),
-                                             TrueFileFilter.INSTANCE)) {
+                TrueFileFilter.INSTANCE)) {
             try {
                 if (FileUtils.readFileToString(info).contains(fileName)) {
                     try {
@@ -428,7 +429,7 @@ public class DeployMojo extends AbstractManagementMojo {
             try {
                 ZipUnArchiver unarch = new ZipUnArchiver(new File(output, project.getBuild().getFinalName() + ".war"));
                 unarch.enableLogging(getLog().isDebugEnabled() ? new ConsoleLogger(Logger.LEVEL_DEBUG, "console")
-                                             : new ConsoleLogger());
+                        : new ConsoleLogger());
                 if (!webappDir.exists() && !webappDir.mkdirs()) {
                     throw new IOException("Unable to create target WAR directory " + webappDir);
                 }
@@ -574,7 +575,7 @@ public class DeployMojo extends AbstractManagementMojo {
                             deployPackageFromDepenendency(artifact);
                         }
                     } else if (artifact.getGroupId()
-                                       .equals("org.jahia.modules")
+                            .equals("org.jahia.modules")
                             || (deployTests && artifact.getGroupId().equals(
                             "org.jahia.test"))
                             || artifact.getGroupId().endsWith(".jahia.modules")) {
@@ -605,15 +606,15 @@ public class DeployMojo extends AbstractManagementMojo {
 
             if (project.getAttachedArtifacts().size() > 0) {
                 Artifact artifact = (Artifact) project.getAttachedArtifacts()
-                                                      .get(project.getAttachedArtifacts().size() - 1);
+                        .get(project.getAttachedArtifacts().size() - 1);
                 artifactResolver.resolve(artifact,
-                                         project.getRemoteArtifactRepositories(),
-                                         localRepository);
+                        project.getRemoteArtifactRepositories(),
+                        localRepository);
                 file = artifact.getFile();
             } else {
                 file = getAetherHelper().resolveArtifactFile(project.getGroupId() + ":" + project.getArtifactId()
-                                                                     + ":zip:package:"
-                                                                     + project.getArtifact().getVersion());
+                        + ":zip:package:"
+                        + project.getArtifact().getVersion());
             }
             getLog().info("...resolved to: " + file);
 
@@ -640,14 +641,14 @@ public class DeployMojo extends AbstractManagementMojo {
         File file = null;
         getLog().info("Resolving artifact file...");
         file = getAetherHelper().resolveArtifactFile(artifact.getGroupId()
-                                                             + ":"
-                                                             + artifact.getArtifactId()
-                                                             + ":"
-                                                             + artifact.getType()
-                                                             + ":"
-                                                             + (StringUtils.isNotEmpty(artifact.getClassifier()) ? (artifact
+                + ":"
+                + artifact.getArtifactId()
+                + ":"
+                + artifact.getType()
+                + ":"
+                + (StringUtils.isNotEmpty(artifact.getClassifier()) ? (artifact
                 .getClassifier() + ":") : "")
-                                                             + artifact.getVersion());
+                + artifact.getVersion());
         getLog().info("...resolved to: " + file);
         return file;
     }
@@ -657,12 +658,10 @@ public class DeployMojo extends AbstractManagementMojo {
                 "Deploying Digital Experience Manager data package file "
                         + packageFile + "...");
         try {
-            getLog().info("Extracting content to data directory " + getDataDir() + "...");
-            ZipUnArchiver unarch = new ZipUnArchiver(packageFile);
-            unarch.enableLogging(getLog().isDebugEnabled() ? new ConsoleLogger(
-                    Logger.LEVEL_DEBUG, "console") : new ConsoleLogger());
-            unarch.setDestDirectory(getDataDir());
-            unarch.extract();
+            getLog().info("Extracting content to data directory with overwrite " + getDataDir() + "...");
+            try (ZipFile file = new ZipFile(packageFile)) {
+                file.extractAll(getDataDir().getAbsolutePath());
+            }
             getLog().info("...done.");
         } catch (Exception e) {
             getLog().error(e);
@@ -671,19 +670,19 @@ public class DeployMojo extends AbstractManagementMojo {
 
     protected DependencyNode getRootDependencyNode() throws DependencyTreeBuilderException {
         return dependencyTreeBuilder.buildDependencyTree(project, localRepository, artifactFactory,
-                                                         artifactMetadataSource, null, artifactCollector);
+                artifactMetadataSource, null, artifactCollector);
     }
 
 
     private void deploySharedLibraries(DependencyNode dependencyNode)
             throws IOException, ArtifactResolutionException,
-                   ArtifactNotFoundException {
+            ArtifactNotFoundException {
         boolean jdbcDrivers = dependencyNode.getArtifact().getArtifactId().startsWith("jdbc-drivers");
         for (DependencyNode node : ((List<DependencyNode>) dependencyNode.getChildren())) {
             Artifact artifact = node.getArtifact();
 
             artifactResolver.resolve(artifact,
-                                     project.getRemoteArtifactRepositories(), localRepository);
+                    project.getRemoteArtifactRepositories(), localRepository);
             try {
                 if (jdbcDrivers) {
                     deployJdbcDriver(artifact);
@@ -720,8 +719,8 @@ public class DeployMojo extends AbstractManagementMojo {
                 "Deploying artifact " + artifact.getGroupId() + ":" + artifact.getArtifactId() + ":"
                         + artifact.getVersion() + "(file: " + artifact.getFile() + ")");
         getLog().info("Updating " + artifact.getType() +
-                              " resources for " + getDeployer().getName() +
-                              " in directory " + webappDir);
+                " resources for " + getDeployer().getName() +
+                " in directory " + webappDir);
 
         String[] excludes = getDeployer().getWarExcludes() != null ? StringUtils.split(getDeployer().getWarExcludes(), ",") : null;
 
