@@ -43,7 +43,8 @@
  */
 package org.jahia.utils.maven.plugin.osgi;
 
-import aQute.bnd.osgi.Builder;
+import aQute.bnd.osgi.Constants;
+import aQute.bnd.osgi.Jar;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
@@ -51,35 +52,18 @@ import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProjectHelper;
-import org.apache.tika.io.IOUtils;
 import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.archiver.manager.ArchiverManager;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.glassfish.jersey.client.ClientProperties;
-import org.jahia.utils.maven.plugin.support.MavenAetherHelperUtils;
 import org.jahia.utils.osgi.BundleUtils;
 import org.jahia.utils.osgi.ManifestValueClause;
-import org.jahia.utils.osgi.PackageUtils;
-import org.jahia.utils.osgi.parsers.FullyEqualPackageInfo;
 import org.jahia.utils.osgi.parsers.PackageInfo;
 import org.jahia.utils.osgi.parsers.ParsingContext;
 
-import javax.net.ssl.*;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.*;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 import java.util.*;
-import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 
 /**
  * A goal that checks the dependencies of a generated OSGi bundle JAR against the project dependencies, and reports
@@ -92,18 +76,6 @@ import java.util.jar.Manifest;
  */
 public class CheckDependenciesMojo extends DependenciesMojo {
 
-    Set<PackageInfo> systemPackages = new TreeSet<PackageInfo>();
-
-    /**
-     * @component
-     */
-    private MavenProjectHelper mavenProjectHelper;
-
-    /**
-     * @component
-     */
-    private ArtifactHandlerManager artifactHandlerManager;
-
     /**
      * Classifier type of the bundle to be installed.  For example, "jdk14".
      * Defaults to none which means this is the project's main bundle.
@@ -111,204 +83,52 @@ public class CheckDependenciesMojo extends DependenciesMojo {
      * @parameter
      */
     protected String classifier;
-
+    /**
+     * @parameter default-value="true"
+     */
+    protected boolean failBuildOnSplitPackages = true;
+    /**
+     * The directory for the generated JAR.
+     *
+     * @parameter default-value="false" expression="${jahia.modules.skipCheckDependencies}"
+     */
+    protected boolean skipCheckDependencies;
+    /**
+     * @component
+     */
+    private MavenProjectHelper mavenProjectHelper;
+    /**
+     * @component
+     */
+    private ArtifactHandlerManager artifactHandlerManager;
     /**
      * @component
      */
     private ArchiverManager archiverManager;
 
-    /**
-     * The directory for the generated bundles.
-     *
-     * @parameter expression="${project.build.outputDirectory}"
-     * @required
-     */
-    private File outputDirectory;
-
-    /**
-     * The directory for the generated JAR.
-     *
-     * @parameter expression="${project.build.directory}"
-     * @required
-     */
-    private String buildDirectory;
-
-    /**
-     * @parameter default-value="true"
-     */
-    protected boolean failBuildOnSplitPackages = true;
-
-
-    /**
-     * @parameter default-value="false"
-     */
-    protected boolean failBuildOnMissingPackageExports = false;
-
-    /**
-     * @parameter default-value="false"
-     */
-    private boolean searchInDependencies = false;
-
-    /**
-     * This method will use the public REST API at search.maven.org to search for Maven dependencies that contain
-     * a package using an URL such as :
-     *
-     * http://search.maven.org/solrsearch/select?q=fc:%22com.mchange.v2.c3p0%22&rows=20&wt=json
-     *
-     * @param packageName
-     */
-    public static List<String> findPackageInMavenCentral(String packageName) {
-        List<String> artifactResults = new ArrayList<String>();
-        Client client = getRestClient(PackageUtils.MAVEN_SEARCH_HOST_URL);
-
-        WebTarget target = client.target(PackageUtils.MAVEN_SEARCH_HOST_URL).path("solrsearch/select")
-                .queryParam("q", "fc:\"" + packageName + "\"")
-                .queryParam("rows", "5")
-                .queryParam("wt", "json");
-
-        Invocation.Builder invocationBuilder =
-                target.request(MediaType.APPLICATION_JSON_TYPE);
-
-        Map<String, Object> searchResults = null;
-        try {
-            Response response = invocationBuilder.get();
-            searchResults= (Map<String, Object>) response.readEntity(Map.class);
-        } catch (ProcessingException pe) {
-            artifactResults.add(PackageUtils.NETWORK_ERROR_PREFIX + pe.getMessage());
-        }
-
-        if (searchResults != null) {
-            Map<String,Object> searchResponse = (Map<String,Object>) searchResults.get("response");
-            Integer searchResultCount = (Integer) searchResponse.get("numFound");
-            List<Map<String,Object>> docs = (List<Map<String,Object>>) searchResponse.get("docs");
-            for (Map<String,Object> doc : docs) {
-                String artifactId = (String) doc.get("id");
-                artifactResults.add(artifactId);
-            }
-        }
-
-        return artifactResults;
-    }
-
-    private static Map<String,Client> clients = new TreeMap<String,Client>();
-
-    private static Client getRestClient(String targetUrl) {
-
-        if (clients.containsKey(targetUrl)) {
-            return clients.get(targetUrl);
-        }
-
-        Client client = null;
-        if (targetUrl != null) {
-            if (targetUrl.startsWith("https://")) {
-                try {
-                    // Create a trust manager that does not validate certificate chains
-                    TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
-                        public X509Certificate[] getAcceptedIssuers() {
-                            return null;
-                        }
-
-                        public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                        }
-
-                        public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                        }
-                    }
-                    };
-                    // Create all-trusting host name verifier
-                    HostnameVerifier allHostsValid = new HostnameVerifier() {
-                        public boolean verify(String hostname, SSLSession session) {
-                            return true;
-                        }
-                    };
-                    SSLContext sslContext = SSLContext.getInstance("SSL");
-                    sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-                    client = ClientBuilder.newBuilder().
-                            sslContext(sslContext).
-                            hostnameVerifier(allHostsValid).build();
-                } catch (NoSuchAlgorithmException e) {
-                    e.printStackTrace();
-                } catch (KeyManagementException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                client = ClientBuilder.newClient();
-
-            }
-        }
-        if (client == null) {
-            return null;
-        }
-
-        client.property(ClientProperties.CONNECT_TIMEOUT, 1000);
-        client.property(ClientProperties.READ_TIMEOUT,    3000);
-        /*
-        HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(contextServerSettings.getContextServerUsername(), contextServerSettings.getContextServerPassword());
-        client.register(feature);
-        */
-        clients.put(targetUrl, client);
-        return client;
-    }
-
-
-
     @Override
     public void execute() throws MojoExecutionException {
-        setBuildDirectory(projectBuildDirectory);
-        setOutputDirectory(new File(projectOutputDirectory));
-
-        if (!"jar".equals(project.getPackaging()) && !"bundle".equals(project.getPackaging()) && !"war".equals(project.getPackaging())) {
-            getLog().info("Not a JAR/WAR/Bundle project, will do nothing.");
+        long timer = System.currentTimeMillis();
+        if (skipCheckDependencies || !isValidPackaging()) {
             return;
         }
-        loadSystemPackages();
 
-        buildExclusionPatterns();
+        initialize();
 
-        Set<PackageInfo> explicitPackageImports = new TreeSet<PackageInfo>();
-
-        final ParsingContext projectParsingContext = new ParsingContext(MavenAetherHelperUtils.getCoords(project.getArtifact()), 0, 0, project.getArtifactId(), project.getBasedir().getPath(), project.getVersion(), null);
-
-        List<PackageInfo> bundlePluginExplicitPackages = new ArrayList<PackageInfo>();
-        Map<String,String> originalInstructions = new LinkedHashMap<String,String>();
+        List<PackageInfo> bundlePluginExplicitPackages = null;
         try {
-            Xpp3Dom felixBundlePluginConfiguration = (Xpp3Dom) project.getPlugin("org.apache.felix:maven-bundle-plugin")
-                    .getConfiguration();
-            if (felixBundlePluginConfiguration != null) {
-                Xpp3Dom instructionsDom = felixBundlePluginConfiguration.getChild("instructions");
-                for (Xpp3Dom instructionChild : instructionsDom.getChildren()) {
-                    originalInstructions.put(instructionChild.getName(), instructionChild.getValue());
-                }
-                if (felixBundlePluginConfiguration.getChild("excludeDependencies") != null) {
-                    excludeDependencies = felixBundlePluginConfiguration.getChild("excludeDependencies").getValue();
-                }
-                getBundlePluginExplicitPackageImports(projectParsingContext, bundlePluginExplicitPackages, originalInstructions);
-            }
-        } catch (Exception e) {
-            // no overrides
-            getLog().info("No maven-bundle-plugin found, will not use dependency exclude or deal with explicit Import-Package configurations. (" + e.getMessage() +")");
+            bundlePluginExplicitPackages = new ArrayList<>();
+            getBundlePluginExplicitPackageImports(projectParsingContext, bundlePluginExplicitPackages, originalInstructions);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-        try {
-            Builder builder = getOSGiBuilder(project, originalInstructions, getClasspath(project));
-            resolveEmbeddedDependencies(project, builder);
-        } catch (Exception e) {
-            throw new MojoExecutionException("Error trying to process bundle plugin instructions", e);
-        }
 
-        List<PackageInfo> existingPackageImports = getExistingImportPackages(projectParsingContext);
-        explicitPackageImports.addAll(existingPackageImports);
-
-        parsingContextCache = new ParsingContextCache(new File(dependencyParsingCacheDirectory), null);
-
-        long timer = System.currentTimeMillis();
-        int scanned = 0;
+        int scanned;
         try {
             scanClassesBuildDirectory(projectParsingContext);
 
-            getLog().info(
-                    "Scanned classes directory in " + (System.currentTimeMillis() - timer) + " ms. Found "
-                            + projectParsingContext.getLocalPackages().size() + " project packages.");
+            getLog().info("Scanned classes directory in " + (System.currentTimeMillis() - timer) + " ms. Found " + projectParsingContext.getLocalPackages().size() + " project packages.");
 
             scanned = scanDependencies(projectParsingContext);
         } catch (IOException e) {
@@ -317,24 +137,20 @@ public class CheckDependenciesMojo extends DependenciesMojo {
             throw new MojoExecutionException("Error while scanning project packages", e);
         }
 
-        getLog().info(
-                "Scanned " + scanned + " project dependencies in " + (System.currentTimeMillis() - timer)
-                        + " ms. Currently we have " + projectParsingContext.getLocalPackages().size() + " project packages.");
+        getLog().info("Scanned " + scanned + " project dependencies in " + (System.currentTimeMillis() - timer) + " ms. Currently we have " + projectParsingContext.getLocalPackages().size() + " project packages.");
 
         projectParsingContext.postProcess();
 
-        if (projectParsingContext.getSplitPackages().size() > 0) {
-            if (failBuildOnSplitPackages) {
-                StringBuilder splitPackageList = new StringBuilder();
-                for (PackageInfo packageInfo : projectParsingContext.getSplitPackages()) {
-                    splitPackageList.append("  ");
-                    splitPackageList.append(packageInfo.toString());
-                    splitPackageList.append(" from locations:\n    ");
-                    splitPackageList.append(StringUtils.join(packageInfo.getSourceLocations(), "\n    "));
-                    splitPackageList.append("\n");
-                }
-                throw new MojoExecutionException("Detected split packages:\n" + splitPackageList.toString());
+        if (!projectParsingContext.getSplitPackages().isEmpty() && failBuildOnSplitPackages) {
+            StringBuilder splitPackageList = new StringBuilder();
+            for (PackageInfo packageInfo : projectParsingContext.getSplitPackages()) {
+                splitPackageList.append("  ");
+                splitPackageList.append(packageInfo.toString());
+                splitPackageList.append(" from locations:\n    ");
+                splitPackageList.append(StringUtils.join(packageInfo.getSourceLocations(), "\n    "));
+                splitPackageList.append("\n");
             }
+            throw new MojoExecutionException("Detected split packages:\n" + splitPackageList.toString());
         }
 
         String extension = project.getPackaging();
@@ -344,25 +160,24 @@ public class CheckDependenciesMojo extends DependenciesMojo {
         String artifactFilePath = project.getBuild().getDirectory() + "/" + project.getBuild().getFinalName() + "." + extension;
 
         File artifactFile = new File(artifactFilePath);
-        if (artifactFile == null || !artifactFile.exists()) {
+        if (!artifactFile.exists()) {
             throw new MojoExecutionException("No artifact generated for project, was the goal called in the proper phase (should be verify) ?");
         }
 
-        Set<FullyEqualPackageInfo> allPackageExports = collectAllDependenciesExports(projectParsingContext, new HashSet<String>());
+        Set<String> allPackages = getAvailablePackages();
+        try (Jar jarFile = new Jar(artifactFile)) {
+            // Include all local packages
+            allPackages.addAll(jarFile.getPackages());
 
-        Set<PackageInfo> missingPackageExports = new TreeSet<PackageInfo>();
-        JarFile jarFile = null;
-        try {
-            jarFile = new JarFile(artifactFile);
             Manifest manifest = jarFile.getManifest();
             if (manifest.getMainAttributes() == null) {
                 throw new MojoExecutionException("Error reading OSGi bundle manifest data from artifact " + artifactFile);
             }
-            String importPackageHeaderValue = manifest.getMainAttributes().getValue("Import-Package");
-            Set<String> visitedPackageImports = new TreeSet<String>();
+            String importPackageHeaderValue = manifest.getMainAttributes().getValue(Constants.IMPORT_PACKAGE);
+            Set<String> visitedPackageImports = new TreeSet<>();
             if (importPackageHeaderValue != null) {
-                List<ManifestValueClause> importPackageClauses = BundleUtils.getHeaderClauses("Import-Package", importPackageHeaderValue);
-                List<ManifestValueClause> clausesToRemove = new ArrayList<ManifestValueClause>();
+                List<ManifestValueClause> importPackageClauses = BundleUtils.getHeaderClauses(Constants.IMPORT_PACKAGE, importPackageHeaderValue);
+                List<ManifestValueClause> clausesToRemove = new ArrayList<>();
                 boolean modifiedImportPackageClauses = false;
                 for (ManifestValueClause importPackageClause : importPackageClauses) {
                     for (String importPackagePath : importPackageClause.getPaths()) {
@@ -376,13 +191,13 @@ public class CheckDependenciesMojo extends DependenciesMojo {
                             // package's resolution directive
                             getLog().info("Explicit package configuration found for " + importPackagePath + ".");
                             if (info.getVersion() != null) {
-                                importPackageClause.getAttributes().put("version", info.getVersion());
+                                importPackageClause.getAttributes().put(Constants.VERSION_ATTRIBUTE, info.getVersion());
                             }
                             for (Map.Entry<Object, Object> entry : info.getOtherDirectives().entrySet()) {
                                 importPackageClause.getDirectives().put((String) entry.getKey(), (String) entry.getValue());
                             }
-                        } else if (!"mandatory".equals(importPackageClause.getDirectives().get("resolution"))) {
-                            importPackageClause.getDirectives().put("resolution", "optional");
+                        } else if (!"mandatory".equals(importPackageClause.getDirectives().get(Constants.RESOLUTION)) && !allPackages.contains(importPackagePath)) {
+                            importPackageClause.getDirectives().put(Constants.RESOLUTION, Constants.OPTIONAL);
                             modifiedImportPackageClauses = true;
                         }
                         if (visitedPackageImports.contains(importPackagePath)) {
@@ -391,33 +206,6 @@ public class CheckDependenciesMojo extends DependenciesMojo {
                             modifiedImportPackageClauses = true;
                         }
 
-
-//                        PackageInfo importPackageInfo = new PackageInfo(importPackagePath, clauseVersion, optionalClause, artifactFile.getPath(), projectParsingContext);
-//                        if (!optionalClause) {
-//                            if (PackageUtils.containsMatchingVersion(allPackageExports, importPackageInfo)
-//                                    && !importPackageInfo.isOptional()) {
-//                                // we must now check if the import is strict and if the available export is part of
-//                                // an optional export, in which case we will have to change it to be optional
-//                                for (PackageInfo packageExport : allPackageExports) {
-//                                    if (packageExport.matches(importPackageInfo)) {
-//                                        if (packageExport.getOrigin() != null) {
-//                                            ParsingContext parsingContext = packageExport.getOrigin();
-//                                            if (parsingContext.isOptional()) {
-//                                                // JAR is optional, we should modify the import package clause to be optional too !
-//                                                getLog().warn("Mandatory package import " + importPackageInfo + " provided by optional JAR " + getTrail(packageExport) + " will be forced as optional !");
-//                                                importPackageClause.getDirectives().put("resolution", "optional");
-//                                                modifiedImportPackageClauses = true;
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                            if (!PackageUtils.containsIgnoreVersion(allPackageExports, importPackageInfo) &&
-//                                    !PackageUtils.containsIgnoreVersion(systemPackages, importPackageInfo) &&
-//                                    !PackageUtils.containsIgnoreVersion(projectParsingContext.getLocalPackages(), importPackageInfo)) {
-//                                missingPackageExports.add(importPackageInfo);
-//                            }
-//                        }
                         visitedPackageImports.add(importPackagePath);
                     }
                 }
@@ -428,94 +216,24 @@ public class CheckDependenciesMojo extends DependenciesMojo {
                             getLog().warn("Removal of clause " + clauseToRemove + " was not successful, duplicates may still remain in Manifest !");
                         }
                     }
-                    updateBundle(manifest, importPackageClauses, artifactFile, buildDirectory);
+                    updateBundle(manifest, importPackageClauses, artifactFile);
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new MojoExecutionException("Error reading OSGi bundle manifest data from artifact " + artifactFile, e);
-        } finally {
-            if (jarFile != null) {
-                try {
-                    jarFile.close();
-                } catch (IOException e) {
-                    // do nothing if close fails
-                }
-            }
-        }
-        missingPackageExports.removeAll(explicitPackageImports);
-
-        if (missingPackageExports.size() > 0) {
-
-            List<String> missingPackageNames = new ArrayList<String>();
-            for (PackageInfo missingPackageExport : missingPackageExports) {
-                missingPackageNames.add(missingPackageExport.getName());
-            }
-
-            getLog().info("Search for code origin of "+missingPackageExports.size()+" missing package imports, please wait...");
-            final Map<String, Map<String, Artifact>> packageResults = FindPackageUsesMojo.findPackageUses(missingPackageNames, project.getArtifacts(), project, outputDirectory, searchInDependencies, getLog());
-            if (packageResults.size() == 0) {
-                getLog().warn("No results found in project files, use the <searchInDependencies>true</searchInDependencies> parameter to make the plugin look in all the dependencies (which is MUCH slower !)");
-            }
-
-            StringBuilder optionaDirectivesBuilder = new StringBuilder();
-            StringBuilder errorMessageBuilder = new StringBuilder();
-            String separator = "";
-            for (PackageInfo missingPackageExport : missingPackageExports) {
-                optionaDirectivesBuilder.append(separator);
-                errorMessageBuilder.append(missingPackageExport);
-                List<String> artifactIDs = findPackageInMavenCentral(missingPackageExport.getName());
-                if (artifactIDs.size() > 0) {
-                    String artifactList = StringUtils.join(artifactIDs, ", ");
-                    errorMessageBuilder.append(" (available from Maven Central artifacts ");
-                    errorMessageBuilder.append(artifactList);
-                    errorMessageBuilder.append(",... or more at ");
-                    errorMessageBuilder.append(PackageUtils.getPackageSearchUrl(missingPackageExport.getName()));
-                    errorMessageBuilder.append(" )");
-                } else {
-                    errorMessageBuilder.append(" (not found at Maven Central, is it part of JDK ?)");
-                }
-                missingPackageExport.setOptional(true);
-                missingPackageExport.setVersion(null);
-                optionaDirectivesBuilder.append(missingPackageExport);
-                if (packageResults.containsKey(missingPackageExport.getName())) {
-                    Map<String,Artifact> sourceLocations = packageResults.get(missingPackageExport.getName());
-                    for (Map.Entry<String, Artifact> foundClass : sourceLocations.entrySet()) {
-                        if (!foundClass.getValue().toString().equals(project.getArtifact().toString())) {
-                            errorMessageBuilder.append("\n     used in class " + foundClass.getKey() + " (" + foundClass.getValue().getFile() + ")");
-                        } else {
-                            errorMessageBuilder.append("\n     used in class " + foundClass.getKey() + " (in project or embedded dependencies)");
-                        }
-                    }
-                }
-                errorMessageBuilder.append("\n\n");
-                separator = ",\n";
-            }
-            getLog().warn("Couldn't find any exported packages in Maven project dependencies for the following imported packages:\n" + errorMessageBuilder.toString());
-            getLog().warn("Use the following lines in the <Import-Package> maven-bundle-plugin configuration to ignore these packages :\n" + optionaDirectivesBuilder.toString());
-            getLog().warn(" or add the missing dependencies to your Maven project by finding the related missing Maven dependency");
-            getLog().warn("");
-            getLog().warn("Bundle may not deploy successfully unless the above dependencies are either deployed, added to Maven project or marked explicitely as optional (as in the above list)");
-            getLog().warn("If you prefer to keep this warning activated but not fail the build, simply add <failBuildOnMissingPackageExports>false</failBuildOnMissingPackageExports> to the check-dependencies goal of the jahia-maven-plugin");
-            getLog().warn("");
-            getLog().warn("You could also use mvn jahia:find-package-uses -DpackageNames=COMMA_SEPARATED_PACKAGE_LIST to find where a specific package is used in the project");
-            getLog().warn("or mvn jahia:find-packages -DpackageNames=COMMA_SEPARATED_PACKAGE_LIST to find the packages inside the project");
-            getLog().warn("");
-            if (failBuildOnMissingPackageExports) {
-                throw new MojoExecutionException("Missing package exports for imported packages (see build log for details)");
-            }
         }
     }
 
     public void getBundlePluginExplicitPackageImports(ParsingContext projectParsingContext, List<PackageInfo> bundlePluginExplicitPackages, Map<String, String> originalInstructions) throws IOException {
-        String importPackageInstruction = originalInstructions.get("Import-Package");
+        String importPackageInstruction = originalInstructions.get(Constants.IMPORT_PACKAGE);
         // now let's remove all variable substitutions
         importPackageInstruction = importPackageInstruction.replaceAll(",(\\s)*\\$\\{.*\\}", "");
-        List<ManifestValueClause> existingImportValueClauses = BundleUtils.getHeaderClauses("Import-Package", importPackageInstruction);
+        List<ManifestValueClause> existingImportValueClauses = BundleUtils.getHeaderClauses(Constants.IMPORT_PACKAGE, importPackageInstruction);
         for (ManifestValueClause existingImportValueClause : existingImportValueClauses) {
-            String clauseVersion = existingImportValueClause.getAttributes().get("version");
-            String clauseResolution = existingImportValueClause.getDirectives().get("resolution");
+            String clauseVersion = existingImportValueClause.getAttributes().get(Constants.VERSION_ATTRIBUTE);
+            String clauseResolution = existingImportValueClause.getDirectives().get(Constants.RESOLUTION);
             boolean optionalClause = false;
-            if ("optional".equals(clauseResolution)) {
+            if (Constants.OPTIONAL.equals(clauseResolution)) {
                 optionalClause = true;
             }
             for (String existingImportPath : existingImportValueClause.getPaths()) {
@@ -533,40 +251,31 @@ public class CheckDependenciesMojo extends DependenciesMojo {
         return null;
     }
 
-    private void updateBundle(Manifest manifest, List<ManifestValueClause> importPackageClauses, File artifactFile, String buildDirectory) {
+    private void updateBundle(Manifest manifest, List<ManifestValueClause> importPackageClauses, File artifactFile) {
         StringBuilder sb = new StringBuilder();
         String separator = "";
         for (ManifestValueClause importPackageClause : importPackageClauses) {
             sb.append(separator);
             sb.append(importPackageClause.toString());
-            separator=",";
+            separator = ",";
         }
-        manifest.getMainAttributes().putValue("Import-Package", sb.toString());
+        manifest.getMainAttributes().putValue(Constants.IMPORT_PACKAGE, sb.toString());
         File expandedJarDirectory = unpackBundle(artifactFile);
         getLog().info("Extract JAR " + artifactFile + " contents to directory " + expandedJarDirectory);
-        if (expandedJarDirectory == null) {
-            getLog().error("Error unpacking artifact " + artifactFile + " aborting bundle update");
-            return;
-        }
         File manifestFile = new File(expandedJarDirectory, "META-INF/MANIFEST.MF");
         if (manifestFile.exists()) {
             getLog().info("Overwriting existing META-INF/MANIFEST file");
         } else {
             getLog().warn("Missing META-INF/MANIFEST.MF file in bundle, how did that happen ?");
         }
-        FileOutputStream manifestFileOutputStream = null;
-        try {
-            manifestFileOutputStream = new FileOutputStream(manifestFile);
+
+        try (FileOutputStream manifestFileOutputStream = new FileOutputStream(manifestFile)) {
             manifest.write(manifestFileOutputStream);
-        } catch (FileNotFoundException e) {
-            getLog().error("Error writing new META-INF/MANIFEST.MF file", e);
-            return;
         } catch (IOException e) {
             getLog().error("Error writing new META-INF/MANIFEST.MF file", e);
             return;
-        } finally {
-            IOUtils.closeQuietly(manifestFileOutputStream);
         }
+
         packBundle(artifactFile, manifestFile, expandedJarDirectory);
 
         try {
@@ -578,221 +287,34 @@ public class CheckDependenciesMojo extends DependenciesMojo {
 
         Artifact mainArtifact = project.getArtifact();
 
-        if ( "bundle".equals( mainArtifact.getType() ) )
-        {
+        if ("bundle".equals(mainArtifact.getType())) {
             // workaround for MNG-1682: force maven to install artifact using the "jar" handler
             mainArtifact.setArtifactHandler(artifactHandlerManager.getArtifactHandler("jar"));
         }
 
-        if ( null == classifier || classifier.trim().length() == 0 )
-        {
-            mainArtifact.setFile( artifactFile );
-        }
-        else
-        {
+        if (null == classifier || classifier.trim().length() == 0) {
+            mainArtifact.setFile(artifactFile);
+        } else {
             mavenProjectHelper.attachArtifact(project, artifactFile, classifier);
         }
-
     }
 
-    private static final String DELIM_START = "${";
-    private static final String DELIM_STOP  = "}";
-
-    /**
-     * <p>
-     * This method performs property variable substitution on the
-     * specified value. If the specified value contains the syntax
-     * <tt>${&lt;prop-name&gt;}</tt>, where <tt>&lt;prop-name&gt;</tt>
-     * refers to either a configuration property or a system property,
-     * then the corresponding property value is substituted for the variable
-     * placeholder. Multiple variable placeholders may exist in the
-     * specified value as well as nested variable placeholders, which
-     * are substituted from inner most to outer most. Configuration
-     * properties override system properties.
-     * </p>
-     * @param val The string on which to perform property substitution.
-     * @param currentKey The key of the property being evaluated used to
-     *        detect cycles.
-     * @param cycleMap Map of variable references used to detect nested cycles.
-     * @param configProps Set of configuration properties.
-     * @return The value of the specified string after system property substitution.
-     * @throws IllegalArgumentException If there was a syntax error in the
-     *         property placeholder syntax or a recursive variable reference.
-     **/
-    public static String substVars(String val, String currentKey,
-                                   Map cycleMap, Properties configProps)
-            throws IllegalArgumentException
-    {
-        // If there is currently no cycle map, then create
-        // one for detecting cycles for this invocation.
-        if (cycleMap == null)
-        {
-            cycleMap = new HashMap();
-        }
-
-        // Put the current key in the cycle map.
-        cycleMap.put(currentKey, currentKey);
-
-        // Assume we have a value that is something like:
-        // "leading ${foo.${bar}} middle ${baz} trailing"
-
-        // Find the first ending '}' variable delimiter, which
-        // will correspond to the first deepest nested variable
-        // placeholder.
-        int stopDelim = -1;
-        int startDelim = -1;
-
-        do
-        {
-            stopDelim = val.indexOf(DELIM_STOP, stopDelim + 1);
-            // If there is no stopping delimiter, then just return
-            // the value since there is no variable declared.
-            if (stopDelim < 0)
-            {
-                return val;
-            }
-            // Try to find the matching start delimiter by
-            // looping until we find a start delimiter that is
-            // greater than the stop delimiter we have found.
-            startDelim = val.indexOf(DELIM_START);
-            // If there is no starting delimiter, then just return
-            // the value since there is no variable declared.
-            if (startDelim < 0)
-            {
-                return val;
-            }
-            while (stopDelim >= 0)
-            {
-                int idx = val.indexOf(DELIM_START, startDelim + DELIM_START.length());
-                if ((idx < 0) || (idx > stopDelim))
-                {
-                    break;
-                }
-                else if (idx < stopDelim)
-                {
-                    startDelim = idx;
-                }
-            }
-        }
-        while ((startDelim > stopDelim) && (stopDelim >= 0));
-
-        // At this point, we have found a variable placeholder so
-        // we must perform a variable substitution on it.
-        // Using the start and stop delimiter indices, extract
-        // the first, deepest nested variable placeholder.
-        String variable =
-                val.substring(startDelim + DELIM_START.length(), stopDelim);
-
-        // Verify that this is not a recursive variable reference.
-        if (cycleMap.get(variable) != null)
-        {
-            throw new IllegalArgumentException(
-                    "recursive variable reference: " + variable);
-        }
-
-        // Get the value of the deepest nested variable placeholder.
-        // Try to configuration properties first.
-        String substValue = (configProps != null)
-                ? configProps.getProperty(variable, null)
-                : null;
-        if (substValue == null)
-        {
-            // Ignore unknown property values.
-            substValue = System.getProperty(variable, "");
-        }
-
-        // Remove the found variable from the cycle map, since
-        // it may appear more than once in the value and we don't
-        // want such situations to appear as a recursive reference.
-        cycleMap.remove(variable);
-
-        // Append the leading characters, the substituted value of
-        // the variable, and the trailing characters to get the new
-        // value.
-        val = val.substring(0, startDelim)
-                + substValue
-                + val.substring(stopDelim + DELIM_STOP.length(), val.length());
-
-        // Now perform substitution again, since there could still
-        // be substitutions to make.
-        val = substVars(val, currentKey, cycleMap, configProps);
-
-        // Return the value.
-        return val;
-    }
-
-    private void loadSystemPackages() throws MojoExecutionException {
-        Properties dependenciesProperties = new Properties();
-        InputStream dependenciesPropertiesStream = this.getClass().getClassLoader().getResourceAsStream("org/jahia/utils/maven/plugin/osgi/dependencies.properties");
+    private File unpackBundle(File jarFile) {
+        File outputDir = new File(projectBuildDirectory, jarFile.getName() + "-" + System.currentTimeMillis());
         try {
-            dependenciesProperties.load(dependenciesPropertiesStream);
-            dependenciesProperties.setProperty("dollar", "$");
-            String propertyName = "org.osgi.framework.system.packages";
-            String systemPackagesValue = dependenciesProperties.getProperty(propertyName);
-            systemPackagesValue = (systemPackagesValue != null)
-                    ? substVars(systemPackagesValue, propertyName, null, dependenciesProperties)
-                    : null;
-            List<ManifestValueClause> systemPackageClauses = BundleUtils.getHeaderClauses("Export-Package", systemPackagesValue);
-            for (ManifestValueClause systemPackageClause : systemPackageClauses) {
-                for (String systemPackagePath : systemPackageClause.getPaths()) {
-                    String clauseVersion = systemPackageClause.getAttributes().get("version");
-                    PackageInfo systemPackageInfo = new PackageInfo(systemPackagePath, clauseVersion, false, "System packages", null);
-                    systemPackages.add(systemPackageInfo);
-                }
-            }
-        } catch (IOException e) {
-            throw new MojoExecutionException("Error loading system exports", e);
-        }
-    }
-
-    private Set<FullyEqualPackageInfo> collectAllDependenciesExports(ParsingContext parsingContext, Set<String> alreadyVisitedContexts) {
-        Set<FullyEqualPackageInfo> allExports = new HashSet<FullyEqualPackageInfo>();
-        if (alreadyVisitedContexts.contains(parsingContext.getMavenCoords())) {
-            return allExports;
-        }
-        alreadyVisitedContexts.add(parsingContext.getMavenCoords());
-        if (parsingContext.getChildren() != null) {
-            for (ParsingContext childParsingContext : parsingContext.getChildren()) {
-                if (childParsingContext.isExternal()) {
-                    allExports.addAll(FullyEqualPackageInfo.toFullyEqualPackageInfoSet(childParsingContext.getPackageExports(), null));
-                } else {
-                    allExports.addAll(FullyEqualPackageInfo.toFullyEqualPackageInfoSet(childParsingContext.getLocalPackages(), null));
-                }
-                allExports.addAll(collectAllDependenciesExports(childParsingContext, alreadyVisitedContexts));
-            }
-        }
-        return allExports;
-    }
-
-    private File unpackBundle( File jarFile )
-    {
-        File outputDir = new File( buildDirectory, jarFile.getName() + "-" + System.currentTimeMillis());
-        if (outputDir.exists()) {
-            getLog().error( "Problem unpacking " + jarFile + " to " + outputDir + " : directory already exists !" );
-            return null;
-        }
-
-        try {
-            /*
-             * this directory must exist before unpacking, otherwise the plexus
-             * unarchiver decides to use the current working directory instead!
-             */
-            if ( !outputDir.exists() ) {
-                outputDir.mkdirs();
-            }
-
-            UnArchiver unArchiver = archiverManager.getUnArchiver( "jar" );
-            unArchiver.setDestDirectory( outputDir );
-            unArchiver.setSourceFile( jarFile );
+            outputDir.mkdirs();
+            UnArchiver unArchiver = archiverManager.getUnArchiver("jar");
+            unArchiver.setDestDirectory(outputDir);
+            unArchiver.setSourceFile(jarFile);
             unArchiver.extract();
-        } catch ( Exception e ) {
-            getLog().error( "Problem unpacking " + jarFile + " to " + outputDir, e );
+        } catch (Exception e) {
+            getLog().error("Problem unpacking " + jarFile + " to " + outputDir, e);
             return null;
         }
         return outputDir;
     }
 
-    private void packBundle ( File jarFile, File manifestFile, File contentDirectory ) {
+    private void packBundle(File jarFile, File manifestFile, File contentDirectory) {
         try {
             JarArchiver archiver = (JarArchiver) archiverManager.getArchiver("jar");
 
@@ -801,34 +323,51 @@ public class CheckDependenciesMojo extends DependenciesMojo {
 
             archiver.addDirectory(contentDirectory, null, null);
             archiver.createArchive();
-        } catch ( Exception e ) {
-            getLog().error( "Problem packing " + jarFile + " with contents from  " + contentDirectory, e );
+        } catch (Exception e) {
+            getLog().error("Problem packing " + jarFile + " with contents from  " + contentDirectory, e);
         }
 
     }
 
-    private String getTrail(PackageInfo packageInfo) {
-        List<ParsingContext> ancestors = new ArrayList<ParsingContext>();
-        ParsingContext currentParsingContext = packageInfo.getOrigin();
-        ancestors.add(currentParsingContext);
-        while (currentParsingContext.getParentParsingContext() != null) {
-            currentParsingContext = currentParsingContext.getParentParsingContext();
-            if (currentParsingContext != null) {
-                ancestors.add(currentParsingContext);
+    private Set<String> getAvailablePackages() throws MojoExecutionException {
+        Set<String> allPackages = new HashSet<>();
+        ArrayList<Artifact> inscope = new ArrayList<>();
+        final Collection<Artifact> artifacts = getSelectedDependencies(project.getArtifacts());
+        for (Iterator<Artifact> it = artifacts.iterator(); it.hasNext(); ) {
+            Artifact artifact = it.next();
+            if (artifact.getArtifactHandler().isAddedToClasspath() && !artifact.getScope().equals("system")) {
+                inscope.add(artifact);
             }
         }
-        Collections.reverse(ancestors);
-        StringBuilder sb = new StringBuilder();
-        String separator = "";
-        for (ParsingContext parsingContext : ancestors) {
-            sb.append(separator);
-            sb.append(parsingContext.getMavenCoords());
-            separator = " -> ";
+
+        for (Artifact artifact : inscope) {
+            File file = artifact.getFile();
+            if (file == null) {
+                continue;
+            }
+
+            String directDep = artifact.getDependencyTrail().get(1);
+
+            try (Jar jar = new Jar(artifact.getArtifactId(), file)) {
+                Set<String> packages = new HashSet<>(jar.getPackages());
+                if (directDep.startsWith("org.jahia.server:jahia-impl:jar")) {
+                    allPackages.addAll(packages);
+                } else if ("provided".equals(artifact.getScope())) {
+                    if (jar.getManifest() != null) {
+                        String value = jar.getManifest().getMainAttributes().getValue(Constants.EXPORT_PACKAGE);
+                        if (value != null) {
+                            List<ManifestValueClause> l = BundleUtils.getHeaderClauses(Constants.EXPORT_PACKAGE, value);
+                            packages.retainAll(l.stream().flatMap(c -> c.getPaths().stream()).collect(Collectors.toSet()));
+                            allPackages.addAll(packages);
+                        }
+                    }
+                } else {
+//                    allPackages.addAll(packages);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        sb.append(" : ");
-        sb.append(packageInfo.toString());
-        return sb.toString();
+        return allPackages;
     }
-
-
 }
