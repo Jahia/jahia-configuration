@@ -891,6 +891,10 @@ public class DependenciesMojo extends BundlePlugin {
             return false;
         }
 
+        if (ext.equals("cnd") && fileName.contains("org/jahia/migration/legacyDefinitions")) {
+            return false;
+        }
+
         return Parsers.getInstance().parse(1, fileName, inputStream, fileParent, false, optional, version, getLogger(), parsingContext);
 
     }
