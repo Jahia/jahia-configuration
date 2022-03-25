@@ -540,7 +540,16 @@ public class JahiaGlobalConfigurator {
             } else if (databaseType.equals(MYSQL) || databaseType.equals(MARIADB) || databaseType.equals(POSTGRESQL)) {
                 URI dbSubURI = URI.create(dbUrl.substring(5)); // strip "jdbc:"
                 String databaseName = dbSubURI.getPath().substring(1); // strip starting "/"
-                String emptyUrl = new URI(dbSubURI.getScheme(), dbSubURI.getHost(), "/", dbSubURI.getFragment()).toString();
+                String emptyUrl = null;
+                String defaultPath = "/";
+                if (POSTGRESQL.equals(databaseType)) {
+                    defaultPath = "/postgres";
+                }
+                if (dbSubURI.getPort() != -1) {
+                    emptyUrl = new URI(dbSubURI.getScheme(), null, dbSubURI.getHost(), dbSubURI.getPort(), defaultPath, null, dbSubURI.getFragment()).toString();
+                } else {
+                    emptyUrl = new URI(dbSubURI.getScheme(), dbSubURI.getHost(), defaultPath, dbSubURI.getFragment()).toString();
+                }
 
                 db.databaseOpen(dbProps.getProperty(JAHIA_DATABASE_DRIVER), "jdbc:" + emptyUrl, jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
                 if (jahiaConfig.getOverwritedb().equals(IF_NECESSARY) && exists(databaseName)) {
@@ -590,14 +599,16 @@ public class JahiaGlobalConfigurator {
     }
 
     private void cleanDatabase(String databaseName) throws SQLException {
-        db.query("drop database if exists " + databaseName);
-        db.query("create database " + databaseName);
         switch (jahiaConfig.getDatabaseType()) {
             case MYSQL:
             case MARIADB:
-                db.query("alter database " + databaseName + " charset utf8");
+                db.query("drop database if exists `" + databaseName + "`");
+                db.query("create database `" + databaseName + "`");
+                db.query("alter database `" + databaseName + "` charset utf8");
                 break;
             case POSTGRESQL:
+                db.query("drop database if exists \"" + databaseName + "\"");
+                db.query("create database \"" + databaseName + "\"");
             default:
         }
     }

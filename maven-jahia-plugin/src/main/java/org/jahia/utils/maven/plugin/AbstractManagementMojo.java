@@ -43,6 +43,7 @@
  */
 package org.jahia.utils.maven.plugin;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.repository.ArtifactRepository;
@@ -230,6 +231,12 @@ public abstract class AbstractManagementMojo extends AbstractMojo {
 
     protected ServerDeploymentInterface getDeployer() {
         if (deployer == null) {
+            if (StringUtils.isEmpty(targetServerDirectory)) {
+                throw new RuntimeException("targetServerDirectory setting is null or empty");
+            }
+            if (StringUtils.isEmpty(targetServerVersion)) {
+                throw new RuntimeException("targetServerVersion setting is null or empty");
+            }
             deployer = ServerDeploymentFactory.getImplementation(targetServerType, targetServerVersion, new File(
                     targetServerDirectory), null, null);
         }
