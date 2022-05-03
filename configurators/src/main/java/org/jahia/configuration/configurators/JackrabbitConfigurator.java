@@ -47,6 +47,7 @@ import org.codehaus.plexus.util.StringUtils;
 import org.jahia.configuration.logging.AbstractLogger;
 import org.jdom2.*;
 import org.jdom2.filter.Filters;
+import org.jdom2.input.sax.XMLReaders;
 import org.jdom2.xpath.XPath;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.xpath.XPathExpression;
@@ -81,6 +82,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             saxBuilder.setFeature("http://apache.org/xml/features/disallow-doctype-decl",false);
             saxBuilder.setFeature("http://xml.org/sax/features/external-general-entities", true);
             saxBuilder.setFeature("http://xml.org/sax/features/external-parameter-entities", true);
+            saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
             saxBuilder.setExpandEntities(false);
 
             InputStreamReader fileReader = new InputStreamReader(sourceConfigFile.getInputStream());
