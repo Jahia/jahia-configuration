@@ -50,27 +50,39 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.IOUtil;
+import org.hibernate.boot.Metadata;
+import org.hibernate.boot.MetadataBuilder;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.BootstrapServiceRegistry;
+import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.AvailableSettings;
-import org.hibernate.cfg.Configuration;
-import org.hibernate.cfg.NamingStrategy;
-import org.hibernate.ejb.Ejb3Configuration;
+import org.hibernate.internal.SessionFactoryImpl;
+import org.hibernate.internal.SessionImpl;
+import org.hibernate.service.ServiceRegistry;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.hbm2ddl.SchemaExport.Type;
-import org.hibernate.tool.hbm2ddl.Target;
+import org.hibernate.tool.schema.Action;
+import org.hibernate.tool.schema.TargetType;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import javax.persistence.spi.PersistenceProvider;
+
+import static org.hibernate.cfg.AvailableSettings.*;
 
 /**
  * Exports database schema creation scripts using JPA Hibernate configuration.<br>
- * 
+ *
  * @goal jpa-schema-export
  * @phase process-classes
  * @requiresProject
@@ -83,43 +95,43 @@ public class JpaSchemaExportMojo extends AbstractMojo {
 
     /**
      * The Hibernate dialect to use
-     * 
+     *
      * @parameter
      */
     private String hibernateDialect;
 
     /**
      * The Hibernate naming strategy
-     * 
+     *
      * @parameter
      */
     private String hibernateNamingStrategy;
 
     /**
      * The output file to export DDL into
-     * 
+     *
      * @parameter default-value="${project.build.directory}/schema.sql"
      */
     private File outputFile;
-    
+
     /**
      * The alternative file name of the persistence.xml resource in case it is neede to override it.
-     * 
+     *
      * @parameter
      */
     private String persistenceFileName;
 
     /**
      * The name of the persistence unit to export.
-     * 
+     *
      * @parameter
      */
     private String persistenceUnitName;
 
     /**
      * The maven project
-     * 
-     * @parameter expression="${project}"
+     *
+     * @parameter property="project"
      * @required
      * @readonly
      */
@@ -127,27 +139,10 @@ public class JpaSchemaExportMojo extends AbstractMojo {
 
     /**
      * Statement type to be exported
-     * 
+     *
      * @parameter
      */
     private SchemaExport.Type statementType = Type.BOTH;
-
-    private void configureNamingStrategy(Configuration cfg) throws MojoExecutionException {
-        if (hibernateNamingStrategy == null || hibernateNamingStrategy.length() == 0) {
-            return;
-        }
-
-        try {
-            cfg.setNamingStrategy((NamingStrategy) Thread.currentThread().getContextClassLoader()
-                    .loadClass(hibernateNamingStrategy).newInstance());
-
-            getLog().info("Using naming strategy: " + hibernateNamingStrategy);
-        } catch (Exception e) {
-            getLog().error("Unable to instantiate the class for the naming strategy: " + hibernateNamingStrategy, e);
-            throw new MojoExecutionException("Unable to instantiate the class for the naming strategy: "
-                    + hibernateNamingStrategy, e);
-        }
-    }
 
     private ClassLoader createClassLoader(ClassLoader contextClassLoader) throws MojoExecutionException {
         try {
@@ -181,7 +176,7 @@ public class JpaSchemaExportMojo extends AbstractMojo {
                         IOUtil.close(os);
                     }
                 }
-                
+
                 return urlClassLoader;
             }
         } catch (Exception e) {
@@ -219,6 +214,8 @@ public class JpaSchemaExportMojo extends AbstractMojo {
             Map<String, String> props = new HashMap<String, String>(2);
             props.put(AvailableSettings.DIALECT, hibernateDialect);
             props.put(AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS, "false");
+            props.put(HBM2DDL_SCRIPTS_CREATE_APPEND, "false");
+            props.put(HBM2DDL_DELIMITER, ";\n");
             getLog().info("Using the following Hibernate dialect: " + hibernateDialect);
             return props;
 
@@ -227,15 +224,23 @@ public class JpaSchemaExportMojo extends AbstractMojo {
     }
 
     private void performExport() throws MojoExecutionException {
-        final Configuration cfg = new Ejb3Configuration().configure(persistenceUnitName, getHibernateProperties())
-                .getHibernateConfiguration();
-
-        configureNamingStrategy(cfg);
-
-        SchemaExport schemaExport = new SchemaExport(cfg);
-        schemaExport.setDelimiter(";");
-        schemaExport.setOutputFile(outputFile.getAbsolutePath());
-        schemaExport.execute(Target.SCRIPT, statementType);
+        Map<String,String> configuration = getHibernateProperties();
+        String action = null;
+        switch (statementType){
+            case CREATE:
+                action = "create";
+                break;
+            case DROP:
+                action = "drop";
+                break;
+        }
+        configuration.put(HBM2DDL_SCRIPTS_ACTION, action);
+        configuration.put(HBM2DDL_SCRIPTS_CREATE_TARGET, outputFile.getAbsolutePath());
+        configuration.put(HBM2DDL_SCRIPTS_DROP_TARGET, outputFile.getAbsolutePath());
+        if(hibernateNamingStrategy != null) {
+            configuration.put(PHYSICAL_NAMING_STRATEGY, hibernateNamingStrategy);
+        }
+        Persistence.generateSchema("org.jahia.services.workflow.jbpm", configuration);
     }
 
 }
