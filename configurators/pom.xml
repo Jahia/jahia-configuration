@@ -55,6 +55,14 @@
     <artifactId>configurators</artifactId>
     <name>Jahia Server Configuration</name>
     <packaging>jar</packaging>
+    <properties>
+        <driver.derby.version>10.14.2.0</driver.derby.version>
+        <driver.mssql.version>11.2.0.jre8</driver.mssql.version>
+        <driver.mysql.version>8.0.30</driver.mysql.version>
+        <driver.oracle.version>21.1.0.0</driver.oracle.version>
+        <driver.postgresql.version>42.5.0</driver.postgresql.version>
+        <driver.mariadb.version>3.0.7</driver.mariadb.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.jahia.configuration</groupId>
@@ -155,43 +163,48 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.26</version>
+            <version>${driver.mysql.version}</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.2.23</version>
+            <version>${driver.postgresql.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>${driver.mariadb.version}</version>
         </dependency>
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
-            <version>9.4.0.jre8</version>
+            <version>${driver.mssql.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.oracle.jdbc</groupId>
+            <groupId>com.oracle.database.jdbc</groupId>
             <artifactId>ojdbc8</artifactId>
-            <version>12.2.0.1</version>
+            <version>${driver.oracle.version}</version>
         </dependency>
-           <dependency>
-            <groupId>com.oracle.jdbc</groupId>
+        <dependency>
+            <groupId>com.oracle.database.nls</groupId>
             <artifactId>orai18n</artifactId>
-            <version>12.2.0.1</version>
+            <version>${driver.oracle.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derbyclient</artifactId>
-            <version>10.14.2.0</version>
+            <version>${driver.derby.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derbytools</artifactId>
-            <version>10.14.2.0</version>
+            <version>${driver.derby.version}</version>
         </dependency>
         <dependency>
            <groupId>org.apache.derby</groupId>
            <artifactId>derby</artifactId>
-           <version>10.14.2.0</version>
+           <version>${driver.derby.version}</version>
         </dependency>
 
         <dependency>
@@ -212,11 +225,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.mariadb.jdbc</groupId>
-            <artifactId>mariadb-java-client</artifactId>
-            <version>2.7.3</version>
-        </dependency>
         <dependency>
             <groupId>org.jasypt</groupId>
             <artifactId>jasypt</artifactId>
