@@ -82,9 +82,11 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         }
 
         // jahia tools manager
-        properties.setProperty("jahiaToolManagerUsername", jahiaConfigInterface.getJahiaToolManagerUsername());
-        properties.setProperty("jahiaToolManagerPassword", JahiaGlobalConfigurator.encryptPassword(jahiaConfigInterface.getJahiaToolManagerPassword()));
-        
+        if (properties.getProperty("jahiaToolManagerUsername") != null) {
+            properties.setProperty("jahiaToolManagerUsername", jahiaConfigInterface.getJahiaToolManagerUsername());
+            properties.setProperty("jahiaToolManagerPassword", JahiaGlobalConfigurator.encryptPassword(jahiaConfigInterface.getJahiaToolManagerPassword()));
+        }
+
         properties.setProperty("jahiaVarDiskPath", jahiaConfigInterface.getJahiaVarDiskPath());
         properties.setProperty("jahiaModulesDiskPath", jahiaConfigInterface.getJahiaModulesDiskPath());
         properties.setProperty("jahiaWebAppsDeployerBaseURL", jahiaConfigInterface.getJahiaWebAppsDeployerBaseURL());
@@ -93,21 +95,21 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         properties.setProperty("operatingMode", jahiaConfigInterface.getOperatingMode());
 
         properties.setProperty("hibernate.dialect", getDBProperty("jahia.database.hibernate.dialect"));
-        
+
         if (jahiaConfigInterface.getJahiaProperties() != null) {
             for (Map.Entry<String, String> entry : jahiaConfigInterface.getJahiaProperties().entrySet()) {
                 properties.setProperty(entry.getKey(), entry.getValue());
             }
         }
-        
+
         configureScheduler();
-        
+
         if (jahiaConfigInterface.getJahiaAdvancedProperties() != null) {
             for (Map.Entry<String, String> entry : jahiaConfigInterface.getJahiaAdvancedProperties().entrySet()) {
                 properties.setProperty(entry.getKey(), entry.getValue());
             }
         }
-        
+
         String fileDataStorePath = getValue(dbProperties, "fileDataStorePath");
         if (StringUtils.isNotEmpty(fileDataStorePath)) {
             String datastorePropertyName = "jackrabbit.datastore.path";
@@ -138,7 +140,7 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
                 delegate = "org.quartz.impl.jdbcjobstore.oracle.weblogic.WebLogicOracleDelegate";
             }
         }
-        
+
         if (jahiaConfigInterface.getTargetServerType().startsWith("was")
                 && jahiaConfigInterface.getDatabaseType().equals("oracle")) {
             delegate = "org.quartz.impl.jdbcjobstore.StdJDBCDelegate";
