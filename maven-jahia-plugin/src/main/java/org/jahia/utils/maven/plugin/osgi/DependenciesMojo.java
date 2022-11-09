@@ -212,6 +212,7 @@ public class DependenciesMojo extends BundlePlugin {
     protected Map<String, String> originalInstructions;
     protected List<PackageInfo> existingPackageImports;
     private AetherHelper aetherHelper;
+    public static final String DEPENDENCY_PARSING_CACHE_DIRECTORY_VERSION = "_v2";
 
     protected static void addLocalPackages(File outputDirectory, Analyzer analyzer) throws IOException {
         Packages packages = new Packages();
@@ -493,7 +494,7 @@ public class DependenciesMojo extends BundlePlugin {
         setOutputDirectory(new File(projectOutputDirectory));
 
         projectParsingContext = new ParsingContext(MavenAetherHelperUtils.getCoords(project.getArtifact()), 0, 0, project.getArtifactId(), project.getBasedir().getPath(), project.getVersion(), null);
-        parsingContextCache = new ParsingContextCache(new File(dependencyParsingCacheDirectory), null);
+        parsingContextCache = new ParsingContextCache(new File(dependencyParsingCacheDirectory + DEPENDENCY_PARSING_CACHE_DIRECTORY_VERSION), null);
 
         parseBundlePluginInstructions();
         parseExistingImportPackages(projectParsingContext);
