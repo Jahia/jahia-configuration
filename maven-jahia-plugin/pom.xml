@@ -60,8 +60,8 @@
 	<properties>
 		<maven.version>3.8.1</maven.version>
 		<maven.plugin.plugin.version>3.6.1</maven.plugin.plugin.version>
-		<doxiaVersion>1.10</doxiaVersion>
-		<doxiaSitetoolsVersion>1.10</doxiaSitetoolsVersion>
+		<doxiaVersion>1.11.1</doxiaVersion>
+		<doxiaSitetoolsVersion>1.11.1</doxiaSitetoolsVersion>
 	</properties>
 
 	<description>Jahia Maven plugin</description>
@@ -169,6 +169,11 @@
 					<artifactId>google-collections</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>1.10.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.maven.doxia</groupId>
