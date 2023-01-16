@@ -60,7 +60,7 @@ import org.apache.maven.project.MavenProject;
 /**
  * Creates a list of JARs that do not contain any TLD files and can be skipped by the JAR scanner (Jasper compiler in the Pax Web JSP
  * project).
- * 
+ *
  * @goal list-jars-with-no-tlds
  * @phase prepare-package
  * @requiresDependencyResolution
@@ -101,14 +101,14 @@ public class JarsToSkipListMojo extends AbstractMojo {
 
     /**
      * Should we merge entries with the entries in the existing <code>dest</code> file?.
-     * 
+     *
      * @parameter default-value="false"
      */
     protected boolean append;
 
     /**
      * The file to output the list of JARs into.
-     * 
+     *
      * @parameter default-value="${project.build.directory}/generated-resources/jar-scanner.conf"
      */
     protected File dest;
@@ -122,16 +122,16 @@ public class JarsToSkipListMojo extends AbstractMojo {
 
     /**
      * The Jahia Web application directory to scan for JAR files in.
-     * 
+     *
      * @parameter default-value="${project.build.directory}/jahia"
      */
     protected File src;
 
     /**
      * The list of JARs which are skipped by default.
-     * 
+     *
      * @parameter default-value=
-     *            "jboss-modules.jar,ehcache-sizeof-agent*.jar,ccpp-1.0.jar,derby-*.jar,derbyclient-*.jar,mariadb-java-client-*.jar,mysql-connector-java-*.jar,ojdbc6-*.jar,ojdbc7-*.jar,ojdbc8-*.jar,orai18n-*.jar,pluto-container-api-2.0.2.jar,pluto-container-driver-api-2.0.2.jar,pluto-taglib-2.0.2.jar,portals-bridges-common-1.0.4.jar,portlet-api_2.0_spec-1.0.jar,postgresql-*.jar,sqljdbc4-*.jar,sqljdbc41-*.jar,mssql-jdbc-*.jar"
+     *            "jboss-modules.jar,ehcache-sizeof-agent*.jar,ccpp-1.0.jar,derby-*.jar,derbyclient-*.jar,mariadb-java-client-*.jar,mysql-connector-j-*.jar,ojdbc6-*.jar,ojdbc7-*.jar,ojdbc8-*.jar,orai18n-*.jar,pluto-container-api-2.0.2.jar,pluto-container-driver-api-2.0.2.jar,pluto-taglib-2.0.2.jar,portals-bridges-common-1.0.4.jar,portlet-api_2.0_spec-1.0.jar,postgresql-*.jar,sqljdbc4-*.jar,sqljdbc41-*.jar,mssql-jdbc-*.jar"
      */
     protected String defaultJarsToSkip;
 
