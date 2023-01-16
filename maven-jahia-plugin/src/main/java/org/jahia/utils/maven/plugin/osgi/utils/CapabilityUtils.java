@@ -39,7 +39,7 @@ import static org.jahia.utils.maven.plugin.osgi.utils.Constants.*;
  */
 public class CapabilityUtils {
 
-    static final String DELIMITER = ";";
+    static final String DELIMITER = "#"; // Anything except comma or semicolon
 
     public static void buildJahiaDependencies(MavenProject project, String jahiaDependsValue,
             Set<String> skipRequireDependencies, String prefix) throws MojoExecutionException {
@@ -75,8 +75,12 @@ public class CapabilityUtils {
         JahiaDepends depends = new JahiaDepends(dependency);
         if (skipRequireDependencies.contains(depends.getModuleName())) return "";
 
-        return new StringBuilder(OSGI_CAPABILITY_MODULE_DEPENDENCIES)
-                .append(";filter:=\"").append(depends.toFilterString()).append("\"").toString();
+        StringBuilder sb = new StringBuilder(OSGI_CAPABILITY_MODULE_DEPENDENCIES)
+                .append(";filter:=\"").append(depends.toFilterString()).append("\"");
+        if (depends.isOptional()) {
+            sb.append(";resolution:=\"optional\"");
+        }
+        return sb.toString();
     }
 
     public static String buildProvideCapabilities(String dependency, String version) {

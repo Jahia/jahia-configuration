@@ -37,6 +37,7 @@ public class JahiaDepends {
     private String moduleName = "";
     private VersionRange range = null;
     private String parsedString = null;
+    private boolean isOptional = false;
 
 
     public JahiaDepends(String dependency) {
@@ -45,13 +46,23 @@ public class JahiaDepends {
         this.moduleName = StringUtils.isNotBlank(deps[0]) ? deps[0].trim() : "";
 
         if (deps.length > 1 && StringUtils.isNotBlank(deps[1])) {
-            range = new VersionRange(deps[1]);
+            String rangeStr = deps[1];
+            rangeStr = rangeStr.replace(";optional", "");
+            rangeStr = rangeStr.replace("optional", "");
+            this.isOptional = !rangeStr.equals(deps[1]); // optional keyword existed and was removed
+            if (!rangeStr.isEmpty()) {
+                range = new VersionRange(rangeStr);
+            }
         }
     }
 
     public boolean hasVersion() {
         return StringUtils.isNotEmpty(getMinVersion())
                 || StringUtils.isNotEmpty(getMaxVersion());
+    }
+
+    public boolean isOptional() {
+        return this.isOptional;
     }
 
 
