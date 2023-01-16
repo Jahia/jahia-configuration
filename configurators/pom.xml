@@ -58,7 +58,7 @@
     <properties>
         <driver.derby.version>10.14.2.0</driver.derby.version>
         <driver.mssql.version>9.2.1.jre8</driver.mssql.version>
-        <driver.mysql.version>8.0.30</driver.mysql.version>
+        <driver.mysql.version>8.0.31</driver.mysql.version>
         <driver.oracle.version>21.1.0.0</driver.oracle.version>
         <driver.postgresql.version>42.5.0</driver.postgresql.version>
         <driver.mariadb.version>3.0.7</driver.mariadb.version>
@@ -156,8 +156,8 @@
         </dependency>
 
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
             <version>${driver.mysql.version}</version>
         </dependency>
         <dependency>

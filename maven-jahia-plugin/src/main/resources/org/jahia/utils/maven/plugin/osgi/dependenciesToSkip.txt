@@ -75,7 +75,7 @@ jline:jline:jar:0.9.94
 joda-time:joda-time:jar:1.6
 juel:juel-api:jar:2.2.1
 log4j:log4j:jar
-mysql:mysql-connector-java:jar
+mysql:mysql-connector-j:jar
 net.htmlparser.jericho:jericho-html:jar
 net.sf.ehcache:ehcache-core:jar
 net.sf.ehcache:ehcache-jgroupsreplication:jar

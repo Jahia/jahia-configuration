@@ -47,7 +47,7 @@ import com.izforge.izpack.installer.AutomatedInstallData;
 
 /**
  * Validator for the specified MySQL driver.
- * 
+ *
  * @author Sergiy Shyrkov
  */
 public class MySQLDriverValidator extends BaseDataValidator {
@@ -67,12 +67,12 @@ public class MySQLDriverValidator extends BaseDataValidator {
         String version = getExpectedDriverVersion(adata);
 
         path = path.replace('\\', '/');
-        boolean passed = path.indexOf('/') == -1 ? path.equals("mysql-connector-java-" + version + ".jar") : path
-                .endsWith("/mysql-connector-java-" + version + ".jar");
+        boolean passed = path.indexOf('/') == -1 ? path.equals("mysql-connector-j-" + version + ".jar") : path
+                .endsWith("/mysql-connector-j-" + version + ".jar");
 
         if (!passed) {
             errorMsg = getMessage(adata, "dbType.mysql.path.validator",
-                    "The selected file does not match the expected one: mysql-connector-java-" + version + ".jar");
+                    "The selected file does not match the expected one: mysql-connector-j-" + version + ".jar");
             System.out.println("\n" + errorMsg + "\n");
         } else {
             String licenseAccepted = adata.getVariable(getVar(adata, "DbConnectionValidationPanelAction.mysqlDriverLicenseVariable",
@@ -84,7 +84,7 @@ public class MySQLDriverValidator extends BaseDataValidator {
                 passed = false;
             }
         }
-        
+
 
         return passed;
     }
