@@ -271,8 +271,14 @@ public class CapabilityUtilsTest {
             String jahiaDepends = "module-name1=2.5,module-name2=(2.5.4, 3], module-name3=[0,1.4), "
                     + "module with a space ,module-name5=[2,3.4.23]";
             String actual = CapabilityUtils.replaceDependsDelimiter(jahiaDepends);
-            assertEquals("module-name1=2.5;module-name2=(2.5.4, 3]; module-name3=[0,1.4); "
-                    + "module with a space ;module-name5=[2,3.4.23]", actual);
+            String expected = StringUtils.join(new String[] {
+                    "module-name1=2.5",
+                    "module-name2=(2.5.4, 3]",
+                    " module-name3=[0,1.4)",
+                    " module with a space ",
+                    "module-name5=[2,3.4.23]",
+            }, CapabilityUtils.DELIMITER);
+            assertEquals(expected, actual);
         } catch (Exception e) {
             fail("Unexpected exception: " + e.getMessage());
         }
