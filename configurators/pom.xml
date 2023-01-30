@@ -56,7 +56,7 @@
     <name>Jahia Server Configuration</name>
     <packaging>jar</packaging>
     <properties>
-        <driver.derby.version>10.16.1.1</driver.derby.version>
+        <driver.derby.version>10.14.2.0</driver.derby.version>
         <driver.mssql.version>9.4.1.jre16</driver.mssql.version>
         <driver.mysql.version>8.0.32</driver.mysql.version>
         <driver.oracle.version>21.8.0.0</driver.oracle.version>
