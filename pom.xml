@@ -79,7 +79,7 @@
         <jdom2.version>2.0.6</jdom2.version>
         <commons-io.version>2.11.0</commons-io.version>
         <bndlib.version>6.1.0</bndlib.version>
-        <maven.bundle.plugin.version>5.1.2</maven.bundle.plugin.version>
+        <maven.bundle.plugin.version>5.1.9</maven.bundle.plugin.version>
 	</properties>
 
     <modules>
