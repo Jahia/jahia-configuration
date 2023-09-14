@@ -191,6 +191,11 @@ public class CheckDependenciesMojo extends DependenciesMojo {
                             // package's resolution directive
                             getLog().info("Explicit package configuration found for " + importPackagePath + ".");
                             if (info.getVersion() != null) {
+                                String bndVersion = importPackageClause.getAttributes().get(Constants.VERSION_ATTRIBUTE);
+                                if (!bndVersion.equals(info.getVersion())) {
+                                    getLog().info("Explicit package configuration version" + info.getVersion() + " is different than BND one " + bndVersion + " for " + importPackagePath + ".");
+                                    modifiedImportPackageClauses = true;
+                                }
                                 importPackageClause.getAttributes().put(Constants.VERSION_ATTRIBUTE, info.getVersion());
                             }
                             for (Map.Entry<Object, Object> entry : info.getOtherDirectives().entrySet()) {
