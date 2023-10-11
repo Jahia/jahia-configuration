@@ -6,7 +6,7 @@
 
                                     http://www.jahia.com
 
-        Copyright (C) 2002-2019 Jahia Solutions Group SA. All rights reserved.
+        Copyright (C) 2002-2023 Jahia Solutions Group SA. All rights reserved.
 
         THIS FILE IS AVAILABLE UNDER TWO DIFFERENT LICENSES:
         1/GPL OR 2/JSEL
@@ -27,7 +27,7 @@
         GNU General Public License for more details.
 
         You should have received a copy of the GNU General Public License
-        along with this program. If not, see <http://www.gnu.org/licenses />.
+        along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
         2/ JSEL - Commercial and Supported Versions of the program
@@ -43,7 +43,8 @@
         please contact the sales department at sales@jahia.com.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
         <groupId>org.jahia.configuration</groupId>
@@ -86,7 +87,7 @@
             <version>2.6.0</version>
         </dependency>
         <dependency>
-	        <groupId>xerces</groupId>
+            <groupId>xerces</groupId>
             <artifactId>xmlParserAPIs</artifactId>
             <version>2.11.0</version>
         </dependency>
@@ -138,14 +139,14 @@
             <artifactId>jaxen</artifactId>
             <version>${jaxen.version}</version>
             <exclusions>
-            	<exclusion>
-            		<groupId>jdom</groupId>
+                <exclusion>
+                    <groupId>jdom</groupId>
                     <artifactId>jdom</artifactId>
-            	</exclusion>
-            	<exclusion>
-            		<artifactId>xml-apis</artifactId>
-            		<groupId>xml-apis</groupId>
-            	</exclusion>
+                </exclusion>
+                <exclusion>
+                    <artifactId>xml-apis</artifactId>
+                    <groupId>xml-apis</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -197,9 +198,9 @@
             <version>${driver.derby.version}</version>
         </dependency>
         <dependency>
-           <groupId>org.apache.derby</groupId>
-           <artifactId>derby</artifactId>
-           <version>${driver.derby.version}</version>
+            <groupId>org.apache.derby</groupId>
+            <artifactId>derby</artifactId>
+            <version>${driver.derby.version}</version>
         </dependency>
 
         <dependency>
@@ -234,22 +235,22 @@
             <plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<executions>
-					<execution>
-						<id>make-assembly</id> <!-- this is used for inheritance merges -->
-						<phase>generate-test-resources</phase> <!-- bind to the packaging phase -->
-						<goals>
-							<goal>single</goal>
-						</goals>
-                        <configuration>
-                            <finalName>jahia-default-config</finalName>
-                            <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
-                            <appendAssemblyId>false</appendAssemblyId>
-                            <updateOnly>true</updateOnly>
-                            <descriptors>
-                                <descriptor>src/test/assembly/src.xml</descriptor>
-                            </descriptors>
-                        </configuration>
-					</execution>
+<!--					<execution>-->
+<!--						<id>make-assembly</id> &lt;!&ndash; this is used for inheritance merges &ndash;&gt;-->
+<!--						<phase>generate-test-resources</phase> &lt;!&ndash; bind to the packaging phase &ndash;&gt;-->
+<!--						<goals>-->
+<!--							<goal>single</goal>-->
+<!--						</goals>-->
+<!--                        <configuration>-->
+<!--                            <finalName>jahia-default-config</finalName>-->
+<!--                            <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>-->
+<!--                            <appendAssemblyId>false</appendAssemblyId>-->
+<!--                            <updateOnly>true</updateOnly>-->
+<!--                            <descriptors>-->
+<!--                                <descriptor>src/test/assembly/src.xml</descriptor>-->
+<!--                            </descriptors>-->
+<!--                        </configuration>-->
+<!--					</execution>-->
                     <execution>
                         <phase>package</phase>
                         <goals>

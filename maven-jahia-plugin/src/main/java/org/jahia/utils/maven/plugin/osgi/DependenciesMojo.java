@@ -5,7 +5,7 @@
  *
  *                                 http://www.jahia.com
  *
- *     Copyright (C) 2002-2019 Jahia Solutions Group SA. All rights reserved.
+ *     Copyright (C) 2002-2023 Jahia Solutions Group SA. All rights reserved.
  *
  *     THIS FILE IS AVAILABLE UNDER TWO DIFFERENT LICENSES:
  *     1/GPL OR 2/JSEL
@@ -315,20 +315,24 @@ public class DependenciesMojo extends BundlePlugin {
         }
 
         initialize();
+        getLog().debug("After init: "+projectParsingContext.getPackageImports().stream().map(packageInfo -> packageInfo.getName()+" from "+String.join(",", packageInfo.getSourceLocations())).collect(Collectors.joining(",\n")));
 
         projectParsingContext.addAllPackageImports(existingPackageImports);
+
+        getLog().debug("After addAll: "+projectParsingContext.getPackageImports().stream().map(packageInfo -> packageInfo.getName()+" from "+String.join(",", packageInfo.getSourceLocations())).collect(Collectors.joining(",\n")));
 
         long timer = System.currentTimeMillis();
         try {
             scanClassesBuildDirectory(projectParsingContext);
 
             getLog().info("Scanned classes directory in " + (System.currentTimeMillis() - timer) + " ms. Found " + projectParsingContext.getLocalPackages().size() + " project packages.");
-
+            getLog().debug("After Scan dir: "+projectParsingContext.getPackageImports().stream().map(packageInfo -> packageInfo.getName()+" from "+String.join(",", packageInfo.getSourceLocations())).collect(Collectors.joining(",\n")));
             timer = System.currentTimeMillis();
 
             int scanned = scanDependencies(projectParsingContext);
 
             getLog().info("Scanned " + scanned + " project dependencies in " + (System.currentTimeMillis() - timer) + " ms. Currently we have " + projectParsingContext.getLocalPackages().size() + " project packages.");
+            getLog().debug("After scan dep: "+projectParsingContext.getPackageImports().stream().map(packageInfo -> packageInfo.getName()+" from "+String.join(",", packageInfo.getSourceLocations())).collect(Collectors.joining(",\n")));
         } catch (IOException e) {
             throw new MojoExecutionException("Error while scanning dependencies", e);
         } catch (DependencyResolutionRequiredException e) {
@@ -362,8 +366,9 @@ public class DependenciesMojo extends BundlePlugin {
                 getLog().debug("  " + projectPackage);
             }
         }
-
+        getLog().debug("Before post process: \n"+projectParsingContext.getPackageImports().stream().map(packageInfo -> packageInfo.getName()+" from "+String.join(",", packageInfo.getSourceLocations())).collect(Collectors.joining(",\n")));
         projectParsingContext.postProcess();
+        getLog().debug("After post process: \n"+projectParsingContext.getPackageImports().stream().map(packageInfo -> packageInfo.getName()+" from "+String.join(",", packageInfo.getSourceLocations())).collect(Collectors.joining(",\n")));
 
         StringBuilder generatedPackageBuffer = new StringBuilder(256);
         int i = 0;
@@ -375,6 +380,7 @@ public class DependenciesMojo extends BundlePlugin {
             if (uniquePackageImports.contains(packageImport.getName())) {
                 continue;
             }
+            getLog().debug("Adding package info to imported list " + packageImport.getName() + " coming from " + String.join(",", packageImport.getSourceLocations()));
             generatedPackageBuffer.append(packageImportName);
             if (i < projectParsingContext.getPackageImports().size() - 1) {
                 generatedPackageBuffer.append(",\n");
