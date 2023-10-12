@@ -24,4 +24,7 @@ jobs:
           architecture: x64
           cache: maven
       - name: Build with Maven
+        env:
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: mvn --settings .github/maven.settings.xml --batch-mode --update-snapshots  deploy
