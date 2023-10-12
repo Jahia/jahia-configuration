@@ -70,7 +70,7 @@ import org.hibernate.tool.hbm2ddl.Target;
 
 /**
  * Exports database schema creation scripts using JPA Hibernate configuration.<br>
- * 
+ *
  * @goal jpa-schema-export
  * @phase process-classes
  * @requiresProject
@@ -83,43 +83,43 @@ public class JpaSchemaExportMojo extends AbstractMojo {
 
     /**
      * The Hibernate dialect to use
-     * 
+     *
      * @parameter
      */
     private String hibernateDialect;
 
     /**
      * The Hibernate naming strategy
-     * 
+     *
      * @parameter
      */
     private String hibernateNamingStrategy;
 
     /**
      * The output file to export DDL into
-     * 
+     *
      * @parameter default-value="${project.build.directory}/schema.sql"
      */
     private File outputFile;
-    
+
     /**
      * The alternative file name of the persistence.xml resource in case it is neede to override it.
-     * 
+     *
      * @parameter
      */
     private String persistenceFileName;
 
     /**
      * The name of the persistence unit to export.
-     * 
+     *
      * @parameter
      */
     private String persistenceUnitName;
 
     /**
      * The maven project
-     * 
-     * @parameter expression="${project}"
+     *
+     * @parameter property="project"
      * @required
      * @readonly
      */
@@ -127,7 +127,7 @@ public class JpaSchemaExportMojo extends AbstractMojo {
 
     /**
      * Statement type to be exported
-     * 
+     *
      * @parameter
      */
     private SchemaExport.Type statementType = Type.BOTH;
@@ -181,7 +181,7 @@ public class JpaSchemaExportMojo extends AbstractMojo {
                         IOUtil.close(os);
                     }
                 }
-                
+
                 return urlClassLoader;
             }
         } catch (Exception e) {
