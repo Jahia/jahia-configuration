@@ -10,7 +10,6 @@ on:
 jobs:
   build:
     name: Build Module
-    needs: update-signature
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
