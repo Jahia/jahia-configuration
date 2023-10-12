@@ -5,7 +5,7 @@
  *
  *                                 http://www.jahia.com
  *
- *     Copyright (C) 2002-2019 Jahia Solutions Group SA. All rights reserved.
+ *     Copyright (C) 2002-2023 Jahia Solutions Group SA. All rights reserved.
  *
  *     THIS FILE IS AVAILABLE UNDER TWO DIFFERENT LICENSES:
  *     1/GPL OR 2/JSEL
@@ -62,23 +62,23 @@ public class ParsingContext implements Serializable {
     protected String filePath;
     protected String version;
     protected boolean inCache = false;
-    private Set<String> taglibUris = new TreeSet<String>();
-    private Map<String, Set<String>> unresolvedTaglibUris = new TreeMap<String,Set<String>>();
-    private Map<String, Set<PackageInfo>> taglibPackages = new HashMap<String, Set<PackageInfo>>();
-    private Map<String, Boolean> externalTaglibs = new HashMap<String, Boolean>();
-    private Set<String> contentTypeDefinitions = new TreeSet<String>();
-    private Set<String> contentTypeReferences = new TreeSet<String>();
-    private Set<String> additionalFilesToParse = new TreeSet<String>();
-    private Set<PackageInfo> splitPackages = new TreeSet<PackageInfo>();
+    private Set<String> taglibUris = new TreeSet<>();
+    private Map<String, Set<String>> unresolvedTaglibUris = new TreeMap<>();
+    private Map<String, Set<PackageInfo>> taglibPackages = new HashMap<>();
+    private Map<String, Boolean> externalTaglibs = new HashMap<>();
+    private Set<String> contentTypeDefinitions = new TreeSet<>();
+    private Set<String> contentTypeReferences = new TreeSet<>();
+    private Set<String> additionalFilesToParse = new TreeSet<>();
+    private Set<PackageInfo> splitPackages = new TreeSet<>();
     private boolean osgiBundle = false;
-    private List<String> bundleClassPath = new ArrayList<String>();
-    private Set<PackageInfo> localPackages = new TreeSet<PackageInfo>();
-    private Set<PackageInfo> packageImports = new TreeSet<PackageInfo>();
-    private Set<PackageInfo> packageExports = new TreeSet<PackageInfo>();
-    private Set<PackageInfo> packageIgnores = new TreeSet<PackageInfo>();
+    private List<String> bundleClassPath = new ArrayList<>();
+    private Set<PackageInfo> localPackages = new TreeSet<>();
+    private Set<PackageInfo> packageImports = new TreeSet<>();
+    private Set<PackageInfo> packageExports = new TreeSet<>();
+    private Set<PackageInfo> packageIgnores = new TreeSet<>();
 
     @JsonIgnore protected ParsingContext parentParsingContext;
-    @JsonIgnore protected List<ParsingContext> children = new ArrayList<ParsingContext>();
+    @JsonIgnore protected List<ParsingContext> children = new ArrayList<>();
     @JsonIgnore Boolean optional = null;
     @JsonIgnore Boolean external = null;
 
