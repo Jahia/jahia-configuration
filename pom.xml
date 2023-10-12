@@ -87,7 +87,7 @@
         <module>configurators</module>
         <module>archivers</module>
         <module>osgi-tools</module>
-        <module>migrators</module>
+<!--        <module>migrators</module>-->
         <module>maven-jahia-plugin</module>
         <module>jahia-simple-maven-plugin</module>
         <module>jahia-installer</module>
@@ -187,6 +187,11 @@
                         <preparationGoals>clean install</preparationGoals>
                     </configuration>
 	            </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-plugin-plugin</artifactId>
+                    <version>3.9.0</version>
+                </plugin>
 			</plugins>
 		</pluginManagement>
 

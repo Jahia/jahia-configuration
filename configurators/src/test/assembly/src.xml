@@ -12,7 +12,7 @@
             <includes>
                 <include>org/jahia/defaults/**/*</include>
             </includes>
-            <outputDirectory></outputDirectory>
+            <outputDirectory>/</outputDirectory>
         </fileSet>
     </fileSets>
 
