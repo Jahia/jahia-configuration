@@ -315,24 +315,24 @@ public class DependenciesMojo extends BundlePlugin {
         }
 
         initialize();
-        getLog().debug("After init: "+projectParsingContext.getPackageImports().stream().map(packageInfo -> packageInfo.getName()+" from "+String.join(",", packageInfo.getSourceLocations())).collect(Collectors.joining(",\n")));
+        getLog().debug("After init: " + projectParsingContext.getPackageImports().stream().map(packageInfo -> packageInfo.getName() + " from " + String.join(",", packageInfo.getSourceLocations())).collect(Collectors.joining(",\n")));
 
         projectParsingContext.addAllPackageImports(existingPackageImports);
 
-        getLog().debug("After addAll: "+projectParsingContext.getPackageImports().stream().map(packageInfo -> packageInfo.getName()+" from "+String.join(",", packageInfo.getSourceLocations())).collect(Collectors.joining(",\n")));
+        getLog().debug("After addAll: " + projectParsingContext.getPackageImports().stream().map(packageInfo -> packageInfo.getName() + " from " + String.join(",", packageInfo.getSourceLocations())).collect(Collectors.joining(",\n")));
 
         long timer = System.currentTimeMillis();
         try {
             scanClassesBuildDirectory(projectParsingContext);
 
             getLog().info("Scanned classes directory in " + (System.currentTimeMillis() - timer) + " ms. Found " + projectParsingContext.getLocalPackages().size() + " project packages.");
-            getLog().debug("After Scan dir: "+projectParsingContext.getPackageImports().stream().map(packageInfo -> packageInfo.getName()+" from "+String.join(",", packageInfo.getSourceLocations())).collect(Collectors.joining(",\n")));
+            getLog().debug("After Scan dir: " + projectParsingContext.getPackageImports().stream().map(packageInfo -> packageInfo.getName() + " from " + String.join(",", packageInfo.getSourceLocations())).collect(Collectors.joining(",\n")));
             timer = System.currentTimeMillis();
 
             int scanned = scanDependencies(projectParsingContext);
 
             getLog().info("Scanned " + scanned + " project dependencies in " + (System.currentTimeMillis() - timer) + " ms. Currently we have " + projectParsingContext.getLocalPackages().size() + " project packages.");
-            getLog().debug("After scan dep: "+projectParsingContext.getPackageImports().stream().map(packageInfo -> packageInfo.getName()+" from "+String.join(",", packageInfo.getSourceLocations())).collect(Collectors.joining(",\n")));
+            getLog().debug("After scan dep: " + projectParsingContext.getPackageImports().stream().map(packageInfo -> packageInfo.getName() + " from " + String.join(",", packageInfo.getSourceLocations())).collect(Collectors.joining(",\n")));
         } catch (IOException e) {
             throw new MojoExecutionException("Error while scanning dependencies", e);
         } catch (DependencyResolutionRequiredException e) {
@@ -366,9 +366,9 @@ public class DependenciesMojo extends BundlePlugin {
                 getLog().debug("  " + projectPackage);
             }
         }
-        getLog().debug("Before post process: \n"+projectParsingContext.getPackageImports().stream().map(packageInfo -> packageInfo.getName()+" from "+String.join(",", packageInfo.getSourceLocations())).collect(Collectors.joining(",\n")));
+        getLog().debug("Before post process: \n" + projectParsingContext.getPackageImports().stream().map(packageInfo -> packageInfo.getName() + " from " + String.join(",", packageInfo.getSourceLocations())).collect(Collectors.joining(",\n")));
         projectParsingContext.postProcess();
-        getLog().debug("After post process: \n"+projectParsingContext.getPackageImports().stream().map(packageInfo -> packageInfo.getName()+" from "+String.join(",", packageInfo.getSourceLocations())).collect(Collectors.joining(",\n")));
+        getLog().debug("After post process: \n" + projectParsingContext.getPackageImports().stream().map(packageInfo -> packageInfo.getName() + " from " + String.join(",", packageInfo.getSourceLocations())).collect(Collectors.joining(",\n")));
 
         StringBuilder generatedPackageBuffer = new StringBuilder(256);
         int i = 0;
@@ -480,8 +480,12 @@ public class DependenciesMojo extends BundlePlugin {
         getLog().debug(generatedPackageList);
 
         if (propertiesOutputFile != null) {
-            String[] extraCapabilitiesPropertyValue = new String[]{contentTypeDefinitionsBuffer.toString()};
             try {
+                if (!propertiesOutputFile.exists()) {
+                    propertiesOutputFile.getParentFile().mkdirs();
+                    propertiesOutputFile.createNewFile();
+                }
+                String[] extraCapabilitiesPropertyValue = new String[]{contentTypeDefinitionsBuffer.toString()};
                 PropertyFileUtils.updatePropertyFile(
                         propertiesInputFile,
                         propertiesOutputFile,
@@ -489,7 +493,7 @@ public class DependenciesMojo extends BundlePlugin {
                         extraCapabilitiesPropertyValue,
                         new SLF4JLoggerToMojoLogBridge(getLog()));
             } catch (IOException e) {
-                getLog().warn("Error saving extra system capabilities to file " + propertiesOutputFile);
+                getLog().warn("Error saving extra system capabilities to file " + propertiesOutputFile + " , error: " + e.getMessage());
             }
         }
         getLog().info("Took " + (System.currentTimeMillis() - startTime) + " ms for the dependencies analysis");
