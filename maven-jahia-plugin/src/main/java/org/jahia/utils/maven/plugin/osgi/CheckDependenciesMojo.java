@@ -186,13 +186,13 @@ public class CheckDependenciesMojo extends DependenciesMojo {
                             info = getPackageInfo(bundlePluginExplicitPackages, importPackagePath);
                         }
                         if (info != null) {
-                            // the package was explicitely configured either through Maven properties or through
+                            // the package was explicitly configured either through Maven properties or through
                             // explicit configuration in the bundle plugin, in this case we will not touch the
                             // package's resolution directive
                             getLog().info("Explicit package configuration found for " + importPackagePath + ".");
                             if (info.getVersion() != null) {
                                 String bndVersion = importPackageClause.getAttributes().get(Constants.VERSION_ATTRIBUTE);
-                                if (!bndVersion.equals(info.getVersion())) {
+                                if (bndVersion == null || !bndVersion.equals(info.getVersion())) {
                                     getLog().info("Explicit package configuration version" + info.getVersion() + " is different than BND one " + bndVersion + " for " + importPackagePath + ".");
                                     modifiedImportPackageClauses = true;
                                 }
