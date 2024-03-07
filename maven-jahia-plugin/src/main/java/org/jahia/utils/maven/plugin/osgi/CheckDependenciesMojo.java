@@ -51,8 +51,6 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
@@ -62,7 +60,9 @@ import org.jahia.utils.osgi.ManifestValueClause;
 import org.jahia.utils.osgi.parsers.PackageInfo;
 import org.jahia.utils.osgi.parsers.ParsingContext;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -113,7 +113,6 @@ public class CheckDependenciesMojo extends DependenciesMojo {
      * @component
      */
     private ArchiverManager archiverManager;
-
 
     @Override
     public void execute() throws MojoExecutionException {
