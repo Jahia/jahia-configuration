@@ -51,6 +51,8 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
@@ -94,6 +96,12 @@ public class CheckDependenciesMojo extends DependenciesMojo {
      */
     protected boolean skipCheckDependencies;
     /**
+     * If the overwritten MANIFEST should be dumped in the target directory
+     *
+     * @parameter default-value="false" expression="${jahia.modules.dumpOverwrittenManifest}"
+     */
+    protected boolean dumpOverwrittenManifest;
+    /**
      * @component
      */
     private MavenProjectHelper mavenProjectHelper;
@@ -105,6 +113,7 @@ public class CheckDependenciesMojo extends DependenciesMojo {
      * @component
      */
     private ArchiverManager archiverManager;
+
 
     @Override
     public void execute() throws MojoExecutionException {
@@ -272,6 +281,17 @@ public class CheckDependenciesMojo extends DependenciesMojo {
             getLog().info("Overwriting existing META-INF/MANIFEST file");
         } else {
             getLog().warn("Missing META-INF/MANIFEST.MF file in bundle, how did that happen ?");
+        }
+
+        if (dumpOverwrittenManifest) {
+            File dumpManifestFile = new File(project.getBuild().getOutputDirectory(), "META-INF/MANIFEST.OVERWRITE.MF");
+            getLog().info("Dumping overwritten manifest file in: " + dumpManifestFile.getAbsolutePath());
+            try (FileOutputStream dumpManifestFileOutputStream = new FileOutputStream(dumpManifestFile)) {
+                manifest.write(dumpManifestFileOutputStream);
+            } catch (IOException e) {
+                getLog().error("Error writing dumped META-INF/MANIFEST.OVERWRITE.MF file", e);
+                return;
+            }
         }
 
         try (FileOutputStream manifestFileOutputStream = new FileOutputStream(manifestFile)) {
