@@ -60,7 +60,9 @@ import org.jahia.utils.osgi.ManifestValueClause;
 import org.jahia.utils.osgi.parsers.PackageInfo;
 import org.jahia.utils.osgi.parsers.ParsingContext;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -93,6 +95,12 @@ public class CheckDependenciesMojo extends DependenciesMojo {
      * @parameter default-value="false" expression="${jahia.modules.skipCheckDependencies}"
      */
     protected boolean skipCheckDependencies;
+    /**
+     * If the overwritten MANIFEST should be dumped in the target directory
+     *
+     * @parameter default-value="false" expression="${jahia.modules.dumpOverwrittenManifest}"
+     */
+    protected boolean dumpOverwrittenManifest;
     /**
      * @component
      */
@@ -272,6 +280,17 @@ public class CheckDependenciesMojo extends DependenciesMojo {
             getLog().info("Overwriting existing META-INF/MANIFEST file");
         } else {
             getLog().warn("Missing META-INF/MANIFEST.MF file in bundle, how did that happen ?");
+        }
+
+        if (dumpOverwrittenManifest) {
+            File dumpManifestFile = new File(project.getBuild().getOutputDirectory(), "META-INF/MANIFEST.OVERWRITE.MF");
+            getLog().info("Dumping overwritten manifest file in: " + dumpManifestFile.getAbsolutePath());
+            try (FileOutputStream dumpManifestFileOutputStream = new FileOutputStream(dumpManifestFile)) {
+                manifest.write(dumpManifestFileOutputStream);
+            } catch (IOException e) {
+                getLog().error("Error writing dumped META-INF/MANIFEST.OVERWRITE.MF file", e);
+                return;
+            }
         }
 
         try (FileOutputStream manifestFileOutputStream = new FileOutputStream(manifestFile)) {
