@@ -295,12 +295,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.jahia.configuration</groupId>
-            <artifactId>migrators</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.maven.scm</groupId>
             <artifactId>maven-scm-api</artifactId>
             <version>${maven-scm.version}</version>
