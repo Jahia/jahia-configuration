@@ -48,7 +48,7 @@
 	<parent>
 		<groupId>org.jahia.configuration</groupId>
 		<artifactId>jahia-configuration-root</artifactId>
-		<version>6.10</version>
+		<version>6.10-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.jahia.server</groupId>
@@ -92,12 +92,12 @@
     	<dependency>
 			<groupId>org.jahia.configuration</groupId>
 			<artifactId>deployers</artifactId>
-			<version>6.10</version>
+			<version>6.10-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jahia.configuration</groupId>
 			<artifactId>configurators</artifactId>
-			<version>6.10</version>
+			<version>6.10-SNAPSHOT</version>
 			<classifier>standalone</classifier>
 		</dependency>
         <dependency>
@@ -297,7 +297,7 @@
         <dependency>
             <groupId>org.jahia.configuration</groupId>
             <artifactId>migrators</artifactId>
-            <version>6.10-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
