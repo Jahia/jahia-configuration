@@ -274,6 +274,14 @@ public class CheckDependenciesMojo extends DependenciesMojo {
             getLog().warn("Missing META-INF/MANIFEST.MF file in bundle, how did that happen ?");
         }
 
+        File dumpManifestFile = new File(project.getBuild().getOutputDirectory(), "META-INF/MANIFEST.JAHIA.MF");
+        try (FileOutputStream dumpManifestFileOutputStream = new FileOutputStream(dumpManifestFile)) {
+            manifest.write(dumpManifestFileOutputStream);
+        } catch (IOException e) {
+            getLog().error("Error dumping new META-INF/MANIFEST.JAHIA.MF file", e);
+            return;
+        }
+
         try (FileOutputStream manifestFileOutputStream = new FileOutputStream(manifestFile)) {
             manifest.write(manifestFileOutputStream);
         } catch (IOException e) {
