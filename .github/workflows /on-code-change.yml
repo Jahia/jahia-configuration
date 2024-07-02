@@ -22,3 +22,9 @@ jobs:
           NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
           NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: mvn --settings .github/maven.settings.xml --batch-mode --update-snapshots verify
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jahia-configuration
+          path: ./**/target/*
+          retention-days: 2
