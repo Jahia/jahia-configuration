@@ -93,7 +93,6 @@ public class PropertiesManagerTest extends TestCase {
         propertiesManager.setReplaceTabsWithSpaces(false);
         propertiesManager.setSanitizeValue(false);
 
-        propertiesManager.setProperty("jahiaToolManagerUsername", "toolmgr");
         propertiesManager.setProperty("testPropertyName\u2126", "testPropertyValue\u2126");
         propertiesManager.setProperty("backslashTest", "c:\\Program Files (x86)\\SWFTools\\pdf2swf.exe");
 
@@ -113,7 +112,6 @@ public class PropertiesManagerTest extends TestCase {
 
         Properties testProperties = new Properties();
         testProperties.load(new FileInputStream(jahiaTargetPropertiesFile));
-        assertEquals("Tool manager value is not properly set", "toolmgr", testProperties.getProperty("jahiaToolManagerUsername"));
         assertEquals("Test property does not have proper value", "testPropertyValue\u2126", testProperties.getProperty("testPropertyName\u2126"));
         assertEquals("Backslash property does not have proper value", "c:\\Program Files (x86)\\SWFTools\\pdf2swf.exe", testProperties.getProperty("backslashTest"));
         assertEquals("Pattern property does not have a proper value", "[0-9a-z_A-Z\\-\\{\\}]+", testProperties.getProperty("userManagementGroupNamePattern"));

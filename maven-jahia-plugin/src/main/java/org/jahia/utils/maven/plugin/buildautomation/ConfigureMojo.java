@@ -242,16 +242,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
      * @parameter expression="${jahia.configure.mailParanoia}" default-value="Disabled"
      */
     protected String mailParanoia;
-    
-    /**
-     * @parameter expression="${jahia.configure.toolManagerUsername}" default-value="jahia"
-     */
-    protected String jahiaToolManagerUsername;
-
-    /**
-     * @parameter expression="${jahia.configure.toolManagerPassword}" default-value="password"
-     */
-    protected String jahiaToolManagerPassword;
 
     /**
      * @parameter expression="${jahia.configure.ldapActivated}" default-value="false"
@@ -512,14 +502,6 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     public String getJahiaModulesDiskPath() {
         return jahiaModulesDiskPath;
-    }
-
-    public String getJahiaToolManagerUsername() {
-        return jahiaToolManagerUsername;
-    }
-
-    public String getJahiaToolManagerPassword() {
-        return jahiaToolManagerPassword;
     }
 
     public String getLdapActivated() {
