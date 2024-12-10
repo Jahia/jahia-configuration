@@ -112,20 +112,6 @@ public interface JahiaConfigInterface {
 
     String getJahiaModulesDiskPath();
 
-    /**
-     * Returns the password of the user that is used to protect Jahia tools area (/tools, etc.).
-     * 
-     * @return the password of the user that is used to protect Jahia tools area (/tools, etc.)
-     */
-    String getJahiaToolManagerPassword();
-
-    /**
-     * Returns the name of the user that is used to protect Jahia tools area (/tools, etc.).
-     * 
-     * @return the name of the user that is used to protect Jahia tools area (/tools, etc.)
-     */
-    String getJahiaToolManagerUsername();
-
     String getJahiaVarDiskPath();
 
     String getJahiaWebAppsDeployerBaseURL();
