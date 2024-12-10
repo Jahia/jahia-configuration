@@ -125,7 +125,6 @@ public class JahiaGlobalConfiguratorTest extends TestCase {
         websphereDerbyConfigBean.setExternalizedConfigFinalName("jahia-externalized-config");
         websphereDerbyConfigBean.setJeeApplicationLocation(configuratorsFile.toString());
         websphereDerbyConfigBean.setJeeApplicationModuleList("jahia-war:web:jahia.war:jahia,portlet-testsuite:web:websphere-testsuite.war:testsuite,java-example:java:somecode.jar");
-        websphereDerbyConfigBean.setJahiaToolManagerUsername("toolmgr");
 
         JahiaGlobalConfigurator jahiaGlobalConfigurator = new JahiaGlobalConfigurator(new SLF4JLogger(logger), websphereDerbyConfigBean);
         jahiaGlobalConfigurator.execute();
@@ -143,7 +142,6 @@ public class JahiaGlobalConfiguratorTest extends TestCase {
             InputStream jahiaPropsInputStream = configJarFile.getInputStream(jahiaPropertiesJarEntry);
             Properties jahiaProperties = new Properties();
             jahiaProperties.load(jahiaPropsInputStream);
-            assertEquals("Tool manager is not set", "toolmgr", jahiaProperties.get("jahiaToolManagerUsername"));
         } finally {
             configJarFile.close();
         }

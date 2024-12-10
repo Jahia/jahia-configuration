@@ -93,7 +93,6 @@ public class PropertiesManagerTest extends TestCase {
         propertiesManager.setReplaceTabsWithSpaces(false);
         propertiesManager.setSanitizeValue(false);
 
-        propertiesManager.setProperty("jahiaToolManagerUsername", "toolmgr");
         propertiesManager.setProperty("testPropertyName\u2126", "testPropertyValue\u2126");
         propertiesManager.setProperty("backslashTest", "c:\\Program Files (x86)\\SWFTools\\pdf2swf.exe");
 
@@ -109,11 +108,10 @@ public class PropertiesManagerTest extends TestCase {
         propertiesManager.storeProperties(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile.getPath());
 
         Patch patch = getFileDiffs(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile);
-        assertEquals("Only two lines should be modified", 2, patch.getDeltas().size());
+        assertEquals("Only one line should be modified", 1, patch.getDeltas().size());
 
         Properties testProperties = new Properties();
         testProperties.load(new FileInputStream(jahiaTargetPropertiesFile));
-        assertEquals("Tool manager value is not properly set", "toolmgr", testProperties.getProperty("jahiaToolManagerUsername"));
         assertEquals("Test property does not have proper value", "testPropertyValue\u2126", testProperties.getProperty("testPropertyName\u2126"));
         assertEquals("Backslash property does not have proper value", "c:\\Program Files (x86)\\SWFTools\\pdf2swf.exe", testProperties.getProperty("backslashTest"));
         assertEquals("Pattern property does not have a proper value", "[0-9a-z_A-Z\\-\\{\\}]+", testProperties.getProperty("userManagementGroupNamePattern"));
@@ -131,7 +129,7 @@ public class PropertiesManagerTest extends TestCase {
         propertiesManager.storeProperties(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile.getPath());
 
         Patch patch = getFileDiffs(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile);
-        assertEquals("83 lines should be modified", 83, patch.getDeltas().size());
+        assertEquals("82 lines should be modified", 82, patch.getDeltas().size());
 
         Properties testProperties = new Properties();
         testProperties.load(new FileInputStream(jahiaTargetPropertiesFile));
@@ -210,13 +208,13 @@ public class PropertiesManagerTest extends TestCase {
         assertEquals("Multi-valued property not saved properly", "value1value2", testProperties.getProperty("multiValuedProperty"));
         propertiesManager = new PropertiesManager(new FileInputStream(jahiaTargetPropertiesFile));
     }
-    
+
     public void testSanitize() throws IOException {
         PropertiesManager propertiesManager = new PropertiesManager(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry));
         propertiesManager.storeProperties(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile.getPath());
-        
+
         String out = FileUtils.readFileToString(jahiaTargetPropertiesFile);
-        
+
         assertFalse("Tabs were not replaced with spaces", out.contains("\t"));
         assertFalse("Values were not sanitized", out.contains("=  "));
     }

@@ -99,8 +99,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String storeFilesInAWS = "false";
     private String fileDataStorePath = "";
     private String targetConfigurationDirectory = "";
-    private String jahiaToolManagerPassword = "password";
-    private String jahiaToolManagerUsername = "jahia";
 
     private String ldapActivated = "false";
     private Map<String, String> groupLdapProviderProperties = new HashMap<String, String>();
@@ -443,22 +441,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
      */
     public void setMailParanoia(String mailParanoia) {
         this.mailParanoia = mailParanoia;
-    }
-
-    public String getJahiaToolManagerUsername() {
-        return jahiaToolManagerUsername;
-    }
-
-    public String getJahiaToolManagerPassword() {
-        return jahiaToolManagerPassword;
-    }
-
-    public void setJahiaToolManagerPassword(String jahiaToolManagerPassword) {
-        this.jahiaToolManagerPassword = jahiaToolManagerPassword;
-    }
-
-    public void setJahiaToolManagerUsername(String jahiaToolManagerUsername) {
-        this.jahiaToolManagerUsername = jahiaToolManagerUsername;
     }
 
     public String getLdapActivated() {

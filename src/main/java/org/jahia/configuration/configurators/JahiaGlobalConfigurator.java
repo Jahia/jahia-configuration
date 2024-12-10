@@ -861,7 +861,6 @@ public class JahiaGlobalConfigurator {
             if (props != null) {
                 props.put("databasePassword", "***");
                 props.put("jahiaRootPassword", "***");
-                props.put("jahiaToolManagerPassword", "***");
                 props.put("mailServer", "***");
             }
             logger.info("Loaded configuration from file " + configFile + ":\n" + props);
