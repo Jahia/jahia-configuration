@@ -56,12 +56,12 @@
     <name>Jahia Server Configuration</name>
     <packaging>jar</packaging>
     <properties>
-        <driver.derby.version>10.14.2.0</driver.derby.version>
-        <driver.mssql.version>12.6.1.jre11</driver.mssql.version>
+        <driver.derby.version>10.15.2.0</driver.derby.version>
+        <driver.mssql.version>12.8.1.jre11</driver.mssql.version>
         <driver.mysql.version>8.3.0</driver.mysql.version>
-        <driver.oracle.version>21.13.0.0</driver.oracle.version>
-        <driver.postgresql.version>42.6.1</driver.postgresql.version>
-        <driver.mariadb.version>3.3.3</driver.mariadb.version>
+        <driver.oracle.version>23.7.0.25.01</driver.oracle.version>
+        <driver.postgresql.version>42.7.5</driver.postgresql.version>
+        <driver.mariadb.version>3.5.1</driver.mariadb.version>
     </properties>
     <dependencies>
         <dependency>
@@ -194,6 +194,11 @@
         <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derbytools</artifactId>
+            <version>${driver.derby.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.derby</groupId>
+            <artifactId>derbyshared</artifactId>
             <version>${driver.derby.version}</version>
         </dependency>
         <dependency>

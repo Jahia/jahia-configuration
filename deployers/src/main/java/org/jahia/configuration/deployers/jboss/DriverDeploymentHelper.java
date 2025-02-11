@@ -64,6 +64,7 @@ final class DriverDeploymentHelper {
         DBMS_TYPES = new HashMap<String, String>();
         DBMS_TYPES.put("derby", "derby_embedded");
         DBMS_TYPES.put("derbyclient", "derby");
+        DBMS_TYPES.put("derbyshared", "derby");
         DBMS_TYPES.put("mariadb", "mariadb");
         DBMS_TYPES.put("mysql", "mysql");
         DBMS_TYPES.put("ojdbc6", "oracle");
