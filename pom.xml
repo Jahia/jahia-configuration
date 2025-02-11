@@ -80,6 +80,10 @@
         <commons-io.version>2.11.0</commons-io.version>
         <bndlib.version>6.1.0</bndlib.version>
         <maven.bundle.plugin.version>5.1.9</maven.bundle.plugin.version>
+
+        <!-- Releases properties -->
+        <nexus.maven.plugin.version>1.7.0</nexus.maven.plugin.version>
+        <jahia.nexus.staging.repository.id>64277f72646358</jahia.nexus.staging.repository.id>
 	</properties>
 
     <modules>
@@ -305,6 +309,24 @@
                                 </goals>
                             </execution>
                         </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>release-to-staging-repository</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>${nexus.maven.plugin.version}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <nexusUrl>https://devtools.jahia.com/nexus/</nexusUrl>
+                            <serverId>staging-repository</serverId>
+                            <stagingProfileId>${jahia.nexus.staging.repository.id}</stagingProfileId>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
