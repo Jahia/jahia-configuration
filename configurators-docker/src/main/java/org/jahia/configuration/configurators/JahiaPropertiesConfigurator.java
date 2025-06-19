@@ -62,7 +62,7 @@ import org.slf4j.LoggerFactory;
  */
 public class JahiaPropertiesConfigurator extends AbstractConfigurator {
 
-    private static final Logger logger = LoggerFactory.getLogger(JahiaNodePropertiesConfigurator.class);
+    private static final Logger logger = LoggerFactory.getLogger(JahiaPropertiesConfigurator.class);
 
     private PropertiesManager properties;
 
