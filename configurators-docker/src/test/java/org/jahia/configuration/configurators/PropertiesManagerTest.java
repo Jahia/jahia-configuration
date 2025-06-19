@@ -49,13 +49,12 @@ import junit.framework.TestCase;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-
-import org.apache.commons.io.FileUtils;
 
 /**
  * Test case for Properties Manager
@@ -213,7 +212,7 @@ public class PropertiesManagerTest extends TestCase {
         PropertiesManager propertiesManager = new PropertiesManager(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry));
         propertiesManager.storeProperties(jahiaDefaultConfigJarFile.getInputStream(jahiaPropertiesJarEntry), jahiaTargetPropertiesFile.getPath());
 
-        String out = FileUtils.readFileToString(jahiaTargetPropertiesFile);
+        String out = Files.readString(jahiaTargetPropertiesFile.toPath());
 
         assertFalse("Tabs were not replaced with spaces", out.contains("\t"));
         assertFalse("Values were not sanitized", out.contains("=  "));

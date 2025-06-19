@@ -65,19 +65,19 @@
 	<description>Jahia Maven plugin</description>
 
 	<repositories>
-        <repository>
-            <id>jahia-public</id>
-            <name>Jahia Public Repository</name>
-            <url>https://devtools.jahia.com/nexus/content/groups/public</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
+		<repository>
+			<id>jahia-public</id>
+			<name>Jahia Public Repository</name>
+			<url>https://devtools.jahia.com/nexus/content/groups/public</url>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
 
 	<distributionManagement>
 		<site>
@@ -89,13 +89,17 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.jahia.configuration</groupId>
+			<artifactId>deployers</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jahia.configuration</groupId>
 			<artifactId>configurators</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>${commons-io.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-lang</groupId>
@@ -123,9 +127,9 @@
 				<artifactId>maven-plugin-plugin</artifactId>
 				<version>${maven.plugin.plugin.version}</version>
 				<configuration>
-          			<goalPrefix>jahia</goalPrefix>
-          			<skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
-        		</configuration>
+					<goalPrefix>jahia</goalPrefix>
+					<skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+				</configuration>
 				<executions>
 					<execution>
 						<id>mojo-descriptor</id>

@@ -81,8 +81,6 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
 
         websphereOracleConfigBean = new JahiaConfigBean();
         websphereOracleConfigBean.setDatabaseType("oracle");
-        websphereOracleConfigBean.setTargetServerType("was");
-        websphereOracleConfigBean.setTargetServerVersion("6.1.0.25");
         websphereOracleConfigBean.setCluster_activated("true");
         websphereOracleConfigBean.setClusterTCPBindAddress("1.2.3.4");
         websphereOracleConfigBean.setCluster_node_serverId("jahiaServer1");
@@ -98,32 +96,13 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
         
         websphereOracleConfigBean.getJahiaProperties().put("jahia.dm.viewer.enabled", "true");
         websphereOracleConfigBean.getJahiaProperties().put("jahia.dm.viewer.pdf2swf", "c:\\Program Files (x86)\\SWFTools\\pdf2swf.exe");
-        
-        websphereOracleConfigBean.getJahiaAdvancedProperties().put("auth.spnego.bypassForUrls", "/(administration|cms/login|cms/logout|css)((\\?|/).*)?");
-        
-        websphereOracleConfigBean.setLdapActivated("true");
-        Map<String, String> ldap = new HashMap<String, String>();
-        ldap.put("url", "ldap://10.8.37.17:389/");
-        ldap.put("public.bind.dn", "public.bind.dn");
-        ldap.put("public.bind.password", "ldapadmin");
-        ldap.put("uid.search.name", "o=jahia");
-        websphereOracleConfigBean.setUserLdapProviderProperties(ldap);
-        ldap = new HashMap<String, String>();
-        ldap.put("url", "ldap://10.8.37.17:389/");
-        ldap.put("public.bind.dn", "public.bind.dn");
-        ldap.put("public.bind.password", "ldapadmin");
-        ldap.put("search.name", "dc=jahia");
-        websphereOracleConfigBean.setGroupLdapProviderProperties(ldap);
-        websphereOracleConfigBean.setJeeApplicationLocation(configuratorsFile.toString());
-        websphereOracleConfigBean.setJeeApplicationModuleList("jahia-war:web:ROOT.war:,portlet-testsuite:web:websphere-testsuite.war:testsuite");
+
 
         tomcatMySQLConfigBean = new JahiaConfigBean();
         tomcatMySQLConfigBean.setDatabaseType("mysql");
-        tomcatMySQLConfigBean.setTargetServerType("tomcat");
         tomcatMySQLConfigBean.setCluster_activated("false");
         tomcatMySQLConfigBean.setCluster_node_serverId("jahiaServer1");
         tomcatMySQLConfigBean.setProcessingServer("true");
-        tomcatMySQLConfigBean.setJeeApplicationModuleList(null);
     }
 
     @Override

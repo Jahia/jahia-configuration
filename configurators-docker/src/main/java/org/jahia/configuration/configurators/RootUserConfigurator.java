@@ -47,8 +47,11 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
 import org.jdom2.input.SAXBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.Map;
 
 /**
@@ -60,8 +63,10 @@ import java.util.Map;
  */
 public class RootUserConfigurator extends AbstractXMLConfigurator {
 
-    private String rootPassword;
-    private JahiaConfigInterface cfg;
+    private static final Logger logger = LoggerFactory.getLogger(RootUserConfigurator.class);
+
+    private final String rootPassword;
+    private final JahiaConfigInterface cfg;
 
     public RootUserConfigurator(Map dbProperties, JahiaConfigInterface jahiaConfigInterface, String rootPassword) {
         super(dbProperties, jahiaConfigInterface);
@@ -69,15 +74,12 @@ public class RootUserConfigurator extends AbstractXMLConfigurator {
         cfg = jahiaConfigInterface;
     }
 
-    public void updateConfiguration(ConfigFile sourceConfigFile, String destFileName) throws Exception {
-
-        if (sourceConfigFile == null) {
-            return;
-        }        
+    public void updateConfiguration(InputStream inputStream, String destFileName) throws Exception {
+        logger.info("Updating root user xml configuration in {}", destFileName);
 
         SAXBuilder saxBuilder = new SAXBuilder();
         saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-        Document jdomDocument = saxBuilder.build(sourceConfigFile.getInputStream());
+        Document jdomDocument = saxBuilder.build(inputStream);
         Element beansElement = jdomDocument.getRootElement();
         Element rootNameElement = getElement(beansElement, "/content/users/ROOT_NAME_PLACEHOLDER");
         rootNameElement = rootNameElement != null ? rootNameElement : getElement(beansElement, "/content/users/root");
@@ -110,5 +112,7 @@ public class RootUserConfigurator extends AbstractXMLConfigurator {
         }
 
         write(jdomDocument, new File(destFileName));
+        logger.info("Successfully updated root user configuration in {}", destFileName);
     }
 }
+

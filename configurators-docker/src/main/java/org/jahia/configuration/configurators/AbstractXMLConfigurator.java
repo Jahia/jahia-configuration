@@ -43,7 +43,6 @@
  */
 package org.jahia.configuration.configurators;
 
-import org.jahia.configuration.logging.AbstractLogger;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -70,10 +69,6 @@ import java.util.List;
 public abstract class AbstractXMLConfigurator extends AbstractConfigurator {
     public AbstractXMLConfigurator(Map dbProps, JahiaConfigInterface jahiaConfigInterface) {
         super(dbProps, jahiaConfigInterface);
-    }
-
-    public AbstractXMLConfigurator(Map dbProps, JahiaConfigInterface jahiaConfigInterface, AbstractLogger logger) {
-        super(dbProps, jahiaConfigInterface, logger);
     }
 
     /**

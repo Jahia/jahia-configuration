@@ -41,20 +41,41 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.configuration.configurators;
+package org.jahia.configuration;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
+import org.jahia.configuration.configurators.JahiaGlobalConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Abstract interface that represents a source configuration file, that may be located on disk or inside a JAR
- */
-public interface ConfigFile {
+import java.io.File;
 
-    public URI getURI() throws IOException, URISyntaxException;
+public class ConfigureMain {
+    private static final Logger logger = LoggerFactory.getLogger(ConfigureMain.class);
 
-    public InputStream getInputStream() throws IOException;
+    public static void main(String[] args) {
+        logger.info("\nDigital Experience Manager 7.3 Configuration Tool");
+        logger.info("Copyright 2002-2019 - Jahia Solutions Group SA http://www.jahia.com - All Rights Reserved\n");
+        if (args.length > 0) {
+            if (args[0].equals("--configure") || args[0].equals("-c")) {
+                logger.info("Started Jahia global configurator");
+                try {
+                    new JahiaGlobalConfigurator(JahiaGlobalConfigurator.getConfiguration(args.length > 1 ? new File(args[1]) : null)).execute();
+                } catch (Exception e) {
+                    logger.error("Error during execution of a configurator. Cause: " + e.getMessage(), e);
+                    System.exit(1);
+                }
+                logger.info("...finished job of Jahia global configurator.");
+                return;
+            }
+        }
 
+        logger.info("Usage: java -jar configurators-x.yy-standalone.jar [command] [parameters(s)]");
+        logger.info("\nCommands:");
+        logger.info(" -c,--configure"+"\t\t"+"Performs configuration of an installed Jahia server.");
+        logger.info("\t\t\t"+"Expects a path to a properties file with configuration");
+        logger.info("\t\t\t"+"settings as a parameter.");
+
+        logger.info("\nExamples:");
+        logger.info(" java -jar configurators-x.yy-standalone.jar --configure /opt/jahia/install.properties");
+    }
 }

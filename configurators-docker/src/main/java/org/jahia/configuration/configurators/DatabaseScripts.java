@@ -51,14 +51,15 @@
 
 package org.jahia.configuration.configurators;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.io.FilenameFilter;
-
-import org.apache.commons.io.IOUtils;
 
 
 /**
@@ -75,6 +76,7 @@ import org.apache.commons.io.IOUtils;
  */
 public final class DatabaseScripts {
 
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseScripts.class);
 
     /**
      * Default constructor.
@@ -97,22 +99,16 @@ public final class DatabaseScripts {
      */
     public static List<String> getSchemaSQL( File fileObject )
         throws IOException {
-        Properties      scriptProperties  = new Properties();
-        FileInputStream scriptInputStream = new FileInputStream(fileObject.getPath());
-        try {
+        Properties scriptProperties = new Properties();
+        try (FileInputStream scriptInputStream = new FileInputStream(fileObject.getPath())) {
             scriptProperties.load( scriptInputStream );
-        } finally {
-            IOUtils.closeQuietly(scriptInputStream);
         }
-
 
         String scriptLocation = scriptProperties.getProperty("jahia.database.schemascriptdir");
         File parentFile = fileObject.getParentFile();
         File schemaDir = new File(parentFile, scriptLocation);
 
-        List<String> result = getSQLStatementsInDir(schemaDir, ".sql");
-
-        return result;
+        return getSQLStatementsInDir(schemaDir, ".sql");
     }
 
     /**
@@ -126,15 +122,12 @@ public final class DatabaseScripts {
      */
     public static List<String> getSQLStatementsInDir (File sqlDir, final String extension)
         throws IOException {
-        List<String> result = new ArrayList<String>();
-        File[] schemaFiles = sqlDir.listFiles(new FilenameFilter() {
-            public boolean accept(File dir,
-                                  String name) {
-                if (extension != null) {
-                    return name.toLowerCase().endsWith(extension);
-                } else {
-                    return true;
-                }
+        List<String> result = new ArrayList<>();
+        File[] schemaFiles = sqlDir.listFiles((dir, name) -> {
+            if (extension != null) {
+                return name.toLowerCase().endsWith(extension);
+            } else {
+                return true;
             }
         });
         if (schemaFiles == null) {
@@ -144,20 +137,20 @@ public final class DatabaseScripts {
         // sort found files in alphabetical order
         Arrays.sort(schemaFiles);
 
-        List<File> indexFiles = new ArrayList<File>();
+        List<File> indexFiles = new ArrayList<>();
         for (int i=0; i < schemaFiles.length; i++) {
             File sqlFile = schemaFiles[i];
             if(sqlFile.getName().endsWith("index.sql")) {
                 indexFiles.add(sqlFile);
             } else {
-                System.out.println("Loading statements from script file " + sqlFile);
+                logger.info("Loading statements from script file: {}", sqlFile);
                 List<String> curFileSQL = getScriptFileStatements(sqlFile);
                 result.addAll(curFileSQL);
             }
         }
         for (int i = 0; i < indexFiles.size(); i++) {
             File indexFile = indexFiles.get(i);
-            System.out.println("Loading statements from index script file " + indexFile);
+            logger.info("Loading statements from index script file: {}", indexFile);
             List<String> curFileSQL = getScriptFileStatements(indexFile);
             result.addAll(curFileSQL);
         }
