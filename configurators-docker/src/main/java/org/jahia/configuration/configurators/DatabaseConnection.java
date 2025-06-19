@@ -88,7 +88,7 @@ public class DatabaseConnection {
                               String username,
                               String password)
         throws ClassNotFoundException, SQLException {
-        logger.info("Opening database connection with driver: {}, url: {}, username: {}",
+        logger.debug("Opening database connection with driver: {}, url: {}, username: {}",
                 driver, url, username);
 
         // always close a possibly old connection before open a new...
@@ -102,14 +102,14 @@ public class DatabaseConnection {
             theConnection = driverInstance.connect(url, props);
             logger.debug("Connection established successfully with driver instance");
         } else {
-            logger.info("Driver instance is not found. Will rely on DriverManager.getConnection()");
+            logger.debug("Driver instance is not found. Will rely on DriverManager.getConnection()");
             // try to open a database connection...
             theConnection = DriverManager.getConnection(url, username, password);
             logger.debug("Connection established successfully with DriverManager");
         }
 
         theStatement = theConnection.createStatement();
-        logger.info("Database connection opened successfully");
+        logger.debug("Database connection opened successfully");
     }
 
     protected Properties getDriverProperties(String username, String password) {
@@ -132,13 +132,13 @@ public class DatabaseConnection {
      * @return the matching driver instance or <code>null</code> if the driver cannot be found directly for the specified class
      */
     protected Driver getMatchingDriver(String driverClass) {
-        logger.info("Looking up driver for class {}", driverClass);
+        logger.debug("Looking up driver for class {}", driverClass);
         try {
             Driver driver = (Driver) Class.forName(driverClass).newInstance();
-            logger.info("Driver {} instantiated directly", driverClass);
+            logger.debug("Driver {} instantiated directly", driverClass);
             return driver;
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            logger.info("Driver {} cannot be instantiated directly: {}. Will look it up through DriverManager.",
+            logger.debug("Driver {} cannot be instantiated directly: {}. Will look it up through DriverManager.",
                     driverClass, e.getMessage());
             logger.debug("Exception details:", e);
 
@@ -149,7 +149,7 @@ public class DatabaseConnection {
                 Driver driver = drivers.nextElement();
                 logger.trace("Checking driver: {}", driver.getClass().getName());
                 if (driver.getClass().getName().equals(driverClass)) {
-                    logger.info("Found matching driver for class {} via DriverManager", driverClass);
+                    logger.debug("Found matching driver for class {} via DriverManager", driverClass);
                     return driver;
                 }
             }
@@ -209,7 +209,7 @@ public class DatabaseConnection {
             logger.warn("Null pointer exception while closing database resources: {}", npe.getMessage());
             logger.debug("Exception details:", npe);
         }
-        logger.info("Database connection closed");
+        logger.debug("Database connection closed");
     }
 
     /**
