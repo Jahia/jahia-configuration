@@ -64,7 +64,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String jahiaImportsDiskPath = "${jahia.data.dir}/imports/";
     private String clusterTCPBindAddress = null;
     private String clusterTCPBindPort = "7870";
-    private String db_script = "hypersonic.script";
     private String operatingMode = "development";
     private String targetServerDirectory = "";
     private String databaseType = "derby_embedded";
@@ -102,14 +101,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public JahiaConfigInterface clone() throws CloneNotSupportedException {
         return (JahiaConfigInterface) super.clone();
-    }
-
-    public String getDb_script() {
-        return db_script;
-    }
-
-    public void setDb_script(String db_script) {
-        this.db_script = db_script;
     }
 
     public String getJahiaVarDiskPath() {

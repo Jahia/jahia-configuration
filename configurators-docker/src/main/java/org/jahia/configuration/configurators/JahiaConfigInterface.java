@@ -69,8 +69,6 @@ public interface JahiaConfigInterface {
     String getDatabaseUrl();
 
     String getDatabaseUsername();
-
-    String getDb_script();
     
     /**
      * Additional properties, that will be used in jahia.properties. This object covers properties, which have no direct setter in
@@ -99,7 +97,6 @@ public interface JahiaConfigInterface {
     String getJahiaVarDiskPath();
 
     String getJahiaWebAppsDeployerBaseURL();
-
     
     String getOperatingMode();
 

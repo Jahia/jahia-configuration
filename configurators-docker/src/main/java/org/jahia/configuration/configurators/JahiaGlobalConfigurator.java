@@ -149,7 +149,6 @@ public class JahiaGlobalConfigurator {
     File webappDir;
     Properties dbProps;
     File databaseScript;
-    List<AbstractConfigurator> configurators = new ArrayList<AbstractConfigurator>();
     String externalizedConfigTempPath = null;
     File jahiaConfigDir;
 
@@ -205,7 +204,7 @@ public class JahiaGlobalConfigurator {
                 "org/jahia/defaults/config/properties/jahia.node.properties",
                 targetConfigPath + "/jahia.node.properties");
         } else {
-            logger.warn("Could not find Jahia implementation JAR in {}", sourceWebAppPath + "/WEB-INF/lib");
+            logger.warn("Could not find Jahia implementation JAR in {}/WEB-INF/lib", sourceWebAppPath);
         }
 
         logger.info("Configuration files updated successfully");

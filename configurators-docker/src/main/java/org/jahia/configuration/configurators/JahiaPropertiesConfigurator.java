@@ -91,7 +91,7 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         properties.setProperty("jahiaModulesDiskPath", jahiaConfigInterface.getJahiaModulesDiskPath());
         properties.setProperty("jahiaWebAppsDeployerBaseURL", jahiaConfigInterface.getJahiaWebAppsDeployerBaseURL());
         properties.setProperty("jahiaImportsDiskPath", jahiaConfigInterface.getJahiaImportsDiskPath());
-        properties.setProperty("db_script", jahiaConfigInterface.getDb_script());
+        properties.setProperty("db_script", jahiaConfigInterface.getDatabaseType() + ".script");
         properties.setProperty("operatingMode", jahiaConfigInterface.getOperatingMode());
 
         properties.setProperty("hibernate.dialect", getDBProperty("jahia.database.hibernate.dialect"));
