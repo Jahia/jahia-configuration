@@ -99,7 +99,7 @@ public class JahiaNodePropertiesConfigurator extends AbstractConfigurator {
 
     @Override
     public void updateConfiguration(InputStream inputStream, String destFileName) throws Exception {
-        logger.info("Updating jahia.node.properties in {}", destFileName);
+        logger.info("Updating jahia.node.properties");
         properties = new PropertiesManager(inputStream);
         properties.setUnmodifiedCommentingActivated(true);
 
@@ -122,7 +122,7 @@ public class JahiaNodePropertiesConfigurator extends AbstractConfigurator {
         setClusterProperties();
 
         properties.storeProperties(inputStream, destFileName);
-        logger.info("Successfully updated jahia.node.properties configuration in {}", destFileName);
+        logger.info("Successfully updated jahia.node.properties in {}", destFileName);
     }
 }
 

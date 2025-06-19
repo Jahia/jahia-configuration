@@ -43,7 +43,6 @@
  */
 package org.jahia.configuration.configurators;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,7 +54,7 @@ import java.util.Map;
  */
 public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
-    private String jahiaVarDiskPath = "${jahiaWebAppRoot}/WEB-INF/var/";
+    private String jahiaVarDiskPath = "/var/jahia";
     private String jahiaModulesDiskPath = "${jahia.data.dir}/modules/";
     private String jahiaWebAppsDeployerBaseURL = "http://127.0.0.1:8080/manager/html/";
     private String cluster_activated = "false";
@@ -89,7 +88,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String storeFilesInDB = "false";
     private String storeFilesInAWS = "false";
     private String fileDataStorePath = "";
-    private String targetConfigurationDirectory = "";
 
     private boolean externalizedConfigActivated = true;
     private boolean externalizedConfigExploded = true;
@@ -248,14 +246,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public void setStoreFilesInAWS(String storeFilesInAWS) {
         this.storeFilesInAWS = storeFilesInAWS;
-    }
-
-    public String getTargetConfigurationDirectory() {
-        return targetConfigurationDirectory;
-    }
-
-    public void setTargetConfigurationDirectory(String targetConfigurationDirectory) {
-        this.targetConfigurationDirectory = targetConfigurationDirectory;
     }
 
     public String getJahiaRootPassword() {

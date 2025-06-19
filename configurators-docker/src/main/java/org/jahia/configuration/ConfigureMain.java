@@ -47,35 +47,42 @@ import org.jahia.configuration.configurators.JahiaGlobalConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
 public class ConfigureMain {
     private static final Logger logger = LoggerFactory.getLogger(ConfigureMain.class);
 
     public static void main(String[] args) {
-        logger.info("\nDigital Experience Manager 7.3 Configuration Tool");
-        logger.info("Copyright 2002-2019 - Jahia Solutions Group SA http://www.jahia.com - All Rights Reserved\n");
+        try (InputStream is = ConfigureMain.class.getClassLoader().getResourceAsStream("header.txt");
+             BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+            System.out.println(reader.lines().collect(Collectors.joining(System.lineSeparator())) + System.lineSeparator());
+        } catch (IOException e) {
+            // ignore if the header file is not found
+        }
+
         if (args.length > 0) {
             if (args[0].equals("--configure") || args[0].equals("-c")) {
-                logger.info("Started Jahia global configurator");
+                logger.info("Jahia docker configurator started");
                 try {
                     new JahiaGlobalConfigurator(JahiaGlobalConfigurator.getConfiguration(args.length > 1 ? new File(args[1]) : null)).execute();
                 } catch (Exception e) {
                     logger.error("Error during execution of a configurator. Cause: " + e.getMessage(), e);
                     System.exit(1);
                 }
-                logger.info("...finished job of Jahia global configurator.");
+                logger.info("Jahia docker configurator finished successfully");
                 return;
             }
         }
 
-        logger.info("Usage: java -jar configurators-x.yy-standalone.jar [command] [parameters(s)]");
+        logger.info("Usage: java -cp \"configurators-docker-6.13.0-standalone.jar:/path/to/tomcat/lib/*\" org.jahia.configuration.ConfigureMain [command] [parameters(s)]");
         logger.info("\nCommands:");
         logger.info(" -c,--configure"+"\t\t"+"Performs configuration of an installed Jahia server.");
         logger.info("\t\t\t"+"Expects a path to a properties file with configuration");
         logger.info("\t\t\t"+"settings as a parameter.");
 
         logger.info("\nExamples:");
-        logger.info(" java -jar configurators-x.yy-standalone.jar --configure /opt/jahia/install.properties");
+        logger.info(" java -cp \"configurators-docker-standalone.jar:/path/to/tomcat/lib/*\" org.jahia.configuration.ConfigureMain --configure /opt/jahia/install.properties");
     }
 }

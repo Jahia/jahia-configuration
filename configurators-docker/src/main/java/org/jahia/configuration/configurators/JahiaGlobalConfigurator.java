@@ -48,7 +48,6 @@ import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.Converter;
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringSubstitutor;
 import org.jahia.commons.encryption.EncryptionUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -130,30 +129,15 @@ public class JahiaGlobalConfigurator {
         return valueList;
     }
 
-    public static File resolveDataDir(String dataDirPath, String targetWebappDirPath) {
-        return resolveDataDir(dataDirPath, targetWebappDirPath, true);
-    }
-
-    public static File resolveDataDir(String dataDirPath, String targetWebappDirPath, boolean doCreate) {
-        File dataDir = null;
-        if (dataDirPath.indexOf('$') != -1) {
-            Map<String, String> sysProps = new HashMap<>();
-            String webappPath = targetWebappDirPath;
-            sysProps.put("jahiaWebAppRoot", webappPath);
-            if (dataDirPath.contains("$context")) {
-                sysProps.put("context", webappPath);
-            }
-            for (Map.Entry<Object, Object> el : System.getProperties().entrySet()) {
-                sysProps.put(String.valueOf(el.getKey()), String.valueOf(el.getValue()));
-            }
-            dataDirPath = StringSubstitutor.replace(dataDirPath, sysProps);
-        }
+    public static File resolveDataDir(String dataDirPath) {
+        File dataDir;
         try {
             dataDir = new File(dataDirPath).getCanonicalFile();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        if (doCreate && !dataDir.exists() && !dataDir.mkdirs()) {
+        // try to create the directory if it does not exist
+        if (!dataDir.exists() && !dataDir.mkdirs()) {
             throw new RuntimeException("Unable to create target directory: " + dataDir);
         }
 
@@ -185,16 +169,15 @@ public class JahiaGlobalConfigurator {
             jahiaConfigConfigDir.mkdirs();
             externalizedConfigTempPath = jahiaConfigConfigDir.getPath();
             logger.info("Created externalized config temporary path at: {}", externalizedConfigTempPath);
+            logger.info("Config directory resolved to folder: {}", jahiaConfig.getExternalizedConfigTargetPath());
         }
 
         db = new DatabaseConnection();
-        logger.info("Configuring Jahia for dockerized tomcat with database type: {}", jahiaConfig.getDatabaseType());
         setProperties();
-        logger.info("Jahia configuration process completed successfully");
     }
 
-    private void updateConfigurationFiles(String sourceWebAppPath, String webappPath, Properties dbProps, JahiaConfigInterface jahiaConfigInterface) throws Exception {
-        logger.info("Configuring file using source {} to target {}", sourceWebAppPath, webappPath);
+    private void updateConfigurationFiles(String sourceWebAppPath, String webappPath, String targetConfigPath, Properties dbProps, JahiaConfigInterface jahiaConfigInterface) throws Exception {
+        logger.info("Updating configuration files...");
 
         new JackrabbitConfigurator(dbProps, jahiaConfigInterface)
                 .updateConfFromFile(sourceWebAppPath + "/WEB-INF/etc/repository/jackrabbit/repository.xml",
@@ -210,9 +193,6 @@ public class JahiaGlobalConfigurator {
         } else {
             logger.info("Skipping root user configuration (processing server: false)");
         }
-
-        String targetConfigPath = externalizedConfigTempPath != null ? externalizedConfigTempPath : webappPath + "/WEB-INF/etc/config";
-        logger.info("Using target configuration path: {}", targetConfigPath);
 
         File jahiaImplFile = findFile(sourceWebAppPath + "/WEB-INF/lib", "jahia\\-impl\\-.*\\.jar");
         if (jahiaImplFile != null && jahiaImplFile.exists()) {
@@ -253,12 +233,11 @@ public class JahiaGlobalConfigurator {
 
     private void setProperties() throws Exception {
 
-        //now set the common properties to both a clustered environment and a standalone one
-        webappDir = getWebappDeploymentDir();
+        webappDir = new File(new File(jahiaConfig.getTargetServerDirectory(), "webapps"), jahiaConfig.getWebAppDirName());
         String sourceWebappPath = webappDir.toString();
         String databaseType = jahiaConfig.getDatabaseType();
 
-        logger.info("Deployed in standalone for server in {}", webappDir);
+        logger.info("Webapp directory resolved to folder: {}", webappDir);
 
         String dbUrl = jahiaConfig.getDatabaseUrl();
         boolean isEmbeddedDerby = databaseType.equals(DERBY_EMBEDDED);
@@ -289,30 +268,21 @@ public class JahiaGlobalConfigurator {
             logger.error("Error in loading database settings because of", e);
         }
 
-        logger.info("Updating configuration files...");
+        String targetConfigPath = externalizedConfigTempPath != null ? externalizedConfigTempPath : webappDir.getPath() + "/WEB-INF/etc/config";
+        updateConfigurationFiles(sourceWebappPath, webappDir.getPath(), targetConfigPath, dbProps, jahiaConfig);
 
-        //updates jackrabbit, quartz and spring files
-        updateConfigurationFiles(sourceWebappPath, webappDir.getPath(), dbProps, jahiaConfig);
-        logger.info("Copying license file...");
-        String targetConfigPath = webappDir.getPath() + "/WEB-INF/etc/config";
-        if (externalizedConfigTempPath != null) {
-            targetConfigPath = externalizedConfigTempPath;
-        }
         try {
             String existingLicense = jahiaConfig.getLicenseFile();
             copyLicense(existingLicense != null && existingLicense.length() > 0 ? existingLicense : sourceWebappPath
                     + "/WEB-INF/etc/config/licenses/license-free.xml", targetConfigPath + "/license.xml");
+
             if (jahiaConfig.getOverwritedb().equals("true") || jahiaConfig.getOverwritedb().equals(IF_NECESSARY)) {
-                logger.info("driver: {}", dbProps.getProperty(JAHIA_DATABASE_DRIVER));
-                logger.info("url: {}", jahiaConfig.getDatabaseUrl());
-                logger.info("user: {}", jahiaConfig.getDatabaseUsername());
                 if (!databaseScript.exists()) {
                     logger.info("cannot find script in {}", databaseScript.getPath());
                     throw new Exception("Cannot find script for database " + databaseType);
                 }
 
                 if (cleanDatabase(databaseType, dbUrl)) {
-                    logger.info("Creating tables");
                     db.databaseOpen(dbProps.getProperty(JAHIA_DATABASE_DRIVER), dbUrl, jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
                     createDBTables(databaseScript);
                 }
@@ -348,10 +318,13 @@ public class JahiaGlobalConfigurator {
 
     private boolean cleanDatabase(String databaseType, String dbUrl) throws ClassNotFoundException, SQLException {
         boolean shouldCreateTables = true;
-        logger.info("Cleaning database for type: {} with URL: {}", databaseType, dbUrl);
+        logger.info("Check and clean database for type: {}", databaseType);
         try {
+            logger.info("driver: {}", dbProps.getProperty(JAHIA_DATABASE_DRIVER));
+            logger.info("url: {}", jahiaConfig.getDatabaseUrl());
+            logger.info("user: {}", jahiaConfig.getDatabaseUsername());
+
             if (databaseType.contains(DERBY) && !dbUrl.contains("create=true")) {
-                logger.info("Processing Derby database");
                 if (jahiaConfig.getOverwritedb().equals(IF_NECESSARY)) {
                     // Check database existence
                     logger.info("Checking if Derby database exists (overwrite=if-necessary)");
@@ -365,11 +338,9 @@ public class JahiaGlobalConfigurator {
                     }
                 }
                 // Append create=true to recreate derby db
-                logger.info("Appending create=true to Derby URL");
                 dbUrl = dbUrl + ";create=true";
                 db.databaseOpen(dbProps.getProperty(JAHIA_DATABASE_DRIVER), dbUrl, jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
             } else if (databaseType.equals(MYSQL) || databaseType.equals(MARIADB) || databaseType.equals(POSTGRESQL)) {
-                logger.info("Processing {} database", databaseType);
                 URI dbSubURI = URI.create(dbUrl.substring(5)); // strip "jdbc:"
                 String databaseName = dbSubURI.getPath().substring(1); // strip starting "/"
                 logger.info("Database name: {}", databaseName);
@@ -384,7 +355,7 @@ public class JahiaGlobalConfigurator {
                 } else {
                     emptyUrl = new URI(dbSubURI.getScheme(), dbSubURI.getHost(), defaultPath, dbSubURI.getFragment()).toString();
                 }
-                logger.info("Connecting to admin database URL: jdbc:{}", emptyUrl);
+
                 db.databaseOpen(dbProps.getProperty(JAHIA_DATABASE_DRIVER), "jdbc:" + emptyUrl, jahiaConfig.getDatabaseUsername(), jahiaConfig.getDatabasePassword());
 
                 if (jahiaConfig.getOverwritedb().equals(IF_NECESSARY) && exists(databaseName)) {
@@ -628,19 +599,9 @@ public class JahiaGlobalConfigurator {
         return EncryptionUtils.pbkdf2Digest(password, true);
     }
 
-    /**
-     * Get the folder on the application server where the jahia webapp is unpacked
-     */
-    protected File getWebappDeploymentDir() {
-        if (StringUtils.isNotEmpty(jahiaConfig.getTargetConfigurationDirectory())) {
-            return new File(jahiaConfig.getTargetConfigurationDirectory());
-        }
-        // Only tomcat supported by docker image configurator code simplified
-        return new File(new File(jahiaConfig.getTargetServerDirectory(), "webapps"), jahiaConfig.getWebAppDirName());
-    }
-
     public static JahiaConfigInterface getConfiguration(File configFile) throws IOException, IllegalAccessException,
                                                                                                    InvocationTargetException {
+        logger.info("Loading configuration from file: {}", configFile);
         JahiaConfigBean config = new JahiaConfigBean();
         Properties props = null;
         if (configFile != null) {
@@ -649,24 +610,23 @@ public class JahiaGlobalConfigurator {
                 props.load(is);
             }
         }
+
         if (props != null && !props.isEmpty()) {
             Map<String, String> map = (Map) props;
             new BeanUtilsBean(CONVERTER_UTILS_BEAN, new PropertyUtilsBean()).populate(config, map);
         }
-        if (logger != null) {
-            if (props != null) {
-                props.put("databasePassword", "***");
-                props.put("jahiaRootPassword", "***");
-            }
-            logger.info("Loaded configuration from file {}:\n{}", configFile, props);
+
+        if (props != null) {
+            props.put("databasePassword", "***");
+            props.put("jahiaRootPassword", "***");
         }
+        logger.info("Loaded configuration: {}", props);
         return config;
     }
 
     private File getDataDir() {
         if (dataDir == null) {
-            dataDir = resolveDataDir(jahiaConfig.getJahiaVarDiskPath(),
-                                 getWebappDeploymentDir().getAbsolutePath());
+            dataDir = resolveDataDir(jahiaConfig.getJahiaVarDiskPath());
             logger.info("Data directory resolved to folder: {}", dataDir);
         }
 

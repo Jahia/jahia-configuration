@@ -73,7 +73,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
     }
 
     public void updateConfiguration(InputStream inputStream, String destFileName) throws Exception {
-        logger.info("Updating Jackrabbit configuration in {}", destFileName);
+        logger.info("Updating Jackrabbit repository.xml...");
         try {
             SAXBuilder saxBuilder = new SAXBuilder();
             saxBuilder.setFeature("http://apache.org/xml/features/disallow-doctype-decl",false);
@@ -82,7 +82,6 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
             saxBuilder.setExpandEntities(false);
 
-            logger.info("Parsing repository configuration XML");
             InputStreamReader fileReader = new InputStreamReader(inputStream);
             org.jdom2.Document jdomDocument = saxBuilder.build(fileReader);
             Element repositoryElement = jdomDocument.getRootElement();
@@ -93,12 +92,10 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             XPathFactory xPathFactory = XPathFactory.instance();
             XPathExpression<Element> databaseTypeXPath = xPathFactory.compile("//Repository/DataSources/DataSource/param[@name=\"databaseType\"]", Filters.element());
             for (Element paramElement : databaseTypeXPath.evaluate(jdomDocument)) {
-                logger.info("Setting databaseType param value to: {}", schema);
                 paramElement.setAttribute("value", schema);
             }
 
             // we must first check if the cluster nodes are present so that they will be configured by the next queries.
-            logger.info("Checking for clustering configuration");
             XPathExpression<Element> clusterXPath = xPathFactory.compile("//Cluster",Filters.element());
             Element clusterElement = (Element) clusterXPath.evaluateFirst(jdomDocument);
             Element journalElement;
@@ -112,7 +109,6 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
                 logger.info("No cluster configuration found");
             }
 
-            logger.info("Configuring binary storage");
             configureBinaryStorage(repositoryElement, namespace, dbProperties);
 
             logger.info("Setting FileSystem class to: {}", getValue(dbProperties, "jahia.jackrabbit.filesystem"));
@@ -121,10 +117,8 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             logger.info("Setting PersistenceManager class to: {}", getValue(dbProperties, "jahia.jackrabbit.persistence"));
             setElementAttribute(repositoryElement, "//PersistenceManager", "class", getValue(dbProperties, "jahia.jackrabbit.persistence"));
 
-            logger.info("Writing updated configuration to: {}", destFileName);
             write(jdomDocument, new File(destFileName));
-            logger.info("Jackrabbit configuration successfully updated");
-
+            logger.info("Successfully updated Jackrabbit repository.xml in {}", destFileName);
         } catch (JDOMException jdome) {
             logger.error("Error updating Jackrabbit configuration in {}: {}", destFileName, jdome.getMessage(), jdome);
             throw new Exception("Error while updating configuration file " + destFileName, jdome);

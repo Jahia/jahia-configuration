@@ -71,7 +71,7 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
     }
 
     public void updateConfiguration(InputStream inputStream, String targetJahiaPath) throws IOException {
-        logger.info("Updating jahia.properties in {}", targetJahiaPath);
+        logger.info("Updating jahia.properties ...");
         properties = new PropertiesManager(inputStream);
         properties.setUnmodifiedCommentingActivated(true);
 
@@ -110,7 +110,7 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         }
 
         properties.storeProperties(inputStream, targetJahiaPath);
-        logger.info("Successfully updated jahia.properties configuration in {}", targetJahiaFile);
+        logger.info("Successfully updated jahia.properties in {}", targetJahiaPath);
     }
 
     private void configureScheduler() {

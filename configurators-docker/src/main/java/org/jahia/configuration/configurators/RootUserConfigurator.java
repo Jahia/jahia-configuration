@@ -75,7 +75,7 @@ public class RootUserConfigurator extends AbstractXMLConfigurator {
     }
 
     public void updateConfiguration(InputStream inputStream, String destFileName) throws Exception {
-        logger.info("Updating root user xml configuration in {}", destFileName);
+        logger.info("Updating root user configuration ...");
 
         SAXBuilder saxBuilder = new SAXBuilder();
         saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);

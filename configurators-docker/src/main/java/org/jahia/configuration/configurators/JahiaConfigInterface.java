@@ -43,7 +43,6 @@
  */
 package org.jahia.configuration.configurators;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -127,13 +126,9 @@ public interface JahiaConfigInterface {
      */
     String getFileDataStorePath();
 
-    String getTargetConfigurationDirectory();
-
     String getTargetServerDirectory();
 
     String getWebAppDirName();
-
-    void setTargetConfigurationDirectory(String targetConfigurationDirectory);
 
     /**
      * If active, we will package the configuration as a JAR file and place it in the location specified in the

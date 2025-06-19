@@ -93,7 +93,7 @@ public abstract class AbstractConfigurator {
     }
 
     public void updateConfFromFile(String sourceConfigFile, String destFileName) throws Exception {
-        logger.info("Updating configuration from file: {} to destination: {}", sourceConfigFile, destFileName);
+        logger.debug("Updating configuration from file: {} to destination: {}", sourceConfigFile, destFileName);
         File sourceFile = new File(sourceConfigFile);
         if (sourceFile.exists()) {
             logger.debug("Source file exists, reading from: {}", sourceFile.getAbsolutePath());
@@ -106,7 +106,7 @@ public abstract class AbstractConfigurator {
     }
 
     public void updateConfFromFileInJar(File jar, String sourceConfigFile, String destFileName) throws Exception {
-        logger.info("Updating configuration from file in jar: {}, source: {}, destination: {}",
+        logger.debug("Updating configuration from file in jar: {}, source: {}, destination: {}",
                 jar != null ? jar.getName() : "null", sourceConfigFile, destFileName);
         try (InputStream jahiaPropertiesConfigFileStream = getFileInputStreamFromJar(jar, sourceConfigFile)) {
             if (jahiaPropertiesConfigFileStream != null) {

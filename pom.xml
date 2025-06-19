@@ -387,7 +387,7 @@
                                 <headerDefinition>${jahia.license.style}</headerDefinition>
                             </headerDefinitions>
                             <properties>
-                                <year>2023</year>
+                                <year>${year}</year>
                             </properties>
                         </configuration>
                         <executions>

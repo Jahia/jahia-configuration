@@ -69,7 +69,7 @@ public class TomcatContextXmlConfigurator extends AbstractXMLConfigurator {
     }
 
     public void updateConfiguration(InputStream inputStream, String destFileName) throws Exception {
-        logger.info("Updating Tomcat context.xml configuration in {}", destFileName);
+        logger.info("Updating Tomcat context.xml ...");
         try {
             SAXBuilder saxBuilder = new SAXBuilder();
             saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
@@ -103,7 +103,7 @@ public class TomcatContextXmlConfigurator extends AbstractXMLConfigurator {
             }
 
             write(jdomDocument, new File(destFileName));
-            logger.info("Successfully updated Tomcat context.xml configuration in {}", destFileName);
+            logger.info("Successfully updated Tomcat context.xml in {}", destFileName);
 
         } catch (JDOMException jdome) {
             logger.error("Error while updating configuration file " + destFileName, jdome);
