@@ -43,8 +43,12 @@
  */
 package org.jahia.configuration.configurators;
 
-import java.io.*;
-import java.util.*;
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.apache.commons.lang3.StringUtils;
 
