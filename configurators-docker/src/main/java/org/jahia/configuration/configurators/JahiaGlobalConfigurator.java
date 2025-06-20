@@ -210,7 +210,7 @@ public class JahiaGlobalConfigurator {
         logger.info("Configuration files updated successfully");
     }
 
-    public File findFile(String parentPath, String fileMatchingPattern) {
+    public static File findFile(String parentPath, String fileMatchingPattern) {
         Path parentDirectory = Paths.get(parentPath);
         Pattern matchingPattern = Pattern.compile(fileMatchingPattern);
 

@@ -45,10 +45,6 @@ package org.jahia.configuration.configurators;
 
 import junit.framework.TestCase;
 
-import java.io.File;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -72,12 +68,9 @@ public abstract class AbstractConfiguratorTestCase extends TestCase {
         super.setUp();
 
         oracleDBProperties = new Properties();
-        oracleDBProperties.load(this.getClass().getClassLoader().getResourceAsStream("configurators/WEB-INF/var/db/oracle.script"));
+        oracleDBProperties.load(this.getClass().getClassLoader().getResourceAsStream("oracle.script"));
         mysqlDBProperties = new Properties();
-        mysqlDBProperties.load(this.getClass().getClassLoader().getResourceAsStream("configurators/WEB-INF/var/db/mysql.script"));
-
-        URL configuratorsResourceURL = this.getClass().getClassLoader().getResource("configurators");
-        File configuratorsFile = new File(configuratorsResourceURL.toURI());
+        mysqlDBProperties.load(this.getClass().getClassLoader().getResourceAsStream("mysql.script"));
 
         websphereOracleConfigBean = new JahiaConfigBean();
         websphereOracleConfigBean.setDatabaseType("oracle");

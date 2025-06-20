@@ -60,7 +60,7 @@ import java.net.URL;
 public class TomcatContextXmlConfiguratorTest extends AbstractXMLConfiguratorTestCase {
 
     public void testUpdateConfiguration() throws Exception {
-        URL contextXmlUrl = this.getClass().getClassLoader().getResource("configurators/META-INF/context.xml");
+        URL contextXmlUrl = this.getClass().getClassLoader().getResource("context.xml");
         File contextXmlFile = new File(contextXmlUrl.getFile());
         String contextXmlParentPath = contextXmlFile.getParentFile().getPath() + File.separator;
 
