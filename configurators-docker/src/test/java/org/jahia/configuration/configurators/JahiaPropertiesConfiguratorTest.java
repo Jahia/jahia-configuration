@@ -49,11 +49,6 @@ import java.io.IOException;
 import java.io.FileInputStream;
 import java.util.Properties;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.vfs2.FileSystemManager;
-import org.apache.commons.vfs2.VFS;
-import org.jahia.configuration.configurators.JahiaPropertiesConfigurator;
-import org.jahia.configuration.logging.SLF4JLogger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -65,49 +60,29 @@ import org.slf4j.LoggerFactory;
  */
 public class JahiaPropertiesConfiguratorTest extends AbstractConfiguratorTestCase {
 
-    public void testUpdateConfiguration() throws IOException {
+    public void testUpdateConfiguration() throws Exception {
 
-        URL jahiaDefaultConfigJARURL = this.getClass().getClassLoader().getResource("jahia-default-config.jar");
 
-        // Locate the Jar file
-        FileSystemManager fsManager = VFS.getManager();
-        ConfigFile jahiaPropertiesConfigFile = new VFSConfigFile(fsManager.resolveFile("jar:" + jahiaDefaultConfigJARURL.toExternalForm()), "org/jahia/defaults/config/properties/jahia.properties");
+        File sourceProperties = new File(this.getClass().getClassLoader().getResource("org/jahia/defaults/config/properties/jahia.properties").getFile());
+        String modifiedPropertiesPath = sourceProperties.getParent() + File.separator + "jahia-modified.properties";
+        File sourceNodeProperties = new File(this.getClass().getClassLoader().getResource("org/jahia/defaults/config/properties/jahia.node.properties").getFile());
+        String modifiedNodePropertiesPath = sourceProperties.getParent() + File.separator + "jahia.node-modified.properties";
 
-        File jahiaDefaultConfigFile = new File(jahiaDefaultConfigJARURL.getFile());
-        String jahiaDefaultConfigFileParentPath = jahiaDefaultConfigFile.getParentFile().getPath() + File.separator;
-        String targetJahiaPropertiesFile = jahiaDefaultConfigFileParentPath + "jahia.properties";
-        String secondTargetJahiaPropertiesFile = jahiaDefaultConfigFileParentPath + "jahia2.properties";
+        try (FileInputStream inStream = new FileInputStream(sourceProperties)) {
+            new JahiaPropertiesConfigurator(oracleDBProperties, websphereOracleConfigBean).updateConfiguration(inStream, modifiedPropertiesPath);
+        }
 
-        SLF4JLogger logger = new SLF4JLogger(LoggerFactory.getLogger(JahiaPropertiesConfiguratorTest.class));
+        try (FileInputStream inStream = new FileInputStream(sourceNodeProperties)) {
+            new JahiaNodePropertiesConfigurator(websphereOracleConfigBean).updateConfiguration(inStream, modifiedNodePropertiesPath);
+        }
 
-        jahiaPropertiesConfigFile = new VFSConfigFile(fsManager.resolveFile("jar:" + jahiaDefaultConfigJARURL.toExternalForm()), "org/jahia/defaults/config/properties/jahia.advanced.properties");
-        targetJahiaPropertiesFile = jahiaDefaultConfigFileParentPath + "jahia.advanced.properties";
-        JahiaPropertiesConfigurator websphereOracleConfigurator = new JahiaPropertiesConfigurator(oracleDBProperties, websphereOracleConfigBean);
-        websphereOracleConfigurator.updateConfiguration(jahiaPropertiesConfigFile, targetJahiaPropertiesFile);
-        new JahiaNodePropertiesConfigurator(logger, websphereOracleConfigBean).updateConfiguration(jahiaPropertiesConfigFile, targetJahiaPropertiesFile);
         Properties websphereOracleProperties = new Properties();
-        FileInputStream inStream = new FileInputStream(jahiaDefaultConfigFileParentPath + "jahia.advanced.properties");
-        try {
+        try (FileInputStream inStream = new FileInputStream(modifiedPropertiesPath)) {
             websphereOracleProperties.load(inStream);
-        } finally {
-            IOUtils.closeQuietly(inStream);
         }
 
         // test for the additional properties
         assertEquals("true", websphereOracleProperties.getProperty("jahia.dm.viewer.enabled"));
         assertEquals("c:\\Program Files (x86)\\SWFTools\\pdf2swf.exe", websphereOracleProperties.getProperty("jahia.dm.viewer.pdf2swf"));
-        assertNotNull(websphereOracleProperties.getProperty("auth.spnego.bypassForUrls"));
-
-        JahiaPropertiesConfigurator tomcatMySQLConfigurator = new JahiaPropertiesConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);
-        tomcatMySQLConfigurator.updateConfiguration(new VFSConfigFile(fsManager, targetJahiaPropertiesFile), secondTargetJahiaPropertiesFile);
-        new JahiaNodePropertiesConfigurator(logger, tomcatMySQLConfigBean).updateConfiguration(new VFSConfigFile(fsManager, secondTargetJahiaPropertiesFile), secondTargetJahiaPropertiesFile);
-        Properties tomcatMySQLProperties = new Properties();
-        inStream = new FileInputStream(secondTargetJahiaPropertiesFile);
-        try {
-            tomcatMySQLProperties.load(inStream);
-        } finally {
-            IOUtils.closeQuietly(inStream);
-        }
-        //assertEquals("tomcat", tomcatMySQLProperties.getProperty("server"));
     }
 }

@@ -46,8 +46,7 @@ package org.jahia.configuration.configurators;
 import java.io.*;
 import java.util.*;
 
-import org.apache.commons.io.IOUtils;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * desc:  This class provides to you a *super interface* for properties.
@@ -63,23 +62,23 @@ import org.codehaus.plexus.util.StringUtils;
  * @version 1.0
  */
 public class PropertiesManager {
-    private Map<String,Object> properties = new LinkedHashMap<String, Object>();
-    private Set<String> modifiedProperties = new HashSet<String>();
+    private final Map<String,Object> properties = new LinkedHashMap<>();
+    private final Set<String> modifiedProperties = new HashSet<>();
     private boolean loadedFromInputStream = false;
-    private Set<String> removedPropertyNames = new HashSet<String>();
+    private final Set<String> removedPropertyNames = new HashSet<>();
     private boolean unmodifiedCommentingActivated = false;
     private String additionalPropertiesMessage = "The following properties were added.";
-    private Map<String,PropertyLayout> propertyLayouts = new LinkedHashMap<String,PropertyLayout>();
+    private final Map<String,PropertyLayout> propertyLayouts = new LinkedHashMap<>();
     boolean additionalMessageAdded = false;
     private boolean replaceTabsWithSpaces = true;
     private boolean sanitizeValue = true;
 
     public class PropertyLayout {
-        List<String> comments = new ArrayList<String>();
+        List<String> comments = new ArrayList<>();
         String name;
         String nameLine;
         String separator = "=";
-        List<String> valueLines = new ArrayList<String>();
+        List<String> valueLines = new ArrayList<>();
 
         public PropertyLayout() {
         }
@@ -134,15 +133,6 @@ public class PropertiesManager {
     }
 
     /**
-     * Default constructor.
-     *
-     */
-    public PropertiesManager() {
-        // do nothing :o)
-    } // end constructor
-
-
-    /**
      * Construct a properties manager from an existing input stream that references a properties file.
      * @param sourcePropertiesInputStream
      * @throws IOException
@@ -152,104 +142,90 @@ public class PropertiesManager {
     } // end constructor
 
     /**
-     * Default constructor.
-     *
-     * @param properties The properties object used to define base properties.
-     */
-    public PropertiesManager(Properties properties) {
-        this.properties.clear();
-        for (String propertyName : properties.stringPropertyNames()) {
-            setProperty(propertyName, properties.getProperty(propertyName));
-        }
-    } // end constructor
-
-
-    /**
      * Load a complete properties file in memory by its filename.
      *
      * @param sourcePropertiesInputStream
      */
     private void loadProperties(InputStream sourcePropertiesInputStream) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(sourcePropertiesInputStream, "ISO-8859-1"));
-
-        // parse the file...
-        String currentLine = null;
-        boolean inMultilineValue = false;
-        PropertyLayout currentPropertyLayout = new PropertyLayout();
-        while ((currentLine = reader.readLine()) != null) {
-            int valueSeparatorPos = -1;
-            if (!inMultilineValue) {
-                valueSeparatorPos = getValueSeparatorPos(currentLine);
-            }
-            if (inMultilineValue && currentLine.trim().equals("")) {
-                if (currentPropertyLayout.getValueLines().size() > 0) {
-                    currentPropertyLayout.getValueLines().add(currentLine);
-                    properties.put(currentPropertyLayout.getName(), currentPropertyLayout.getValue());
-                    propertyLayouts.put(currentPropertyLayout.getName(), currentPropertyLayout);
-                    currentPropertyLayout = new PropertyLayout();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(sourcePropertiesInputStream, "ISO-8859-1"))) {
+            // parse the file...
+            String currentLine = null;
+            boolean inMultilineValue = false;
+            PropertyLayout currentPropertyLayout = new PropertyLayout();
+            while ((currentLine = reader.readLine()) != null) {
+                int valueSeparatorPos = -1;
+                if (!inMultilineValue) {
+                    valueSeparatorPos = getValueSeparatorPos(currentLine);
                 }
-                inMultilineValue = false;
-                continue;
-            }
-            if (currentLine.trim().equals("") ||
-                    currentLine.trim().startsWith("#") ||
-                    currentLine.trim().startsWith("!")) {
-                // empty natural line or comment line, we just skip it
-                currentPropertyLayout.getComments().add(currentLine);
-                continue;
-            }
-            if (valueSeparatorPos >= 0) {
-                if (currentPropertyLayout.getNameLine() != null) {
+                if (inMultilineValue && currentLine.trim().equals("")) {
                     if (currentPropertyLayout.getValueLines().size() > 0) {
+                        currentPropertyLayout.getValueLines().add(currentLine);
                         properties.put(currentPropertyLayout.getName(), currentPropertyLayout.getValue());
                         propertyLayouts.put(currentPropertyLayout.getName(), currentPropertyLayout);
                         currentPropertyLayout = new PropertyLayout();
                     }
-                }
-                currentPropertyLayout.setNameLine(unescapeNonASCII(currentLine.substring(0, valueSeparatorPos)));
-                currentPropertyLayout.setSeparator(currentLine.substring(valueSeparatorPos, valueSeparatorPos+1));
-                currentPropertyLayout.setName(currentPropertyLayout.getNameLine().trim());
-                String lastPropertyLine = unescapeNonASCII(currentLine.substring(valueSeparatorPos + 1));
-                if (lastPropertyLine == null) {
-                    lastPropertyLine = "";
-                }
-                if (lastPropertyLine.trim().endsWith("\\")) {
-                    inMultilineValue = true;
-                    lastPropertyLine = StringUtils.stripEnd(lastPropertyLine, "\\");
-                    currentPropertyLayout.getValueLines().add(lastPropertyLine);
-                } else {
-                    currentPropertyLayout.getValueLines().add(lastPropertyLine);
-                    properties.put(currentPropertyLayout.getName(), currentPropertyLayout.getValue());
-                    propertyLayouts.put(currentPropertyLayout.getName(), currentPropertyLayout);
                     inMultilineValue = false;
-                    currentPropertyLayout = new PropertyLayout();
+                    continue;
                 }
-            } else {
-                if (inMultilineValue) {
-                    if (currentLine.trim().endsWith("\\")) {
-                        // multi-value is continuing
-                        currentLine = unescapeNonASCII(StringUtils.stripEnd(currentLine, "\\"));
-                        currentPropertyLayout.getValueLines().add(currentLine);
+                if (currentLine.trim().equals("") ||
+                        currentLine.trim().startsWith("#") ||
+                        currentLine.trim().startsWith("!")) {
+                    // empty natural line or comment line, we just skip it
+                    currentPropertyLayout.getComments().add(currentLine);
+                    continue;
+                }
+                if (valueSeparatorPos >= 0) {
+                    if (currentPropertyLayout.getNameLine() != null) {
+                        if (currentPropertyLayout.getValueLines().size() > 0) {
+                            properties.put(currentPropertyLayout.getName(), currentPropertyLayout.getValue());
+                            propertyLayouts.put(currentPropertyLayout.getName(), currentPropertyLayout);
+                            currentPropertyLayout = new PropertyLayout();
+                        }
+                    }
+                    currentPropertyLayout.setNameLine(unescapeNonASCII(currentLine.substring(0, valueSeparatorPos)));
+                    currentPropertyLayout.setSeparator(currentLine.substring(valueSeparatorPos, valueSeparatorPos+1));
+                    currentPropertyLayout.setName(currentPropertyLayout.getNameLine().trim());
+                    String lastPropertyLine = unescapeNonASCII(currentLine.substring(valueSeparatorPos + 1));
+                    if (lastPropertyLine == null) {
+                        lastPropertyLine = "";
+                    }
+                    if (lastPropertyLine.trim().endsWith("\\")) {
+                        inMultilineValue = true;
+                        lastPropertyLine = StringUtils.stripEnd(lastPropertyLine, "\\");
+                        currentPropertyLayout.getValueLines().add(lastPropertyLine);
                     } else {
-                        // multi-value is (probably) stopped
-                        currentPropertyLayout.getValueLines().add(unescapeNonASCII(currentLine));
+                        currentPropertyLayout.getValueLines().add(lastPropertyLine);
                         properties.put(currentPropertyLayout.getName(), currentPropertyLayout.getValue());
                         propertyLayouts.put(currentPropertyLayout.getName(), currentPropertyLayout);
                         inMultilineValue = false;
                         currentPropertyLayout = new PropertyLayout();
                     }
                 } else {
-                    currentPropertyLayout.setNameLine(unescapeNonASCII(currentLine));
-                    currentPropertyLayout.setName(currentPropertyLayout.getNameLine().trim());
-                    properties.put(currentPropertyLayout.getName(), "");
-                    propertyLayouts.put(currentPropertyLayout.getName(), currentPropertyLayout);
-                    inMultilineValue = false;
-                    currentPropertyLayout = new PropertyLayout();
+                    if (inMultilineValue) {
+                        if (currentLine.trim().endsWith("\\")) {
+                            // multi-value is continuing
+                            currentLine = unescapeNonASCII(StringUtils.stripEnd(currentLine, "\\"));
+                            currentPropertyLayout.getValueLines().add(currentLine);
+                        } else {
+                            // multi-value is (probably) stopped
+                            currentPropertyLayout.getValueLines().add(unescapeNonASCII(currentLine));
+                            properties.put(currentPropertyLayout.getName(), currentPropertyLayout.getValue());
+                            propertyLayouts.put(currentPropertyLayout.getName(), currentPropertyLayout);
+                            inMultilineValue = false;
+                            currentPropertyLayout = new PropertyLayout();
+                        }
+                    } else {
+                        currentPropertyLayout.setNameLine(unescapeNonASCII(currentLine));
+                        currentPropertyLayout.setName(currentPropertyLayout.getNameLine().trim());
+                        properties.put(currentPropertyLayout.getName(), "");
+                        propertyLayouts.put(currentPropertyLayout.getName(), currentPropertyLayout);
+                        inMultilineValue = false;
+                        currentPropertyLayout = new PropertyLayout();
+                    }
                 }
             }
         }
 
-        IOUtils.closeQuietly(reader);
         loadedFromInputStream = true;
     }
 
@@ -403,34 +379,6 @@ public class PropertiesManager {
             outputStream.close();
         }
     }
-
-    public void outputProperty(List<String> outputLineList, String currentLine, Set<String> remainingPropertyNames, String currentPropertyName, int equalPosition) {
-        if (remainingPropertyNames.contains(currentPropertyName)) {
-            Object propValue = properties.get(currentPropertyName);
-            remainingPropertyNames.remove(currentPropertyName);
-            StringBuilder lineBuilder = new StringBuilder();
-            if (modifiedProperties.contains(currentPropertyName)) {
-                lineBuilder.append(escapeNonASCII(currentLine.substring(0, equalPosition + 1), true));
-                lineBuilder.append(" ");
-                lineBuilder.append(escapeValue(currentPropertyName, propValue));
-            } else {
-                if (unmodifiedCommentingActivated) {
-                    // this property was not modified, we comment it out
-                    lineBuilder.append("#");
-                    lineBuilder.append(escapeNonASCII(currentLine.substring(0, equalPosition + 1), true));
-                    lineBuilder.append(" ");
-                    lineBuilder.append(escapeValue(currentPropertyName, propValue));
-                } else {
-                    // property was not modified and commenting is not activated, we use the original line(s)
-                    lineBuilder.append(currentLine);
-                }
-            }
-            outputLineList.add(lineBuilder.toString());
-        } else if (removedPropertyNames.contains(currentPropertyName)) {
-            // the property must be removed from the file, we do not add it to the output.
-        }
-    }
-
 
     /**
      * Write the file composed by the storeProperties() method, using

@@ -69,29 +69,18 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <jahia.license.header>header.txt</jahia.license.header>
         <jahia.license.style>style.xml</jahia.license.style>
-        <jackson.version>2.12.4</jackson.version>
-        <jackson-databind.version>2.12.4</jackson-databind.version>
-        <plexus-archivers.version>4.2.7</plexus-archivers.version>
-        <plexus-utils.version>3.4.1</plexus-utils.version>
-        <maven-scm.version>1.11.2</maven-scm.version>
-        <junit.version>4.13.2</junit.version>
-        <jaxen.version>1.2.0</jaxen.version>
-        <jdom2.version>2.0.6</jdom2.version>
-        <commons-io.version>2.11.0</commons-io.version>
-        <bndlib.version>6.1.0</bndlib.version>
-        <maven.bundle.plugin.version>5.1.9</maven.bundle.plugin.version>
 
-        <!-- Releases properties -->
+        <maven.bundle.plugin.version>5.1.9</maven.bundle.plugin.version>
         <nexus.maven.plugin.version>1.7.0</nexus.maven.plugin.version>
         <jahia.nexus.staging.repository.id>64277f72646358</jahia.nexus.staging.repository.id>
-	</properties>
+    </properties>
 
     <modules>
         <module>deployers</module>
         <module>configurators</module>
+        <module>configurators-docker</module>
         <module>archivers</module>
         <module>osgi-tools</module>
-<!--        <module>migrators</module>-->
         <module>maven-jahia-plugin</module>
         <module>jahia-simple-maven-plugin</module>
         <module>jahia-installer</module>
@@ -114,7 +103,7 @@
     </repositories>
 
     <pluginRepositories>
-    	<pluginRepository>
+        <pluginRepository>
             <id>jahia-public</id>
             <name>Jahia Public Repository</name>
             <url>https://devtools.jahia.com/nexus/content/groups/public</url>
@@ -134,101 +123,201 @@
             <url>https://devtools.jahia.com/nexus/content/repositories/jahia-releases</url>
         </repository>
         <snapshotRepository>
-        	<id>jahia-snapshots</id>
-        	<url>https://devtools.jahia.com/nexus/content/repositories/jahia-snapshots</url>
+            <id>jahia-snapshots</id>
+            <url>https://devtools.jahia.com/nexus/content/repositories/jahia-snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.17.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-text</artifactId>
+                <version>1.13.1</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>1.11.0</version>
+            </dependency>
+            <dependency>
                 <groupId>org.jahia.commons</groupId>
                 <artifactId>jahia-commons</artifactId>
-                <version>1.0.8</version>
+                <version>1.0.9-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.7.36</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-simple</artifactId>
+                <version>1.7.36</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>20250517</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jdom</groupId>
+                <artifactId>jdom2</artifactId>
+                <version>2.0.6.1</version>
+            </dependency>
+            <dependency>
+                <groupId>jaxen</groupId>
+                <artifactId>jaxen</artifactId>
+                <version>1.2.0</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>2.19.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.googlecode.java-diff-utils</groupId>
+                <artifactId>diffutils</artifactId>
+                <version>1.3.0</version>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.13.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.plexus</groupId>
+                <artifactId>plexus-utils</artifactId>
+                <version>3.6.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.plexus</groupId>
+                <artifactId>plexus-archiver</artifactId>
+                <version>4.2.7</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>2.12.4</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>2.12.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven.scm</groupId>
+                <artifactId>maven-scm-api</artifactId>
+                <version>1.11.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven.scm</groupId>
+                <artifactId>maven-scm-provider-svnexe</artifactId>
+                <version>1.11.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven.scm</groupId>
+                <artifactId>maven-scm-provider-git-commons</artifactId>
+                <version>1.11.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven.scm</groupId>
+                <artifactId>maven-scm-provider-gitexe</artifactId>
+                <version>1.11.2</version>
+            </dependency>
+            <dependency>
+                <groupId>biz.aQute.bnd</groupId>
+                <artifactId>biz.aQute.bndlib</artifactId>
+                <version>6.1.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
 
-	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<artifactId>maven-assembly-plugin</artifactId>
-					<version>3.6.0</version>
-				</plugin>
-				<plugin>
-					<artifactId>maven-site-plugin</artifactId>
-					<version>3.12.1</version>
-				</plugin>
-				<plugin>
-					<artifactId>maven-war-plugin</artifactId>
-					<version>3.4.0</version>
-				</plugin>
-				<plugin>
-					<artifactId>maven-enforcer-plugin</artifactId>
-					<version>3.3.0</version>
-				</plugin>
-				<plugin>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.11.0</version>
-				</plugin>
-				<plugin>
-					<artifactId>maven-source-plugin</artifactId>
-					<version>3.3.0</version>
-				</plugin>
-				<plugin>
-	                <groupId>org.apache.felix</groupId>
-	                <artifactId>maven-bundle-plugin</artifactId>
-	                <version>${maven.bundle.plugin.version}</version>
-				</plugin>
-	            <plugin>
-	                <artifactId>maven-release-plugin</artifactId>
-	                <version>3.0.1</version>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>3.6.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>3.12.1</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>3.4.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>3.3.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.11.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.3.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>maven-bundle-plugin</artifactId>
+                    <version>${maven.bundle.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>3.0.1</version>
                     <configuration>
                         <useReleaseProfile>false</useReleaseProfile>
                         <autoVersionSubmodules>true</autoVersionSubmodules>
                         <goals>deploy</goals>
                         <preparationGoals>clean install</preparationGoals>
                     </configuration>
-	            </plugin>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-plugin-plugin</artifactId>
                     <version>3.9.0</version>
                 </plugin>
-			</plugins>
-		</pluginManagement>
+            </plugins>
+        </pluginManagement>
 
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-enforcer-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>enforce-versions</id>
-						<goals>
-							<goal>enforce</goal>
-						</goals>
-						<configuration>
-							<rules>
-								<requireMavenVersion>
-									<version>[3.8,)</version>
-								</requireMavenVersion>
-								<requireJavaVersion>
-									<version>[11,)</version>
-								</requireJavaVersion>
-							</rules>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>11</source>
-					<target>11</target>
-					<verbose>true</verbose>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>enforce-versions</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>[3.8,)</version>
+                                </requireMavenVersion>
+                                <requireJavaVersion>
+                                    <version>[11,)</version>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                    <verbose>true</verbose>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -236,23 +325,23 @@
                             <version>1.18.30</version>
                         </path>
                     </annotationProcessorPaths>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>jar-no-fork</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
     <profiles>
         <profile>

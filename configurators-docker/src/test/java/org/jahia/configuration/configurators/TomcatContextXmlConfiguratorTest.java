@@ -43,12 +43,11 @@
  */
 package org.jahia.configuration.configurators;
 
-import org.apache.commons.vfs2.FileSystemManager;
-import org.apache.commons.vfs2.VFS;
 import org.jdom2.Document;
 import org.jdom2.input.SAXBuilder;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.URL;
 
 /**
@@ -61,13 +60,14 @@ import java.net.URL;
 public class TomcatContextXmlConfiguratorTest extends AbstractXMLConfiguratorTestCase {
 
     public void testUpdateConfiguration() throws Exception {
-        FileSystemManager fsManager = VFS.getManager();
         URL contextXmlUrl = this.getClass().getClassLoader().getResource("configurators/META-INF/context.xml");
         File contextXmlFile = new File(contextXmlUrl.getFile());
         String contextXmlParentPath = contextXmlFile.getParentFile().getPath() + File.separator;
 
         TomcatContextXmlConfigurator tomcatOracleConfigurator = new TomcatContextXmlConfigurator(oracleDBProperties, tomcatMySQLConfigBean);
-        tomcatOracleConfigurator.updateConfiguration(new VFSConfigFile(fsManager, contextXmlUrl.toExternalForm()), contextXmlParentPath + "context-modified.xml");
+        try (InputStream inputStream = contextXmlUrl.openStream()){
+            tomcatOracleConfigurator.updateConfiguration(inputStream, contextXmlParentPath + "context-modified.xml");
+        }
 
         // The following tests are NOT exhaustive
         SAXBuilder saxBuilder = new SAXBuilder();
@@ -81,7 +81,7 @@ public class TomcatContextXmlConfiguratorTest extends AbstractXMLConfiguratorTes
         assertAllTextEquals(jdomDocument, "//Resource/@driverClassName", prefix, oracleDBProperties.getProperty("jahia.database.driver"));
 
         TomcatContextXmlConfigurator tomcatMySQLContextXmlConfigurator = new TomcatContextXmlConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);
-        tomcatMySQLContextXmlConfigurator.updateConfiguration(new VFSConfigFile(fsManager, contextXmlParentPath + "context-modified.xml"), contextXmlParentPath + "context-modified2.xml");
+        tomcatMySQLContextXmlConfigurator.updateConfFromFile(contextXmlParentPath + "context-modified.xml", contextXmlParentPath + "context-modified2.xml");
 
         // The following tests are NOT exhaustive
         saxBuilder = new SAXBuilder();
@@ -90,6 +90,5 @@ public class TomcatContextXmlConfiguratorTest extends AbstractXMLConfiguratorTes
         assertAllTextEquals(jdomDocument, "//Resource/@password", prefix, mysqlDBProperties.getProperty("jahia.database.pass"));
         assertAllTextEquals(jdomDocument, "//Resource/@url", prefix, mysqlDBProperties.getProperty("jahia.database.url"));
         assertAllTextEquals(jdomDocument, "//Resource/@driverClassName", prefix, mysqlDBProperties.getProperty("jahia.database.driver"));
-
     }
 }

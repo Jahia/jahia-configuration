@@ -43,21 +43,19 @@
  */
 package org.jahia.configuration.configurators;
 
-import org.codehaus.plexus.util.StringUtils;
-import org.jahia.configuration.logging.AbstractLogger;
+import org.apache.commons.lang3.StringUtils;
 import org.jdom2.*;
 import org.jdom2.filter.Filters;
-import org.jdom2.input.sax.XMLReaders;
-import org.jdom2.xpath.XPath;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.xml.XMLConstants;
 import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
-import java.util.List;
 
 /**
  * Configurator for Jackrabbit's repository.xml file.
@@ -68,15 +66,14 @@ import java.util.List;
  */
 public class JackrabbitConfigurator extends AbstractXMLConfigurator {
 
+    private static final Logger logger = LoggerFactory.getLogger(JackrabbitConfigurator.class);
+
     public JackrabbitConfigurator(Map dbProperties, JahiaConfigInterface jahiaConfigInterface) {
         super(dbProperties, jahiaConfigInterface);
     }
 
-    public JackrabbitConfigurator(Map dbProperties, JahiaConfigInterface jahiaConfigInterface, AbstractLogger logger) {
-        super(dbProperties, jahiaConfigInterface, logger);
-    }
-
-    public void updateConfiguration(ConfigFile sourceConfigFile, String destFileName) throws Exception {
+    public void updateConfiguration(InputStream inputStream, String destFileName) throws Exception {
+        logger.info("Updating Jackrabbit repository.xml...");
         try {
             SAXBuilder saxBuilder = new SAXBuilder();
             saxBuilder.setFeature("http://apache.org/xml/features/disallow-doctype-decl",false);
@@ -85,12 +82,13 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
             saxBuilder.setExpandEntities(false);
 
-            InputStreamReader fileReader = new InputStreamReader(sourceConfigFile.getInputStream());
+            InputStreamReader fileReader = new InputStreamReader(inputStream);
             org.jdom2.Document jdomDocument = saxBuilder.build(fileReader);
             Element repositoryElement = jdomDocument.getRootElement();
             Namespace namespace = repositoryElement.getNamespace();
 
             String schema = getValue(dbProperties, "jahia.jackrabbit.schema");
+            logger.info("Setting database schema type to: {}", schema);
             XPathFactory xPathFactory = XPathFactory.instance();
             XPathExpression<Element> databaseTypeXPath = xPathFactory.compile("//Repository/DataSources/DataSource/param[@name=\"databaseType\"]", Filters.element());
             for (Element paramElement : databaseTypeXPath.evaluate(jdomDocument)) {
@@ -102,39 +100,28 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             Element clusterElement = (Element) clusterXPath.evaluateFirst(jdomDocument);
             Element journalElement;
             if (clusterElement != null) {
+                logger.info("Found cluster configuration, setting journal class");
                 journalElement = clusterElement.getChild("Journal");
-                journalElement.setAttribute("class", getValue(dbProperties, "jahia.jackrabbit.journal"));
+                String journalClass = getValue(dbProperties, "jahia.jackrabbit.journal");
+                logger.info("Setting Journal class to: {}", journalClass);
+                journalElement.setAttribute("class", journalClass);
+            } else {
+                logger.info("No cluster configuration found");
             }
 
             configureBinaryStorage(repositoryElement, namespace, dbProperties);
 
+            logger.info("Setting FileSystem class to: {}", getValue(dbProperties, "jahia.jackrabbit.filesystem"));
             setElementAttribute(repositoryElement, "/Repository/FileSystem", "class", getValue(dbProperties, "jahia.jackrabbit.filesystem"));
+
+            logger.info("Setting PersistenceManager class to: {}", getValue(dbProperties, "jahia.jackrabbit.persistence"));
             setElementAttribute(repositoryElement, "//PersistenceManager", "class", getValue(dbProperties, "jahia.jackrabbit.persistence"));
 
-            // backward compatibility for workspace level FileSystem element
-            Element fs = getElement(repositoryElement, "//Workspace/FileSystem");
-            if (fs != null && fs.getAttributeValue("class").equals("@FILESYSTEM_CLASS@")) {
-            	fs.setAttribute("class", "org.apache.jackrabbit.core.fs.local.LocalFileSystem");
-            	removeElementIfExists(repositoryElement, "//Workspace/FileSystem/param[@name=\"dataSourceName\"]");
-            	removeElementIfExists(repositoryElement, "//Workspace/FileSystem/param[@name=\"schemaObjectPrefix\"]");
-            	removeElementIfExists(repositoryElement, "//Workspace/FileSystem/param[@name=\"schemaCheckEnabled\"]");
-            	fs.addContent(new Element("param", namespace).setAttribute("name", "path").setAttribute("value", "${wsp.home}"));
-            }
-
-            // backward compatibility for version level FileSystem element
-            fs = (Element) xPathFactory.compile("//Versioning/FileSystem", Filters.element()).evaluateFirst(jdomDocument);
-            if (fs != null && fs.getAttributeValue("class").equals("@FILESYSTEM_CLASS@")) {
-            	fs.setAttribute("class", "org.apache.jackrabbit.core.fs.local.LocalFileSystem");
-            	removeElementIfExists(repositoryElement, "//Versioning/FileSystem/param[@name=\"dataSourceName\"]");
-            	removeElementIfExists(repositoryElement, "//Versioning/FileSystem/param[@name=\"schemaObjectPrefix\"]");
-            	removeElementIfExists(repositoryElement, "//Versioning/FileSystem/param[@name=\"schemaCheckEnabled\"]");
-            	fs.addContent(new Element("param", namespace).setAttribute("name", "path").setAttribute("value", "${rep.home}/version"));
-            }
-
             write(jdomDocument, new File(destFileName));
-
+            logger.info("Successfully updated Jackrabbit repository.xml in {}", destFileName);
         } catch (JDOMException jdome) {
-            throw new Exception("Error while updating configuration file " + sourceConfigFile, jdome);
+            logger.error("Error updating Jackrabbit configuration in {}: {}", destFileName, jdome.getMessage(), jdome);
+            throw new Exception("Error while updating configuration file " + destFileName, jdome);
         }
     }
 
@@ -145,18 +132,16 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
         boolean storeFilesInAWS = Boolean.valueOf(getValue(dbProperties, "storeFilesInAWS"));
         String fileDataStorePath = getValue(dbProperties, "fileDataStorePath");
 
-        getLogger().info(
-                "Configuring Jackrabbit binary storage using data store."
-                        + " Store files in DB: "
-                        + storeFilesInDB
-                        + "."
-                        + (!storeFilesInDB ? " File data store path: "
-                        + (StringUtils.isNotEmpty(fileDataStorePath) ? fileDataStorePath
-                        : "${jahia.jackrabbit.datastore.path}") + "." : ""));
+        logger.info(
+                "Configuring Jackrabbit binary storage: storeFilesInDB={}, storeFilesInAWS={}, fileDataStorePath={}",
+                storeFilesInDB,
+                storeFilesInAWS,
+                StringUtils.isNotEmpty(fileDataStorePath) ? fileDataStorePath : "${jahia.jackrabbit.datastore.path}");
 
         if (storeFilesInAWS) {
             // We will use the AWS S3 data store
-
+            logger.info("Configuring AWS S3 data store");
+            logger.info("Removing any existing FileDataStore or DbDataStore elements");
             removeAllElements(repositoryElement,
                     "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.FileDataStore\"]");
             removeAllElements(repositoryElement,
@@ -164,8 +149,10 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
 
         } else if (storeFilesInDB) {
             // We will use the DB-based data store
+            logger.info("Configuring DB-based data store");
 
             // remove the FileDataStore if present
+            logger.info("Removing any existing FileDataStore or S3DataStore elements");
             removeAllElements(repositoryElement,
                     "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.FileDataStore\"]");
             removeAllElements(repositoryElement,
@@ -176,6 +163,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
                     "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.db.DbDataStore\"]");
             if (store == null) {
                 // DbDataStore element not found -> create it
+                logger.info("Creating new DbDataStore element");
                 store = new Element("DataStore", namespace);
                 store.setAttribute("class", "org.apache.jackrabbit.core.data.db.DbDataStore");
                 store.addContent(new Element("param").setAttribute("name", "dataSourceName")
@@ -189,11 +177,16 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
                 store.addContent(new Element("param").setAttribute("name", "minRecordLength")
                         .setAttribute("value", "1024"));
                 repositoryElement.addContent(store);
+                logger.info("Added DbDataStore element with default configuration");
+            } else {
+                logger.info("DbDataStore element already exists, keeping existing configuration");
             }
         } else {
             // We will use the filesystem-based data store
+            logger.info("Configuring filesystem-based data store");
 
             // remove the DbDataStore if present
+            logger.info("Removing any existing DbDataStore or S3DataStore elements");
             removeAllElements(repositoryElement,
                     "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.db.DbDataStore\"]");
             removeAllElements(repositoryElement,
@@ -205,6 +198,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
             Element pathParam = null;
             if (store == null) {
                 // FileDataStore element not found -> create it
+                logger.info("Creating new FileDataStore element");
                 store = new Element("DataStore", namespace);
                 store.setAttribute("class", "org.apache.jackrabbit.core.data.FileDataStore");
                 store.addContent(new Element("param").setAttribute("name", "minRecordLength")
@@ -212,10 +206,14 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
                 pathParam = new Element("param").setAttribute("name", "path").setAttribute("value", "");
                 store.addContent(pathParam);
                 repositoryElement.addContent(store);
+                logger.info("Added FileDataStore element with default configuration");
             } else {
+                logger.info("FileDataStore element already exists, updating path parameter");
                 pathParam = getElement(store, "//DataStore/param[@name=\"path\"]");
             }
             pathParam.setAttribute("value", "${jahia.jackrabbit.datastore.path}");
+            logger.info("Set FileDataStore path to: ${jahia.jackrabbit.datastore.path}");
         }
+        logger.info("Binary storage configuration completed");
     }
 }

@@ -43,15 +43,12 @@
  */
 package org.jahia.configuration.configurators;
 
-import org.apache.commons.vfs2.FileSystemManager;
-import org.apache.commons.vfs2.VFS;
-import org.jahia.configuration.logging.AbstractLogger;
-import org.jahia.configuration.logging.ConsoleLogger;
 import org.jdom2.Document;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.xpath.XPath;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.URL;
 
 /**
@@ -65,15 +62,15 @@ public class JackrabbitConfiguratorTest extends AbstractXMLConfiguratorTestCase 
 
     public void testUpdateConfiguration () throws Exception {
         URL repositoryURL = this.getClass().getClassLoader().getResource("configurators/WEB-INF/etc/repository/jackrabbit/repository.xml");
-        FileSystemManager fsManager = VFS.getManager();
-        AbstractLogger logger = new ConsoleLogger(ConsoleLogger.LEVEL_INFO);
 
         File repositoryFile = new File(repositoryURL.getFile());
         String repositoryFileParentPath = repositoryFile.getParentFile().getPath() + File.separator;
 
         oracleDBProperties.setProperty("storeFilesInDB", "true");
-        JackrabbitConfigurator websphereOracleJackrabbitConfigurator = new JackrabbitConfigurator(oracleDBProperties, websphereOracleConfigBean, logger);
-        websphereOracleJackrabbitConfigurator.updateConfiguration(new VFSConfigFile(fsManager, repositoryURL.toExternalForm()), repositoryFileParentPath + "repository-modified.xml");
+        JackrabbitConfigurator websphereOracleJackrabbitConfigurator = new JackrabbitConfigurator(oracleDBProperties, websphereOracleConfigBean);
+        try (InputStream inputStream = repositoryURL.openStream()){
+            websphereOracleJackrabbitConfigurator.updateConfiguration(inputStream, repositoryFileParentPath + "repository-modified.xml");
+        }
 
         // The following tests are NOT exhaustive
         SAXBuilder saxBuilder = new SAXBuilder();
@@ -91,8 +88,8 @@ public class JackrabbitConfiguratorTest extends AbstractXMLConfiguratorTestCase 
         assertAllTextEquals(jdomDocument, "//PersistenceManager/@class", prefix, oracleDBProperties.getProperty("jahia.jackrabbit.persistence"));
 
         mysqlDBProperties.setProperty("storeFilesInDB", "false");
-        JackrabbitConfigurator tomcatMySQLJackrabbitConfigurator = new JackrabbitConfigurator(mysqlDBProperties, tomcatMySQLConfigBean, logger);
-        tomcatMySQLJackrabbitConfigurator.updateConfiguration(new VFSConfigFile(fsManager, repositoryFileParentPath + "repository-modified.xml"), repositoryFileParentPath + "repository-modified2.xml");
+        JackrabbitConfigurator tomcatMySQLJackrabbitConfigurator = new JackrabbitConfigurator(mysqlDBProperties, tomcatMySQLConfigBean);
+        tomcatMySQLJackrabbitConfigurator.updateConfFromFile(repositoryFileParentPath + "repository-modified.xml", repositoryFileParentPath + "repository-modified2.xml");
 
         // The following tests are NOT exhaustive
         saxBuilder = new SAXBuilder();
@@ -104,7 +101,9 @@ public class JackrabbitConfiguratorTest extends AbstractXMLConfiguratorTestCase 
         assertAllTextEquals(jdomDocument, "/Repository/FileSystem/@class", prefix, mysqlDBProperties.getProperty("jahia.jackrabbit.filesystem"));
         assertAllTextEquals(jdomDocument, "//PersistenceManager/@class", prefix, mysqlDBProperties.getProperty("jahia.jackrabbit.persistence"));
 
-        new JackrabbitConfigurator(mysqlDBProperties, tomcatMySQLConfigBean, logger).updateConfiguration(new VFSConfigFile(fsManager, repositoryFileParentPath + "repository-modified2.xml"), repositoryFileParentPath + "repository-modified-store.xml");
+        new JackrabbitConfigurator(mysqlDBProperties, tomcatMySQLConfigBean)
+                .updateConfFromFile(repositoryFileParentPath + "repository-modified2.xml",
+                        repositoryFileParentPath + "repository-modified-store.xml");
         saxBuilder = new SAXBuilder();
         saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         jdomDocument = saxBuilder.build(repositoryFileParentPath + "repository-modified-store.xml");
@@ -112,7 +111,9 @@ public class JackrabbitConfiguratorTest extends AbstractXMLConfiguratorTestCase 
         assertNotNull(XPath.selectSingleNode(jdomDocument, "//Repository/DataStore[@class=\"org.apache.jackrabbit.core.data.FileDataStore\"]"));
 
         mysqlDBProperties.setProperty("storeFilesInDB", "true");
-        new JackrabbitConfigurator(mysqlDBProperties, tomcatMySQLConfigBean, logger).updateConfiguration(new VFSConfigFile(fsManager, repositoryFileParentPath + "repository-modified-store.xml"), repositoryFileParentPath + "repository-modified-store-db.xml");
+        new JackrabbitConfigurator(mysqlDBProperties, tomcatMySQLConfigBean)
+                .updateConfFromFile(repositoryFileParentPath + "repository-modified-store.xml",
+                        repositoryFileParentPath + "repository-modified-store-db.xml");
         saxBuilder = new SAXBuilder();
         saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         jdomDocument = saxBuilder.build(repositoryFileParentPath + "repository-modified-store-db.xml");

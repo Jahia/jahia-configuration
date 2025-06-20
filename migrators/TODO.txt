@@ -1,6 +1,0 @@
-- Create separate configuration for source and binary migrations (creating maybe named configuration such as
-module-source, module-binary so that we can also use the migrators on other projects than just modules)
-- Move as much as possible of the existing transformations out of the Jahia url war project and into the migrators
-(including the unit tests)
-- Implement move
-- Improve Javadocs

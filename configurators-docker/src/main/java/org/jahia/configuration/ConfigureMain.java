@@ -41,64 +41,48 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.configuration.modules;
+package org.jahia.configuration;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.jar.JarFile;
+import org.jahia.configuration.configurators.JahiaGlobalConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.apache.commons.io.FileUtils;
-import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
-import org.jahia.configuration.logging.AbstractLogger;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
-/**
- * Deployment utility that is responsible for correctly deploying all resources of a module into the server runtime.
- */
-public class ModuleDeployer {
+public class ConfigureMain {
+    private static final Logger logger = LoggerFactory.getLogger(ConfigureMain.class);
 
-    private AbstractLogger logger;
-    private File output;
+    public static void main(String[] args) {
+        try (InputStream is = ConfigureMain.class.getClassLoader().getResourceAsStream("header.txt");
+             BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+            System.out.println(reader.lines().collect(Collectors.joining(System.lineSeparator())) + System.lineSeparator());
+        } catch (IOException e) {
+            // ignore if the header file is not found
+        }
 
-    public ModuleDeployer(File output, AbstractLogger logger) {
-        this.output = output;
-        this.logger = logger;
-    }
-
-    private void copyDbScripts(File warFile, File targetDir) {
-        JarFile war = null;
-        try {
-            war = new JarFile(warFile);
-            if (war.getJarEntry("META-INF/db") != null) {
-                war.close();
-                ZipUnArchiver unarch = new ZipUnArchiver(warFile);
-                File tmp = new File(FileUtils.getTempDirectory(), String.valueOf(System.currentTimeMillis()));
-                tmp.mkdirs();
-                File destDir = new File(targetDir, "db/sql/schema");
+        if (args.length > 0) {
+            if (args[0].equals("--configure") || args[0].equals("-c")) {
+                logger.info("Jahia docker configurator started");
                 try {
-                    unarch.extract("META-INF/db", tmp);
-					FileUtils.copyDirectory(new File(tmp, "META-INF/db"), destDir);
-                } finally {
-                    FileUtils.deleteQuietly(tmp);
-                }
-                logger.info("Copied database scripts from " + warFile.getName() + " to " + destDir);
-            }
-        } catch (Exception e) {
-            logger.error("Error copying database scripts for module " + warFile, e);
-        } finally {
-            if (war != null) {
-                try {
-                    war.close();
+                    new JahiaGlobalConfigurator(JahiaGlobalConfigurator.getConfiguration(args.length > 1 ? new File(args[1]) : null)).execute();
                 } catch (Exception e) {
-                    logger.warn("Unable to close the JAR file " + warFile, e);
+                    logger.error("Error during execution of a configurator. Cause: " + e.getMessage(), e);
+                    System.exit(1);
                 }
+                logger.info("Jahia docker configurator finished successfully");
+                return;
             }
         }
-    }
 
-    public void deployModule(File file) throws IOException {
-        FileUtils.copyFileToDirectory(file, output);
-        logger.info("Copied " + file + " to " + output);
-        File targetDir = new File(output, "../");
-        copyDbScripts(file, targetDir);
+        logger.info("Usage: java -cp \"configurators-docker-6.13.0-standalone.jar:/path/to/tomcat/lib/*\" org.jahia.configuration.ConfigureMain [command] [parameters(s)]");
+        logger.info("\nCommands:");
+        logger.info(" -c,--configure"+"\t\t"+"Performs configuration of an installed Jahia server.");
+        logger.info("\t\t\t"+"Expects a path to a properties file with configuration");
+        logger.info("\t\t\t"+"settings as a parameter.");
+
+        logger.info("\nExamples:");
+        logger.info(" java -cp \"configurators-docker-standalone.jar:/path/to/tomcat/lib/*\" org.jahia.configuration.ConfigureMain --configure /opt/jahia/install.properties");
     }
 }

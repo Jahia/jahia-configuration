@@ -43,14 +43,13 @@
  */
 package org.jahia.configuration.configurators;
 
-import org.apache.commons.vfs2.FileSystemManager;
-import org.apache.commons.vfs2.VFS;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.URL;
 
 /**
@@ -62,13 +61,14 @@ import java.net.URL;
  */
 public class RootUserConfiguratorTest extends AbstractXMLConfiguratorTestCase {
     public void testUpdateConfiguration() throws Exception {
-        FileSystemManager fsManager = VFS.getManager();
         URL rootXmlUrl = this.getClass().getClassLoader().getResource("configurators/WEB-INF/etc/repository/root-test.xml");
         File rootXmlFile = new File(rootXmlUrl.getFile());
         String rootXmlFileParentPath = rootXmlFile.getParentFile().getPath() + File.separator;
 
         RootUserConfigurator websphereOracleConfigurator = new RootUserConfigurator(oracleDBProperties, websphereOracleConfigBean, "password");
-        websphereOracleConfigurator.updateConfiguration(new VFSConfigFile(fsManager, rootXmlUrl.toExternalForm()), rootXmlFileParentPath + "root-modified.xml");
+        try (InputStream inputStream = rootXmlUrl.openStream()){
+            websphereOracleConfigurator.updateConfiguration(inputStream, rootXmlFileParentPath + "root-modified.xml");
+        }
 
         SAXBuilder saxBuilder = new SAXBuilder();
         saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
@@ -89,7 +89,7 @@ public class RootUserConfiguratorTest extends AbstractXMLConfiguratorTestCase {
                 + websphereOracleConfigBean.getJahiaRootUsername() + "/@preferredLanguage", prefix)).getValue());
 
         RootUserConfigurator tomcatMySQLConfigurator = new RootUserConfigurator(mysqlDBProperties, tomcatMySQLConfigBean, "1234root");
-        tomcatMySQLConfigurator.updateConfiguration(new VFSConfigFile(fsManager, rootXmlFileParentPath + "root-test.xml"), rootXmlFileParentPath + "root-modified2.xml");
+        tomcatMySQLConfigurator.updateConfFromFile(rootXmlFileParentPath + "root-test.xml", rootXmlFileParentPath + "root-modified2.xml");
 
         jdomDocument = saxBuilder.build(rootXmlFileParentPath + "root-modified2.xml");
 

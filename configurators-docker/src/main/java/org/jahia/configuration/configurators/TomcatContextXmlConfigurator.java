@@ -47,8 +47,11 @@ import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.xpath.XPath;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
 
@@ -59,15 +62,18 @@ import java.util.Map;
  */
 public class TomcatContextXmlConfigurator extends AbstractXMLConfigurator {
 
+    private static final Logger logger = LoggerFactory.getLogger(TomcatContextXmlConfigurator.class);
+
     public TomcatContextXmlConfigurator(Map dbProperties, JahiaConfigInterface jahiaConfigInterface) {
         super(dbProperties, jahiaConfigInterface);
     }
 
-    public void updateConfiguration(ConfigFile sourceConfigFile, String destFileName) throws Exception {
+    public void updateConfiguration(InputStream inputStream, String destFileName) throws Exception {
+        logger.info("Updating Tomcat context.xml ...");
         try {
             SAXBuilder saxBuilder = new SAXBuilder();
             saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-            InputStreamReader fileReader = new InputStreamReader(sourceConfigFile.getInputStream());
+            InputStreamReader fileReader = new InputStreamReader(inputStream);
             org.jdom2.Document jdomDocument = saxBuilder.build(fileReader);
             Element root = jdomDocument.getRootElement();
 
@@ -75,33 +81,34 @@ public class TomcatContextXmlConfigurator extends AbstractXMLConfigurator {
 
             Element resource = (Element)XPath.newInstance("/Context/Resource").selectSingleNode(root);
             if (resource.getAttributeValue("username") != null) {
-            	resource.setAttribute("username", getValue(dbProperties, "jahia.database.user"));
+                resource.setAttribute("username", getValue(dbProperties, "jahia.database.user"));
             }
             if (resource.getAttributeValue("user") != null) {
-            	resource.setAttribute("user", getValue(dbProperties, "jahia.database.user"));
+                resource.setAttribute("user", getValue(dbProperties, "jahia.database.user"));
             }
             if (resource.getAttributeValue("url") != null) {
-            	resource.setAttribute("url", getValue(dbProperties, "jahia.database.url"));
+                resource.setAttribute("url", getValue(dbProperties, "jahia.database.url"));
             }
             if (resource.getAttributeValue("jdbcUrl") != null) {
-            	resource.setAttribute("jdbcUrl", getValue(dbProperties, "jahia.database.url"));
+                resource.setAttribute("jdbcUrl", getValue(dbProperties, "jahia.database.url"));
             }
             if (resource.getAttributeValue("driverClassName") != null) {
-            	resource.setAttribute("driverClassName", getValue(dbProperties, "jahia.database.driver"));
+                resource.setAttribute("driverClassName", getValue(dbProperties, "jahia.database.driver"));
             }
             if (resource.getAttributeValue("driverClass") != null) {
-            	resource.setAttribute("driverClass", getValue(dbProperties, "jahia.database.driver"));
+                resource.setAttribute("driverClass", getValue(dbProperties, "jahia.database.driver"));
             }
             if (resource.getAttributeValue("validationQuery") != null) {
-            	resource.setAttribute("validationQuery", getValue(dbProperties, "jahia.database.validationQuery"));
+                resource.setAttribute("validationQuery", getValue(dbProperties, "jahia.database.validationQuery"));
             }
 
             write(jdomDocument, new File(destFileName));
+            logger.info("Successfully updated Tomcat context.xml in {}", destFileName);
 
         } catch (JDOMException jdome) {
-            throw new Exception("Error while updating configuration file " + sourceConfigFile, jdome);
+            logger.error("Error while updating configuration file " + destFileName, jdome);
+            throw new Exception("Error while updating configuration file " + destFileName, jdome);
         }
-
     }
-
 }
+

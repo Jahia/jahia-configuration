@@ -44,14 +44,15 @@
 package org.jahia.configuration.configurators;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Map;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.apache.commons.io.IOUtils;
-import org.codehaus.plexus.util.PropertyUtils;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Property configuration for the jahia.properties file.
@@ -61,20 +62,25 @@ import org.codehaus.plexus.util.StringUtils;
  */
 public class JahiaPropertiesConfigurator extends AbstractConfigurator {
 
+    private static final Logger logger = LoggerFactory.getLogger(JahiaPropertiesConfigurator.class);
+
     private PropertiesManager properties;
 
     public JahiaPropertiesConfigurator(Map dbProperties, JahiaConfigInterface jahiaConfigInterface) {
         super(dbProperties, jahiaConfigInterface);
     }
 
-    public void updateConfiguration(ConfigFile sourceJahiaPath, String targetJahiaPath) throws IOException {
-        properties = new PropertiesManager(sourceJahiaPath.getInputStream());
+    public void updateConfiguration(InputStream inputStream, String targetJahiaPath) throws IOException {
+        logger.info("Updating jahia.properties ...");
+        properties = new PropertiesManager(inputStream);
         properties.setUnmodifiedCommentingActivated(true);
 
         File targetJahiaFile = new File(targetJahiaPath);
         Properties existingProperties = new Properties();
         if (targetJahiaFile.exists()) {
-            existingProperties.putAll(PropertyUtils.loadProperties(targetJahiaFile));
+            try (FileInputStream fis = new FileInputStream(targetJahiaFile)) {
+                existingProperties.load(fis);
+            }
             for (Object key : existingProperties.keySet()) {
                 String propertyName = String.valueOf(key);
                 properties.setProperty(propertyName, existingProperties.getProperty(propertyName));
@@ -85,7 +91,7 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
         properties.setProperty("jahiaModulesDiskPath", jahiaConfigInterface.getJahiaModulesDiskPath());
         properties.setProperty("jahiaWebAppsDeployerBaseURL", jahiaConfigInterface.getJahiaWebAppsDeployerBaseURL());
         properties.setProperty("jahiaImportsDiskPath", jahiaConfigInterface.getJahiaImportsDiskPath());
-        properties.setProperty("db_script", jahiaConfigInterface.getDb_script());
+        properties.setProperty("db_script", jahiaConfigInterface.getDatabaseType() + ".script");
         properties.setProperty("operatingMode", jahiaConfigInterface.getOperatingMode());
 
         properties.setProperty("hibernate.dialect", getDBProperty("jahia.database.hibernate.dialect"));
@@ -98,45 +104,18 @@ public class JahiaPropertiesConfigurator extends AbstractConfigurator {
 
         configureScheduler();
 
-        if (jahiaConfigInterface.getJahiaAdvancedProperties() != null) {
-            for (Map.Entry<String, String> entry : jahiaConfigInterface.getJahiaAdvancedProperties().entrySet()) {
-                properties.setProperty(entry.getKey(), entry.getValue());
-            }
-        }
-
         String fileDataStorePath = getValue(dbProperties, "fileDataStorePath");
         if (StringUtils.isNotEmpty(fileDataStorePath)) {
-            String datastorePropertyName = "jackrabbit.datastore.path";
-            InputStream is = sourceJahiaPath.getInputStream();
-            try {
-                if (IOUtils.toString(is).contains("jahia.jackrabbit.datastore.path")) {
-                    // DF 7.1.0.0+
-                    datastorePropertyName = "jahia.jackrabbit.datastore.path";
-                }
-            } finally {
-                IOUtils.closeQuietly(is);
-            }
-            properties.setProperty(datastorePropertyName, fileDataStorePath);
+            properties.setProperty("jahia.jackrabbit.datastore.path", fileDataStorePath);
         }
 
-        properties.storeProperties(sourceJahiaPath.getInputStream(), targetJahiaPath);
+        properties.storeProperties(inputStream, targetJahiaPath);
+        logger.info("Successfully updated jahia.properties in {}", targetJahiaPath);
     }
 
     private void configureScheduler() {
         String delegate = (String) dbProperties.get("jahia.quartz.jdbcDelegate");
-        if (delegate == null || delegate.length() == 0) {
-            delegate = "org.quartz.impl.jdbcjobstore.StdJDBCDelegate";
-        }
-
-        if (jahiaConfigInterface.getTargetServerType().startsWith("weblogic")) {
-            delegate = "org.quartz.impl.jdbcjobstore.WebLogicDelegate";
-            if (jahiaConfigInterface.getDatabaseType().equals("oracle")) {
-                delegate = "org.quartz.impl.jdbcjobstore.oracle.weblogic.WebLogicOracleDelegate";
-            }
-        }
-
-        if (jahiaConfigInterface.getTargetServerType().startsWith("was")
-                && jahiaConfigInterface.getDatabaseType().equals("oracle")) {
+        if (StringUtils.isEmpty(delegate)) {
             delegate = "org.quartz.impl.jdbcjobstore.StdJDBCDelegate";
         }
 

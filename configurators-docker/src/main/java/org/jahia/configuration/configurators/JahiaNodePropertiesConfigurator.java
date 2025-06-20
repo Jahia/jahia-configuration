@@ -44,31 +44,34 @@
 package org.jahia.configuration.configurators;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.Properties;
 import java.util.UUID;
 
-import org.codehaus.plexus.util.PropertyUtils;
-import org.codehaus.plexus.util.StringUtils;
-import org.jahia.configuration.logging.AbstractLogger;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Property configuration for the jahia.node.properties file. User: islam Date: 16 juil. 2008 Time: 10:09:49
  */
 public class JahiaNodePropertiesConfigurator extends AbstractConfigurator {
 
-    protected AbstractLogger logger;
+    private static final Logger logger = LoggerFactory.getLogger(JahiaNodePropertiesConfigurator.class);
 
     private PropertiesManager properties;
 
-    public JahiaNodePropertiesConfigurator(AbstractLogger logger, JahiaConfigInterface cfg) {
+    public JahiaNodePropertiesConfigurator(JahiaConfigInterface cfg) {
         super(cfg);
-        this.logger = logger;
     }
 
     private String getServerId(String id) {
         if (id == null || id.length() == 0 || "<auto>".equalsIgnoreCase(id)) {
             id = "dx-" + UUID.randomUUID();
+            logger.info("Using generated server id: {}", id);
+        } else {
+            logger.info("Using configured server id: {}", id);
         }
         return id;
     }
@@ -94,14 +97,18 @@ public class JahiaNodePropertiesConfigurator extends AbstractConfigurator {
         }
     }
 
-    public void updateConfiguration(ConfigFile sourceJahiaPath, String targetJahiaPath) throws IOException {
-        properties = new PropertiesManager(sourceJahiaPath.getInputStream());
+    @Override
+    public void updateConfiguration(InputStream inputStream, String destFileName) throws Exception {
+        logger.info("Updating jahia.node.properties");
+        properties = new PropertiesManager(inputStream);
         properties.setUnmodifiedCommentingActivated(true);
 
-        File targetJahiaFile = new File(targetJahiaPath);
+        File targetJahiaFile = new File(destFileName);
         Properties existingProperties = new Properties();
         if (targetJahiaFile.exists()) {
-            existingProperties.putAll(PropertyUtils.loadProperties(targetJahiaFile));
+            try (FileInputStream fis = new FileInputStream(targetJahiaFile)) {
+                existingProperties.load(fis);
+            }
             for (Object key : existingProperties.keySet()) {
                 String propertyName = String.valueOf(key);
                 properties.setProperty(propertyName, existingProperties.getProperty(propertyName));
@@ -114,7 +121,8 @@ public class JahiaNodePropertiesConfigurator extends AbstractConfigurator {
 
         setClusterProperties();
 
-        properties.storeProperties(sourceJahiaPath.getInputStream(), targetJahiaPath);
+        properties.storeProperties(inputStream, destFileName);
+        logger.info("Successfully updated jahia.node.properties in {}", destFileName);
     }
-
 }
+

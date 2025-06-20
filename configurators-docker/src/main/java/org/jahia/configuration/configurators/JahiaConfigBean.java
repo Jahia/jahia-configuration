@@ -43,9 +43,7 @@
  */
 package org.jahia.configuration.configurators;
 
-import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,8 +53,8 @@ import java.util.Map;
  * Time: 10:33:15
  */
 public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
-    private File outputDirectory;
-    private String jahiaVarDiskPath = "${jahiaWebAppRoot}/WEB-INF/var/";
+
+    private String jahiaVarDiskPath = "/var/jahia";
     private String jahiaModulesDiskPath = "${jahia.data.dir}/modules/";
     private String jahiaWebAppsDeployerBaseURL = "http://127.0.0.1:8080/manager/html/";
     private String cluster_activated = "false";
@@ -66,16 +64,12 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String jahiaImportsDiskPath = "${jahia.data.dir}/imports/";
     private String clusterTCPBindAddress = null;
     private String clusterTCPBindPort = "7870";
-    private String db_script = "hypersonic.script";
     private String operatingMode = "development";
-    private String targetServerType = "tomcat";
-    private String targetServerVersion = "";
     private String targetServerDirectory = "";
     private String databaseType = "derby_embedded";
     private String databaseUrl = "jdbc:derby:directory:jahia";
     private String databaseUsername = "";
     private String databasePassword = "";
-    private List<String> siteImportLocation;
 
     private String jahiaRootUsername = "root";
     private String jahiaRootPassword = "root1234";
@@ -84,36 +78,21 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     private String jahiaRootEmail = "";
     private String jahiaRootPreferredLang = "en";
     private String webAppDirName = "ROOT";
-    private String mailServer = "";
-    private String mailFrom = "";
-    private String mailAdministrator = "";
-    private String mailParanoia = "Disabled";
-    
+
     /**
      * This property is here for instance when we are in a clustered mode we don not want the database scripts to be
      * executed for every node
      */
     private String overwritedb = "true";
-    private String deleteFiles = "true";
     private String storeFilesInDB = "false";
     private String storeFilesInAWS = "false";
     private String fileDataStorePath = "";
-    private String targetConfigurationDirectory = "";
-
-    private String ldapActivated = "false";
-    private Map<String, String> groupLdapProviderProperties = new HashMap<String, String>();
-    private Map<String, String> userLdapProviderProperties = new HashMap<String, String>();
 
     private boolean externalizedConfigActivated = true;
     private boolean externalizedConfigExploded = true;
     private String externalizedConfigTargetPath;
-    private String externalizedConfigClassifier;
-    private String externalizedConfigFinalName = "jahia-config";
-    private Map<String, String> jahiaAdvancedProperties = new HashMap<String, String>();
     private Map<String, String> jahiaProperties = new HashMap<String, String>();
 
-    private String jeeApplicationLocation;
-    private String jeeApplicationModuleList;
     private String licenseFile;
     
     public void setFileDataStorePath(String fileDataStorePath) {
@@ -122,22 +101,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public JahiaConfigInterface clone() throws CloneNotSupportedException {
         return (JahiaConfigInterface) super.clone();
-    }
-
-    public File getOutputDirectory() {
-        return outputDirectory;
-    }
-
-    public void setOutputDirectory(File outputDirectory) {
-        this.outputDirectory = outputDirectory;
-    }
-
-    public String getDb_script() {
-        return db_script;
-    }
-
-    public void setDb_script(String db_script) {
-        this.db_script = db_script;
     }
 
     public String getJahiaVarDiskPath() {
@@ -218,22 +181,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.targetServerDirectory = targetServerDirectory;
     }
 
-    public String getTargetServerType() {
-        return targetServerType;
-    }
-
-    public void setTargetServerType(String targetServerType) {
-        this.targetServerType = targetServerType;
-    }
-
-    public String getTargetServerVersion() {
-        return targetServerVersion;
-    }
-
-    public void setTargetServerVersion(String targetServerVersion) {
-        this.targetServerVersion = targetServerVersion;
-    }
-
     public String getDatabaseType() {
         return databaseType;
     }
@@ -274,21 +221,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.overwritedb = overwritedb;
     }
 
-    public String getDeleteFiles() {
-        return deleteFiles;
-    }
-
-    public void setDeleteFiles(String deleteFiles) {
-        this.deleteFiles = deleteFiles;
-    }
-
-    public List<String> getSiteImportLocation() {
-        return siteImportLocation;
-    }
-
-    public void setSiteImportLocation(List<String> siteImportLocation) {
-        this.siteImportLocation = siteImportLocation;
-    }
 
     public String getStoreFilesInDB() {
         return storeFilesInDB;
@@ -305,14 +237,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     public void setStoreFilesInAWS(String storeFilesInAWS) {
         this.storeFilesInAWS = storeFilesInAWS;
-    }
-
-    public String getTargetConfigurationDirectory() {
-        return targetConfigurationDirectory;
-    }
-
-    public void setTargetConfigurationDirectory(String targetConfigurationDirectory) {
-        this.targetConfigurationDirectory = targetConfigurationDirectory;
     }
 
     public String getJahiaRootPassword() {
@@ -387,88 +311,6 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.jahiaRootEmail = jahiaRootEmail;
     }
 
-    /**
-     * @return the mailServer
-     */
-    public String getMailServer() {
-        return mailServer;
-    }
-
-    /**
-     * @param mailServer the mailServer to set
-     */
-    public void setMailServer(String mailServer) {
-        this.mailServer = mailServer;
-    }
-
-    /**
-     * @return the mailFrom
-     */
-    public String getMailFrom() {
-        return mailFrom;
-    }
-
-    /**
-     * @param mailFrom the mailFrom to set
-     */
-    public void setMailFrom(String mailFrom) {
-        this.mailFrom = mailFrom;
-    }
-
-    /**
-     * @return the mailAdministrator
-     */
-    public String getMailAdministrator() {
-        return mailAdministrator;
-    }
-
-    /**
-     * @param mailAdministrator the mailAdministrator to set
-     */
-    public void setMailAdministrator(String mailAdministrator) {
-        this.mailAdministrator = mailAdministrator;
-    }
-
-    /**
-     * @return the mailParanoia
-     */
-    public String getMailParanoia() {
-        return mailParanoia;
-    }
-
-    /**
-     * @param mailParanoia the mailParanoia to set
-     */
-    public void setMailParanoia(String mailParanoia) {
-        this.mailParanoia = mailParanoia;
-    }
-
-    public String getLdapActivated() {
-        return ldapActivated;
-    }
-
-    public void setLdapActivated(String ldapActivated) {
-        this.ldapActivated = ldapActivated;
-    }
-
-    public Map<String, String> getGroupLdapProviderProperties() {
-        return groupLdapProviderProperties;
-    }
-
-    public void setGroupLdapProviderProperties(
-            Map<String, String> groupLdapProviderProperties) {
-        this.groupLdapProviderProperties = groupLdapProviderProperties;
-    }
-
-    public Map<String, String> getUserLdapProviderProperties() {
-        return userLdapProviderProperties;
-    }
-
-    public void setUserLdapProviderProperties(
-            Map<String, String> userLdapProviderProperties) {
-        this.userLdapProviderProperties = userLdapProviderProperties;
-    }
-
     public String getExternalizedConfigTargetPath() {
         return externalizedConfigTargetPath;
     }
@@ -485,52 +327,12 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
         this.externalizedConfigActivated = externalizedConfigActivated;
     }
 
-    public String getExternalizedConfigClassifier() {
-        return externalizedConfigClassifier;
-    }
-
-    public void setExternalizedConfigClassifier(String externalizedConfigClassifier) {
-        this.externalizedConfigClassifier = externalizedConfigClassifier;
-    }
-
-    public String getExternalizedConfigFinalName() {
-        return externalizedConfigFinalName;
-    }
-
-    public String getJeeApplicationLocation() {
-        return jeeApplicationLocation;
-    }
-
-    public void setJeeApplicationLocation(String jeeApplicationLocation) {
-        this.jeeApplicationLocation = jeeApplicationLocation;
-    }
-
-    public String getJeeApplicationModuleList() {
-        return jeeApplicationModuleList;
-    }
-
-    public void setJeeApplicationModuleList(String jeeApplicationModuleList) {
-        this.jeeApplicationModuleList = jeeApplicationModuleList;
-    }
-
-    public void setExternalizedConfigFinalName(String externalizedConfigFinalName) {
-        this.externalizedConfigFinalName = externalizedConfigFinalName;
-    }
-
     public String getFileDataStorePath() {
         return fileDataStorePath;
     }
 
-    public Map<String, String> getJahiaAdvancedProperties() {
-        return jahiaAdvancedProperties;
-    }
-
     public Map<String, String> getJahiaProperties() {
         return jahiaProperties;
-    }
-
-    public void setJahiaAdvancedProperties(Map<String, String> jahiaAdvancedProperties) {
-        this.jahiaAdvancedProperties = jahiaAdvancedProperties;
     }
 
     public void setJahiaProperties(Map<String, String> jahiaProperties) {
@@ -582,5 +384,4 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
     public void setClusterHazelcastBindPort(String clusterHazelcastBindPort) {
         this.clusterHazelcastBindPort = clusterHazelcastBindPort;
     }
-
 }
