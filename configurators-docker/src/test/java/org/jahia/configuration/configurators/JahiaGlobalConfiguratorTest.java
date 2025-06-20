@@ -47,7 +47,6 @@ import junit.framework.TestCase;
 
 import java.io.File;
 import java.net.URISyntaxException;
-import java.net.URL;
 
 /**
  * Unit test to validate proper configuration generation.
@@ -58,25 +57,11 @@ import java.net.URL;
  */
 public class JahiaGlobalConfiguratorTest extends TestCase {
 
-    public void testFindVFSFile() throws URISyntaxException {
-        JahiaConfigBean websphereDerbyConfigBean;
-
-        URL configuratorsResourceURL = this.getClass().getClassLoader().getResource("configurators");
-        File configuratorsFile = new File(configuratorsResourceURL.toURI());
-
-        websphereDerbyConfigBean = new JahiaConfigBean();
-        websphereDerbyConfigBean.setDatabaseType("derby_embedded");
-        websphereDerbyConfigBean.setCluster_activated("true");
-        websphereDerbyConfigBean.setCluster_node_serverId("jahiaServer1");
-        websphereDerbyConfigBean.setProcessingServer("true");
-        websphereDerbyConfigBean.setExternalizedConfigActivated(true);
-        websphereDerbyConfigBean.setExternalizedConfigExploded(false);
-        websphereDerbyConfigBean.setExternalizedConfigTargetPath(configuratorsFile.getPath());
-
-        JahiaGlobalConfigurator jahiaGlobalConfigurator = new JahiaGlobalConfigurator(websphereDerbyConfigBean);
-        File file = jahiaGlobalConfigurator.findFile(configuratorsFile.getPath() + "/WEB-INF", "web\\.xml");
+    public void testFindFile() throws URISyntaxException {
+        File findRoot = new File(this.getClass().getClassLoader().getResource("testFindFile").toURI());
+        File file = JahiaGlobalConfigurator.findFile(findRoot.getPath(), "web\\.xml");
         assertTrue("Couldn't find web.xml using full matching pattern", file != null && file.exists());
-        file = jahiaGlobalConfigurator.findFile(configuratorsFile.getPath() + "/WEB-INF", "w.*\\.xml");
+        file = JahiaGlobalConfigurator.findFile(findRoot.getPath(), "w.*\\.xml");
         assertTrue("Couldn't find web.xml using basic pattern", file != null && file.exists());
     }
 }

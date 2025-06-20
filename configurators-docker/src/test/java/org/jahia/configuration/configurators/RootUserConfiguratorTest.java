@@ -61,7 +61,7 @@ import java.net.URL;
  */
 public class RootUserConfiguratorTest extends AbstractXMLConfiguratorTestCase {
     public void testUpdateConfiguration() throws Exception {
-        URL rootXmlUrl = this.getClass().getClassLoader().getResource("configurators/WEB-INF/etc/repository/root-test.xml");
+        URL rootXmlUrl = this.getClass().getClassLoader().getResource("root-test.xml");
         File rootXmlFile = new File(rootXmlUrl.getFile());
         String rootXmlFileParentPath = rootXmlFile.getParentFile().getPath() + File.separator;
 

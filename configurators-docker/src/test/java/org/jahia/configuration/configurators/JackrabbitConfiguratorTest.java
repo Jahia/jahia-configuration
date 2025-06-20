@@ -61,7 +61,7 @@ import java.net.URL;
 public class JackrabbitConfiguratorTest extends AbstractXMLConfiguratorTestCase {
 
     public void testUpdateConfiguration () throws Exception {
-        URL repositoryURL = this.getClass().getClassLoader().getResource("configurators/WEB-INF/etc/repository/jackrabbit/repository.xml");
+        URL repositoryURL = this.getClass().getClassLoader().getResource("repository.xml");
 
         File repositoryFile = new File(repositoryURL.getFile());
         String repositoryFileParentPath = repositoryFile.getParentFile().getPath() + File.separator;
