@@ -43,13 +43,9 @@
  */
 package org.jahia.configuration.configurators;
 
-import java.net.URL;
 import java.io.File;
-import java.io.IOException;
 import java.io.FileInputStream;
 import java.util.Properties;
-
-import org.slf4j.LoggerFactory;
 
 /**
  * Unit test for jahia.properties configurator
@@ -63,9 +59,9 @@ public class JahiaPropertiesConfiguratorTest extends AbstractConfiguratorTestCas
     public void testUpdateConfiguration() throws Exception {
 
 
-        File sourceProperties = new File(this.getClass().getClassLoader().getResource("org/jahia/defaults/config/properties/jahia.properties").getFile());
+        File sourceProperties = new File(this.getClass().getClassLoader().getResource("jahia.properties").getFile());
         String modifiedPropertiesPath = sourceProperties.getParent() + File.separator + "jahia-modified.properties";
-        File sourceNodeProperties = new File(this.getClass().getClassLoader().getResource("org/jahia/defaults/config/properties/jahia.node.properties").getFile());
+        File sourceNodeProperties = new File(this.getClass().getClassLoader().getResource("jahia.node.properties").getFile());
         String modifiedNodePropertiesPath = sourceProperties.getParent() + File.separator + "jahia.node-modified.properties";
 
         try (FileInputStream inStream = new FileInputStream(sourceProperties)) {
