@@ -5,7 +5,7 @@
  *
  *                                 http://www.jahia.com
  *
- *     Copyright (C) 2002-2023 Jahia Solutions Group SA. All rights reserved.
+ *     Copyright (C) 2002-2025 Jahia Solutions Group SA. All rights reserved.
  *
  *     THIS FILE IS AVAILABLE UNDER TWO DIFFERENT LICENSES:
  *     1/GPL OR 2/JSEL
@@ -46,28 +46,29 @@ package org.jahia.utils.maven.plugin.osgi.framework;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.jahia.utils.maven.plugin.AetherAwareMojo;
-import org.jahia.utils.maven.plugin.SLF4JLoggerToMojoLogBridge;
 import org.jahia.utils.maven.plugin.osgi.framework.filter.ExclusionFilter;
 import org.jahia.utils.maven.plugin.osgi.framework.filter.PatternMatcher;
 import org.jahia.utils.maven.plugin.osgi.framework.generator.PackageListGenerator;
 import org.jahia.utils.maven.plugin.osgi.framework.report.PackageReportGenerator;
 import org.jahia.utils.maven.plugin.osgi.framework.scanner.DependencyScanner;
 import org.jahia.utils.maven.plugin.osgi.framework.scanner.PackageScanContext;
+import org.jahia.utils.maven.plugin.osgi.framework.validation.SystemPackagesValidator;
 import org.jahia.utils.maven.plugin.osgi.framework.version.VersionOverrideApplier;
 import org.jahia.utils.maven.plugin.osgi.framework.version.VersionResolver;
-import org.jahia.utils.osgi.PropertyFileUtils;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 /**
- * Builds the OSGi framework system packages list by scanning project dependencies.
+ * Validates Jahia OSGi system packages configuration against project dependencies.
  *
  * <h2>Purpose</h2>
- * This plugin generates the list of Java packages that should be exported by the OSGi framework
- * (Apache Felix) as system packages. These packages come from the project's dependencies and are
- * made available to all OSGi bundles at runtime.
+ * <p>This goal acts as a <b>build validation gate</b> to ensure your OSGi system packages configuration
+ * stays in sync with your project dependencies. It scans dependencies, generates the expected
+ * configuration, and <b>fails the build if it doesn't match your reference file</b>.</p>
+ *
+ * <p><b>Key Behavior:</b> This goal <u>validates</u> rather than generates. If validation fails,
+ * you must explicitly update your configuration or adjust the plugin settings.</p>
  *
  * <h2>How It Works</h2>
  * <ol>
@@ -79,58 +80,67 @@ import java.util.*;
  *       <li>JAR file structure (discovers packages from directory layout)</li>
  *     </ul>
  *   </li>
- *   <li><b>Filters</b> packages early during scanning based on exclusion patterns (PERFORMANCE OPTIMIZATION)</li>
+ *   <li><b>Filters</b> packages based on exclusion patterns (early filtering for performance)</li>
  *   <li><b>Resolves</b> split-package conflicts (same package in multiple JARs)</li>
- *   <li><b>Generates</b> final Export-Package list with proper OSGi version syntax</li>
- *   <li><b>Writes</b> to Felix property file as "org.osgi.framework.system.packages.extra"</li>
+ *   <li><b>Applies</b> version overrides if configured</li>
+ *   <li><b>Generates</b> expected system packages list</li>
+ *   <li><b>Validates</b> against reference file - <b>FAILS BUILD if mismatch detected</b></li>
+ * </ol>
+ *
+ * <h2>When Validation Fails</h2>
+ * <p>Build failure typically occurs after dependency upgrades. You have three options:</p>
+ * <ol>
+ *   <li><b>Accept changes:</b> Copy generated file to reference location (if upgrade is correct)</li>
+ *   <li><b>Adjust configuration:</b> Update packageExcludes or packageVersionOverrides</li>
+ *   <li><b>Fix dependencies:</b> Revert or correct the dependency changes</li>
  * </ol>
  *
  * <h2>Configuration Parameters</h2>
  * <table border="1">
- *   <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+ *   <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr>
  *   <tr>
- *     <td><b>artifactExcludes</b></td>
- *     <td>List&lt;String&gt;</td>
- *     <td>"org.osgi:*"</td>
- *     <td>Artifact patterns to exclude from scanning.<br/>
- *         Format: "groupId:artifactId" with wildcards (*)<br/>
- *         Example: &lt;exclude&gt;com.example:*&lt;/exclude&gt;<br/>
- *         <i>Note: OSGi framework artifacts are excluded by default</i></td>
- *   </tr>
- *   <tr>
- *     <td><b>packageExcludes</b></td>
- *     <td>List&lt;String&gt;</td>
- *     <td>See PACKAGE_EXCLUDE_DEFAULT_VALUE</td>
- *     <td>Package patterns to exclude from exports.<br/>
- *         Format: Package names with optional wildcards<br/>
- *         Example: &lt;exclude&gt;com.internal.*&lt;/exclude&gt;<br/>
- *         <b>IMPORTANT: Filtered DURING scanning for performance!</b></td>
- *   </tr>
- *   <tr>
- *     <td><b>propertiesInputFile</b></td>
+ *     <td><b>referencePropertiesFile</b></td>
  *     <td>File</td>
- *     <td>${project.basedir}/src/main/webapp/WEB-INF/etc/config/felix-framework.properties</td>
- *     <td>Existing Felix properties file to read as base</td>
- *   </tr>
- *   <tr>
- *     <td><b>propertiesOutputFile</b></td>
- *     <td>File</td>
- *     <td>${project.build.directory}/generated-resources/felix-framework.properties</td>
- *     <td>Output file for generated properties</td>
+ *     <td>Yes</td>
+ *     <td>-</td>
+ *     <td>Reference file to validate against.<br/>
+ *         Example: ${project.basedir}/src/main/webapp/WEB-INF/etc/config/felix-framework.properties</td>
  *   </tr>
  *   <tr>
  *     <td><b>propertyFilePropertyName</b></td>
  *     <td>String</td>
- *     <td>"org.osgi.framework.system.packages.extra"</td>
- *     <td>Property name for the generated package list in output file</td>
+ *     <td>No</td>
+ *     <td>org.osgi.framework.system.packages.extra</td>
+ *     <td>Property name in the generated/reference files</td>
+ *   </tr>
+ *   <tr>
+ *     <td><b>artifactExcludes</b></td>
+ *     <td>List&lt;String&gt;</td>
+ *     <td>No</td>
+ *     <td>org.osgi:*</td>
+ *     <td>Artifact patterns to skip (format: groupId:artifactId)</td>
+ *   </tr>
+ *   <tr>
+ *     <td><b>packageExcludes</b></td>
+ *     <td>List&lt;String&gt;</td>
+ *     <td>No</td>
+ *     <td>See defaults</td>
+ *     <td>Package patterns to exclude from exports</td>
+ *   </tr>
+ *   <tr>
+ *     <td><b>packageVersionOverrides</b></td>
+ *     <td>List&lt;String&gt;</td>
+ *     <td>No</td>
+ *     <td>-</td>
+ *     <td>Force specific versions (format: pattern:version)</td>
  *   </tr>
  * </table>
  *
- * <h2>Outputs</h2>
+ * <h2>Output Files</h2>
+ * <p>All files generated under: <code>target/jahia-system-packages-check/</code></p>
  * <ul>
- *   <li><b>Felix Properties File</b> - Updated with "org.osgi.framework.system.packages.extra"</li>
- *   <li><b>HTML Report</b> - In target directory with detailed package analysis</li>
- *   <li><b>Maven Property</b> - "jahiaGeneratedFrameworkPackageList" for downstream use</li>
+ *   <li><b>{propertyName}.properties</b> - Generated configuration for comparison</li>
+ *   <li><b>report.txt</b> - Detailed analysis of packages, exclusions, and overrides</li>
  * </ul>
  *
  * <h2>Example Configuration</h2>
@@ -144,15 +154,34 @@ import java.util.*;
  *         &lt;goal&gt;jahia-system-packages-check&lt;/goal&gt;
  *       &lt;/goals&gt;
  *       &lt;configuration&gt;
+ *         &lt;!-- REQUIRED: Reference file to validate against --&gt;
+ *         &lt;referencePropertiesFile&gt;
+ *           ${project.basedir}/src/main/webapp/WEB-INF/etc/config/felix-framework.properties
+ *         &lt;/referencePropertiesFile&gt;
+ *
+ *         &lt;!-- Optional: Customize property name --&gt;
+ *         &lt;propertyFilePropertyName&gt;org.osgi.framework.system.packages.extra&lt;/propertyFilePropertyName&gt;
+ *
+ *         &lt;!-- Optional: Exclude packages --&gt;
  *         &lt;packageExcludes&gt;
  *           &lt;exclude&gt;org.jahia.taglibs.*&lt;/exclude&gt;
  *           &lt;exclude&gt;com.internal.*&lt;/exclude&gt;
  *         &lt;/packageExcludes&gt;
+ *
+ *         &lt;!-- Optional: Override versions --&gt;
+ *         &lt;packageVersionOverrides&gt;
+ *           &lt;packageVersionOverride&gt;org.apache.xalan*:2.7.3&lt;/packageVersionOverride&gt;
+ *         &lt;/packageVersionOverrides&gt;
  *       &lt;/configuration&gt;
  *     &lt;/execution&gt;
  *   &lt;/executions&gt;
  * &lt;/plugin&gt;
  * </pre>
+ *
+ * <h2>Use in CI/CD</h2>
+ * <p>This goal is designed to run in CI/CD pipelines as a validation gate.
+ * When dependencies change, the build fails with clear instructions on how to resolve
+ * the mismatch, preventing configuration drift.</p>
  *
  * @goal jahia-system-packages-check
  * @requiresDependencyResolution test
@@ -279,6 +308,28 @@ public class JahiaSystemPackagesCheckMojo extends AetherAwareMojo {
     protected List<String> packageVersionOverrides;
 
     /**
+     * Reference properties file to validate against (the "expected" configuration).
+     *
+     * <p>This is the properties file in your source code that contains the expected system packages.
+     * The plugin will compare the generated configuration against this file.</p>
+     *
+     * <p><b>If the files don't match, the build will FAIL.</b></p>
+     *
+     * <p><b>Example:</b> ${project.basedir}/src/main/webapp/WEB-INF/etc/config/felix-framework.properties</p>
+     *
+     * <p><b>When validation fails, you have three options:</b></p>
+     * <ul>
+     *   <li>Accept the changes: Copy generated file content to reference file</li>
+     *   <li>Adjust configuration: Update exclusions/overrides in plugin config</li>
+     *   <li>Fix dependencies: Review and correct dependency changes</li>
+     * </ul>
+     *
+     * @parameter
+     * @required
+     */
+    protected File referencePropertiesFile;
+
+    /**
      * The property name used in the OUTPUT Felix properties file for the generated package list.
      *
      * <p>This is where the plugin writes the generated Export-Package list.
@@ -369,13 +420,11 @@ public class JahiaSystemPackagesCheckMojo extends AetherAwareMojo {
             String propertiesFileName = propertyFilePropertyName + ".properties";
             File generatedPropertiesFile = new File(outputDirectory, propertiesFileName);
 
-            // Write properties file
-            PropertyFileUtils.updatePropertyFile(
-                null, // No input file
+            // Write properties file with header
+            writePropertiesFileWithHeader(
                 generatedPropertiesFile,
                 propertyFilePropertyName,
-                result.getPackageList().toArray(new String[0]),
-                new SLF4JLoggerToMojoLogBridge(getLog())
+                result.getPackageList().toArray(new String[0])
             );
 
             getLog().info("Generated properties file: " + generatedPropertiesFile.getAbsolutePath());
@@ -390,16 +439,89 @@ public class JahiaSystemPackagesCheckMojo extends AetherAwareMojo {
                 outputDirectory
             );
 
-            // Set Maven property for downstream plugins to use
-            if (result.getConcatenatedList() != null && project != null) {
-                project.getProperties().put("jahiaGeneratedFrameworkPackageList", result.getConcatenatedList());
-            }
-
+            // ========================================================================
+            // STEP 7: VALIDATE - Compare with Reference File
+            // ========================================================================
+            // This is the validation step - compares generated file with reference
+            // and FAILS the build if they don't match
+            SystemPackagesValidator validator = new SystemPackagesValidator(
+                referencePropertiesFile,
+                propertyFilePropertyName,
+                getLog()
+            );
+            validator.validate(generatedPropertiesFile);
 
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to generate package list", e);
         } catch (Exception e) {
             throw new MojoExecutionException("Unexpected error during package list generation", e);
+        }
+    }
+
+    /**
+     * Writes the properties file with header and package list.
+     * The header includes placeholders that are replaced with actual file paths.
+     *
+     * @param outputFile the file to write
+     * @param propertyName the property name
+     * @param packageList the array of package strings
+     * @throws IOException if file writing fails
+     */
+    private void writePropertiesFileWithHeader(File outputFile, String propertyName, String[] packageList)
+            throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
+            // Write header from resource
+            writer.write(loadHeaderFromResource());
+            writer.write("\n");
+
+            // Write the property with packages
+            writer.write(propertyName);
+            writer.write(" = ");  // Space before and after =
+
+            if (packageList.length > 0) {
+                // Note: PackageListGenerator already adds commas between packages (except the last one)
+                // So we just need to write them with line continuations
+
+                // First package - escape quotes
+                writer.write(escapePropertyValue(packageList[0]));
+
+                // Subsequent packages - each already has a trailing comma (except last)
+                for (int i = 1; i < packageList.length; i++) {
+                    writer.write("\\\n");  // Line continuation
+                    writer.write(" ");     // Single space at start of continuation line
+                    writer.write(escapePropertyValue(packageList[i]));
+                }
+            }
+
+            writer.write("\n");
+        }
+    }
+
+    /**
+     * Escapes quotes in property values for properties file format.
+     * Replaces " with \" so they are properly escaped in the properties file.
+     *
+     * @param value the value to escape
+     * @return the escaped value
+     */
+    private String escapePropertyValue(String value) {
+        return value.replace("\"", "\\\"");
+    }
+
+    /**
+     * Loads the header from the resource file.
+     *
+     * @return the header content
+     * @throws IOException if the header resource cannot be read
+     */
+    private String loadHeaderFromResource() throws IOException {
+        try (InputStream is = getClass().getResourceAsStream("/system-packages-header.txt")) {
+            if (is == null) {
+                throw new IOException("Header resource not found: /system-packages-header.txt");
+            }
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, java.nio.charset.StandardCharsets.UTF_8))) {
+                return reader.lines().collect(java.util.stream.Collectors.joining("\n")) + "\n";
+            }
         }
     }
 
@@ -426,4 +548,5 @@ public class JahiaSystemPackagesCheckMojo extends AetherAwareMojo {
 
         return new ExclusionFilter(artifactMatcher, packageMatcher);
     }
+
 }

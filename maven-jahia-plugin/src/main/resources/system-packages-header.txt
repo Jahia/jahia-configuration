@@ -1,0 +1,68 @@
+################################################################################
+#
+#  JAHIA OSGi SYSTEM PACKAGES CONFIGURATION
+#
+################################################################################
+#
+# This file is VALIDATED by the jahia-system-packages-check Maven goal.
+# The build will FAIL if this file doesn't match the expected packages
+# generated from your current dependencies.
+#
+################################################################################
+# WHEN BUILD FAILS DUE TO PACKAGE MISMATCH
+################################################################################
+#
+# First, review what changed:
+#   - Compare the files to see differences:
+#     $ diff <reference-file> <generated-file>
+#   - Or use your IDE's diff tool to visualize changes
+#   - Check the detailed report: target/jahia-system-packages-check/report.txt
+#   - Find the generated properties file: target/jahia-system-packages-check/*.properties
+#
+# Then choose ONE of these THREE options:
+#
+# [1] ACCEPT THE CHANGES (if dependency upgrade is correct)
+#     Copy the generated file to replace the reference file
+#
+# [2] ADJUST PLUGIN CONFIGURATION (if packages should be excluded/overridden)
+#     Update your pom.xml <configuration>:
+#       <artifactExcludes>
+#          <artifactExclude>unwanted.artifact:*</artifactExclude>
+#        </artifactExcludes>
+#       <packageExcludes>
+#         <exclude>unwanted.package.*</exclude>
+#       </packageExcludes>
+#       <packageVersionOverrides>
+#         <packageVersionOverride>package.name:1.0.0</packageVersionOverride>
+#       </packageVersionOverrides>
+#
+# [3] FIX DEPENDENCIES (if upgrade was incorrect)
+#     Review and correct the dependency changes in pom.xml
+#
+################################################################################
+# BEST PRACTICES FOR SYSTEM PACKAGES
+################################################################################
+#
+# * VERSION UPGRADES:
+#   - Non-major version bumps (e.g., 1.2.3 -> 1.2.4) are generally SAFE
+#   - Minor version bumps (e.g., 1.2.0 -> 1.3.0) are generally SAFE
+#   - Major version bumps (e.g., 1.x -> 2.x) require careful review
+#
+# * PACKAGE REMOVALS:
+#   ! WARNING: Verify no modules/bundles depend on removed packages
+#   - prefer DEPRECATING first, remove in next Jahia major release to minimize impact
+#   - Document removal in release notes
+#
+# * PACKAGE ADDITIONS:
+#   + Generally SAFE, but consider alternatives:
+#   - Should this be an independent OSGi bundle instead?
+#   - System packages are harder to upgrade than bundles
+#   - Prefer bundles for better modularity and lifecycle management
+#
+# * JAHIA PHILOSOPHY:
+#   > Goal: REDUCE system packages over time
+#   - Prefer providing functionality as independent OSGi bundles
+#   - System packages should be minimal and stable
+#   - Each major Jahia release should have fewer system packages
+#
+################################################################################
