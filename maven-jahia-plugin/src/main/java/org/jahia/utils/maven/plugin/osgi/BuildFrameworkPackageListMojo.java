@@ -80,7 +80,9 @@ import java.util.regex.Pattern;
  *
  * @goal build-framework-package-list
  * @requiresDependencyResolution test
+ * @deprecated use jahia-system-packages-check goal instead
  */
+@Deprecated(forRemoval = true)
 public class BuildFrameworkPackageListMojo extends AetherAwareMojo {
 
     public static final String VERSION_NUMBER_PATTERN_STRING = "([\\d\\.]*\\d)(.*)";
