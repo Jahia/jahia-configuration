@@ -277,7 +277,7 @@ public class SystemPackagesValidator {
         }
 
         if (diff.removed.isEmpty() && diff.added.isEmpty()) {
-            msg.append("  [!] No differences between package lists. Please manually compare expected and generated lists from up above for any potential version(s) changes.\n");
+            msg.append("  [!] No differences between package lists. Please manually compare the reference and generated files listed above to identify potential version(s) changes.\n");
         }
 
         msg.append("\n");
