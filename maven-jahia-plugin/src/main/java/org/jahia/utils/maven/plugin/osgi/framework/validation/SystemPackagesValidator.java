@@ -276,9 +276,13 @@ public class SystemPackagesValidator {
             }
         }
 
+        if (diff.removed.isEmpty() && diff.added.isEmpty()) {
+            msg.append("  [!] No differences between package lists. Please manually compare the reference and generated files listed above to identify potential version(s) changes.\n");
+        }
+
         msg.append("\n");
         msg.append("  See ").append(new File(outputDir, "report.txt").getAbsolutePath())
-           .append(" for details\n");
+           .append(" for additional details\n");
         msg.append("\n");
     }
 
