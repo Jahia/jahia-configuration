@@ -231,7 +231,8 @@ public class SystemPackagesValidator {
 
         // Show differences if available
         if (diff != null) {
-            appendDifferences(msg, diff);
+            String outputDir = generatedFile.getParent();
+            appendDifferences(msg, diff, outputDir);
         }
 
         msg.append("GUIDANCE:\n");
@@ -252,7 +253,7 @@ public class SystemPackagesValidator {
     /**
      * Appends the package differences to the message.
      */
-    private void appendDifferences(StringBuilder msg, PackageDifference diff) {
+    private void appendDifferences(StringBuilder msg, PackageDifference diff, String outputDir) {
         msg.append("DIFFERENCES:\n");
 
         if (!diff.removed.isEmpty()) {
@@ -276,7 +277,7 @@ public class SystemPackagesValidator {
         }
 
         msg.append("\n");
-        msg.append("  See ").append(new File(referenceFile.getParent(), "report.txt").getAbsolutePath())
+        msg.append("  See ").append(new File(outputDir, "report.txt").getAbsolutePath())
            .append(" for details\n");
         msg.append("\n");
     }
