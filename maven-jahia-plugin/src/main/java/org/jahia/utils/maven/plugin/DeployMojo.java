@@ -58,7 +58,6 @@ import com.sun.jdi.connect.Connector;
 import com.sun.jdi.connect.Connector.Argument;
 import com.sun.jdi.connect.IllegalConnectorArgumentsException;
 import net.lingala.zip4j.ZipFile;
-import net.lingala.zip4j.model.UnzipParameters;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.io.FileUtils;
