@@ -21,6 +21,8 @@ com.ibm.icu:icu4j:jar:4.0.1
 com.microsoft.sqlserver:sqljdbc4:jar
 com.oracle:ojdbc5:jar
 com.oracle:ojdbc6:jar
+com.oracle:ojdbc7:jar
+com.oracle:ojdbc8:jar
 com.oracle:orai18n:jar
 com.phloc:phloc-commons:jar:jdk5:3.6.0
 com.phloc:phloc-css:jar:jdk5:3.0.0

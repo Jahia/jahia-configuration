@@ -69,6 +69,7 @@ final class DriverDeploymentHelper {
         DBMS_TYPES.put("ojdbc6", "oracle");
         DBMS_TYPES.put("ojdbc7", "oracle");
         DBMS_TYPES.put("ojdbc8", "oracle");
+        DBMS_TYPES.put("ojdbc11", "oracle");
         DBMS_TYPES.put("orai18n", "oracle");
         DBMS_TYPES.put("postgresql", "postgresql");
         DBMS_TYPES.put("sqljdbc4", "mssql");

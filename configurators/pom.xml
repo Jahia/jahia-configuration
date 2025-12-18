@@ -57,11 +57,11 @@
     <packaging>jar</packaging>
     <properties>
         <driver.derby.version>10.14.2.0</driver.derby.version>
-        <driver.mssql.version>12.8.1.jre11</driver.mssql.version>
-        <driver.mysql.version>8.3.0</driver.mysql.version>
-        <driver.oracle.version>23.7.0.25.01</driver.oracle.version>
-        <driver.postgresql.version>42.7.5</driver.postgresql.version>
-        <driver.mariadb.version>3.5.1</driver.mariadb.version>
+        <driver.mssql.version>12.10.2.jre11</driver.mssql.version>
+        <driver.mysql.version>8.4.0</driver.mysql.version>
+        <driver.oracle.version>23.26.0.0.0</driver.oracle.version>
+        <driver.postgresql.version>42.7.8</driver.postgresql.version>
+        <driver.mariadb.version>3.5.6</driver.mariadb.version>
     </properties>
     <dependencies>
         <dependency>
@@ -168,7 +168,7 @@
         </dependency>
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>
-            <artifactId>ojdbc8</artifactId>
+            <artifactId>ojdbc11</artifactId>
             <version>${driver.oracle.version}</version>
         </dependency>
         <dependency>
