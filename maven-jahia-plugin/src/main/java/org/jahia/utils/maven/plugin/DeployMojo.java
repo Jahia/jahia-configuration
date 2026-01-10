@@ -50,13 +50,6 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
-import com.sun.jdi.Bootstrap;
-import com.sun.jdi.ReferenceType;
-import com.sun.jdi.VirtualMachine;
-import com.sun.jdi.connect.AttachingConnector;
-import com.sun.jdi.connect.Connector;
-import com.sun.jdi.connect.Connector.Argument;
-import com.sun.jdi.connect.IllegalConnectorArgumentsException;
 import net.lingala.zip4j.ZipFile;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
@@ -90,7 +83,6 @@ import org.jahia.utils.maven.plugin.support.AetherHelper;
 import org.jahia.utils.maven.plugin.support.AetherHelperFactory;
 
 import java.io.*;
-import java.net.ConnectException;
 import java.nio.file.Files;
 import java.text.MessageFormat;
 import java.util.*;
@@ -528,12 +520,7 @@ public class DeployMojo extends AbstractManagementMojo {
             artifactResolver.resolve(artifact, project.getRemoteArtifactRepositories(), localRepository);
             File libDir = new File(new File(getWebappDeploymentDir(), "WEB-INF"), "lib");
             getLog().info("Deploying jar file " + artifact.getFile().getName() + " to " + libDir);
-            File deployedJar = new File(libDir, artifact.getFile().getName());
-            boolean needHotSwap = deployedJar.exists();
             FileUtils.copyFileToDirectory(artifact.getFile(), libDir);
-            if (needHotSwap) {
-                hotSwap(deployedJar);
-            }
         } catch (Exception e) {
             getLog().error("Error while deploying JAR project", e);
         }
@@ -765,133 +752,6 @@ public class DeployMojo extends AbstractManagementMojo {
             getLog().info("Copied " + cnt + " files.");
         } catch (IOException e) {
             getLog().error("Error while deploying dependency", e);
-        }
-    }
-
-    // *************** Hotswap
-
-    private void hotSwap(File deployedJar) {
-        int colonIndex = address.indexOf(':');
-        String connectorName = address.substring(0, colonIndex);
-        if (connectorName.equals("socket")) connectorName = "com.sun.jdi.SocketAttach";
-        else if (connectorName.equals("shmem")) connectorName = "com.sun.jdi.SharedMemoryAttach";
-        String argumentsString = address.substring(colonIndex + 1);
-
-        AttachingConnector connector = (AttachingConnector) findConnector(connectorName);
-        Map<String, Argument> arguments = connector.defaultArguments();
-
-        StringTokenizer st = new StringTokenizer(argumentsString, ",");
-        while (st.hasMoreTokens()) {
-            String pair = st.nextToken();
-            int index = pair.indexOf('=');
-            String name = pair.substring(0, index);
-            String value = pair.substring(index + 1);
-            Connector.Argument argument = (Connector.Argument) arguments.get(name);
-            if (argument != null) {
-                argument.setValue(value);
-            }
-        }
-
-        Map<String, Long> dates = new HashMap<String, Long>();
-        try {
-            ZipInputStream z = new ZipInputStream(new FileInputStream(deployedJar));
-            ZipEntry entry;
-            while ((entry = z.getNextEntry()) != null) {
-                dates.put(entry.getName(), entry.getTime());
-            }
-            z.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        VirtualMachine vm = null;
-        try {
-            vm = connector.attach(arguments);
-            getLog().info("Connected to " + vm.name() + " " + vm.version());
-
-            Map<String, File> files = new HashMap<String, File>();
-
-            parse(new File(output, "classes"), dates, "", files);
-            getLog().debug("Classes : " + files.keySet());
-            if (!files.isEmpty()) {
-                reload(vm, files);
-            }
-        } catch (ConnectException e) {
-            getLog().warn("Cannot hotswap classes : " + e.getMessage());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (IllegalConnectorArgumentsException e) {
-            e.printStackTrace();
-        } finally {
-            if (vm != null) {
-                vm.dispose();
-            }
-        }
-    }
-
-    private Connector findConnector(String name) {
-        List<?> connectors = Bootstrap.virtualMachineManager().allConnectors();
-        Iterator<?> iter = connectors.iterator();
-        while (iter.hasNext()) {
-            Connector connector = (Connector) iter.next();
-            if (connector.name().equals(name)) {
-                return connector;
-            }
-        }
-        return null;
-    }
-
-    private void parse(File folder, Map<String, Long> dates, String base, Map<String, File> result) {
-        File[] files = folder.listFiles();
-        for (File file : files) {
-            String filename = file.getName();
-            if (file.isDirectory()) {
-                parse(file, dates, base + filename + ".", result);
-            } else if (filename.endsWith(".class")) {
-                String name = base + filename.substring(0, filename.lastIndexOf("."));
-                String classFileName = name.replace(".", "/") + ".class";
-
-                if (dates.containsKey(classFileName)) {
-                    long l = dates.get(classFileName);
-                    if (file.lastModified() > l) {
-                        result.put(name, file);
-                        getLog().debug("Updated class : " + file);
-                    }
-                }
-            }
-        }
-    }
-
-    public void reload(VirtualMachine vm, Map<String, File> classFiles) {
-        Map<ReferenceType, byte[]> map = new HashMap<ReferenceType, byte[]>();
-
-        for (String className : classFiles.keySet()) {
-            List<?> classes = vm.classesByName(className);
-            if (classes.size() != 1) {
-                continue;
-            }
-
-            ReferenceType refType = (ReferenceType) classes.get(0);
-
-            File f = classFiles.get(className);
-            byte[] bytes = new byte[(int) f.length()];
-            try {
-                InputStream in = new FileInputStream(f);
-                in.read(bytes);
-                in.close();
-            } catch (Exception e) {
-                getLog().error("Error reading file " + f, e);
-                continue;
-            }
-            map.put(refType, bytes);
-        }
-
-
-        try {
-            vm.redefineClasses(map);
-            getLog().info("Reloaded " + map.size() + " classes.");
-        } catch (Exception e) {
-            getLog().warn("Cannot reload classes : " + e.getMessage());
         }
     }
 
