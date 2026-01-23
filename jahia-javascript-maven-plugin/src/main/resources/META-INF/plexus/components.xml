@@ -26,11 +26,11 @@
                         <id>clean</id>
                         <phases>
                             <pre-clean>
-                                org.jahia.configuration:jahia-javascript-module-maven-plugin:install-node-and-yarn,
-                                org.jahia.configuration:jahia-javascript-module-maven-plugin:yarn-initialize
+                                org.jahia.configuration:jahia-javascript-maven-plugin:install-node-and-corepack,
+                                org.jahia.configuration:jahia-javascript-maven-plugin:yarn-initialize
                             </pre-clean>
                             <clean>
-                                org.jahia.configuration:jahia-javascript-module-maven-plugin:yarn-clean,
+                                org.jahia.configuration:jahia-javascript-maven-plugin:yarn-clean,
                                 org.apache.maven.plugins:maven-clean-plugin:clean
                             </clean>
                         </phases>
@@ -39,25 +39,25 @@
                         <id>default</id>
                         <phases>
                             <initialize>
-                                org.jahia.configuration:jahia-javascript-module-maven-plugin:install-node-and-yarn,
-                                org.jahia.configuration:jahia-javascript-module-maven-plugin:yarn-initialize
+                                org.jahia.configuration:jahia-javascript-maven-plugin:install-node-and-corepack,
+                                org.jahia.configuration:jahia-javascript-maven-plugin:yarn-initialize
                             </initialize>
                             <process-resources>
-                                org.jahia.configuration:jahia-javascript-module-maven-plugin:sync-version
+                                org.jahia.configuration:jahia-javascript-maven-plugin:sync-version
                             </process-resources>
                             <package>
-                                org.jahia.configuration:jahia-javascript-module-maven-plugin:yarn-package,
-                                org.jahia.configuration:jahia-javascript-module-maven-plugin:attach-artifact
+                                org.jahia.configuration:jahia-javascript-maven-plugin:yarn-package,
+                                org.jahia.configuration:jahia-javascript-maven-plugin:attach-artifact
                             </package>
                             <install>
                                 org.apache.maven.plugins:maven-install-plugin:install
                             </install>
                             <deploy>
-                                org.jahia.configuration:jahia-javascript-module-maven-plugin:yarn-deploy,
+                                org.jahia.configuration:jahia-javascript-maven-plugin:yarn-deploy,
                                 org.apache.maven.plugins:maven-deploy-plugin:deploy
                             </deploy>
                             <verify>
-                                org.jahia.configuration:jahia-javascript-module-maven-plugin:yarn-verify
+                                org.jahia.configuration:jahia-javascript-maven-plugin:yarn-verify
                             </verify>
                         </phases>
                     </lifecycle>

@@ -14,8 +14,9 @@ import javax.inject.Inject;
 public class YarnCleanMojo extends AbstractYarnMojo {
 
     private static final String DEFAULT_COMMAND = "clean";
-    @Parameter(property = "yarnClean.command")
-    protected String command;
+
+    @Parameter(property = "jahia.js.yarnClean.command")
+    protected String yarnCleanCommand;
 
     @Inject
     public YarnCleanMojo(MavenProject mavenProject, MavenSession mavenSession, BuildPluginManager pluginManager) {
@@ -24,7 +25,7 @@ public class YarnCleanMojo extends AbstractYarnMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        executeYarnCommand(command, DEFAULT_COMMAND);
+        executeYarnCommand(yarnCleanCommand, DEFAULT_COMMAND, true);
     }
 }
 

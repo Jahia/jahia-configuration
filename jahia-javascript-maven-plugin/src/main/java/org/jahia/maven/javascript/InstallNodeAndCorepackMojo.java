@@ -13,34 +13,34 @@ import javax.inject.Inject;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
-@Mojo(name = "install-node-and-yarn", defaultPhase = LifecyclePhase.INITIALIZE)
-public class InstallNodeAndYarnMojo extends AbstractYarnMojo {
+@Mojo(name = "install-node-and-corepack", defaultPhase = LifecyclePhase.INITIALIZE)
+public class InstallNodeAndCorepackMojo extends AbstractYarnMojo {
 
     /**
      * Node.js version to install.
      */
-    @Parameter(property = "nodeVersion", defaultValue = "v22.21.1")
+    @Parameter(property = "jahia.js.nodeVersion", defaultValue = "v22.21.1")
     protected String nodeVersion;
 
     /**
-     * Yarn version to install.
+     * Corepackversion to install.
      */
-    @Parameter(property = "yarnVersion", defaultValue = "v1.22.22")
-    protected String yarnVersion;
+    @Parameter(property = "jahia.js.corepackVersion", defaultValue = "0.34.5")
+    protected String corepackVersion;
 
     @Inject
-    public InstallNodeAndYarnMojo(MavenProject mavenProject, MavenSession mavenSession, BuildPluginManager pluginManager) {
+    public InstallNodeAndCorepackMojo(MavenProject mavenProject, MavenSession mavenSession, BuildPluginManager pluginManager) {
         super(mavenProject, mavenSession, pluginManager);
     }
 
     @Override
     public void execute() throws MojoExecutionException {
-        getLog().info("Installing Node.js " + nodeVersion + " and Yarn " + yarnVersion);
+        getLog().info("Installing Node.js " + nodeVersion);
 
-        Xpp3Dom config = configuration(element(name("nodeVersion"), nodeVersion), element(name("yarnVersion"), yarnVersion),
+        Xpp3Dom config = configuration(element(name("nodeVersion"), nodeVersion), element(name("corepackVersion"), corepackVersion),
                 element(name("workingDirectory"), workingDirectory.getAbsolutePath()));
 
-        executeFrontendPlugin("install-node-and-yarn", config);
+        executeFrontendPlugin("install-node-and-corepack", config);
     }
 
 }

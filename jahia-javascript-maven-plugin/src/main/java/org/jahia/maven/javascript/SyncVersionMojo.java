@@ -3,11 +3,11 @@ package org.jahia.maven.javascript;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 import javax.inject.Inject;
@@ -18,24 +18,13 @@ import java.io.IOException;
  * Syncs the package.json version with the Maven project version.
  */
 @Mojo(name = "sync-version", defaultPhase = LifecyclePhase.PROCESS_RESOURCES)
-public class SyncVersionMojo extends AbstractMojo {
+public class SyncVersionMojo extends AbstractYarnMojo {
 
     private static final String VERSION_FIELD = "version";
 
-    /**
-     * The Maven project.
-     */
-    private final MavenProject mavenProject;
-
-    /**
-     * Working directory where node and yarn will be installed.
-     */
-    @Parameter(defaultValue = "${project.basedir}")
-    protected File workingDirectory;
-
     @Inject
-    public SyncVersionMojo(MavenProject mavenProject) {
-        this.mavenProject = mavenProject;
+    public SyncVersionMojo(MavenProject mavenProject, MavenSession mavenSession, BuildPluginManager pluginManager) {
+        super(mavenProject, mavenSession, pluginManager);
     }
 
     @Override

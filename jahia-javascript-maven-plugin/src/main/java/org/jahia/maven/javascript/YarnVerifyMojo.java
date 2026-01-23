@@ -10,12 +10,16 @@ import org.apache.maven.project.MavenProject;
 
 import javax.inject.Inject;
 
+/**
+ * Runs verification tasks (tests, linting, etc.).
+ */
 @Mojo(name = "yarn-verify", defaultPhase = LifecyclePhase.VERIFY)
 public class YarnVerifyMojo extends AbstractYarnMojo {
 
     private static final String DEFAULT_COMMAND = "verify";
-    @Parameter(property = "yarnVerify.command")
-    protected String command;
+
+    @Parameter(property = "jahia.js.yarnVerify.command")
+    protected String yarnVerifyCommand;
 
     @Inject
     public YarnVerifyMojo(MavenProject mavenProject, MavenSession mavenSession, BuildPluginManager pluginManager) {
@@ -24,7 +28,7 @@ public class YarnVerifyMojo extends AbstractYarnMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        executeYarnCommand(command, DEFAULT_COMMAND);
+        executeYarnCommand(yarnVerifyCommand, DEFAULT_COMMAND, true);
     }
 }
 
