@@ -1,7 +1,6 @@
 # Jahia JavaScript Maven Plugin
 
-A Maven plugin for building JavaScript modules with custom packaging. This plugin integrates Yarn and Node.js into the Maven build
-lifecycle, allowing JavaScript/TypeScript projects to be built using standard Maven commands.
+A Maven plugin that enables building and deploying JavaScript/TypeScript modules as Maven artifacts using Yarn. Under the hood, it invokes the [Frontend Maven Plugin](https://github.com/eirslett/frontend-maven-plugin) to execute Node.js and Yarn commands.
 
 ## Overview
 
@@ -10,21 +9,40 @@ to a specific lifecycle phase and executes the appropriate Yarn command when app
 
 ## Plugin Configuration
 
-Add the plugin to your `pom.xml`:
+To use this plugin, you need to configure two things in your `pom.xml`:
+
+1. **Set the packaging type** to `jahia-javascript`
+2. **Add the plugin** with `<extensions>true</extensions>`
+
+### Minimum Configuration
 
 ```xml
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.example</groupId>
+    <artifactId>my-javascript-module</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>jahia-javascript</packaging>
 
-<build>
-    <plugins>
-        <plugin>
-            <groupId>org.jahia.configuration</groupId>
-            <artifactId>jahia-javascript-maven-plugin</artifactId>
-            <version>${jahia-javascript-maven-plugin.version}</version> <!-- Replace with the plugin version -->
-            <extensions>true</extensions>
-        </plugin>
-    </plugins>
-</build>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.jahia.configuration</groupId>
+                <artifactId>jahia-javascript-maven-plugin</artifactId>
+                <version>${jahia-javascript-maven-plugin.version}</version> <!-- Replace with the plugin version -->
+                <extensions>true</extensions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
 ```
+
+### Requirements
+
+- A `package.json` file in your project root
+- A `packageManager` field in `package.json` (e.g., `"packageManager": "yarn@4.9.4"`) - required for Corepack
+
+That's it! The plugin will automatically handle Node.js/Yarn installation and execute the appropriate lifecycle goals.
 
 ## Mojos and Lifecycle Mapping
 
@@ -294,31 +312,23 @@ mvn install -Djahia.js.nodeVersion=v20.10.0 -Djahia.js.corepackVersion=0.32.0
 
 ## Goal Prefix
 
-The plugin uses the goal prefix `jahia-javascript-module`. You can execute individual goals:
+The plugin uses the goal prefix `jahia-javascript`. You can execute individual goals:
 
 ```bash
-mvn jahia-javascript-module:install-node-and-corepack
-mvn jahia-javascript-module:yarn-initialize
-mvn jahia-javascript-module:sync-version
-mvn jahia-javascript-module:yarn-clean
-mvn jahia-javascript-module:yarn-package
-mvn jahia-javascript-module:attach-artifact
-mvn jahia-javascript-module:yarn-verify
-mvn jahia-javascript-module:yarn-deploy
+mvn jahia-javascript:install-node-and-corepack
+mvn jahia-javascript:yarn-initialize
+mvn jahia-javascript:sync-version
+mvn jahia-javascript:yarn-clean
+mvn jahia-javascript:yarn-package
+mvn jahia-javascript:attach-artifact
+mvn jahia-javascript:yarn-verify
+mvn jahia-javascript:yarn-deploy
 ```
 
 ## Requirements
 
-- Maven 3.6 or higher
+- Maven 3.8 or higher
 - Java 11 or higher
-
-## Dependencies
-
-The plugin internally uses:
-
-- `frontend-maven-plugin` (1.15.4) - For Node.js and Yarn installation and execution
-- `jackson-databind` (3.0.3) - For JSON parsing and manipulation
-- `mojo-executor` (2.4.0) - For executing Maven plugin goals programmatically
 
 ## Notes
 

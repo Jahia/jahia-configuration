@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component-set>
     <components>
-        <!-- Define the custom artifact handler for jahia-javascript-module packaging -->
+        <!-- Define the custom artifact handler for jahia-javascript packaging -->
         <component>
             <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
-            <role-hint>jahia-javascript-module</role-hint>
+            <role-hint>jahia-javascript</role-hint>
             <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
             <configuration>
-                <type>jahia-javascript-module</type>
+                <type>jahia-javascript</type>
                 <extension>tgz</extension>
                 <language>javascript</language>
                 <addedToClasspath>false</addedToClasspath>
@@ -15,10 +15,10 @@
             </configuration>
         </component>
 
-        <!-- Define the custom lifecycle for jahia-javascript-module packaging -->
+        <!-- Define the custom lifecycle for jahia-javascript packaging -->
         <component>
             <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
-            <role-hint>jahia-javascript-module</role-hint>
+            <role-hint>jahia-javascript</role-hint>
             <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
             <configuration>
                 <lifecycles>

@@ -7,7 +7,7 @@
     <groupId>org.jahia.test</groupId>
     <artifactId>jahia-javascript-maven-plugin-basic-yarn-berry-test</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <packaging>jahia-javascript-module</packaging>
+    <packaging>jahia-javascript</packaging>
 
     <name>Jahia JavaScript Maven Plugin - Basic Integration Test using Yarn Berry</name>
     <description>Test project to validate all mojos execute correctly with a basic configuration (happy path scenario)</description>

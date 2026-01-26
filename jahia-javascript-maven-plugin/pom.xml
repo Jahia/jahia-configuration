@@ -19,8 +19,8 @@
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+        <!-- plugins & dependencies versions -->
         <maven.version>3.9.12</maven.version>
-        <maven-plugin.version>3.15.2</maven-plugin.version>
         <frontend-maven-plugin.version>1.15.4</frontend-maven-plugin.version>
         <mojo-executor.version>2.4.0</mojo-executor.version>
         <jackson-databind.version>3.0.3</jackson-databind.version>
@@ -54,6 +54,11 @@
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
+            <artifactId>maven-model</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
             <artifactId>maven-artifact</artifactId>
             <scope>provided</scope>
         </dependency>
@@ -67,7 +72,7 @@
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
-            <version>${maven-plugin.version}</version>
+            <version>${maven-plugin-plugin.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -93,28 +98,42 @@
 
         <!-- Jackson for JSON parsing -->
         <dependency>
-            <groupId>tools.jackson.core</groupId>
+            <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jackson-databind.version}</version>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>${maven-plugin.version}</version>
                 <configuration>
-                    <goalPrefix>jahia-javascript-module</goalPrefix>
+                    <goalPrefix>jahia-javascript</goalPrefix>
                 </configuration>
+            </plugin>
+
+            <!-- Ensure the dependencies are explicitly declared -->
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>analyze-only</goal>
+                        </goals>
+                        <configuration>
+                            <failOnWarning>true</failOnWarning>
+                            <ignoredUnusedDeclaredDependencies>
+                                <!-- frontend-maven-plugin is invoked dynamically at runtime via mojo-executor, not imported directly in code -->
+                                <ignoredUnusedDeclaredDependency>com.github.eirslett:frontend-maven-plugin</ignoredUnusedDeclaredDependency>
+                            </ignoredUnusedDeclaredDependencies>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- Maven Invoker Plugin for Integration Tests -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-invoker-plugin</artifactId>
-                <version>3.9.1</version>
                 <configuration>
                     <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
                     <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
@@ -132,7 +151,9 @@
                     <execution>
                         <id>integration-test</id>
                         <goals>
+                            <!-- prepare the local Maven repository -->
                             <goal>install</goal>
+                            <!-- run the Maven goals in each integration test Maven project found under src/it/ and verify the exec is OK -->
                             <goal>run</goal>
                         </goals>
                     </execution>
