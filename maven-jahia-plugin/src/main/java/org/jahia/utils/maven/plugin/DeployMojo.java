@@ -554,7 +554,6 @@ public class DeployMojo extends AbstractManagementMojo {
                 deployPrepackagedSiteProject();
             } else {
                 boolean jdbcDrivers = isJahiaServerGroup && project.getArtifactId().startsWith("jdbc-drivers");
-                boolean sharedLibraries = isJahiaServerGroup && project.getArtifactId().equals("shared-libraries");
                 DependencyNode rootNode = getRootDependencyNode();
                 List<?> l = rootNode.getChildren();
                 for (Iterator<?> iterator = l.iterator(); iterator.hasNext(); ) {
@@ -566,8 +565,7 @@ public class DeployMojo extends AbstractManagementMojo {
                                 || artifactId.equals("jahia-ee-war")
                                 || artifactId.equals("jahia-gwt") && artifact.getType().equals("war")) && !StringUtils.equals(artifact.getClassifier(), "data-package")) {
                             deployWarDependency(dependencyNode);
-                        } else if (artifactId.equals("shared-libraries")
-                                || artifactId.startsWith("jdbc-drivers")) {
+                        } else if (artifactId.startsWith("jdbc-drivers")) {
                             deploySharedLibraries(dependencyNode);
                         } else if (JAHIA_PACKAGE_PROJECTS.contains(artifactId) || (artifactId.equals("jahia-war")
                                 || artifactId.equals("jahia-ee-war")) && StringUtils.equals(artifact.getClassifier(), "data-package")) {
@@ -582,9 +580,7 @@ public class DeployMojo extends AbstractManagementMojo {
                     } else if (artifact.getGroupId().equals("org.jahia.prepackagedsites")) {
                         deployPrepackagedSiteAsDependency(artifact);
                     }
-                    if (sharedLibraries) {
-                        deploySharedLibrary(artifact);
-                    } else if (jdbcDrivers) {
+                    if (jdbcDrivers) {
                         deployJdbcDriver(artifact);
                     }
                 }
