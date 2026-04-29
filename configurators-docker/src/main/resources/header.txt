@@ -11,5 +11,5 @@
       |                      Jahia Docker Configuration Tool:                    |
       |   [Executing first-boot configuration ritual for your Jahia container]   |
       |                                    -                                     |
-      |             Copyright 2002-2025 - Jahia Solutions Group SA               |
+      |             Copyright (since 2002) - Jahia Solutions Group SA               |
       ============================================================================
