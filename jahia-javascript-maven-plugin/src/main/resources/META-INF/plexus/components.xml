@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component-set>
+    <components>
+        <!-- Define the custom artifact handler for jahia-javascript packaging -->
+        <component>
+            <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
+            <role-hint>jahia-javascript</role-hint>
+            <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
+            <configuration>
+                <type>jahia-javascript</type>
+                <extension>tgz</extension>
+                <language>javascript</language>
+                <addedToClasspath>false</addedToClasspath>
+                <includesDependencies>false</includesDependencies>
+            </configuration>
+        </component>
+
+        <!-- Define the custom lifecycle for jahia-javascript packaging -->
+        <component>
+            <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+            <role-hint>jahia-javascript</role-hint>
+            <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+            <configuration>
+                <lifecycles>
+                    <lifecycle>
+                        <id>clean</id>
+                        <phases>
+                            <pre-clean>
+                                org.jahia.configuration:jahia-javascript-maven-plugin:install-node-and-corepack,
+                                org.jahia.configuration:jahia-javascript-maven-plugin:yarn-initialize
+                            </pre-clean>
+                            <clean>
+                                org.jahia.configuration:jahia-javascript-maven-plugin:yarn-clean,
+                                org.apache.maven.plugins:maven-clean-plugin:clean
+                            </clean>
+                        </phases>
+                    </lifecycle>
+                    <lifecycle>
+                        <id>default</id>
+                        <phases>
+                            <initialize>
+                                org.jahia.configuration:jahia-javascript-maven-plugin:install-node-and-corepack,
+                                org.jahia.configuration:jahia-javascript-maven-plugin:yarn-initialize
+                            </initialize>
+                            <process-resources>
+                                org.jahia.configuration:jahia-javascript-maven-plugin:sync-version
+                            </process-resources>
+                            <package>
+                                org.jahia.configuration:jahia-javascript-maven-plugin:yarn-package,
+                                org.jahia.configuration:jahia-javascript-maven-plugin:attach-artifact
+                            </package>
+                            <install>
+                                org.apache.maven.plugins:maven-install-plugin:install
+                            </install>
+                            <deploy>
+                                org.jahia.configuration:jahia-javascript-maven-plugin:yarn-deploy,
+                                org.apache.maven.plugins:maven-deploy-plugin:deploy
+                            </deploy>
+                            <verify>
+                                org.jahia.configuration:jahia-javascript-maven-plugin:yarn-verify
+                            </verify>
+                        </phases>
+                    </lifecycle>
+                </lifecycles>
+            </configuration>
+        </component>
+    </components>
+</component-set>
+
