@@ -229,25 +229,11 @@ public class GenerateVendoredJsBomMojo extends AbstractMojo {
             return;
         }
 
-        if (resolved.isDirectory()) {
-            processDirectory(component, resolvedPath);
-        } else if (resolved.isFile()) {
+        if (resolved.isFile()) {
             processFile(component, resolved);
         }
     }
 
-    private void processDirectory(ComponentModel component, Path dirPath) throws IOException {
-        try (Stream<Path> stream = Files.walk(dirPath)) {
-            stream.filter(p -> Files.isRegularFile(p) && p.getFileName().toString().endsWith(".js"))
-                  .forEach(p -> {
-                      try {
-                          addHashToComponent(component, p.toFile());
-                      } catch (IOException e) {
-                          getLog().warn("Failed to compute hash for: " + p, e);
-                      }
-                  });
-        }
-    }
 
     private void processFile(ComponentModel component, File file) throws IOException {
         addHashToComponent(component, file);
