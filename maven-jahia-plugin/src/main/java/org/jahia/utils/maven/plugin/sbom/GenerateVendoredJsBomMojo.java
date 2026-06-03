@@ -48,12 +48,15 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.maven.plugin.AbstractMojo;
@@ -70,6 +73,8 @@ import org.apache.maven.plugin.MojoFailureException;
  * @requiresProject true
  */
 public class GenerateVendoredJsBomMojo extends AbstractMojo {
+    
+    private static final String SHA256_ALGORITHM = "SHA-256";
 
     /**
      * The path to the vendored JavaScript manifest file (YAML).
@@ -197,18 +202,63 @@ public class GenerateVendoredJsBomMojo extends AbstractMojo {
     }
 
     private void addHashes(ComponentModel component, VendoredJsComponent componentDef) throws IOException {
-        if (componentDef.getFiles() != null && !componentDef.getFiles().isEmpty()) {
-            for (String filePath : componentDef.getFiles()) {
-                File file = new File(basedir, filePath);
-                if (file.exists() && file.isFile()) {
-                    String sha256 = computeSha256(file);
-                    Map<String, String> hash = new HashMap<>();
-                    hash.put("alg", "SHA-256");
-                    hash.put("content", sha256);
-                    component.addHash(hash);
-                }
-            }
+        if (componentDef.getFiles() == null || componentDef.getFiles().isEmpty()) {
+            return;
         }
+
+        Path basePath = basedir.getCanonicalFile().toPath();
+        for (String filePath : componentDef.getFiles()) {
+            processFilePath(component, filePath, basePath);
+        }
+    }
+
+    private void processFilePath(ComponentModel component, String filePath, Path basePath) throws IOException {
+        if (filePath == null || filePath.trim().isEmpty()) {
+            return;
+        }
+
+        File resolved = new File(basedir, filePath).getCanonicalFile();
+        Path resolvedPath = resolved.toPath();
+
+        if (!resolvedPath.startsWith(basePath)) {
+            throw new IOException("Manifest path escapes project basedir: " + filePath);
+        }
+
+        if (!resolved.exists()) {
+            getLog().warn("Manifest path not found; skipping hash computation: " + filePath);
+            return;
+        }
+
+        if (resolved.isDirectory()) {
+            processDirectory(component, resolvedPath);
+        } else if (resolved.isFile()) {
+            processFile(component, resolved);
+        }
+    }
+
+    private void processDirectory(ComponentModel component, Path dirPath) throws IOException {
+        try (Stream<Path> stream = Files.walk(dirPath)) {
+            stream.filter(p -> Files.isRegularFile(p) && p.getFileName().toString().endsWith(".js"))
+                  .forEach(p -> {
+                      try {
+                          addHashToComponent(component, p.toFile());
+                      } catch (IOException e) {
+                          getLog().warn("Failed to compute hash for: " + p, e);
+                      }
+                  });
+        }
+    }
+
+    private void processFile(ComponentModel component, File file) throws IOException {
+        addHashToComponent(component, file);
+    }
+
+    private void addHashToComponent(ComponentModel component, File file) throws IOException {
+        String sha256 = computeSha256(file);
+        Map<String, String> hash = new HashMap<>();
+        hash.put("alg", SHA256_ALGORITHM);
+        hash.put("content", sha256);
+        component.addHash(hash);
     }
 
     private void addSupplier(ComponentModel component, VendoredJsComponent componentDef) {
@@ -243,7 +293,7 @@ public class GenerateVendoredJsBomMojo extends AbstractMojo {
 
     private String computeSha256(File file) throws IOException {
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            MessageDigest digest = MessageDigest.getInstance(SHA256_ALGORITHM);
             try (FileInputStream fis = new FileInputStream(file)) {
                 byte[] buffer = new byte[8192];
                 int bytesRead;

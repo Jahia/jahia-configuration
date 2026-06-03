@@ -45,6 +45,7 @@ package org.jahia.utils.maven.plugin.sbom;
 
 import java.io.Writer;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -59,6 +60,7 @@ public class BomSerializer {
 
     public static void serializeToJson(BomModel bom, Writer writer) throws java.io.IOException {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(Include.NON_NULL);
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         mapper.writeValue(writer, bom);
     }

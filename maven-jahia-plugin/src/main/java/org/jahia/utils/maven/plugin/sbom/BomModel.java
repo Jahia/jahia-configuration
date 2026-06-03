@@ -45,19 +45,32 @@ package org.jahia.utils.maven.plugin.sbom;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * CycloneDX 1.4 BOM model.
  */
 public class BomModel {
+    private String bomFormat = "CycloneDX";
     private String bomVersion;
     private String specVersion;
     private int version;
     private List<ComponentModel> components;
-
+    
+    public String getBomFormat() {
+        return bomFormat;
+    }
+    
+    public void setBomFormat(String bomFormat) {
+        this.bomFormat = bomFormat;
+    }
+    
+    @JsonIgnore
     public String getBomVersion() {
         return bomVersion;
     }
-
+    
+    @JsonIgnore
     public void setBomVersion(String bomVersion) {
         this.bomVersion = bomVersion;
     }

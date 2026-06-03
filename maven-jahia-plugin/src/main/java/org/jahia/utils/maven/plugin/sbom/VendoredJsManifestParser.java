@@ -66,7 +66,10 @@ public class VendoredJsManifestParser {
     
     public static VendoredJsManifest parse(File manifestFile) throws IOException {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        Map<String, Object> data = mapper.readValue(new FileInputStream(manifestFile), new TypeReference<Map<String, Object>>() {});
+        Map<String, Object> data;
+        try (FileInputStream fis = new FileInputStream(manifestFile)) {
+            data = mapper.readValue(fis, new TypeReference<Map<String, Object>>() {});
+        }
 
         VendoredJsManifest manifest = new VendoredJsManifest();
         List<VendoredJsComponent> components = new ArrayList<>();

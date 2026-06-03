@@ -249,7 +249,11 @@ public class ValidateVendoredJsManifestMojo extends AbstractMojo {
             normalized = normalized.substring(1);
         }
 
-        // Case-insensitive matching on Windows.
-        return normalized.toLowerCase(Locale.ROOT);
+        // Case-insensitive matching on Windows only.
+        String osName = System.getProperty("os.name");
+        if (osName != null && osName.toLowerCase(Locale.ROOT).contains("win")) {
+            normalized = normalized.toLowerCase(Locale.ROOT);
+        }
+        return normalized;
     }
 }

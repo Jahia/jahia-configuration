@@ -47,6 +47,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * CycloneDX 1.4 Component model.
  */
@@ -186,10 +188,12 @@ public class ComponentModel {
         this.supplier = supplier;
     }
 
+    @JsonIgnore
     public String getCopyright() {
         return copyright;
     }
 
+    @JsonIgnore
     public void setCopyright(String copyright) {
         this.copyright = copyright;
     }
