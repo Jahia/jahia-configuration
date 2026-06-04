@@ -73,7 +73,7 @@ public abstract class ContentGeneratorTestCase {
     protected static String CONTENT_EN = "CONTENT EN";
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp()  {
         contentGeneratorService = ContentGeneratorService.getInstance();
         createPages();
         createArticles();
