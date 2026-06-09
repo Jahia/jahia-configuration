@@ -64,7 +64,7 @@ public class PageServiceTest extends ContentGeneratorTestCase {
 
     @Override
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         super.setUp();
         pageService = new ContentService();
     }

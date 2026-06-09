@@ -5,7 +5,7 @@
  *
  *                                 http://www.jahia.com
  *
- *     Copyright (C) 2002-2023 Jahia Solutions Group SA. All rights reserved.
+ *     Copyright (C) 2002-2026 Jahia Solutions Group SA. All rights reserved.
  *
  *     THIS FILE IS AVAILABLE UNDER TWO DIFFERENT LICENSES:
  *     1/GPL OR 2/JSEL
@@ -41,52 +41,28 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.tools.contentgenerator.junit;
+package org.jahia.utils.maven.plugin.sbom;
 
-import static org.junit.Assert.assertEquals;
+import java.util.List;
 
-import org.jahia.utils.maven.plugin.contentgenerator.ContentService;
-import org.jahia.utils.maven.plugin.contentgenerator.UserGroupService;
-import org.junit.Before;
-import org.junit.Test;
+/**
+ * Model for parsed vendored JavaScript manifest.
+ */
+public class VendoredJsManifest {
+    private List<VendoredJsComponent> components;
 
-public class UserGroupServiceTest extends ContentGeneratorTestCase{
+    public VendoredJsManifest() {
+    }
 
-	private static UserGroupService userService;
+    public VendoredJsManifest(List<VendoredJsComponent> components) {
+        this.components = components;
+    }
 
-	@Before
-	public void setUp() {
-		super.setUp();
-		userService = new UserGroupService();
-	}
+    public List<VendoredJsComponent> getComponents() {
+        return components;
+    }
 
-	@Test
-	public void testGetNbUsersPerGroup() {
-		Integer nbGroups = new Integer(10);
-		Integer nbUsers = new Integer(550);
-		
-		Integer nbUsersPerGroup = userService.getNbUsersPerGroup(nbUsers, nbGroups);
-		assertEquals(Integer.valueOf(55), nbUsersPerGroup);
-		
-		nbGroups = new Integer(10);
-		nbUsers = new Integer(558);
-		
-		nbUsersPerGroup = userService.getNbUsersPerGroup(nbUsers, nbGroups);
-		assertEquals(Integer.valueOf(55), nbUsersPerGroup);
-	}
-
-	@Test
-	public void testGetNbUsersRemaining() {
-		Integer nbGroups = new Integer(10);
-		Integer nbUsers = new Integer(550);
-		
-		Integer nbUsersLastGroup = userService.getNbUsersRemaining(nbUsers, nbGroups);
-		assertEquals(Integer.valueOf(0), nbUsersLastGroup);
-		
-		nbGroups = new Integer(10);
-		nbUsers = new Integer(558);
-		
-		nbUsersLastGroup = userService.getNbUsersRemaining(nbUsers, nbGroups);
-		assertEquals(Integer.valueOf(8), nbUsersLastGroup);
-	}
+    public void setComponents(List<VendoredJsComponent> components) {
+        this.components = components;
+    }
 }
