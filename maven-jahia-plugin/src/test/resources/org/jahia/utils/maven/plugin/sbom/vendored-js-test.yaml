@@ -1,0 +1,21 @@
+components:
+  - name: jquery
+    version: "3.6.0"
+    type: library
+    purl: "pkg:npm/jquery@3.6.0"
+    supplier: "jQuery Foundation"
+    copyright: "Copyright JS Foundation and other contributors"
+    licenses:
+      - MIT
+    files:
+      - src/main/resources/javascript/jquery/jquery.min.js
+    modified: false
+    notes: "Minified jQuery library"
+  - name: moment
+    version: "2.29.1"
+    type: library
+    licenses:
+      - MIT
+    files:
+      - src/main/resources/javascript/moment/
+    modified: true
