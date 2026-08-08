@@ -73,6 +73,7 @@
         <maven.bundle.plugin.version>5.1.9</maven.bundle.plugin.version>
         <nexus.maven.plugin.version>1.7.0</nexus.maven.plugin.version>
         <jahia.nexus.staging.repository.id>64277f72646358</jahia.nexus.staging.repository.id>
+        <maven-plugin-plugin.version>3.9.0</maven-plugin-plugin.version>
     </properties>
 
     <modules>
@@ -85,6 +86,7 @@
         <module>jahia-simple-maven-plugin</module>
         <module>jahia-installer</module>
         <module>jahia-hibernate-maven-plugin</module>
+        <module>jahia-javascript-maven-plugin</module>
     </modules>
 
     <repositories>
@@ -281,9 +283,24 @@
                     </configuration>
                 </plugin>
                 <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-plugin-plugin</artifactId>
-                    <version>3.9.0</version>
+                    <version>${maven-plugin-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.4.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>3.1.4</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>3.1.4</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-invoker-plugin</artifactId>
+                    <version>3.9.1</version>
                 </plugin>
             </plugins>
         </pluginManagement>
