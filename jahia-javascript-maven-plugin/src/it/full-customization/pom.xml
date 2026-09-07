@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.jahia.test</groupId>
+    <artifactId>jahia-javascript-maven-plugin-basic-yarn-berry-test</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>jahia-javascript</packaging>
+
+    <name>Jahia JavaScript Maven Plugin - Basic Integration Test using Yarn Berry</name>
+    <description>Test project to validate all mojos execute correctly with a basic configuration (happy path scenario)</description>
+
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.jahia.configuration</groupId>
+                <artifactId>jahia-javascript-maven-plugin</artifactId>
+                <version>@project.version@</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <workingDirectory>frontend</workingDirectory>
+                    <nodeVersion>v20.10.0</nodeVersion>
+                    <corepackVersion>0.32.0</corepackVersion>
+                    <yarnCleanCommand>myClean</yarnCleanCommand>
+                    <yarnPackageCommand>myPackage</yarnPackageCommand>
+                    <packageFile>custom/path/to/out.tgz</packageFile>
+                    <yarnVerifyCommand>myVerify</yarnVerifyCommand>
+                    <!-- TODO to be tested as well: -->
+<!--                    <yarnDeployAccess></yarnDeployAccess>-->
+<!--                    <yarnDeploySnapshotTag></yarnDeploySnapshotTag>-->
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

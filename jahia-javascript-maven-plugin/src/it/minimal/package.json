@@ -1,0 +1,13 @@
+{
+  "name": "@jahia/jahia-javascript-maven-plugin-minimal-test",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Test package for jahia-javascript-maven-plugin",
+  "files": [],
+  "scripts": {
+    "package": "yarn pack --out dist/package.tgz"
+  },
+  "packageManager": "yarn@4.9.4",
+  "author": "Jahia",
+  "license": "MIT"
+}
