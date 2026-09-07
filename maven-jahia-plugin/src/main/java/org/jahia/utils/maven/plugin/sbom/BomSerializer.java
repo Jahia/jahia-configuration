@@ -5,7 +5,7 @@
  *
  *                                 http://www.jahia.com
  *
- *     Copyright (C) 2002-2023 Jahia Solutions Group SA. All rights reserved.
+ *     Copyright (C) 2002-2026 Jahia Solutions Group SA. All rights reserved.
  *
  *     THIS FILE IS AVAILABLE UNDER TWO DIFFERENT LICENSES:
  *     1/GPL OR 2/JSEL
@@ -41,52 +41,27 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.tools.contentgenerator.junit;
+package org.jahia.utils.maven.plugin.sbom;
 
-import static org.junit.Assert.assertEquals;
+import java.io.Writer;
 
-import org.jahia.utils.maven.plugin.contentgenerator.ContentService;
-import org.jahia.utils.maven.plugin.contentgenerator.UserGroupService;
-import org.junit.Before;
-import org.junit.Test;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
-public class UserGroupServiceTest extends ContentGeneratorTestCase{
+/**
+ * Serializer for BOM models to JSON format.
+ */
+public class BomSerializer {
+    
+    private BomSerializer() {
+        // Utility class, no instantiation needed
+    }
 
-	private static UserGroupService userService;
-
-	@Before
-	public void setUp() {
-		super.setUp();
-		userService = new UserGroupService();
-	}
-
-	@Test
-	public void testGetNbUsersPerGroup() {
-		Integer nbGroups = new Integer(10);
-		Integer nbUsers = new Integer(550);
-		
-		Integer nbUsersPerGroup = userService.getNbUsersPerGroup(nbUsers, nbGroups);
-		assertEquals(Integer.valueOf(55), nbUsersPerGroup);
-		
-		nbGroups = new Integer(10);
-		nbUsers = new Integer(558);
-		
-		nbUsersPerGroup = userService.getNbUsersPerGroup(nbUsers, nbGroups);
-		assertEquals(Integer.valueOf(55), nbUsersPerGroup);
-	}
-
-	@Test
-	public void testGetNbUsersRemaining() {
-		Integer nbGroups = new Integer(10);
-		Integer nbUsers = new Integer(550);
-		
-		Integer nbUsersLastGroup = userService.getNbUsersRemaining(nbUsers, nbGroups);
-		assertEquals(Integer.valueOf(0), nbUsersLastGroup);
-		
-		nbGroups = new Integer(10);
-		nbUsers = new Integer(558);
-		
-		nbUsersLastGroup = userService.getNbUsersRemaining(nbUsers, nbGroups);
-		assertEquals(Integer.valueOf(8), nbUsersLastGroup);
-	}
+    public static void serializeToJson(BomModel bom, Writer writer) throws java.io.IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(Include.NON_NULL);
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        mapper.writeValue(writer, bom);
+    }
 }

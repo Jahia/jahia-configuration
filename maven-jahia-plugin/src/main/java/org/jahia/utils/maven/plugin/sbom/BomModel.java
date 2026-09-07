@@ -5,7 +5,7 @@
  *
  *                                 http://www.jahia.com
  *
- *     Copyright (C) 2002-2023 Jahia Solutions Group SA. All rights reserved.
+ *     Copyright (C) 2002-2026 Jahia Solutions Group SA. All rights reserved.
  *
  *     THIS FILE IS AVAILABLE UNDER TWO DIFFERENT LICENSES:
  *     1/GPL OR 2/JSEL
@@ -41,52 +41,61 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.tools.contentgenerator.junit;
+package org.jahia.utils.maven.plugin.sbom;
 
-import static org.junit.Assert.assertEquals;
+import java.util.List;
 
-import org.jahia.utils.maven.plugin.contentgenerator.ContentService;
-import org.jahia.utils.maven.plugin.contentgenerator.UserGroupService;
-import org.junit.Before;
-import org.junit.Test;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class UserGroupServiceTest extends ContentGeneratorTestCase{
+/**
+ * CycloneDX 1.4 BOM model.
+ */
+public class BomModel {
+    private String bomFormat = "CycloneDX";
+    private String bomVersion;
+    private String specVersion;
+    private int version;
+    private List<ComponentModel> components;
+    
+    public String getBomFormat() {
+        return bomFormat;
+    }
+    
+    public void setBomFormat(String bomFormat) {
+        this.bomFormat = bomFormat;
+    }
+    
+    @JsonIgnore
+    public String getBomVersion() {
+        return bomVersion;
+    }
+    
+    @JsonIgnore
+    public void setBomVersion(String bomVersion) {
+        this.bomVersion = bomVersion;
+    }
 
-	private static UserGroupService userService;
+    public String getSpecVersion() {
+        return specVersion;
+    }
 
-	@Before
-	public void setUp() {
-		super.setUp();
-		userService = new UserGroupService();
-	}
+    public void setSpecVersion(String specVersion) {
+        this.specVersion = specVersion;
+    }
 
-	@Test
-	public void testGetNbUsersPerGroup() {
-		Integer nbGroups = new Integer(10);
-		Integer nbUsers = new Integer(550);
-		
-		Integer nbUsersPerGroup = userService.getNbUsersPerGroup(nbUsers, nbGroups);
-		assertEquals(Integer.valueOf(55), nbUsersPerGroup);
-		
-		nbGroups = new Integer(10);
-		nbUsers = new Integer(558);
-		
-		nbUsersPerGroup = userService.getNbUsersPerGroup(nbUsers, nbGroups);
-		assertEquals(Integer.valueOf(55), nbUsersPerGroup);
-	}
+    public int getVersion() {
+        return version;
+    }
 
-	@Test
-	public void testGetNbUsersRemaining() {
-		Integer nbGroups = new Integer(10);
-		Integer nbUsers = new Integer(550);
-		
-		Integer nbUsersLastGroup = userService.getNbUsersRemaining(nbUsers, nbGroups);
-		assertEquals(Integer.valueOf(0), nbUsersLastGroup);
-		
-		nbGroups = new Integer(10);
-		nbUsers = new Integer(558);
-		
-		nbUsersLastGroup = userService.getNbUsersRemaining(nbUsers, nbGroups);
-		assertEquals(Integer.valueOf(8), nbUsersLastGroup);
-	}
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
+    public List<ComponentModel> getComponents() {
+        return components;
+    }
+
+    public void setComponents(List<ComponentModel> components) {
+        this.components = components;
+    }
 }
