@@ -79,6 +79,7 @@ public abstract class AbstractXmlFileParser extends AbstractFileParser {
         boolean processed = true;
         SAXBuilder saxBuilder = new SAXBuilder();
         saxBuilder.setValidation(false);
+        saxBuilder.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         saxBuilder.setFeature("http://xml.org/sax/features/validation", false);
         saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
         saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);

@@ -72,6 +72,7 @@ public class MailServerConfigurator extends AbstractXMLConfigurator {
         }
 
         SAXBuilder saxBuilder = new SAXBuilder();
+        saxBuilder.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         Document jdomDocument = saxBuilder.build(sourceConfigFile.getInputStream());
         Element el = getElement(jdomDocument.getRootElement(), "/content/settings/mail-server");

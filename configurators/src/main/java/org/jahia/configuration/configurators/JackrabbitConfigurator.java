@@ -79,7 +79,7 @@ public class JackrabbitConfigurator extends AbstractXMLConfigurator {
     public void updateConfiguration(ConfigFile sourceConfigFile, String destFileName) throws Exception {
         try {
             SAXBuilder saxBuilder = new SAXBuilder();
-            saxBuilder.setFeature("http://apache.org/xml/features/disallow-doctype-decl",false);
+            saxBuilder.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
             saxBuilder.setFeature("http://xml.org/sax/features/external-general-entities", true);
             saxBuilder.setFeature("http://xml.org/sax/features/external-parameter-entities", true);
             saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);

@@ -66,6 +66,7 @@ public class TomcatContextXmlConfigurator extends AbstractXMLConfigurator {
     public void updateConfiguration(ConfigFile sourceConfigFile, String destFileName) throws Exception {
         try {
             SAXBuilder saxBuilder = new SAXBuilder();
+            saxBuilder.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
             saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
             InputStreamReader fileReader = new InputStreamReader(sourceConfigFile.getInputStream());
             org.jdom2.Document jdomDocument = saxBuilder.build(fileReader);
