@@ -64,6 +64,7 @@ import org.apache.tools.ant.taskdefs.optional.Native2Ascii;
  * Inspired by native2ascii-maven-plugin.
  * 
  * @goal native2ascii
+ * @threadSafe
  * @phase generate-resources
  * @author Sergiy Shyrkov
  */

@@ -184,6 +184,7 @@ import java.util.*;
  * the mismatch, preventing configuration drift.</p>
  *
  * @goal jahia-system-packages-check
+ * @threadSafe
  * @requiresDependencyResolution test
  */
 public class JahiaSystemPackagesCheckMojo extends AetherAwareMojo {

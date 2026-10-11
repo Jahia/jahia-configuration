@@ -53,6 +53,9 @@ import org.jahia.utils.osgi.parsers.ParsingContext;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -65,6 +68,12 @@ public class ParsingContextCache {
 
     private static final String CACHE_MODEL_VERSION = "0.2";
 
+    /**
+     * The cache location is shared by every module of the build, so the modules of a parallel build (mvn -T) set it
+     * up at the same time. Purging it and recreating it is a sequence, not a single atomic step.
+     */
+    private static final Object CACHE_DIRECTORY_LOCK = new Object();
+
     private File cacheLocation;
     private Map<String,ParsingContext> parsingContextCache = new TreeMap<String,ParsingContext>();
     private ObjectMapper objectMapper;
@@ -74,26 +83,26 @@ public class ParsingContextCache {
         if (cacheLocation == null) {
             throw new RuntimeException("Cache location is null, aborting!");
         }
-        if (!cacheLocation.exists()) {
-            if (!cacheLocation.mkdirs()) {
-                throw new RuntimeException("Cache location couldn't be created at " + cacheLocation + ", aborting !");
-            }
-        } else {
-            File cacheInfoFile = new File(cacheLocation, "cache-info.json");
-            if (!cacheInfoFile.exists()) {
-                purgeCacheDirectory(cacheLocation);
-                writeCacheInfo(cacheInfoFile);
+        synchronized (CACHE_DIRECTORY_LOCK) {
+            if (!cacheLocation.exists()) {
+                createDirectory(cacheLocation);
             } else {
-                String cacheModelVersion = null;
-                try {
-                    cacheModelVersion = getObjectMapper().readValue(cacheInfoFile, String.class);
-                } catch (IOException e) {
-                    // This can happen, if the cache info file is somehow corrupted, in this case we simply recreate
-                    // the cache.
-                }
-                if (cacheModelVersion == null || !cacheModelVersion.equals(CACHE_MODEL_VERSION)) {
+                File cacheInfoFile = new File(cacheLocation, "cache-info.json");
+                if (!cacheInfoFile.exists()) {
                     purgeCacheDirectory(cacheLocation);
                     writeCacheInfo(cacheInfoFile);
+                } else {
+                    String cacheModelVersion = null;
+                    try {
+                        cacheModelVersion = getObjectMapper().readValue(cacheInfoFile, String.class);
+                    } catch (IOException e) {
+                        // This can happen, if the cache info file is somehow corrupted, in this case we simply recreate
+                        // the cache.
+                    }
+                    if (cacheModelVersion == null || !cacheModelVersion.equals(CACHE_MODEL_VERSION)) {
+                        purgeCacheDirectory(cacheLocation);
+                        writeCacheInfo(cacheInfoFile);
+                    }
                 }
             }
         }
@@ -105,9 +114,9 @@ public class ParsingContextCache {
 
     public void writeCacheInfo(File cacheInfoFile) {
         try {
-            getObjectMapper().writeValue(cacheInfoFile, CACHE_MODEL_VERSION);
+            writeAtomically(cacheInfoFile, CACHE_MODEL_VERSION);
         } catch (IOException e) {
-            throw new RuntimeException("Error writing cache info file " + cacheInfoFile + ", aborting !");
+            throw new RuntimeException("Error writing cache info file " + cacheInfoFile + ", aborting !", e);
         }
     }
 
@@ -119,9 +128,7 @@ public class ParsingContextCache {
             throw new RuntimeException("Error purging cache directory " + cacheLocation, e);
         }
         // recreate the empty directory
-        if (!cacheLocation.mkdirs()) {
-            throw new RuntimeException("Cache location couldn't be created at " + cacheLocation + ", aborting !");
-        }
+        createDirectory(cacheLocation);
     }
 
     public ParsingContext get(Artifact artifact) {
@@ -173,20 +180,43 @@ public class ParsingContextCache {
 
     public ParsingContext put(Artifact artifact, ParsingContext parsingContext) {
         File artifactJSONFile = new File(cacheLocation, MavenAetherHelperUtils.getDiskPath(artifact) + ".json");
-        if (!artifactJSONFile.getParentFile().exists()) {
-            if (!artifactJSONFile.getParentFile().mkdirs()) {
-                throw new RuntimeException("Couldn't create parent directory " + artifactJSONFile.getParentFile() + " to store file " + artifactJSONFile + ", aborting !");
-            }
-        }
+        createDirectory(artifactJSONFile.getParentFile());
         try {
             parsingContext.setInCache(true);
-            getObjectMapper().writeValue(artifactJSONFile, parsingContext);
+            writeAtomically(artifactJSONFile, parsingContext);
             ParsingContext previousParsingContext = parsingContextCache.put(MavenAetherHelperUtils.getCoords(artifact), parsingContext);
             return previousParsingContext;
         } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * Creates the directory and every missing parent, and accepts a directory another module of the build created in
+     * the meantime. File.mkdirs() answers false in that case, which is indistinguishable from a real failure.
+     */
+    private void createDirectory(File directory) {
+        try {
+            Files.createDirectories(directory.toPath());
+        } catch (IOException e) {
+            throw new RuntimeException("Cache directory couldn't be created at " + directory + ", aborting !", e);
+        }
+    }
+
+    /**
+     * Writes the value to a temporary file of the target directory, then moves it over the target. A reader of a
+     * concurrent module then sees either the previous file or the complete new one, never a truncated one.
+     */
+    private void writeAtomically(File target, Object value) throws IOException {
+        Path temporaryFile = Files.createTempFile(target.getParentFile().toPath(), target.getName(), ".tmp");
+        try {
+            getObjectMapper().writeValue(temporaryFile.toFile(), value);
+            Files.move(temporaryFile, target.toPath(), StandardCopyOption.REPLACE_EXISTING,
+                    StandardCopyOption.ATOMIC_MOVE);
+        } finally {
+            Files.deleteIfExists(temporaryFile);
+        }
     }
 
     protected ObjectMapper getObjectMapper() {
