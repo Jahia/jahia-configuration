@@ -62,6 +62,7 @@ import org.apache.maven.project.MavenProject;
  * project).
  *
  * @goal list-jars-with-no-tlds
+ * @threadSafe
  * @phase prepare-package
  * @requiresDependencyResolution
  * @author Sergiy Shyrkov

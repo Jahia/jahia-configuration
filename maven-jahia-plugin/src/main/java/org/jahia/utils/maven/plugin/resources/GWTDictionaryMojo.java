@@ -63,6 +63,7 @@ import org.apache.maven.plugin.MojoFailureException;
  * Converts resource bundles into a JavaScript dictionary for use in GWT UI.<br>
  * 
  * @goal gwt-dictionary
+ * @threadSafe
  * @phase process-resources
  * @author Sergiy Shyrkov
  */
