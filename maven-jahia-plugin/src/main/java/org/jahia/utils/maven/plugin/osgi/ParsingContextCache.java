@@ -53,6 +53,7 @@ import org.jahia.utils.osgi.parsers.ParsingContext;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -212,8 +213,14 @@ public class ParsingContextCache {
         Path temporaryFile = Files.createTempFile(target.getParentFile().toPath(), target.getName(), ".tmp");
         try {
             getObjectMapper().writeValue(temporaryFile.toFile(), value);
-            Files.move(temporaryFile, target.toPath(), StandardCopyOption.REPLACE_EXISTING,
-                    StandardCopyOption.ATOMIC_MOVE);
+            try {
+                Files.move(temporaryFile, target.toPath(), StandardCopyOption.REPLACE_EXISTING,
+                        StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException e) {
+                // A few network and FUSE filesystems refuse an atomic move. The plain move keeps the build
+                // working there, with the guarantee the direct write had before.
+                Files.move(temporaryFile, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
         } finally {
             Files.deleteIfExists(temporaryFile);
         }
