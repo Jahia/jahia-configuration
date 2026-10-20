@@ -55,7 +55,7 @@ public class UserGroupServiceTest extends ContentGeneratorTestCase{
 	private static UserGroupService userService;
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		super.setUp();
 		userService = new UserGroupService();
 	}
