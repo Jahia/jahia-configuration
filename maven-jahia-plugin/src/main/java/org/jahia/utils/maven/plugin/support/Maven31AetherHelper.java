@@ -411,8 +411,11 @@ public class Maven31AetherHelper implements AetherHelper {
         DependencyNode dependencyNode = null;
         try {
             //Do not collect dependencies to not scanned the world
+            DefaultDependencyNode rootNode = new DefaultDependencyNode(dependency);
+            // Maven Resolver 2 (Maven 3.10+) refuses a cached artifact whose request names no repository
+            rootNode.setRepositories(remoteRepos);
             DependencyRequest dependencyRequest = new DependencyRequest();
-            dependencyRequest.setRoot(new DefaultDependencyNode(dependency));
+            dependencyRequest.setRoot(rootNode);
             dependencyRequest.setFilter(classpathFilter);
             dependencyNode = repoSystem.resolveDependencies(moreDependenciesSession, dependencyRequest).getRoot();
 
