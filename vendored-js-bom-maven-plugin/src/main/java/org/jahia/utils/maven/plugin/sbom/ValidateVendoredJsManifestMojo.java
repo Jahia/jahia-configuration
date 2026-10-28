@@ -48,20 +48,32 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 /**
  * Validates that all manually packaged JavaScript files are represented in the
- * vendored-js.yaml manifest. Scans configured resource directories and fails if
+ * vendored-js.cdx.json manifest, either as a file component of a library or below one of its
+ * {@value VendoredJsBom#SOURCE_FOLDER_PROPERTY} folders. Scans configured resource directories and fails if
  * unreferenced .js files are found (unless explicitly excluded).
  *
  * @goal validate-vendored-js-manifest
  * @phase validate
  * @requiresProject true
+ * @threadSafe true
  */
 public class ValidateVendoredJsManifestMojo extends AbstractMojo {
+
+    /**
+     * The path to the vendored JavaScript manifest, a partial CycloneDX 1.4 JSON BOM.
+     * Relative to project basedir.
+     *
+     * @parameter default-value="vendored-js.cdx.json"
+     */
+    private String manifestFile;
 
     /**
      * Comma-separated list of directory paths (relative to basedir) to scan
@@ -80,7 +92,7 @@ public class ValidateVendoredJsManifestMojo extends AbstractMojo {
     private String excludePatterns;
 
     /**
-     * Skip validation if no vendored-js.yaml manifest exists.
+     * Skip validation if the manifest does not exist.
      *
      * @parameter default-value="true"
      */
@@ -95,14 +107,14 @@ public class ValidateVendoredJsManifestMojo extends AbstractMojo {
     private File basedir;
 
     public void execute() throws MojoExecutionException, MojoFailureException {
-        File manifest = new File(basedir, "vendored-js.yaml");
+        File manifest = new File(basedir, manifestFile);
         if (!manifest.exists()) {
             handleMissingManifest(manifest);
             return;
         }
 
         try {
-            VendoredJsManifest parsed = VendoredJsManifestParser.parse(manifest);
+            VendoredJsBom parsed = VendoredJsBom.load(manifest);
             ManifestData manifestData = extractManifestData(parsed);
 
             getLog().info("Validating vendored JavaScript files against manifest (" + manifestData.files.size() + " files and "
@@ -113,7 +125,7 @@ public class ValidateVendoredJsManifestMojo extends AbstractMojo {
             if (!unreferenced.isEmpty()) {
                 reportUnreferencedFiles(unreferenced);
                 throw new MojoFailureException(
-                        "Unreferenced vendored JavaScript files found. Update vendored-js.yaml to include all files.");
+                        "Unreferenced vendored JavaScript files found. Update " + manifestFile + " to include all files.");
             }
 
             getLog().info("Vendored JavaScript manifest validation passed.");
@@ -124,37 +136,24 @@ public class ValidateVendoredJsManifestMojo extends AbstractMojo {
 
     private void handleMissingManifest(File manifest) throws MojoFailureException {
         if (skipIfNoManifest) {
-            getLog().debug("No vendored-js.yaml manifest found; skipping validation.");
+            getLog().debug("No vendored JS manifest found at " + manifest.getAbsolutePath() + "; skipping validation.");
         } else {
-            throw new MojoFailureException("vendored-js.yaml manifest not found at " + manifest.getAbsolutePath());
+            throw new MojoFailureException("Vendored JS manifest not found at " + manifest.getAbsolutePath());
         }
     }
 
-    private ManifestData extractManifestData(VendoredJsManifest parsed) {
+    private ManifestData extractManifestData(VendoredJsBom parsed) {
         ManifestData data = new ManifestData();
-        for (VendoredJsComponent component : parsed.getComponents()) {
-            if (component.getFiles() != null) {
-                for (String rawPath : component.getFiles()) {
-                    if (rawPath == null || rawPath.trim().isEmpty()) {
-                        continue;
-                    }
-                    classifyManifestPath(rawPath, data);
-                }
+        for (ObjectNode library : parsed.getLibraries()) {
+            for (String filePath : VendoredJsBom.getFilePaths(library)) {
+                data.files.add(normalizePath(filePath));
+            }
+            for (String folderPath : VendoredJsBom.getFolderPaths(library)) {
+                String normalizedPath = normalizePath(folderPath);
+                data.directories.add(normalizedPath.endsWith("/") ? normalizedPath : normalizedPath + "/");
             }
         }
         return data;
-    }
-
-    private void classifyManifestPath(String rawPath, ManifestData data) {
-        String normalizedPath = normalizePath(rawPath);
-        File pathFile = new File(basedir, rawPath);
-        boolean isDirectoryReference = normalizedPath.endsWith("/") || pathFile.isDirectory();
-
-        if (isDirectoryReference) {
-            data.directories.add(normalizedPath.endsWith("/") ? normalizedPath : normalizedPath + "/");
-        } else {
-            data.files.add(normalizedPath);
-        }
     }
 
     private List<String> scanDirectoriesForUnreferencedFiles(ManifestData manifestData) {

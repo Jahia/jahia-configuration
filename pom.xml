@@ -83,6 +83,7 @@
         <module>osgi-tools</module>
         <module>maven-jahia-plugin</module>
         <module>jahia-simple-maven-plugin</module>
+        <module>vendored-js-bom-maven-plugin</module>
         <module>jahia-installer</module>
         <module>jahia-hibernate-maven-plugin</module>
     </modules>
@@ -225,17 +226,12 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
-                <version>2.22</version>
+                <version>2.12.4</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>2.22.0</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-dataformat-yaml</artifactId>
-                <version>2.22.0</version>
+                <version>2.12.4</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.maven.scm</groupId>
