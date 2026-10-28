@@ -70,6 +70,7 @@ import java.util.stream.Collectors;
  * any missing packages that weren't found in any dependency export.
  *
  * @goal check-dependencies
+ * @threadSafe
  * @phase package
  * @requiresDependencyResolution test
  * @requiresDependencyCollection test

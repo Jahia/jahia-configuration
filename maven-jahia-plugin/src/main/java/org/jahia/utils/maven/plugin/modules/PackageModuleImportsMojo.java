@@ -56,6 +56,7 @@ import org.codehaus.plexus.archiver.zip.ZipArchiver;
  * Used to automatically package module's import resources (as a ZIP file) into the target module bundle file.<br>
  * 
  * @goal package-imports
+ * @threadSafe
  * @phase prepare-package
  * 
  * @author Sergiy Shyrkov
