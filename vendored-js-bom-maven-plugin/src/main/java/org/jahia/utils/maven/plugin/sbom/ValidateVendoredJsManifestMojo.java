@@ -58,7 +58,8 @@ import org.apache.maven.plugin.MojoFailureException;
  * Validates that all manually packaged JavaScript files are represented in the
  * vendored-js.cdx.json manifest, either as a file component of a library or below one of its
  * {@value VendoredJsBom#SOURCE_FOLDER_PROPERTY} folders. Scans configured resource directories and fails if
- * unreferenced .js files are found (unless explicitly excluded).
+ * unreferenced files are found (unless explicitly excluded). Only files with one of the {@code fileExtensions}
+ * ({@code js} by default) are checked.
  *
  * @goal validate-vendored-js-manifest
  * @phase validate
@@ -76,12 +77,21 @@ public class ValidateVendoredJsManifestMojo extends AbstractMojo {
     private String manifestFile;
 
     /**
-     * Comma-separated list of directory paths (relative to basedir) to scan
-     * for vendored JavaScript files. Example: assets/src/main/resources/javascript,default/src/main/resources/javascript
+     * Comma-separated list of directory paths (relative to basedir) to scan for vendored files.
+     * Example: src/main/resources/javascript,src/main/resources/css
      *
      * @parameter default-value="src/main/resources/javascript"
      */
-    private String vendoredJsDirectories;
+    private String vendoredDirectories;
+
+    /**
+     * Comma-separated file extensions that must be declared in the manifest, e.g. {@code js,css,swf}. Also
+     * decides which files a {@value VendoredJsBom#SOURCE_FOLDER_PROPERTY} folder covers; use the same value
+     * for {@code generate-vendored-js-bom}, typically in the plugin-level configuration.
+     *
+     * @parameter default-value="js"
+     */
+    private String fileExtensions;
 
     /**
      * Comma-separated list of file patterns to exclude from validation
@@ -117,7 +127,7 @@ public class ValidateVendoredJsManifestMojo extends AbstractMojo {
             VendoredJsBom parsed = VendoredJsBom.load(manifest);
             ManifestData manifestData = extractManifestData(parsed);
 
-            getLog().info("Validating vendored JavaScript files against manifest (" + manifestData.files.size() + " files and "
+            getLog().info("Validating vendored " + fileExtensions + " files against manifest (" + manifestData.files.size() + " files and "
                     + manifestData.directories.size() + " directory references listed)");
 
             List<String> unreferenced = scanDirectoriesForUnreferencedFiles(manifestData);
@@ -125,10 +135,10 @@ public class ValidateVendoredJsManifestMojo extends AbstractMojo {
             if (!unreferenced.isEmpty()) {
                 reportUnreferencedFiles(unreferenced);
                 throw new MojoFailureException(
-                        "Unreferenced vendored JavaScript files found. Update " + manifestFile + " to include all files.");
+                        "Unreferenced vendored files found. Update " + manifestFile + " to include all files.");
             }
 
-            getLog().info("Vendored JavaScript manifest validation passed.");
+            getLog().info("Vendored files manifest validation passed.");
         } catch (java.io.IOException e) {
             throw new MojoExecutionException("Failed to validate vendored JS manifest: " + e.getMessage(), e);
         }
@@ -158,13 +168,14 @@ public class ValidateVendoredJsManifestMojo extends AbstractMojo {
 
     private List<String> scanDirectoriesForUnreferencedFiles(ManifestData manifestData) {
         List<String> unreferenced = new ArrayList<>();
-        String[] directories = vendoredJsDirectories.split(",");
+        String[] directories = vendoredDirectories.split(",");
+        List<String> extensions = VendoredJsBom.parseExtensions(fileExtensions);
 
         for (String dir : directories) {
             dir = dir.trim();
             File vendoredDir = new File(basedir, dir);
             if (vendoredDir.exists() && vendoredDir.isDirectory()) {
-                scanForUnreferencedFiles(vendoredDir, vendoredDir, manifestData.files, manifestData.directories, unreferenced);
+                scanForUnreferencedFiles(vendoredDir, vendoredDir, extensions, manifestData, unreferenced);
             }
         }
 
@@ -172,7 +183,7 @@ public class ValidateVendoredJsManifestMojo extends AbstractMojo {
     }
 
     private void reportUnreferencedFiles(List<String> unreferenced) {
-        getLog().error("Found " + unreferenced.size() + " unreferenced vendored JavaScript file(s):");
+        getLog().error("Found " + unreferenced.size() + " unreferenced vendored file(s):");
         for (String file : unreferenced) {
             getLog().error("  - " + file);
         }
@@ -183,22 +194,22 @@ public class ValidateVendoredJsManifestMojo extends AbstractMojo {
         List<String> directories = new ArrayList<>();
     }
 
-    private void scanForUnreferencedFiles(File scanRoot, File dir, List<String> manifestedFiles,
-            List<String> manifestedDirectories, List<String> unreferenced) {
+    private void scanForUnreferencedFiles(File scanRoot, File dir, List<String> extensions, ManifestData manifestData,
+            List<String> unreferenced) {
         File[] files = dir.listFiles();
         if (files == null) {
             return;
         }
         for (File file : files) {
             if (file.isDirectory()) {
-                scanForUnreferencedFiles(scanRoot, file, manifestedFiles, manifestedDirectories, unreferenced);
-            } else if (file.isFile() && file.getName().endsWith(".js")) {
+                scanForUnreferencedFiles(scanRoot, file, extensions, manifestData, unreferenced);
+            } else if (file.isFile() && VendoredJsBom.hasExtension(file.getName(), extensions)) {
                 String basedirRelativePath = normalizePath(basedir.toPath().relativize(file.toPath()).toString());
                 String scanRootRelativePath = normalizePath(scanRoot.toPath().relativize(file.toPath()).toString());
 
                 if (!isExcluded(basedirRelativePath)
                         && !isExcluded(scanRootRelativePath)
-                        && !isManifested(basedirRelativePath, scanRootRelativePath, manifestedFiles, manifestedDirectories)) {
+                        && !isManifested(basedirRelativePath, scanRootRelativePath, manifestData.files, manifestData.directories)) {
                     unreferenced.add(file.getAbsolutePath());
                 }
             }

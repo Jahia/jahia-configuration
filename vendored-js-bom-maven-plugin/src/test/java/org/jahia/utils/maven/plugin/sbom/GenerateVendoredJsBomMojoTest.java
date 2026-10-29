@@ -98,6 +98,7 @@ public class GenerateVendoredJsBomMojoTest {
         setField(mojo, "projectArtifactId", "legacy-module");
         setField(mojo, "projectVersion", "1.2.3");
         setField(mojo, "pluginVersion", "6.15.0");
+        setField(mojo, "fileExtensions", "js");
         return mojo;
     }
 
@@ -184,6 +185,38 @@ public class GenerateVendoredJsBomMojoTest {
             assertTrue(file.get("bom-ref").asText().startsWith("vendored-js:moment@2.29.1#vendor/moment/"));
         }
         assertSchemaValid(new File(outputDir, "vendored-js-bom.cdx.json"));
+    }
+
+    @Test
+    public void testFolderExpandsToConfiguredExtensions() throws Exception {
+        writeFile("vendor/lib/lib.js", "/* js */");
+        writeFile("vendor/lib/lib.CSS", "/* css */");
+        writeFile("vendor/lib/player.swf", "FWS");
+        writeFile("vendor/lib/logo.png", "png");
+        writeManifest("{'bomFormat':'CycloneDX','specVersion':'1.4','version':1,'components':["
+                + "{'type':'library','name':'lib','version':'1.0',"
+                + "'properties':[{'name':'jahia:source-folder','value':'vendor/lib'}]}]}");
+
+        GenerateVendoredJsBomMojo mojo = createMojo();
+        setField(mojo, "fileExtensions", "js,css,.swf");
+        mojo.execute();
+        JsonNode files = new ObjectMapper().readTree(new File(outputDir, "vendored-js-bom.cdx.json"))
+                .get("components").get(0).get("components");
+
+        assertEquals(3, files.size());
+        assertEquals("vendor/lib/lib.CSS", files.get(0).get("name").asText());
+        assertEquals("vendor/lib/lib.js", files.get(1).get("name").asText());
+        assertEquals("vendor/lib/player.swf", files.get(2).get("name").asText());
+    }
+
+    @Test
+    public void testListedFileIsHashedWhateverItsExtension() throws Exception {
+        writeFile("swf/player.swf", "FWS");
+        writeManifest("{'bomFormat':'CycloneDX','specVersion':'1.4','version':1,'components':["
+                + "{'type':'library','name':'player','components':[{'type':'file','name':'swf/player.swf'}]}]}");
+
+        JsonNode library = generate().get("components").get(0);
+        assertEquals(64, library.get("hashes").get(0).get("content").asText().length());
     }
 
     @Test

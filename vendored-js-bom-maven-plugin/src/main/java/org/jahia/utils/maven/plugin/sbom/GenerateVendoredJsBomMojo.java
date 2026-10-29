@@ -81,7 +81,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * <li>each file component gets the SHA-256 of its file; a SHA-256 already written in the manifest is verified
  * and a mismatch fails the build</li>
  * <li>each {@value VendoredJsBom#SOURCE_FOLDER_PROPERTY} folder is expanded into one hashed file component per
- * {@code .js} file below it, the same files {@code validate-vendored-js-manifest} considers covered</li>
+ * file below it with one of the {@code fileExtensions}, the same files {@code validate-vendored-js-manifest}
+ * considers covered</li>
  * <li>a library backed by exactly one file also gets that file's SHA-256</li>
  * <li>missing {@code bom-ref}s, a new {@code serialNumber} and {@code metadata} (timestamp, tool, module) are
  * added</li>
@@ -138,6 +139,15 @@ public class GenerateVendoredJsBomMojo extends AbstractMojo {
     private boolean skipIfMissing;
 
     /**
+     * Comma-separated file extensions a {@value VendoredJsBom#SOURCE_FOLDER_PROPERTY} folder expands to, e.g.
+     * {@code js,css,swf}. Use the same value as for {@code validate-vendored-js-manifest}, typically in the
+     * plugin-level configuration. Files listed individually are hashed whatever their extension.
+     *
+     * @parameter default-value="js"
+     */
+    private String fileExtensions;
+
+    /**
      * @parameter default-value="${project.groupId}"
      * @readonly
      */
@@ -179,8 +189,9 @@ public class GenerateVendoredJsBomMojo extends AbstractMojo {
 
             getLog().info("Generating CycloneDX " + VendoredJsBom.SPEC_VERSION + " SBOM from " + bom.getLibraries().size() + " component(s)");
             Path basePath = basedir.getCanonicalFile().toPath();
+            List<String> extensions = VendoredJsBom.parseExtensions(fileExtensions);
             for (ObjectNode library : bom.getLibraries()) {
-                enrichLibrary(library, basePath);
+                enrichLibrary(library, basePath, extensions);
             }
             enrichDocument(bom.getRoot());
 
@@ -225,7 +236,7 @@ public class GenerateVendoredJsBomMojo extends AbstractMojo {
         reorder(root, "bomFormat", "specVersion", "serialNumber", "version", "metadata", "components");
     }
 
-    private void enrichLibrary(ObjectNode library, Path basePath) throws IOException {
+    private void enrichLibrary(ObjectNode library, Path basePath, List<String> extensions) throws IOException {
         String name = library.path("name").asText();
         if (library.has("hashes")) {
             throw new IOException("Component " + name + " must not declare \"hashes\" itself: declare them on its file"
@@ -260,11 +271,11 @@ public class GenerateVendoredJsBomMojo extends AbstractMojo {
             if (!Files.isDirectory(folder)) {
                 throw new IOException("Folder " + folderPath + " of " + name + " is not an existing directory");
             }
-            List<Path> jsFiles = listJsFiles(folder, basePath);
-            if (jsFiles.isEmpty()) {
-                getLog().warn("Manifest folder contains no .js files; nothing to hash: " + folderPath);
+            List<Path> folderFiles = listFiles(folder, basePath, extensions);
+            if (folderFiles.isEmpty()) {
+                getLog().warn("Manifest folder contains no " + fileExtensions + " files; nothing to hash: " + folderPath);
             }
-            for (Path file : jsFiles) {
+            for (Path file : folderFiles) {
                 if (!files.containsKey(file)) {
                     String relativePath = relativize(basePath, file);
                     ObjectNode fileComponent = VendoredJsBom.getOrCreateArray(library, "components").addObject();
@@ -319,14 +330,15 @@ public class GenerateVendoredJsBomMojo extends AbstractMojo {
     }
 
     /**
-     * Same file selection as {@code validate-vendored-js-manifest}: every {@code .js} file below the folder,
+     * Same file selection as {@code validate-vendored-js-manifest}: every file below the folder with one of the
+     * extensions,
      * as canonical paths.
      */
-    private static List<Path> listJsFiles(Path directory, Path basePath) throws IOException {
+    private static List<Path> listFiles(Path directory, Path basePath, List<String> extensions) throws IOException {
         List<Path> jsFiles;
         try (Stream<Path> walk = Files.walk(directory)) {
             jsFiles = walk.filter(Files::isRegularFile)
-                    .filter(p -> p.getFileName().toString().endsWith(".js"))
+                    .filter(p -> VendoredJsBom.hasExtension(p.getFileName().toString(), extensions))
                     .sorted()
                     .collect(Collectors.toList());
         }

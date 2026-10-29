@@ -80,10 +80,15 @@ public class ValidateVendoredJsManifestMojoTest {
     }
 
     private ValidateVendoredJsManifestMojo createMojo(String excludePatterns) throws Exception {
+        return createMojo(excludePatterns, "js");
+    }
+
+    private ValidateVendoredJsManifestMojo createMojo(String excludePatterns, String fileExtensions) throws Exception {
         ValidateVendoredJsManifestMojo mojo = new ValidateVendoredJsManifestMojo();
         setField(mojo, "basedir", basedir);
         setField(mojo, "manifestFile", "vendored-js.cdx.json");
-        setField(mojo, "vendoredJsDirectories", "src/main/resources/javascript");
+        setField(mojo, "vendoredDirectories", "src/main/resources/javascript,src/main/resources/css");
+        setField(mojo, "fileExtensions", fileExtensions);
         setField(mojo, "excludePatterns", excludePatterns);
         setField(mojo, "skipIfNoManifest", true);
         return mojo;
@@ -128,6 +133,37 @@ public class ValidateVendoredJsManifestMojoTest {
         writeFile("src/main/resources/javascript/jquery.jahia.js", "/* jahia's own code */");
 
         createMojo("jquery.jahia.js").execute();
+    }
+
+    @Test
+    public void testOnlyConfiguredExtensionsAreChecked() throws Exception {
+        writeManifest(MANIFEST);
+        writeFile("src/main/resources/css/unlisted.css", "/* unlisted */");
+        writeFile("src/main/resources/javascript/player.swf", "FWS");
+
+        createMojo("").execute();
+    }
+
+    @Test
+    public void testOtherExtensionsAreCheckedWhenConfigured() throws Exception {
+        writeManifest(MANIFEST);
+        writeFile("src/main/resources/css/unlisted.css", "/* unlisted */");
+
+        try {
+            createMojo("", "js, .CSS").execute();
+            fail("Unlisted .css file must fail validation when css is configured");
+        } catch (MojoFailureException e) {
+            assertTrue(e.getMessage().contains("vendored-js.cdx.json"));
+        }
+    }
+
+    @Test
+    public void testFolderCoversConfiguredExtensions() throws Exception {
+        writeManifest(MANIFEST);
+        writeFile("src/main/resources/javascript/moment/moment.css", "/* moment */");
+        writeFile("src/main/resources/javascript/moment/player.SWF", "FWS");
+
+        createMojo("", "js,css,swf").execute();
     }
 
     private void writeManifest(String json) throws IOException {

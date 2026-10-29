@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -60,7 +61,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * <p>
  * Each top-level component is a vendored library. Its files are declared as nested components of type
  * {@code file} whose {@code name} is the path relative to the project basedir. A whole folder is declared
- * with a {@value #SOURCE_FOLDER_PROPERTY} property on the library; it covers every {@code .js} file below it.
+ * with a {@value #SOURCE_FOLDER_PROPERTY} property on the library; it covers every file below it whose extension is
+ * one of the configured {@code fileExtensions} ({@code js} by default).
  * Everything else is plain CycloneDX and is passed through untouched by the generator.
  */
 public final class VendoredJsBom {
@@ -68,6 +70,7 @@ public final class VendoredJsBom {
     public static final String SPEC_VERSION = "1.4";
     public static final String SOURCE_FOLDER_PROPERTY = "jahia:source-folder";
     public static final String FILE_TYPE = "file";
+    public static final String DEFAULT_FILE_EXTENSIONS = "js";
 
     private static final ObjectMapper MAPPER = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
@@ -184,6 +187,37 @@ public final class VendoredJsBom {
 
     public void write(File file) throws IOException {
         MAPPER.writeValue(file, root);
+    }
+
+    /**
+     * @param fileExtensions comma-separated extensions, with or without leading dot, e.g. {@code "js,css,swf"}
+     * @return the extensions as lower-case suffixes including the dot, e.g. {@code [".js", ".css", ".swf"]}
+     */
+    public static List<String> parseExtensions(String fileExtensions) {
+        List<String> suffixes = new ArrayList<>();
+        for (String extension : (fileExtensions == null ? DEFAULT_FILE_EXTENSIONS : fileExtensions).split(",")) {
+            String trimmed = extension.trim().toLowerCase(Locale.ROOT);
+            if (trimmed.startsWith(".")) {
+                trimmed = trimmed.substring(1);
+            }
+            if (!trimmed.isEmpty()) {
+                suffixes.add("." + trimmed);
+            }
+        }
+        if (suffixes.isEmpty()) {
+            throw new IllegalArgumentException("No file extension configured: " + fileExtensions);
+        }
+        return suffixes;
+    }
+
+    public static boolean hasExtension(String fileName, List<String> suffixes) {
+        String lowerCaseName = fileName.toLowerCase(Locale.ROOT);
+        for (String suffix : suffixes) {
+            if (lowerCaseName.endsWith(suffix)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static ObjectNode newObject() {

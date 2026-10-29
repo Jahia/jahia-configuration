@@ -95,6 +95,19 @@ public class VendoredJsBomTest {
     }
 
     @Test
+    public void testParseExtensions() {
+        assertEquals(Arrays.asList(".js", ".css", ".swf"), VendoredJsBom.parseExtensions(" js, .CSS ,swf,"));
+        assertEquals(Collections.singletonList(".js"), VendoredJsBom.parseExtensions(null));
+        assertTrue(VendoredJsBom.hasExtension("Player.SWF", VendoredJsBom.parseExtensions("swf")));
+        assertFalse(VendoredJsBom.hasExtension("lib.json", VendoredJsBom.parseExtensions("js")));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testRejectsEmptyExtensions() {
+        VendoredJsBom.parseExtensions(" , ");
+    }
+
+    @Test
     public void testEmptyComponentsAreAccepted() throws Exception {
         assertTrue(load("{'bomFormat':'CycloneDX','specVersion':'1.4','version':1}").getLibraries().isEmpty());
     }
