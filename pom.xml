@@ -83,6 +83,7 @@
         <module>osgi-tools</module>
         <module>maven-jahia-plugin</module>
         <module>jahia-simple-maven-plugin</module>
+        <module>vendored-js-bom-maven-plugin</module>
         <module>jahia-installer</module>
         <module>jahia-hibernate-maven-plugin</module>
     </modules>

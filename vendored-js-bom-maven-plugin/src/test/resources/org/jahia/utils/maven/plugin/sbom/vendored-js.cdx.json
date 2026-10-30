@@ -1,0 +1,35 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "version": 1,
+  "components": [
+    {
+      "type": "library",
+      "name": "jquery",
+      "version": "3.6.0",
+      "purl": "pkg:npm/jquery@3.6.0",
+      "supplier": { "name": "jQuery Foundation" },
+      "copyright": "Copyright JS Foundation and other contributors",
+      "licenses": [ { "license": { "id": "MIT" } } ],
+      "description": "Minified jQuery library",
+      "components": [
+        { "type": "file", "name": "src/main/resources/javascript/jquery/jquery.min.js" }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "moment",
+      "version": "2.29.1",
+      "licenses": [ { "license": { "id": "MIT" } } ],
+      "pedigree": {
+        "ancestors": [
+          { "type": "library", "name": "moment", "version": "2.29.1", "purl": "pkg:npm/moment@2.29.1" }
+        ],
+        "notes": "Locale files trimmed to the languages supported by the module"
+      },
+      "properties": [
+        { "name": "jahia:source-folder", "value": "src/main/resources/javascript/moment/" }
+      ]
+    }
+  ]
+}
