@@ -389,56 +389,72 @@ public class JahiaConfigBean implements Cloneable, JahiaConfigInterface {
 
     /**
      * @return the mailServer
+     * @deprecated since Jahia 8.2.3.8: the mail-service module holds the mail configuration, in {@code org.jahia.modules.mail.cfg}
      */
+    @Deprecated
     public String getMailServer() {
         return mailServer;
     }
 
     /**
      * @param mailServer the mailServer to set
+     * @deprecated since Jahia 8.2.3.8: the mail-service module holds the mail configuration, in {@code org.jahia.modules.mail.cfg}
      */
+    @Deprecated
     public void setMailServer(String mailServer) {
         this.mailServer = mailServer;
     }
 
     /**
      * @return the mailFrom
+     * @deprecated since Jahia 8.2.3.8: the mail-service module holds the mail configuration, in {@code org.jahia.modules.mail.cfg}
      */
+    @Deprecated
     public String getMailFrom() {
         return mailFrom;
     }
 
     /**
      * @param mailFrom the mailFrom to set
+     * @deprecated since Jahia 8.2.3.8: the mail-service module holds the mail configuration, in {@code org.jahia.modules.mail.cfg}
      */
+    @Deprecated
     public void setMailFrom(String mailFrom) {
         this.mailFrom = mailFrom;
     }
 
     /**
      * @return the mailAdministrator
+     * @deprecated since Jahia 8.2.3.8: the mail-service module holds the mail configuration, in {@code org.jahia.modules.mail.cfg}
      */
+    @Deprecated
     public String getMailAdministrator() {
         return mailAdministrator;
     }
 
     /**
      * @param mailAdministrator the mailAdministrator to set
+     * @deprecated since Jahia 8.2.3.8: the mail-service module holds the mail configuration, in {@code org.jahia.modules.mail.cfg}
      */
+    @Deprecated
     public void setMailAdministrator(String mailAdministrator) {
         this.mailAdministrator = mailAdministrator;
     }
 
     /**
      * @return the mailParanoia
+     * @deprecated since Jahia 8.2.3.8: the mail-service module holds the mail configuration, in {@code org.jahia.modules.mail.cfg}
      */
+    @Deprecated
     public String getMailParanoia() {
         return mailParanoia;
     }
 
     /**
      * @param mailParanoia the mailParanoia to set
+     * @deprecated since Jahia 8.2.3.8: the mail-service module holds the mail configuration, in {@code org.jahia.modules.mail.cfg}
      */
+    @Deprecated
     public void setMailParanoia(String mailParanoia) {
         this.mailParanoia = mailParanoia;
     }

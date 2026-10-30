@@ -225,22 +225,30 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
 
     /**
      * @parameter expression="${jahia.configure.mailServer}" default-value=""
+     * @deprecated since Jahia 8.2.3.8: the mail-service module holds the mail configuration, in {@code org.jahia.modules.mail.cfg}
      */
+    @Deprecated
     protected String mailServer;
     
     /**
      * @parameter expression="${jahia.configure.mailAdministrator}" default-value=""
+     * @deprecated since Jahia 8.2.3.8: the mail-service module holds the mail configuration, in {@code org.jahia.modules.mail.cfg}
      */
+    @Deprecated
     protected String mailAdministrator;
     
     /**
      * @parameter expression="${jahia.configure.mailFrom}" default-value=""
+     * @deprecated since Jahia 8.2.3.8: the mail-service module holds the mail configuration, in {@code org.jahia.modules.mail.cfg}
      */
+    @Deprecated
     protected String mailFrom;
     
     /**
      * @parameter expression="${jahia.configure.mailParanoia}" default-value="Disabled"
+     * @deprecated since Jahia 8.2.3.8: the mail-service module holds the mail configuration, in {@code org.jahia.modules.mail.cfg}
      */
+    @Deprecated
     protected String mailParanoia;
 
     /**
@@ -484,18 +492,22 @@ public class ConfigureMojo extends AbstractManagementMojo implements JahiaConfig
         return jahiaRootUsername;
     }
 
+    @Deprecated
     public String getMailAdministrator() {
         return mailAdministrator;
     }
 
+    @Deprecated
     public String getMailFrom() {
         return mailFrom;
     }
 
+    @Deprecated
     public String getMailParanoia() {
         return mailParanoia;
     }
 
+    @Deprecated
     public String getMailServer() {
         return mailServer;
     }

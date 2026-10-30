@@ -228,9 +228,10 @@ public class JahiaGlobalConfigurator {
             new RootUserConfigurator(dbProps, jahiaConfigInterface, encryptPassword(jahiaConfigInterface.getJahiaRootPassword())).updateConfiguration(new VFSConfigFile(fsManager, sourceWebAppPath + "/WEB-INF/etc/repository/root.xml"), webappPath + "/WEB-INF/etc/repository/root.xml");
         }
 
-        String mailServerTemplate = sourceWebAppPath + "/WEB-INF/etc/repository/template-root-mail-server.xml";
-        if (fsManager.resolveFile(mailServerTemplate).exists() && Boolean.parseBoolean(jahiaConfigInterface.getProcessingServer())) {
-            new MailServerConfigurator(dbProps, jahiaConfigInterface).updateConfiguration(new VFSConfigFile(fsManager, mailServerTemplate), webappPath + "/WEB-INF/etc/repository/root-mail-server.xml");
+        if (StringUtils.isNotEmpty(jahiaConfigInterface.getMailServer()) || StringUtils.isNotEmpty(jahiaConfigInterface.getMailFrom())
+                || StringUtils.isNotEmpty(jahiaConfigInterface.getMailAdministrator())) {
+            getLogger().warn("The mail settings (mailServer, mailFrom, mailAdministrator) are deprecated since Jahia 8.2.3.8 and are ignored."
+                    + " Configure the mail-service module instead, in org.jahia.modules.mail.cfg.");
         }
         if ("jboss".equalsIgnoreCase(jahiaConfigInterface.getTargetServerType())) {
             updateForJBoss(dbProps, jahiaConfigInterface, fsManager);

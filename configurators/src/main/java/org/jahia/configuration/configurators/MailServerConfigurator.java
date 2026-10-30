@@ -43,54 +43,22 @@
  */
 package org.jahia.configuration.configurators;
 
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.Namespace;
-import org.jdom2.input.SAXBuilder;
-
-import java.io.File;
 import java.util.Map;
 
 /**
- * Repository root configurator for root user.
- * 
+ * Former configurator of the {@code /settings/mail-server} node of the repository. It writes nothing.
+ *
  * @author Sergiy Shyrkov
+ * @deprecated since Jahia 8.2.3.8: the mail-service module holds the mail configuration, in {@code org.jahia.modules.mail.cfg}.
  */
+@Deprecated
 public class MailServerConfigurator extends AbstractXMLConfigurator {
-
-    private JahiaConfigInterface cfg;
 
     public MailServerConfigurator(@SuppressWarnings("rawtypes") Map dbProperties, JahiaConfigInterface jahiaConfigInterface) {
         super(dbProperties, jahiaConfigInterface);
-        cfg = jahiaConfigInterface;
     }
 
     public void updateConfiguration(ConfigFile sourceConfigFile, String destFileName) throws Exception {
-
-        if (sourceConfigFile == null) {
-            return;
-        }
-
-        SAXBuilder saxBuilder = new SAXBuilder();
-        saxBuilder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-        Document jdomDocument = saxBuilder.build(sourceConfigFile.getInputStream());
-        Element el = getElement(jdomDocument.getRootElement(), "/content/settings/mail-server");
-
-        if (el != null && cfg.getMailServer() != null && cfg.getMailServer().length() > 0) {
-            Namespace jahiaNamespace = el.getNamespace("j");
-            el.setAttribute("activated", "true", jahiaNamespace);
-            el.setAttribute("uri", cfg.getMailServer(), jahiaNamespace);
-            if (cfg.getMailFrom() != null) {
-                el.setAttribute("from", cfg.getMailFrom(), jahiaNamespace);
-            }
-            if (cfg.getMailAdministrator() != null) {
-                el.setAttribute("to", cfg.getMailAdministrator(), jahiaNamespace);
-            }
-            if (cfg.getMailParanoia() != null) {
-                el.setAttribute("notificationLevel", cfg.getMailParanoia(), jahiaNamespace);
-            }
-        }
-
-        write(jdomDocument, new File(destFileName));
+        // No-op: Jahia no longer reads the /settings/mail-server node
     }
 }
