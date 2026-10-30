@@ -122,12 +122,28 @@ public interface JahiaConfigInterface {
      */
     String getLdapActivated();
     
+    /**
+     * @deprecated since Jahia 8.2.3.8: the mail-service module holds the mail configuration, in {@code org.jahia.modules.mail.cfg}
+     */
+    @Deprecated
     String getMailAdministrator();
 
+    /**
+     * @deprecated since Jahia 8.2.3.8: the mail-service module holds the mail configuration, in {@code org.jahia.modules.mail.cfg}
+     */
+    @Deprecated
     String getMailFrom();
     
+    /**
+     * @deprecated since Jahia 8.2.3.8: the mail-service module holds the mail configuration, in {@code org.jahia.modules.mail.cfg}
+     */
+    @Deprecated
     String getMailParanoia();
     
+    /**
+     * @deprecated since Jahia 8.2.3.8: the mail-service module holds the mail configuration, in {@code org.jahia.modules.mail.cfg}
+     */
+    @Deprecated
     String getMailServer();
     
     String getOperatingMode();
