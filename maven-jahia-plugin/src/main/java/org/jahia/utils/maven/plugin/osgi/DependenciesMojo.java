@@ -94,6 +94,7 @@ import java.util.stream.Collectors;
  * - Groovy files
  *
  * @goal dependencies
+ * @threadSafe
  * @requiresDependencyResolution test
  * @requiresDependencyCollection test
  * @todo add support for JSP tag files, more...

@@ -64,6 +64,7 @@ import java.util.List;
  * Creates a build number from number of git revisions
  *
  * @goal gitbuildnumber
+ * @threadSafe
  */
 public class GitBuildNumberMojo extends AbstractMojo {
 

@@ -54,6 +54,7 @@ import org.apache.maven.project.MavenProject;
  * Used to add Jahia version in module context
  *
  * @goal jahia-version
+ * @threadSafe
  * @phase prepare-package
  */
 public class JahiaVersionMojo extends AbstractMojo {
