@@ -1,0 +1,17 @@
+{
+  "name": "@jahia/jahia-javascript-maven-plugin-basic-yarn-berry-test",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Test package for jahia-javascript-maven-plugin",
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "myClean": "echo 'Custom clean command executed!'",
+    "myPackage": "yarn pack --out custom/path/to/out.tgz",
+    "myVerify": "echo 'Custom verify command executed!'"
+  },
+  "packageManager": "yarn@4.9.4",
+  "author": "Jahia",
+  "license": "MIT"
+}
